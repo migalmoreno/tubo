@@ -1,0 +1,5 @@
+((nil . ((cider-preferred-build-tool . clojure-cli)
+         (cider-shadow-default-options . "app")
+         (cider-default-cljs-repl . custom)
+         (cider-clojure-cli-aliases . "-M:dev")
+         (cider-merge-sessions . :project))))

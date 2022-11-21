@@ -1,0 +1,8 @@
+/resources/public
+node_modules
+.shadow-cljs
+public
+classes
+*.jar
+.cpcache
+.nrepl-port
