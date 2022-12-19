@@ -1,11 +1,19 @@
 {
   "name": "tau",
-  "version": "1.0.0",
-  "description": "An alternative frontend for media services",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "A web front-end for Newpipe",
+  "main": "resources/public/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "conses",
-  "license": "GPL-3.0-or-later"
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.2.4"
+  }
 }
