@@ -29,7 +29,7 @@
    (reset! instance (tau.DownloaderImpl. builder))))
 
 (defn -getInstance []
-  (if @instance @instance (-init)))
+  (or @instance (-init)))
 
 (defn -execute [this request]
   (let [http-method (.httpMethod request)
