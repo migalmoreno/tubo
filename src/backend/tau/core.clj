@@ -1,10 +1,11 @@
 (ns tau.core
+  (:gen-class)
   (:require
-   [tau.services.http :as http]))
+   [tau.http :as http]))
 
 (defn -main
   [& _]
-  (http/start-server! 3000))
+  (http/start-server!))
 
 (defn reset
   []
