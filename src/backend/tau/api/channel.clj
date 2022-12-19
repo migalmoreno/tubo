@@ -1,6 +1,7 @@
 (ns tau.api.channel
   (:require
    [tau.api.stream :as stream]
+   [tau.api.playlist :as playlist]
    [clojure.java.data :as j]
    [ring.util.codec :refer [url-decode]])
   (:import
@@ -20,7 +21,15 @@
 (defrecord ChannelPage
     [next-page related-streams])
 
-(defn get-channel-result
+(defn get-results
+  [items]
+  (map #(case (.name (.getInfoType %))
+          "STREAM" (stream/get-result %)
+          "CHANNEL" (get-result %)
+          "PLAYLIST" (playlist/get-result %))
+       items))
+
+(defn get-result
   [channel]
   (map->ChannelResult
    {:name (.getName channel)
@@ -31,7 +40,7 @@
     :stream-count (.getStreamCount channel)
     :verified? (.isVerified channel)}))
 
-(defn get-channel-info
+(defn get-info
   ([url]
    (let [info (ChannelInfo/getInfo (url-decode url))]
      (map->Channel
@@ -43,10 +52,10 @@
        :subscriber-count (.getSubscriberCount info)
        :donation-links (.getDonationLinks info)
        :next-page (j/from-java (.getNextPage info))
-       :related-streams (map #(stream/get-stream-result %) (.getRelatedItems info))})))
+       :related-streams (get-results (.getRelatedItems info))})))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (ChannelInfo/getMoreItems service url (Page. (url-decode page-url)))]
      (map->ChannelPage
-      {:related-streams (map #(stream/get-stream-result %) (.getItems info))
+      {:related-streams (get-results (.getItems info))
        :next-page (j/from-java (.getNextPage info))}))))

@@ -15,7 +15,7 @@
     [id text upload-name upload-avatar upload-date upload-url
      upload-verified? like-count hearted-by-upload? pinned? replies])
 
-(defn get-comment-result
+(defn get-result
   [comment]
   (map->Comment
    {:id (.getCommentId comment)
@@ -31,17 +31,17 @@
     :replies (when (.getReplies comment)
                (j/from-java (.getReplies comment)))}))
 
-(defn get-comments-info
+(defn get-info
   ([url]
    (let [info (CommentsInfo/getInfo (url-decode url))]
      (map->CommentsPage
-      {:comments (map #(get-comment-result %) (.getRelatedItems info))
+      {:comments (map #(get-result %) (.getRelatedItems info))
        :next-page (j/from-java (.getNextPage info))
        :disabled? (.isCommentsDisabled info)})))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (CommentsInfo/getMoreItems service url (Page. (url-decode page-url)))]
      (map->CommentsPage
-      {:comments (map #(get-comment-result %) (.getItems info))
+      {:comments (map #(get-result %) (.getItems info))
        :next-page (j/from-java (.getNextPage info))
        :disabled? false}))))

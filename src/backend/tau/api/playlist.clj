@@ -2,6 +2,7 @@
   (:require
    [clojure.java.data :as j]
    [tau.api.stream :as stream]
+   [tau.api.channel :as channel]
    [ring.util.codec :refer [url-decode]])
   (:import
    org.schabi.newpipe.extractor.playlist.PlaylistInfo
@@ -18,7 +19,15 @@
 (defrecord PlaylistPage
     [next-page related-streams])
 
-(defn get-playlist-result
+(defn get-results
+  [items]
+  (map #(case (.name (.getInfoType %))
+          "STREAM" (stream/get-result %)
+          "CHANNEL" (channel/get-result %)
+          "PLAYLIST" (get-result %))
+       items))
+
+(defn get-result
   [playlist]
   (map->PlaylistResult
    {:name (.getName playlist)
@@ -27,7 +36,7 @@
     :upload-author (.getUploaderName playlist)
     :stream-count (.getStreamCount playlist)}))
 
-(defn get-playlist-info
+(defn get-info
   ([url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (PlaylistInfo/getInfo service (url-decode url))]
@@ -42,10 +51,10 @@
        :uploader-avatar (.getUploaderAvatarUrl info)
        :stream-count (.getStreamCount info)
        :next-page (j/from-java (.getNextPage info))
-       :related-streams (map #(stream/get-stream-result %) (.getRelatedItems info))})))
+       :related-streams (get-results (.getRelatedItems info))})))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (PlaylistInfo/getMoreItems service url (Page. (url-decode page-url)))]
      (map->PlaylistPage
       {:next-page (j/from-java (.getNextPage info))
-       :related-streams (map #(stream/get-stream-result %) (.getItems info))}))))
+       :related-streams (get-results (.getItems info))}))))

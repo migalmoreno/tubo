@@ -2,6 +2,8 @@
   (:require
    [clojure.java.data :as j]
    [tau.api.stream :as stream]
+   [tau.api.channel :as channel]
+   [tau.api.playlist :as playlist]
    [ring.util.codec :refer [url-decode]])
   (:import
    org.schabi.newpipe.extractor.StreamingService
@@ -18,7 +20,15 @@
 (defrecord KioskPage
     [next-page related-streams])
 
-(defn get-kiosk-info
+(defn get-results
+  [items]
+  (map #(case (.name (.getInfoType %))
+          "STREAM" (stream/get-result %)
+          "CHANNEL" (channel/get-result %)
+          "PLAYLIST" (playlist/get-result %))
+       items))
+
+(defn get-info
   ([kiosk-id service-id]
    (let [service (NewPipe/getService service-id)
          extractor (.getExtractorById (.getKioskList service) kiosk-id nil)
@@ -27,7 +37,7 @@
       {:id (.getId info)
        :url (.getUrl info)
        :next-page (j/from-java (.getNextPage info))
-       :related-streams (map #(stream/get-stream-result %) (.getRelatedItems info))})))
+       :related-streams (get-results (.getRelatedItems info))})))
   ([kiosk-id service-id page-url]
    (let  [service (NewPipe/getService service-id)
           extractor (.getExtractorById (.getKioskList service) kiosk-id nil)
@@ -36,9 +46,9 @@
           info (KioskInfo/getMoreItems service (.getUrl kiosk-info) (Page. url))]
      (map->KioskPage
       {:next-page (j/from-java (.getNextPage info))
-       :related-streams (map #(stream/get-stream-result %) (.getItems info))}))))
+       :related-streams (get-results (.getItems info))}))))
 
-(defn get-kiosk-list-info
+(defn get-kiosks
   [service-id]
   (let [service (NewPipe/getService service-id)
         kiosks (.getKioskList service)]

@@ -1,5 +1,7 @@
 (ns tau.api.stream
   (:require
+   [tau.api.playlist :as playlist]
+   [tau.api.channel :as channel]
    [clojure.java.data :as j]
    [ring.util.codec :refer [url-decode]])
   (:import
@@ -21,7 +23,7 @@
      upload-avatar upload-date short-description
      duration view-count uploaded verified?])
 
-(defn get-stream-result
+(defn get-result
   [stream]
   (map->StreamResult
    {:url (.getUrl stream)
@@ -36,14 +38,23 @@
     :view-count (.getViewCount stream)
     :uploaded (if (.getUploadDate stream)
                 (.. stream (getUploadDate) (offsetDateTime) (toInstant) (toEpochMilli))
-                -1)
+                false)
     :verified? (.isUploaderVerified stream)}))
 
-(defn get-stream-info
+(defn get-results
+  [items]
+  (map #(case (.name (.getInfoType %))
+          "STREAM" (get-result %)
+          "CHANNEL" (channel/get-result %)
+          "PLAYLIST" (playlist/get-result %))
+       items))
+
+(defn get-info
   [url]
   (let [info (StreamInfo/getInfo (url-decode url))]
     (map->Stream
      {:name (.getName info)
+      :url (.getUrl info)
       :description (.. info (getDescription) (getContent))
       :upload-date (.getTextualUploadDate info)
       :upload-author (.getUploaderName info)
@@ -63,4 +74,4 @@
       :video-streams (j/from-java (.getVideoStreams info))
       :hls-url (.getHlsUrl info)
       :dash-mpd-url (.getDashMpdUrl info)
-      :related-streams (map #(get-stream-result %) (.getRelatedStreams info))})))
+      :related-streams (get-results (.getRelatedStreams info))})))

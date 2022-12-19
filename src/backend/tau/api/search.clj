@@ -17,15 +17,15 @@
 (defrecord SearchResultPage
     [items next-page])
 
-(defn get-search-results
+(defn get-results
   [items]
   (map #(case (.name (.getInfoType %))
-          "STREAM" (stream/get-stream-result %)
-          "CHANNEL" (channel/get-channel-result %)
-          "PLAYLIST" (playlist/get-playlist-result %))
+          "STREAM" (stream/get-result %)
+          "CHANNEL" (channel/get-result %)
+          "PLAYLIST" (playlist/get-result %))
        items))
 
-(defn get-search-info
+(defn get-info
   ([service-id query content-filters sort-filter]
    (let [service (NewPipe/getService service-id)
          query-handler (.. service
@@ -33,7 +33,7 @@
                            (fromQuery query (or content-filters '()) (or sort-filter "")))
          info (SearchInfo/getInfo service query-handler)]
      (map->SearchResult
-      {:items (get-search-results (.getRelatedItems info))
+      {:items (get-results (.getRelatedItems info))
        :next-page (j/from-java (.getNextPage info))
        :search-suggestion (.getSearchSuggestion info)
        :corrected-search? (.isCorrectedSearch info)})))
@@ -45,5 +45,5 @@
                            (fromQuery query (or content-filters '()) (or sort-filter "")))
          info (SearchInfo/getMoreItems service query-handler (Page. url))]
      (map->SearchResultPage
-      {:items (get-search-results (.getItems info))
+      {:items (get-results (.getItems info))
        :next-page (j/from-java (.getNextPage info))}))))
