@@ -1,53 +1,73 @@
 (ns tau.views
   (:require
-   [tau.views.player :as player]
    [reitit.frontend.easy :as rfe]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [reagent.ratom :as ratom]
+   [tau.components.navigation :as navigation]
+   [tau.events :as events]
+   [tau.routes :as routes]
+   [tau.views.player :as player]))
+
+(defonce scroll-hook (.addEventListener js/window "scroll" #(rf/dispatch [::events/page-scroll])))
+(defonce services (rf/dispatch [::events/get-services]))
 
 (defn footer
   []
-  [:footer.bg-slate-900.text-gray-300.p-5.text-center
-   [:div
+  [:footer
+   [:div.bg-black.text-gray-300.p-5.text-center.w-full
     [:p (str "Tau " (.getFullYear (js/Date.)))]]])
 
 (defn search-bar
-  []
+  [{{:keys [serviceId]} :query-params}]
   (let [global-search @(rf/subscribe [:global-search])
         services @(rf/subscribe [:services])
-        service-id @(rf/subscribe [:service-id])]
+        service-id @(rf/subscribe [:service-id])
+        id (js/parseInt (or serviceId service-id)) ]
     [:div.flex
      [:form {:on-submit (fn [e]
                           (.preventDefault e)
-                          (rfe/push-state :tau.routes/search {} {:q global-search :serviceId service-id}))}
-      [:input.bg-slate-900.border.border-solid.border-black.rounded.py-2.px-1.mx-2.text-gray-500
+                          (rf/dispatch [::events/navigate
+                                        {:name ::routes/search
+                                         :params {}
+                                         :query  {:q global-search :serviceId service-id}}]))}
+      [:input.bg-neutral-900.border.border-solid.border-black.rounded.py-2.px-1.mx-2.text-gray-500
        {:type "text"
         :value global-search
-        :on-change #(rf/dispatch [:change-global-search (.. % -target -value)])
+        :on-change #(rf/dispatch [::events/change-global-search (.. % -target -value)])
         :placeholder "Search for something"}]
       [:select.mx-2.bg-gray-50.border.border-gray-900.text-gray-900
-       {:on-change #(rf/dispatch [:change-service-id (js/parseInt (.. % -target -value))])}
-       (for [service services]
-         [:option {:value (:id service) :key (:id service) :selected (= (:id service) service-id)}
-          (-> service :info :name)])]
-      [:button..bg-slate-900.border.border-black.rounded.border-solid.text-gray-500.p-2.mx-2
-       {:type "submit"} "Search"]]]))
+       {:on-change #(rf/dispatch [::events/change-service-id (js/parseInt (.. % -target -value))])}
+       (when services
+         (for [service services]
+           [:option {:value (:id service) :key (:id service) :selected (= id (:id service))}
+            (-> service :info :name)]))]
+      [:button.text-white.mx-2
+       {:type "submit"}
+       [:i.fas.fa-search]]]]))
 
-(defn navbar []
-  [:nav.bg-slate-800.flex.p-2.content-center.sticky.top-0.z-50
-   [:div.px-5.text-white.p-2
-    [:a {:href (rfe/href :tau.routes/home) :dangerouslySetInnerHTML {:__html "&tau;"}}]]
-   [:ul.flex.content-center.text-white.p-2
-    [:li.px-5 [:a {:href (rfe/href :tau.routes/home)} "Home"]]
-    [:li.px-5 [:a {:href (rfe/href :tau.routes/search)} "Search"]]]
-   [search-bar]])
+(defn navbar
+  [match]
+  (let [service-id @(rf/subscribe [:service-id])
+        service-color @(rf/subscribe [:service-color])
+        {:keys [default-kiosk available-kiosks]} @(rf/subscribe [:kiosks])]
+    (rf/dispatch [::events/get-kiosks service-id])
+    [:nav.flex.p-2.content-center.sticky.top-0.z-50
+     {:style {:background service-color}}
+     [:div.px-5.text-white.p-2.font-bold
+      [:a {:href (rfe/href ::routes/home) :dangerouslySetInnerHTML {:__html "&tau;"}}]]
+     [:ul.flex.content-center.p-2.text-white
+      (for [kiosk available-kiosks]
+        [:li.px-5 [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
+                                                           :kioskId kiosk})}
+                   kiosk]])]
+     [search-bar match]]))
 
 (defn app
   []
-  (rf/dispatch [:get-services])
   (let [current-match @(rf/subscribe [:current-match])]
-    [:div.font-sans.bg-slate-700.min-h-screen.flex.flex-col.h-full
-     [navbar]
-     [:div.flex.flex-col.justify-between {:class "min-h-[calc(100vh-58px)]"}
+    [:div.font-sans.min-h-screen.flex.flex-col.h-full {:style {:background "rgba(23, 23, 23)"}}
+     [navbar current-match]
+     [:div.flex.flex-col.justify-between.relative {:class "min-h-[calc(100vh-58px)]"}
       (when-let [view (-> current-match :data :view)]
         [view current-match])
       [player/global-player]

@@ -13,6 +13,11 @@
    (:stream db)))
 
 (rf/reg-sub
+ :channel
+ (fn [db _]
+   (:channel db)))
+
+(rf/reg-sub
  :global-search
  (fn [db _]
    (:global-search db)))
@@ -23,14 +28,34 @@
    (:service-id db)))
 
 (rf/reg-sub
+ :service-color
+ (fn [db _]
+   (:service-color db)))
+
+(rf/reg-sub
  :services
  (fn [db _]
    (:services db)))
 
 (rf/reg-sub
+ :kiosks
+ (fn [db _]
+   (:kiosks db)))
+
+(rf/reg-sub
+ :kiosk
+ (fn [db _]
+   (:kiosk db)))
+
+(rf/reg-sub
  :current-match
  (fn [db _]
    (:current-match db)))
+
+(rf/reg-sub
+ :page-scroll
+ (fn [db _]
+   (:page-scroll db)))
 
 (rf/reg-sub
  :global-stream
@@ -41,3 +66,13 @@
  :show-global-player
  (fn [db _]
    (:show-global-player db)))
+
+(rf/reg-sub
+ :show-page-loading
+ (fn [db _]
+   (:show-page-loading db)))
+
+(rf/reg-sub
+ :show-pagination-loading
+ (fn [db _]
+   (:show-pagination-loading db)))
