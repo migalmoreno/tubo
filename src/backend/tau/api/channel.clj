@@ -1,9 +1,8 @@
 (ns tau.api.channel
   (:require
-   [tau.api.stream :as stream]
-   [tau.api.playlist :as playlist]
    [clojure.java.data :as j]
-   [ring.util.codec :refer [url-decode]])
+   [ring.util.codec :refer [url-decode]]
+   [tau.api.result :as result])
   (:import
    org.schabi.newpipe.extractor.channel.ChannelInfo
    org.schabi.newpipe.extractor.NewPipe
@@ -14,31 +13,8 @@
      subscriber-count donation-links next-page
      related-streams])
 
-(defrecord ChannelResult
-    [name description verified? thumbnail-url url
-     subscriber-count stream-count])
-
 (defrecord ChannelPage
     [next-page related-streams])
-
-(defn get-results
-  [items]
-  (map #(case (.name (.getInfoType %))
-          "STREAM" (stream/get-result %)
-          "CHANNEL" (get-result %)
-          "PLAYLIST" (playlist/get-result %))
-       items))
-
-(defn get-result
-  [channel]
-  (map->ChannelResult
-   {:name (.getName channel)
-    :thumbnail-url (.getThumbnailUrl channel)
-    :url (.getUrl channel)
-    :description (.getDescription channel)
-    :subscriber-count (.getSubscriberCount channel)
-    :stream-count (.getStreamCount channel)
-    :verified? (.isVerified channel)}))
 
 (defn get-info
   ([url]
@@ -49,13 +25,14 @@
        :verified? (.isVerified info)
        :banner (.getBannerUrl info)
        :avatar (.getAvatarUrl info)
-       :subscriber-count (.getSubscriberCount info)
+       :description (.getDescription info)
+       :subscriber-count (if (= (.getSubscriberCount info) -1) false (.getSubscriberCount info))
        :donation-links (.getDonationLinks info)
        :next-page (j/from-java (.getNextPage info))
-       :related-streams (get-results (.getRelatedItems info))})))
+       :related-streams (result/get-results (.getRelatedItems info))})))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
-         info (ChannelInfo/getMoreItems service url (Page. (url-decode page-url)))]
+         info (ChannelInfo/getMoreItems service (url-decode url) (Page. (url-decode page-url)))]
      (map->ChannelPage
-      {:related-streams (get-results (.getItems info))
+      {:related-streams (result/get-results (.getItems info))
        :next-page (j/from-java (.getNextPage info))}))))

@@ -1,9 +1,8 @@
 (ns tau.api.stream
   (:require
-   [tau.api.playlist :as playlist]
-   [tau.api.channel :as channel]
    [clojure.java.data :as j]
-   [ring.util.codec :refer [url-decode]])
+   [ring.util.codec :refer [url-decode]]
+   [tau.api.result :as result])
   (:import
    org.schabi.newpipe.extractor.stream.StreamInfo
    org.schabi.newpipe.extractor.NewPipe
@@ -17,37 +16,6 @@
      dislike-count subscriber-count upload-verified? hls-url
      dash-mpd-url category tags audio-streams video-streams
      related-streams])
-
-(defrecord StreamResult
-    [name url thumbnail-url upload-author upload-url
-     upload-avatar upload-date short-description
-     duration view-count uploaded verified?])
-
-(defn get-result
-  [stream]
-  (map->StreamResult
-   {:url (.getUrl stream)
-    :name (.getName stream)
-    :thumbnail-url (.getThumbnailUrl stream)
-    :upload-author (.getUploaderName stream)
-    :upload-url (.getUploaderUrl stream)
-    :upload-avatar (.getUploaderAvatarUrl stream)
-    :upload-date (.getTextualUploadDate stream)
-    :short-description (.getShortDescription stream)
-    :duration (.getDuration stream)
-    :view-count (.getViewCount stream)
-    :uploaded (if (.getUploadDate stream)
-                (.. stream (getUploadDate) (offsetDateTime) (toInstant) (toEpochMilli))
-                false)
-    :verified? (.isUploaderVerified stream)}))
-
-(defn get-results
-  [items]
-  (map #(case (.name (.getInfoType %))
-          "STREAM" (get-result %)
-          "CHANNEL" (channel/get-result %)
-          "PLAYLIST" (playlist/get-result %))
-       items))
 
 (defn get-info
   [url]
@@ -67,11 +35,11 @@
       :tags (.getTags info)
       :category (.getCategory info)
       :view-count (.getViewCount info)
-      :like-count (.getLikeCount info)
-      :dislike-count (.getDislikeCount info)
-      :subscriber-count (.getUploaderSubscriberCount info)
+      :like-count (if (= (.getLikeCount info) -1) nil (.getLikeCount info))
+      :dislike-count (if (= (.getDislikeCount info) -1) nil (.getDislikeCount info))
+      :subscriber-count (if (= (.getUploaderSubscriberCount info) -1) nil (.getUploaderSubscriberCount info))
       :audio-streams (j/from-java (.getAudioStreams info))
       :video-streams (j/from-java (.getVideoStreams info))
       :hls-url (.getHlsUrl info)
       :dash-mpd-url (.getDashMpdUrl info)
-      :related-streams (get-results (.getRelatedStreams info))})))
+      :related-streams (result/get-results (.getRelatedStreams info))})))

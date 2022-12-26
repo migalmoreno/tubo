@@ -1,10 +1,8 @@
 (ns tau.api.search
   (:require
-   [tau.api.stream :as stream]
-   [tau.api.channel :as channel]
-   [tau.api.playlist :as playlist]
    [clojure.java.data :as j]
-   [ring.util.codec :refer [url-encode url-decode]])
+   [ring.util.codec :refer [url-encode url-decode]]
+   [tau.api.result :as result])
   (:import
    org.schabi.newpipe.extractor.search.SearchInfo
    org.schabi.newpipe.extractor.InfoItem
@@ -17,14 +15,6 @@
 (defrecord SearchResultPage
     [items next-page])
 
-(defn get-results
-  [items]
-  (map #(case (.name (.getInfoType %))
-          "STREAM" (stream/get-result %)
-          "CHANNEL" (channel/get-result %)
-          "PLAYLIST" (playlist/get-result %))
-       items))
-
 (defn get-info
   ([service-id query content-filters sort-filter]
    (let [service (NewPipe/getService service-id)
@@ -33,7 +23,7 @@
                            (fromQuery query (or content-filters '()) (or sort-filter "")))
          info (SearchInfo/getInfo service query-handler)]
      (map->SearchResult
-      {:items (get-results (.getRelatedItems info))
+      {:items (result/get-results (.getRelatedItems info))
        :next-page (j/from-java (.getNextPage info))
        :search-suggestion (.getSearchSuggestion info)
        :corrected-search? (.isCorrectedSearch info)})))
@@ -45,5 +35,5 @@
                            (fromQuery query (or content-filters '()) (or sort-filter "")))
          info (SearchInfo/getMoreItems service query-handler (Page. url))]
      (map->SearchResultPage
-      {:items (get-results (.getItems info))
+      {:items (result/get-results (.getItems info))
        :next-page (j/from-java (.getNextPage info))}))))
