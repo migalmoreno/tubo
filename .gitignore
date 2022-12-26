@@ -1,4 +1,4 @@
-/resources/public
+resources/public
 node_modules
 .shadow-cljs
 public
