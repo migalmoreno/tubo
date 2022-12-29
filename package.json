@@ -7,9 +7,11 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "timeago.js": "^4.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/line-clamp": "^0.4.2",
     "autoprefixer": "^10.4.13",
     "cross-env": "^7.0.3",
