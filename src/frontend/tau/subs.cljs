@@ -3,6 +3,11 @@
    [re-frame.core :as rf]))
 
 (rf/reg-sub
+ :http-response
+ (fn [db _]
+   (:http-response db)))
+
+(rf/reg-sub
  :search-results
  (fn [db _]
    (:search-results db)))
@@ -11,6 +16,11 @@
  :stream
  (fn [db _]
    (:stream db)))
+
+(rf/reg-sub
+ :playlist
+ (fn [db _]
+   (:playlist db)))
 
 (rf/reg-sub
  :channel

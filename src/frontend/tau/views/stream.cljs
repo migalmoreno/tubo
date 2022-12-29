@@ -5,15 +5,18 @@
    [tau.events :as events]
    [tau.components.items :as items]
    [tau.components.loading :as loading]
-   [tau.components.navigation :as navigation]))
+   [tau.components.navigation :as navigation]
+   [tau.components.comments :as comments]
+   [tau.util :as util]))
 
 (defn stream
   [match]
   (let [{:keys [name url video-streams audio-streams view-count
                 subscriber-count like-count dislike-count
-                description upload-avatar upload-author
-                upload-url upload-date related-streams
-                thumbnail-url] :as stream} @(rf/subscribe [:stream])
+                description uploader-avatar uploader-author
+                uploader-url upload-date related-streams
+                thumbnail-url show-comments-loading comments-page
+                show-comments] :as stream} @(rf/subscribe [:stream])
         stream-type (-> (if (empty? video-streams) audio-streams video-streams)
                         last
                         :content)
@@ -23,59 +26,83 @@
      (if page-loading?
        [loading/page-loading-icon service-color]
        [:div {:class "w-4/5"}
-        [navigation/back-button]
+        [navigation/back-button service-color]
         [:div.flex.justify-center.relative.my-2
          {:style {:background (str "center / cover no-repeat url('" thumbnail-url"')")
                   :height "450px"}}
-         [:video.min-h-full.absolute.bottom-0.object-cover {:src stream-type :controls true :width "100%"}]]
-        [:div.flex.text-white.flex.w-full.my-1
-         [:button.border.rounded.border-black.p-2.bg-stone-800
+         [:video.bottom-0.object-cover.max-h-full.min-w-full
+          {:src stream-type :controls true}]]
+        [:div.flex.flex.w-full.mt-3.justify-center
+         [:button.border.rounded.border-black.px-3.py-1.bg-stone-800
           {:on-click #(rf/dispatch [::events/switch-to-global-player stream])}
           [:i.fa-solid.fa-headphones]]
-         [:a {:href (:url stream)}
-          [:button.border.rounded.border-black.p-2.bg-stone-800.mx-2
+         [:a {:href url}
+          [:button.border.rounded.border-black.px-3.py-1.bg-stone-800.mx-2
            [:i.fa-solid.fa-external-link-alt]]]]
-        [:div.flex.flex-col.py-1
+        [:div.flex.flex-col.py-1.comments
          [:div.min-w-full.py-3
-          [:h1.text-xl.font-extrabold name]]
+          [:h1.text-2xl.font-extrabold name]]
          [:div.flex.justify-between.py-2
           [:div.flex.items-center.flex-auto
-           (when upload-avatar
-             [:div
-              [:img.rounded-full {:src upload-avatar :alt upload-author}]])
+           (when uploader-avatar
+             [:div.relative.w-16.h-16
+              [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-author}
+               [:img.rounded-full.object-cover.max-w-full.min-h-full {:src uploader-avatar :alt uploader-author}]]])
            [:div.mx-2
-            [:a {:href (rfe/href :tau.routes/channel nil {:url upload-url})} upload-author]
+            [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url})} uploader-author]
             (when subscriber-count
-              [:div.flex.my-2
-               [:i.fa-solid.fa-users]
-               [:p.mx-2 (.toLocaleString subscriber-count)]])]]
-          [:div
+              [:div.flex.my-2.items-center
+               [:i.fa-solid.fa-users.text-xs]
+               [:p.mx-2 (util/format-quantity subscriber-count)]])]]
+          [:div.flex.flex-col.items-end
            (when view-count
-             [:p
-              [:i.fa-solid.fa-eye]
-              [:span.mx-2 (.toLocaleString view-count)]])
-           [:div
+             [:div
+              [:i.fa-solid.fa-eye.text-xs]
+              [:span.ml-2 (.toLocaleString view-count)]])
+           [:div.flex
             (when like-count
-              [:p
-               [:i.fa-solid.fa-thumbs-up]
-               [:span.mx-2 like-count]])
+              [:div.items-center
+               [:i.fa-solid.fa-thumbs-up.text-xs]
+               [:span.ml-2 (.toLocaleString like-count)]])
             (when dislike-count
-              [:p
-               [:i.fa-solid.fa-thumbs-down]
-               [:span.mx-2 dislike-count]])]
+              [:div.ml-2.items-center
+               [:i.fa-solid.fa-thumbs-down.text-xs]
+               [:span.ml-2 dislike-count]])]
            (when upload-date
-             [:p (-> upload-date
-                     js/Date.parse
-                     js/Date.
-                     .toDateString)])]]
+             [:div
+              [:i.fa-solid.fa-calendar.mx-2.text-xs]
+              [:span
+               (-> upload-date
+                   js/Date.parse
+                   js/Date.
+                   .toDateString)]])]]
          [:div.min-w-full.py-3
           [:h1 name]
-          [:p description]]
+          [:div {:dangerouslySetInnerHTML {:__html description}}]]
          [:div.py-3
-          [:h1.text-lg.bold "Related Results"]
-          [:div.flex.justify-center.align-center.flex-wrap
-           (for [[i item] (map-indexed vector related-streams)]
-             (cond
-               (:duration item) [items/stream-item i item]
-               (:subscriber-count item) [items/channel-item i item]
-               (:stream-count item) [items/playlist-item i item]))]]]])]))
+          [:div.flex.items-center
+           [:i.fa-solid.fa-comments]
+           [:p.px-2 "Comments"]
+           (if show-comments
+             [:i.fa-solid.fa-chevron-up {:on-click #(rf/dispatch [::events/toggle-comments])
+                                           :style {:cursor "pointer"}}]
+             [:i.fa-solid.fa-chevron-down {:on-click #(if show-comments
+                                                        (rf/dispatch [::events/toggle-comments])
+                                                        (rf/dispatch [::events/get-comments url]))
+                                           :style {:cursor "pointer"}}])]
+          [:div
+           (if show-comments-loading
+             [loading/page-loading-icon service-color]
+             (when (and show-comments comments-page)
+               [comments/comments comments-page uploader-author uploader-avatar url]))]]
+         (when-not (empty? related-streams)
+           [:div.py-3
+            [:div.flex.items-center
+             [:i.fa-solid.fa-list]
+             [:h1.px-2.text-lg.bold "Related Results"]]
+            [:div.flex.justify-center.align-center.flex-wrap
+             (for [[i item] (map-indexed vector related-streams)]
+               (case (:type item)
+                 "stream" [items/stream-item (assoc item :key i)]
+                 "channel" [items/channel-item (assoc item :key i)]
+                 "playlist" [items/playlist-item (assoc item :key i)]))]])]])]))

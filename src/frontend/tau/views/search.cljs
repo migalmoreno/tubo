@@ -18,19 +18,20 @@
         pagination-loading? @(rf/subscribe [:show-pagination-loading])
         scrolled-to-bottom? (= page-scroll (.-scrollHeight js/document.body))]
     (when scrolled-to-bottom?
-      (rf/dispatch [::events/scroll-search-pagination q serviceId next-page-url]))
+      (rf/dispatch [::events/search-pagination q serviceId next-page-url]))
     [:div.flex.flex-col.text-gray-300.h-box-border.flex-auto
      [:div.flex.flex-col.items-center.w-full.pt-4.flex-initial
       [:h2 (str "Showing search results for: \"" q "\"")]
       [:h1 (str "Number of search results: " (count items))]]
      (if page-loading?
        [loading/page-loading-icon service-color]
-       [:div.flex.flex-col
-        [:div.flex.justify-center.align-center.flex-wrap.flex-auto
-         (for [[i item] (map-indexed vector items)]
-           (cond
-             (:duration item) [items/stream-item i item]
-             (:subscriber-count item) [items/channel-item i item]
-             (:stream-count item) [items/playlist-item i item]))
-         (when-not (empty? next-page-url)
-           [loading/pagination-loading-icon service-color pagination-loading?])]])]))
+       (when items
+         [:div.flex.flex-col
+          [:div.flex.justify-center.align-center.flex-wrap.flex-auto
+           (for [[i item] (map-indexed vector items)]
+             (case (:type item)
+               "stream" [items/stream-item (assoc item :key i)]
+               "channel" [items/channel-item (assoc item :key i)]
+               "playlist" [items/playlist-item (assoc item :key i)]))
+           (when-not (empty? next-page-url)
+             [loading/items-pagination-loading-icon service-color pagination-loading?])]]))]))

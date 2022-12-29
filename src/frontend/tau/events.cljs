@@ -32,12 +32,24 @@
  (fn [_ _]
    {::history-back! nil}))
 
+(rf/reg-event-db
+ ::page-scroll
+ (fn [db _]
+   (when (> (.-scrollY js/window) 0)
+     (assoc db :page-scroll (+ (.-scrollY js/window) (.-innerHeight js/window))))))
+
+(rf/reg-event-db
+ ::reset-page-scroll
+ (fn [db _]
+   (assoc db :page-scroll 0)))
+
 (rf/reg-event-fx
  ::navigated
  (fn [{:keys [db]} [_ new-match]]
-   {::scroll-to-top nil
-    :db (assoc db :current-match new-match)
-    :fx [[:dispatch [::reset-page-scroll]]]}))
+   {:db (-> db
+            (assoc :current-match new-match)
+            (assoc :show-pagination-loading false))
+    ::scroll-to-top nil}))
 
 (rf/reg-event-fx
  ::navigate
@@ -61,9 +73,9 @@
 
 (rf/reg-event-db
  ::change-service-color
- (fn [db [_ id]]
+ (fn [db [_ service-id]]
    (assoc db :service-color
-          (case id
+          (case service-id
             0 "#cc0000"
             1 "#ff7700"
             2 "#333333"
@@ -72,9 +84,9 @@
 
 (rf/reg-event-fx
  ::change-service-id
- (fn [{:keys [db]} [_ id]]
-   {:db (assoc db :service-id id)
-    :fx [[:dispatch [::change-service-color id]]]}))
+ (fn [{:keys [db]} [_ service-id]]
+   {:db (assoc db :service-id service-id)
+    :fx [[:dispatch [::change-service-color service-id]]]}))
 
 (rf/reg-event-db
  ::load-paginated-channel-results
@@ -87,14 +99,38 @@
        (assoc :show-pagination-loading false))))
 
 (rf/reg-event-fx
- ::scroll-channel-pagination
+ ::channel-pagination
  (fn [{:keys [db]} [_ uri next-page-url]]
-   (assoc
-    (api/get-request
-     (str "/api/channels/" (js/encodeURIComponent uri) )
-     [::load-paginated-channel-results] [::bad-response]
-     {:nextPage (js/encodeURIComponent next-page-url)})
-    :db (assoc db :show-pagination-loading true))))
+   (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
+     (assoc
+      (api/get-request
+       (str "/api/channels/" (js/encodeURIComponent uri) )
+       [::load-paginated-channel-results] [::bad-response]
+       {:nextPage (js/encodeURIComponent next-page-url)})
+      :db (assoc db :show-pagination-loading true)))))
+
+(rf/reg-event-db
+ ::load-paginated-playlist-results
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:playlist :related-streams] #(apply conj %1 %2)
+                  (:related-streams (js->clj res :keywordize-keys true)))
+       (assoc-in [:playlist :next-page]
+                 (:next-page (js->clj res :keywordize-keys true)))
+       (assoc :show-pagination-loading false))))
+
+(rf/reg-event-fx
+ ::playlist-pagination
+ (fn [{:keys [db]} [_ uri next-page-url]]
+   (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
+     (assoc
+      (api/get-request
+       (str "/api/playlists/" (js/encodeURIComponent uri))
+       [::load-paginated-playlist-results] [::bad-response]
+       {:nextPage (js/encodeURIComponent next-page-url)})
+      :db (assoc db :show-pagination-loading true)))))
 
 (rf/reg-event-db
  ::load-paginated-search-results
@@ -106,26 +142,18 @@
                  (:next-page (js->clj res :keywordize-keys true)))
        (assoc :show-pagination-loading false))))
 
-(rf/reg-event-db
- ::reset-page-scroll
- (fn [db _]
-   (assoc db :page-scroll 0)))
-
-(rf/reg-event-db
- ::page-scroll
- (fn [db _]
-   (assoc db :page-scroll (+ (.-scrollY js/window) (.-innerHeight js/window)))))
-
 (rf/reg-event-fx
- ::scroll-search-pagination
+ ::search-pagination
  (fn [{:keys [db]} [_ query id next-page-url]]
-   (assoc
-    (api/get-request
-     (str "/api/services/" id "/search")
-     [::load-paginated-search-results] [::bad-response]
-     {:q query
-      :nextPage (js/encodeURIComponent next-page-url)})
-    :db (assoc db :show-pagination-loading true))))
+   (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
+     (assoc
+      (api/get-request
+       (str "/api/services/" id "/search")
+       [::load-paginated-search-results] [::bad-response]
+       {:q query
+        :nextPage (js/encodeURIComponent next-page-url)})
+      :db (assoc db :show-pagination-loading true)))))
 
 (rf/reg-event-fx
  ::switch-to-global-player
@@ -144,6 +172,49 @@
    (api/get-request "/api/services" [::load-services] [::bad-response])))
 
 (rf/reg-event-db
+ ::load-comments
+ (fn [db [_ res]]
+   (-> db
+       (assoc-in [:stream :comments-page] (js->clj res :keywordize-keys true))
+       (assoc-in [:stream :show-comments-loading] false))))
+
+(rf/reg-event-fx
+ ::get-comments
+ (fn [{:keys [db]} [_ url]]
+   (assoc
+    (api/get-request (str "/api/comments/" (js/encodeURIComponent url))
+                     [::load-comments] [::bad-response])
+    :db (-> db
+            (assoc-in [:stream :show-comments-loading] true)
+            (assoc-in [:stream :show-comments] true)))))
+
+(rf/reg-event-db
+ ::toggle-comments
+ (fn [db [_ res]]
+   (assoc-in db [:stream :show-comments] (not (-> db :stream :show-comments)))))
+
+(rf/reg-event-db
+ ::load-paginated-comments
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:stream :comments-page :comments] #(apply conj %1 %2)
+                  (:comments (js->clj res :keywordize-keys true)))
+       (assoc-in [:stream :comments-page :next-page]
+                 (:next-page (js->clj res :keywordize-keys true)))
+       (assoc :show-pagination-loading false))))
+
+(rf/reg-event-fx
+ ::comments-pagination
+ (fn [{:keys [db]} [_ url next-page-url]]
+   (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
+     (assoc
+      (api/get-request (str "/api/comments/" (js/encodeURIComponent url))
+                       [::load-paginated-comments] [::bad-response]
+                       {:nextPage (js/encodeURIComponent next-page-url)})
+      :db (assoc db :show-pagination-loading true)))))
+
+(rf/reg-event-db
  ::load-kiosks
  (fn [db [_ res]]
    (assoc db :kiosks (js->clj res :keywordize-keys true))))
@@ -160,13 +231,53 @@
           :show-page-loading false)))
 
 (rf/reg-event-fx
- ::get-kiosk
- (fn [{:keys [db]} [_ {:keys [service-id kiosk-id]}]]
+ ::get-default-kiosk
+ (fn [{:keys [db]} [_ service-id]]
    (assoc
-    (api/get-request (str "/api/services/" service-id "/kiosks/"
-                          (js/encodeURIComponent kiosk-id))
+    (api/get-request (str "/api/services/" service-id "/default-kiosk")
                      [::load-kiosk] [::bad-response])
     :db (assoc db :show-page-loading true))))
+
+(rf/reg-event-fx
+ ::get-kiosk
+ (fn [{:keys [db]} [_ service-id kiosk-id]]
+   (if kiosk-id
+     (assoc
+      (api/get-request (str "/api/services/" service-id "/kiosks/"
+                            (js/encodeURIComponent kiosk-id))
+                       [::load-kiosk] [::bad-response])
+      :db (assoc db :show-page-loading true))
+     {:fx [[:dispatch [::get-default-kiosk service-id]]]})))
+
+(rf/reg-event-fx
+ ::change-service
+ (fn [{:keys [db]} [_ service-id]]
+   {:fx [[:dispatch
+          [::navigate {:name :tau.routes/kiosk
+                       :params {}
+                       :query  {:serviceId service-id}}]]]}))
+
+(rf/reg-event-db
+ ::load-paginated-kiosk-results
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:kiosk :related-streams] #(apply conj %1 %2)
+                  (:related-streams (js->clj res :keywordize-keys true)))
+       (assoc-in [:kiosk :next-page]
+                 (:next-page (js->clj res :keywordize-keys true)))
+       (assoc :show-pagination-loading false))))
+
+(rf/reg-event-fx
+ ::kiosk-pagination
+ (fn [{:keys [db]} [_ service-id kiosk-id next-page-url]]
+   (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
+     (assoc
+      (api/get-request
+       (str "/api/services/" service-id "/kiosks/" (js/encodeURIComponent kiosk-id))
+       [::load-paginated-kiosk-results] [::bad-response]
+       {:nextPage (js/encodeURIComponent next-page-url)})
+      :db (assoc db :show-pagination-loading true)))))
 
 (rf/reg-event-db
  ::load-stream
@@ -215,11 +326,12 @@
  ::load-search-results
  (fn [db [_ res]]
    (assoc db :search-results (js->clj res :keywordize-keys true)
-          :show-page-loading false)))
+          :show-page-loading false
+          :global-search "")))
 
 (rf/reg-event-fx
  ::get-search-results
- (fn [{:keys [db]} [_ {:keys [service-id query]}]]
+ (fn [{:keys [db]} [_ service-id query]]
    (assoc
     (api/get-request (str "/api/services/" service-id "/search")
                      [::load-search-results] [::bad-response]

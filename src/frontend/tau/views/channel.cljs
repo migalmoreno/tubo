@@ -12,30 +12,35 @@
                 related-streams next-page]} @(rf/subscribe [:channel])
         next-page-url (:url next-page)
         service-color @(rf/subscribe [:service-color])
-        page-scroll @(rf/subscribe [:page-scroll])
         page-loading? @(rf/subscribe [:show-page-loading])
         pagination-loading? @(rf/subscribe [:show-pagination-loading])
+        page-scroll @(rf/subscribe [:page-scroll])
         scrolled-to-bottom? (= page-scroll (.-scrollHeight js/document.body))]
     (when scrolled-to-bottom?
-      (rf/dispatch [::events/scroll-channel-pagination url next-page-url]))
-    [:div.flex.flex-col.items-center.px-5.py-2.text-white.flex-auto
+      (rf/dispatch [::events/channel-pagination url next-page-url]))
+    [:div.flex.flex-col.items-center.px-5.py-2.flex-auto
      (if page-loading?
        [loading/page-loading-icon service-color]
        [:div {:class "w-4/5"}
-        [navigation/back-button]
-        [:div [:img {:src banner}]]
+        [navigation/back-button service-color]
+        (when banner
+          [:div
+           [:img {:src banner}]])
         [:div.flex.items-center.my-4.mx-2
-         [:div
-          [:img.rounded-full {:src avatar}]]
+         (when avatar
+           [:div.relative.w-16.h-16
+            [:img.rounded-full.object-cover.max-w-full.min-h-full {:src avatar :alt name}]])
          [:div.m-4
           [:h1.text-xl name]
-          [:div.flex.my-2.items-center
-           [:i.fa-solid.fa-users]
-           [:span.mx-2 subscriber-count]]]]
+          (when subscriber-count
+            [:div.flex.my-2.items-center
+             [:i.fa-solid.fa-users.text-xs]
+             [:span.mx-2 (.toLocaleString subscriber-count)]])]]
         [:div.my-2
          [:p description]]
-        [:div.flex.justify-center.align-center.flex-wrap.my-2
-         (for [[i result] (map-indexed vector related-streams)]
-           [items/stream-item i result])]
+        [:div.flex.justify-center.items-center.align-center
+         [:div.flex.justify-start.flex-wrap
+          (for [[i result] (map-indexed vector related-streams)]
+            [items/stream-item (assoc result :key i)])]]
         (when-not (empty? next-page-url)
-           [loading/pagination-loading-icon service-color pagination-loading?])])]))
+           [loading/items-pagination-loading-icon service-color pagination-loading?])])]))
