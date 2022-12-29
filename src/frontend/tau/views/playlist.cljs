@@ -15,7 +15,6 @@
         next-page-url (:url next-page)
         service-color @(rf/subscribe [:service-color])
         page-loading? @(rf/subscribe [:show-page-loading])
-        pagination-loading? @(rf/subscribe [:show-pagination-loading])
         page-scroll @(rf/subscribe [:page-scroll])
         scrolled-to-bottom? (= page-scroll (.-scrollHeight js/document.body))]
     (when scrolled-to-bottom?
@@ -23,7 +22,7 @@
     [:div.flex.flex-col.items-center.px-5.pt-4.flex-auto
      (if page-loading?
        [loading/page-loading-icon service-color]
-       [:div.flex.flex-col.flex-auto
+       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5"}
         [navigation/back-button service-color]
         (when banner-url
           [:div
@@ -38,11 +37,4 @@
              [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-name}
               [:img.rounded-full.object-cover.min-h-full.min-w-full {:src uploader-avatar :alt uploader-name}]]]]]
           [:p.pt-4 (str stream-count " streams")]]]
-        (if (empty? related-streams)
-          [:div.flex.flex-auto.justify-center.items-center
-           [:p.text-2xl "No streams available"]]
-          [:div.flex.justify-center.align-center.flex-wrap.my-2
-           (for [[i result] (map-indexed vector related-streams)]
-             [items/stream-item (assoc result :key i)])
-           (when-not (empty? next-page-url)
-             [loading/items-pagination-loading-icon service-color pagination-loading?])])])]))
+        [items/related-streams related-streams next-page-url]])]))

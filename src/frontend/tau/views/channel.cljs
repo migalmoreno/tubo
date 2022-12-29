@@ -21,7 +21,7 @@
     [:div.flex.flex-col.items-center.px-5.py-2.flex-auto
      (if page-loading?
        [loading/page-loading-icon service-color]
-       [:div {:class "w-4/5"}
+       [:div.flex.flex-col {:class "w-4/5"}
         [navigation/back-button service-color]
         (when banner
           [:div
@@ -38,9 +38,4 @@
              [:span.mx-2 (.toLocaleString subscriber-count)]])]]
         [:div.my-2
          [:p description]]
-        [:div.flex.justify-center.items-center.align-center
-         [:div.flex.justify-start.flex-wrap
-          (for [[i result] (map-indexed vector related-streams)]
-            [items/stream-item (assoc result :key i)])]]
-        (when-not (empty? next-page-url)
-           [loading/items-pagination-loading-icon service-color pagination-loading?])])]))
+        [items/related-streams related-streams next-page-url]])]))

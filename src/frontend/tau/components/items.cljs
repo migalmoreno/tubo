@@ -1,6 +1,8 @@
 (ns tau.components.items
   (:require
+   [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
+   [tau.components.loading :as loading]
    [tau.util :as util]
    ["timeago.js" :as timeago]))
 
@@ -78,3 +80,21 @@
      [:div.flex.items-center
       [:i.fa-solid.fa-video.text-xs]
       [:p.mx-2 stream-count]]]]])
+
+(defn related-streams
+  [related-streams next-page-url]
+  (let [service-color @(rf/subscribe [:service-color])
+        pagination-loading? @(rf/subscribe [:show-pagination-loading])]
+    [:div.flex.flex-col.justify-center.items-center.flex-auto
+     (if (empty? related-streams)
+       [:div
+        [:p "No available streams"]]
+       [:div.flex.justify-center.flex-wrap
+        (for [[i item] (map-indexed vector related-streams)
+              :let [keyed-item (assoc item :key i)]]
+          (case (:type item)
+            "stream" [stream-item keyed-item]
+            "channel" [channel-item keyed-item]
+            "playlist" [playlist-item keyed-item]))])
+     (when-not (empty? next-page-url)
+       [loading/items-pagination-loading-icon service-color pagination-loading?])]))
