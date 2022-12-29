@@ -27,14 +27,17 @@
               :parameters {:path {:service-id int?}
                            :query {:q string?}}
               :handler handler/search}}]
-      ["/:service-id/kiosks"
-       ["" {:get {:coercion reitit.coercion.malli/coercion
-                  :parameters {:path {:service-id int?}}
-                  :handler handler/kiosks}}]
-       ["/:kiosk-id"
+      ["/:service-id"
+       ["/default-kiosk" {:get {:coercion reitit.coercion.malli/coercion
+                                :parameters {:path {:service-id int?}}
+                                :handler handler/kiosk}}]
+       ["/kiosks"
         ["" {:get {:coercion reitit.coercion.malli/coercion
-                   :parameters {:path {:service-id int? :kiosk-id string?}}
-                   :handler handler/kiosk}}]]]]
+                   :parameters {:path {:service-id int?}}
+                   :handler handler/kiosks}}]
+        ["/:kiosk-id" {:get {:coercion reitit.coercion.malli/coercion
+                             :parameters {:path {:service-id int? :kiosk-id string?}}
+                             :handler handler/kiosk}}]]]]
      ["/streams/:url" {:get handler/stream}]
      ["/channels/:url" {:get handler/channel}]
      ["/playlists/:url" {:get handler/playlist}]

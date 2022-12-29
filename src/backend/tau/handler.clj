@@ -3,13 +3,11 @@
    [clojure.string :as str]
    [hiccup.page :as hiccup]
    [ring.util.response :refer [response]]
-   [tau.api.stream :as stream]
-   [tau.api.search :as search]
-   [tau.api.channel :as channel]
-   [tau.api.playlist :as playlist]
-   [tau.api.comment :as comment]
-   [tau.api.kiosk :as kiosk]
-   [tau.api.service :as service]))
+   [tau.api.streams :as streams]
+   [tau.api.channels :as channels]
+   [tau.api.playlists :as playlists]
+   [tau.api.comments :as comments]
+   [tau.api.services :as services]))
 
 (defn index
   [_]
@@ -32,40 +30,41 @@
         {:strs [contentFilters sortFilter nextPage]} (:query-params req)
         content-filters (and contentFilters (str/split contentFilters #","))]
     (response (if nextPage
-                (search/get-info service-id q contentFilters sortFilter nextPage)
-                (search/get-info service-id q contentFilters sortFilter)))))
+                (services/search service-id q contentFilters sortFilter nextPage)
+                (services/search service-id q contentFilters sortFilter)))))
 
 (defn channel
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (channel/get-info url nextPage)
-              (channel/get-info url))))
+              (channels/get-channel url nextPage)
+              (channels/get-channel url))))
 
 (defn playlist
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (playlist/get-info url nextPage)
-              (playlist/get-info url))))
+              (playlists/get-playlist url nextPage)
+              (playlists/get-playlist url))))
 
 (defn comments
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (comment/get-info url nextPage)
-              (comment/get-info url))))
+              (comments/get-comment url nextPage)
+              (comments/get-comment url))))
 
 (defn services
   [_]
-  (response (service/get-services)))
+  (response (services/get-services)))
 
 (defn kiosks
   [{{{:keys [service-id]} :path} :parameters}]
-  (response (kiosk/get-kiosks service-id)))
+  (response (services/get-kiosks service-id)))
 
 (defn kiosk
   [{{{:keys [kiosk-id service-id]} :path} :parameters {:strs [nextPage]} :query-params}]
-  (response (if nextPage
-              (kiosk/get-info kiosk-id service-id nextPage)
-              (kiosk/get-info kiosk-id service-id))))
+  (response (cond
+              (and kiosk-id service-id nextPage) (services/get-kiosk kiosk-id service-id nextPage)
+              (and kiosk-id service-id) (services/get-kiosk kiosk-id service-id)
+              :else (services/get-kiosk service-id))))
 
 (defn stream [{{:keys [url]} :path-params}]
-  (response (stream/get-info url)))
+  (response (streams/get-stream url)))
