@@ -22,7 +22,8 @@
       :uploader-avatar (.getUploaderAvatarUrl info)
       :stream-count (.getStreamCount info)
       :next-page (j/from-java (.getNextPage info))
-      :related-streams (items/get-items (.getRelatedItems info))}))
+      :related-streams (items/get-items (.getRelatedItems info))
+      :service-id (.getServiceId info)}))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (PlaylistInfo/getMoreItems service url (Page. (url-decode page-url)))]

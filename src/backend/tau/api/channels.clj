@@ -20,7 +20,8 @@
       :subscriber-count (when-not (= (.getSubscriberCount info) -1) (.getSubscriberCount info))
       :donation-links (.getDonationLinks info)
       :next-page (j/from-java (.getNextPage info))
-      :related-streams (items/get-items (.getRelatedItems info))}))
+      :related-streams (items/get-items (.getRelatedItems info))
+      :service-id (.getServiceId info)}))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
          info (ChannelInfo/getMoreItems service (url-decode url) (Page. (url-decode page-url)))]
