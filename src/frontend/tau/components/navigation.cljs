@@ -4,8 +4,8 @@
    [tau.events :as events]))
 
 (defn back-button [service-color]
-  [:div.flex.items-center {:class "w-4/5"}
-   [:button.py-4
+  [:div.flex.items-center
+   [:button.py-4.px-2
     {:on-click #(rf/dispatch [::events/history-back])}
     [:i.fa-solid.fa-chevron-left
      {:style {:color service-color}}]
