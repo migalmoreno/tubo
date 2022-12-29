@@ -20,6 +20,7 @@ module.exports = {
     rules: [
       {
         test: /\.scss$/i,
+        exclude: /node_modules/,
         use: [
           MiniCssExtractPlugin.loader,
           {

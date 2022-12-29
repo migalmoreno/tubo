@@ -2,9 +2,15 @@
 module.exports = {
   content: ["./src/**/*.{html,js,cljs}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        nunito: ['nunito-light', 'sans-serif'],
+        roboto: ['roboto-light', 'sans-serif'],
+      },
+    },
   },
   plugins: [
-    require('@tailwindcss/line-clamp')
+    require('@tailwindcss/line-clamp'),
+    require('@tailwindcss/forms')
   ],
 }
