@@ -14,7 +14,7 @@
    [:div.px-5.py-2.m-2.flex.flex-col.max-w-full.min-h-full.max-h-full
     [:div.flex.py-2.box-border.h-28
      [:div.relative.min-w-full
-      [:a.absolute.min-w-full.min-h-full.z-50 {:href (rfe/href :tau.routes/stream nil {:url url}) :title name}]
+      [:a.absolute.min-w-full.min-h-full.z-10 {:href (rfe/href :tau.routes/stream nil {:url url}) :title name}]
       [:img.rounded.object-cover.max-h-full.min-w-full {:src thumbnail-url}]
       [:div.rounded.p-2.absolute {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
        [:p {:style {:fontSize "14px"}}
@@ -69,7 +69,7 @@
    [:div.px-5.py-2.m-2.flex.flex-col.max-w-full.min-h-full.max-h-full
     [:div.flex.min-w-full.py-3.box-border.h-28
      [:div.relative.min-w-full
-      [:a.absolute.min-w-full.min-h-full.z-50 {:href (rfe/href :tau.routes/playlist nil {:url url}) :title name}]
+      [:a.absolute.min-w-full.min-h-full.z-10 {:href (rfe/href :tau.routes/playlist nil {:url url}) :title name}]
       [:img.rounded.object-cover.max-h-full.min-w-full {:src thumbnail-url}]]]
     [:div.overflow-hidden
      [:div
