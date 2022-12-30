@@ -1,4 +1,12 @@
-(ns tau.util)
+(ns tau.util
+  (:require
+   ["timeago.js" :as timeago]))
+
+(defn format-date
+  [date]
+  (if (-> date js/Date.parse js/isNaN)
+    date
+    (timeago/format date)))
 
 (defn format-quantity
   [num]
