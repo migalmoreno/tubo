@@ -1,19 +1,20 @@
 (ns tau.core
   (:require
-   [reagent.dom :as rdom]
+   ["react-dom/client" :as rdom]
+   [reagent.core :as r]
    [re-frame.core :as rf]
    [tau.events :as events]
    [tau.routes :as routes]
    [tau.subs]
    [tau.views :as views]))
 
+(defonce root (rdom/createRoot (.querySelector js/document "#app")))
+
 (defn ^:dev/after-load mount-root
   []
   (rf/clear-subscription-cache!)
   (routes/start-routes!)
-  (rdom/render
-   [views/app]
-   (.querySelector js/document "#app")))
+  (.render root (r/as-element [views/app])))
 
 (defn ^:export init
   []
