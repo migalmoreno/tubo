@@ -16,7 +16,7 @@
      :url (.getUrl info)
      :description (.. info (getDescription) (getContent))
      :upload-date (.getTextualUploadDate info)
-     :uploader-author (.getUploaderName info)
+     :uploader-name (.getUploaderName info)
      :uploader-url (.getUploaderUrl info)
      :uploader-avatar (.getUploaderAvatarUrl info)
      :uploader-verified? (.isUploaderVerified info)

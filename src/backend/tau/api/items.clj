@@ -6,9 +6,9 @@
    :url (.getUrl stream)
    :name (.getName stream)
    :thumbnail-url (.getThumbnailUrl stream)
-   :upload-author (.getUploaderName stream)
-   :upload-url (.getUploaderUrl stream)
-   :upload-avatar (.getUploaderAvatarUrl stream)
+   :uploader-name (.getUploaderName stream)
+   :uploader-url (.getUploaderUrl stream)
+   :uploader-avatar (.getUploaderAvatarUrl stream)
    :upload-date (.getTextualUploadDate stream)
    :short-description (.getShortDescription stream)
    :duration (.getDuration stream)
@@ -35,7 +35,7 @@
    :url (.getUrl playlist)
    :name (.getName playlist)
    :thumbnail-url (.getThumbnailUrl playlist)
-   :upload-author (.getUploaderName playlist)
+   :uploader-name (.getUploaderName playlist)
    :stream-count (when-not (= (.getStreamCount playlist) -1) (.getStreamCount playlist))})
 
 (defn get-items
