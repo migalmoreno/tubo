@@ -2,7 +2,6 @@
   (:require
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
-   [reitit.frontend.controllers :as rfc]
    [re-frame.core :as rf]
    [tau.events :as events]
    [tau.views.channel :as channel]
@@ -50,12 +49,9 @@
 
 (defn on-navigate
   [new-match]
-  (let [old-match (rf/subscribe [:current-match])]
-    (rf/dispatch [::events/reset-page-scroll])
-    (when new-match
-      (let [controllers (rfc/apply-controllers (:controllers @old-match) new-match)
-            match (assoc new-match :controllers controllers)]
-        (rf/dispatch [::events/navigated match])))))
+  (rf/dispatch [::events/reset-page-scroll])
+  (when new-match
+    (rf/dispatch [::events/navigated new-match])))
 
 (defn start-routes!
   []

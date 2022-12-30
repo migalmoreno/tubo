@@ -3,6 +3,7 @@
    [day8.re-frame.http-fx]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
+   [reitit.frontend.controllers :as rfc]
    [tau.api :as api]))
 
 (rf/reg-event-db
@@ -51,10 +52,13 @@
 (rf/reg-event-fx
  ::navigated
  (fn [{:keys [db]} [_ new-match]]
-   {:db (-> db
-            (assoc :current-match new-match)
-            (assoc :show-pagination-loading false))
-    ::scroll-to-top nil}))
+   (let [old-match (:current-match db)
+         controllers (rfc/apply-controllers (:controllers old-match) new-match)
+         match (assoc new-match :controllers controllers)]
+     {:db (-> db
+              (assoc :current-match match)
+              (assoc :show-pagination-loading false))
+      ::scroll-to-top nil})))
 
 (rf/reg-event-fx
  ::navigate
