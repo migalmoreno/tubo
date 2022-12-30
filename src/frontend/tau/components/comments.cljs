@@ -16,10 +16,10 @@
       [:div.w-12
        [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title name}
         [:img.rounded-full.object-cover.min-w-full.min-h-full {:src uploader-avatar}]]]])
-   [:div.ml-2
+   [:div.ml-4
     [:div.flex.items-center
      (when pinned?
-       [:i.fa-solid.fa-thumbtack.mr-2])
+       [:i.fa-solid.fa-thumbtack.mr-2.text-xs])
      [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title name}
       [:h1.text-gray-300.font-bold uploader-name]]
      (when uploader-verified?
@@ -33,7 +33,7 @@
             (timeago/format upload-date))]]
      (when like-count
        [:div.flex.items-center.my-2
-        [:i.fa-solid.fa-thumbs-up]
+        [:i.fa-solid.fa-thumbs-up.text-xs]
         [:p.mx-1 like-count]])
      (when hearted-by-uploader?
        [:div.relative.w-4.h-4.mx-2

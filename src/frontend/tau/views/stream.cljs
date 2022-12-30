@@ -82,10 +82,10 @@
           [:div.min-w-full.py-3
            [:h1 name]
            [:div {:dangerouslySetInnerHTML {:__html description}}]]
-          [:div.py-3
+          [:div.py-6
            [:div.flex.items-center
             [:i.fa-solid.fa-comments]
-            [:p.px-2 "Comments"]
+            [:p.px-2.py-4 "Comments"]
             (if show-comments
               [:i.fa-solid.fa-chevron-up {:on-click #(rf/dispatch [::events/toggle-comments])
                                           :style {:cursor "pointer"}}]
