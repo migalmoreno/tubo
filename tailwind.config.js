@@ -7,6 +7,10 @@ module.exports = {
         nunito: ['nunito-light', 'sans-serif'],
         roboto: ['roboto-light', 'sans-serif'],
       },
+      screens: {
+        'xs': '480px',
+        'ml': '930px',
+      },
     },
   },
   plugins: [
