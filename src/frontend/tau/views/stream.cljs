@@ -13,7 +13,7 @@
   [match]
   (let [{:keys [name url video-streams audio-streams view-count
                 subscriber-count like-count dislike-count
-                description uploader-avatar uploader-author
+                description uploader-avatar uploader-name
                 uploader-url upload-date related-streams
                 thumbnail-url show-comments-loading comments-page
                 show-comments service-id] :as stream} @(rf/subscribe [:stream])
@@ -44,15 +44,15 @@
             [:i.fa-solid.fa-external-link-alt]]]]
          [:div.flex.flex-col.py-1.comments
           [:div.min-w-full.py-3
-           [:h1.text-2xl.font-extrabold name]]
+           [:h1.text-2xl.font-extrabold.line-clamp-1 name]]
           [:div.flex.justify-between.py-2
            [:div.flex.items-center.flex-auto
             (when uploader-avatar
               [:div.relative.w-16.h-16
-               [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-author}
-                [:img.rounded-full.object-cover.max-w-full.min-h-full {:src uploader-avatar :alt uploader-author}]]])
+               [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-name}
+                [:img.rounded-full.object-cover.max-w-full.min-h-full {:src uploader-avatar :alt uploader-name}]]])
             [:div.mx-2
-             [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url})} uploader-author]
+             [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url})} uploader-name]
              (when subscriber-count
                [:div.flex.my-2.items-center
                 [:i.fa-solid.fa-users.text-xs]
