@@ -69,6 +69,7 @@
 (rf/reg-event-db
  ::bad-response
  (fn [db [_ res]]
+   (js/console.log res)
    (assoc db :http-response (get-in res [:response :error]))))
 
 (rf/reg-event-db
