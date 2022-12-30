@@ -23,6 +23,6 @@
       [:h2 (str "Showing search results for: \"" q "\"")]
       [:h1 (str "Number of search results: " (count items))]]
      (if page-loading?
-       [loading/page-loading-icon service-color]
+       [loading/loading-icon service-color "text-5xl"]
        [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5"}
         [items/related-streams items next-page-url]])]))

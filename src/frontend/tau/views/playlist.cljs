@@ -21,8 +21,8 @@
       (rf/dispatch [::events/playlist-pagination url next-page-url]))
     [:div.flex.flex-col.items-center.px-5.pt-4.flex-auto
      (if page-loading?
-       [loading/page-loading-icon service-color]
-       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5"}
+       [loading/loading-icon service-color "text-5xl"]
+       [:div.flex.flex-col.flex-auto.w-full {:class "ml:w-4/5"}
         [navigation/back-button service-color]
         (when banner-url
           [:div

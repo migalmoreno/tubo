@@ -24,19 +24,19 @@
         service-color @(rf/subscribe [:service-color])]
     [:div.flex.flex-col.items-center.justify-center.text-white.flex-auto
      (if page-loading?
-       [loading/page-loading-icon service-color]
-       [:div.w-full {:class "md:w-4/5 xl:w-3/5"}
+       [loading/loading-icon service-color "text-5xl"]
+       [:div.w-full.pb-4 {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         [:div.flex.justify-center.relative
          {:style {:background (str "center / cover no-repeat url('" thumbnail-url"')")}
-          :class "md:h-[450px] lg:h-[600px]"}
+          :class "ml:h-[450px] lg:h-[600px]"}
          [:video.bottom-0.object-cover.max-h-full.min-w-full
           {:src stream-type :controls true}]]
-        [:div.px-4.md:p-0
+        [:div.px-4.ml:p-0
          [:div.flex.flex.w-full.mt-3.justify-center
           [:button.border.rounded.border-black.px-3.py-1.bg-stone-800
            {:on-click #(rf/dispatch [::events/switch-to-global-player
-                                     {:uploader-name uploader-author :uploader-url uploader-url
+                                     {:uploader-name uploader-name :uploader-url uploader-url
                                       :name name :url url :stream stream-type :service-color service-color}])}
            [:i.fa-solid.fa-headphones]]
           [:a {:href url}
@@ -95,9 +95,9 @@
                                             :style {:cursor "pointer"}}])]
            [:div
             (if show-comments-loading
-              [loading/page-loading-icon service-color]
+              [loading/loading-icon service-color "text-2xl"]
               (when (and show-comments comments-page)
-                [comments/comments comments-page uploader-author uploader-avatar url]))]]
+                [comments/comments comments-page uploader-name uploader-avatar url]))]]
           (when-not (empty? related-streams)
             [:div.py-3
              [:div.flex.items-center

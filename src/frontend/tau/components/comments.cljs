@@ -51,7 +51,7 @@
         [comment-item (assoc comment :key i) author-name author-avatar])]
      (when (:url next-page)
        (if pagination-loading?
-         (loading/comments-pagination-loading-icon service-color)
+         (loading/loading-icon service-color)
          [:div.flex.items-center.justify-center
           {:style {:cursor "pointer"}
            :on-click #(rf/dispatch [::events/comments-pagination url (:url next-page)])}
