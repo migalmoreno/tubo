@@ -4,9 +4,9 @@
    [re-frame.core :as rf]
    [reagent.ratom :as ratom]
    [tau.components.navigation :as navigation]
+   [tau.components.player :as player]
    [tau.events :as events]
-   [tau.routes :as routes]
-   [tau.views.player :as player]))
+   [tau.routes :as routes]))
 
 (defonce scroll-hook (.addEventListener js/window "scroll" #(rf/dispatch [::events/page-scroll])))
 (defonce services (rf/dispatch [::events/get-services]))
@@ -82,5 +82,5 @@
      [:div.flex.flex-col.justify-between.relative.font-nunito {:class "min-h-[calc(100vh-58px)]"}
       (when-let [view (-> current-match :data :view)]
         [view current-match])
-      [player/global-player]
-      [footer]]]))
+      [footer]
+      [player/global-player]]]))

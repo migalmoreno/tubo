@@ -16,7 +16,7 @@
                 description uploader-avatar uploader-author
                 uploader-url upload-date related-streams
                 thumbnail-url show-comments-loading comments-page
-                show-comments] :as stream} @(rf/subscribe [:stream])
+                show-comments service-id] :as stream} @(rf/subscribe [:stream])
         stream-type (-> (if (empty? video-streams) audio-streams video-streams)
                         last
                         :content)
@@ -35,7 +35,9 @@
         [:div.px-4.md:p-0
          [:div.flex.flex.w-full.mt-3.justify-center
           [:button.border.rounded.border-black.px-3.py-1.bg-stone-800
-           {:on-click #(rf/dispatch [::events/switch-to-global-player stream])}
+           {:on-click #(rf/dispatch [::events/switch-to-global-player
+                                     {:uploader-name uploader-author :uploader-url uploader-url
+                                      :name name :url url :stream stream-type :service-color service-color}])}
            [:i.fa-solid.fa-headphones]]
           [:a {:href url}
            [:button.border.rounded.border-black.px-3.py-1.bg-stone-800.mx-2

@@ -155,11 +155,21 @@
         :nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
 
+(rf/reg-event-db
+ ::change-global-stream
+ (fn [db [_ global-stream]]
+   (assoc db :global-stream global-stream)))
+
+(rf/reg-event-db
+ ::toggle-global-player
+ (fn [db _]
+   (assoc db :show-global-player (not (:show-global-player db)))))
+
 (rf/reg-event-fx
  ::switch-to-global-player
- (fn [{:keys [db]} [_ res]]
+ (fn [{:keys [db]} [_ global-stream]]
    {:db (assoc db :show-global-player true)
-    :fx [[:dispatch [::change-global-search res]]]}))
+    :fx [[:dispatch [::change-global-stream global-stream]]]}))
 
 (rf/reg-event-db
  ::load-services
