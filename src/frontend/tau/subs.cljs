@@ -86,3 +86,8 @@
  :show-pagination-loading
  (fn [db _]
    (:show-pagination-loading db)))
+
+(rf/reg-sub
+ :show-mobile-nav
+ (fn [db _]
+   (:show-mobile-nav db)))

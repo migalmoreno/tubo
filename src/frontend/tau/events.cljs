@@ -43,6 +43,11 @@
  (fn [db _]
    (assoc db :page-scroll 0)))
 
+(rf/reg-event-db
+ ::toggle-mobile-nav
+ (fn [db _]
+   (assoc db :show-mobile-nav (not (:show-mobile-nav db)))))
+
 (rf/reg-event-fx
  ::navigated
  (fn [{:keys [db]} [_ new-match]]
