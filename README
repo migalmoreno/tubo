@@ -1,7 +1,7 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil
 * Tau
-A front-end alternative for various streaming sites. It leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+A front-end alternative to various streaming sites. It leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
 To run the application, first compile the downloader ahead-of-time.
 
@@ -28,4 +28,6 @@ You can now start a local server that listens on port 3000 by running the follow
 clojure -M:run
 #+end_src
 
-Access the front-end in your browser at =https://localhost:3000=.
+Access the front-end in your browser at =http://localhost:3000=.
+
+You can use the project's [[https://lists.sr.ht/~conses/tau][mailing list]] to send feedback, patches or open discussions. Bugs should be reported on the project's [[https://todo.sr.ht/~conses/tau][bug-tracker]].
