@@ -12,17 +12,6 @@
 (defonce services (rf/dispatch [::events/get-services]))
 (defonce kiosks (rf/dispatch [::events/get-kiosks 0]))
 
-(defn footer
-  []
-  [:footer
-   [:div.bg-black.text-gray-300.p-5.text-center.w-full
-    [:div.flex.flex-col.justify-center
-     [:div
-      [:p.px-2 (str "Tau " (.getFullYear (js/Date.)))]]
-     [:div.pt-4
-      [:a {:href "https://sr.ht/~conses/tau"}
-       [:i.fa-solid.fa-code]]]]]])
-
 (defn navbar
   [{{:keys [serviceId]} :query-params}]
   (let [service-id @(rf/subscribe [:service-id])
@@ -84,6 +73,17 @@
             [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
                                                      :kioskId kiosk})}
              kiosk]])]]]]]))
+
+(defn footer
+  []
+  [:footer
+   [:div.bg-black.text-gray-300.p-5.text-center.w-full
+    [:div.flex.flex-col.justify-center
+     [:div
+      [:p.px-2 (str "Tau " (.getFullYear (js/Date.)))]]
+     [:div.pt-4
+      [:a {:href "https://sr.ht/~conses/tau"}
+       [:i.fa-solid.fa-code]]]]]])
 
 (defn app
   []
