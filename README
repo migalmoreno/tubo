@@ -3,6 +3,13 @@
 * Tau
 A front-end alternative to various streaming sites. It leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
+The easiest way to set up Tau's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
+
+#+begin_src sh
+cd /path/to/tau
+guix shell
+#+end_src
+
 To run the application, first compile the downloader ahead-of-time.
 
 #+begin_src sh
