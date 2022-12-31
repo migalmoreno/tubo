@@ -48,8 +48,8 @@
 (defn comments
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (comments/get-comment url nextPage)
-              (comments/get-comment url))))
+              (comments/get-comments url nextPage)
+              (comments/get-comments url))))
 
 (defn services
   [_]

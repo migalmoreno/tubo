@@ -210,8 +210,18 @@
 
 (rf/reg-event-db
  ::toggle-comments
- (fn [db [_ res]]
+ (fn [db _]
    (assoc-in db [:stream :show-comments] (not (-> db :stream :show-comments)))))
+
+(rf/reg-event-db
+ ::toggle-comment-replies
+ (fn [db [_ comment-id]]
+   (update-in db [:stream :comments-page :comments]
+              (fn [comments]
+                (map #(if (= (:id %) comment-id)
+                        (assoc % :show-replies (not (:show-replies %)))
+                        %)
+                     comments)))))
 
 (rf/reg-event-db
  ::load-paginated-comments
