@@ -1,17 +1,24 @@
 (ns tau.downloader-impl
   (:import
    [org.schabi.newpipe.extractor.downloader Response Request]
-   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody])
-  (:gen-class
-   :extends org.schabi.newpipe.extractor.downloader.Downloader
-   :constructors {[okhttp3.OkHttpClient$Builder] []}
-   :name tau.DownloaderImpl
-   :init downloader-impl
-   :state state
-   :methods [#^{:static true} [init [] tau.DownloaderImpl]
-             #^{:static true} [getInstance [] tau.DownloaderImpl]]
-   :prefix "-"
-   :main false))
+   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody]))
+
+(gen-class
+ :name tau.DownloaderImpl
+ :constructors {[okhttp3.OkHttpClient$Builder] []}
+ :extends org.schabi.newpipe.extractor.downloader.Downloader
+ :init downloader-impl)
+
+(gen-class
+ :name tau.DownloaderImpl
+ :constructors {[okhttp3.OkHttpClient$Builder] []}
+ :extends org.schabi.newpipe.extractor.downloader.Downloader
+ :prefix "-"
+ :main false
+ :state state
+ :init downloader-impl
+ :methods [#^{:static true} [init [] tau.DownloaderImpl]
+           #^{:static true} [getInstance [] tau.DownloaderImpl]])
 
 (def user-agent "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
 (def instance (atom nil))
