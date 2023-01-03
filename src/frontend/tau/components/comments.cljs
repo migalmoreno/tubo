@@ -4,10 +4,10 @@
    [reitit.frontend.easy :as rfe]
    [tau.components.loading :as loading]
    [tau.events :as events]
-   ["timeago.js" :as timeago]))
+   [tau.util :as util]))
 
 (defn comment-item
-  [{:keys [id text uploader-name uploader-avatar uploader-url
+  [{:keys [id text uploader-name uploader-avatar uploader-url stream-position
            upload-date uploader-verified? like-count hearted-by-uploader?
            pinned? replies reply-count key show-replies author-name author-avatar]}]
   [:div.flex.my-4 {:key key}
@@ -22,17 +22,18 @@
      (when pinned?
        [:i.fa-solid.fa-thumbtack.mr-2.text-xs])
      (when uploader-name
-       [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-name}
-        [:h1.text-gray-300.font-bold uploader-name]])
+       [:div.flex.items-center
+        [:a {:href (rfe/href :tau.routes/channel nil {:url uploader-url}) :title uploader-name}
+         [:h1.text-gray-300.font-bold uploader-name]]
+        (when stream-position
+          [:p.mx-1.text-xs (str "at " (util/format-duration stream-position))])])
      (when uploader-verified?
        [:i.fa-solid.fa-circle-check.ml-2])]
     [:div.my-2
      [:p text]]
     [:div..flex.items-center.my-2
      [:div.mr-4
-      [:p (if (-> upload-date js/Date.parse js/isNaN)
-            upload-date
-            (timeago/format upload-date))]]
+      [:p (util/format-date upload-date)]]
      (when (and like-count (> like-count 0))
        [:div.flex.items-center.my-2
         [:i.fa-solid.fa-thumbs-up.text-xs]
@@ -42,7 +43,7 @@
         [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500]
         [:img.rounded-full.object-covermax-w-full.min-h-full
          {:src author-avatar :title (str author-name " hearted this comment")}]])]
-    [:div.flex.ml-8.items-center.cursor-pointer
+    [:div.flex.items-center.cursor-pointer
      {:on-click #(rf/dispatch [::events/toggle-comment-replies id])}
      (when replies
        (if show-replies
