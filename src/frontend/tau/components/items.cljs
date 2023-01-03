@@ -10,7 +10,7 @@
   [:div.flex.py-2.box-border.h-44.xs:h-28
    [:div.relative.min-w-full
     [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
-    [:img.rounded.object-cover.max-h-full.min-w-full {:src thumbnail-url}]
+    [:img.rounded.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url}]
     (when duration
       [:div.rounded.p-2.absolute {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
        [:p {:style {:fontSize "14px"}}
