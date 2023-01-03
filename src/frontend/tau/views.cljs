@@ -21,7 +21,7 @@
         id (js/parseInt (or serviceId service-id))
         mobile-nav? @(rf/subscribe [:show-mobile-nav])
         {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
-    [:nav.flex.px-2.py-2.5.content-center.sticky.top-0.z-50.font-nunito
+    [:nav.flex.px-2.py-2.5.items-center.sticky.top-0.z-50.font-nunito
      {:style {:background service-color}}
      [:div.flex.items-center.justify-between.flex-auto
       [:div.py-2
@@ -88,7 +88,7 @@
 (defn app
   []
   (let [current-match @(rf/subscribe [:current-match])]
-    [:div.min-h-screen.flex.flex-col.h-full.text-white.bg-neutral-900.overflow-x-hidden
+    [:div.min-h-screen.flex.flex-col.h-full.text-white.bg-neutral-900.relative
      [navbar current-match]
      [:div.flex.flex-col.justify-between.relative.font-nunito {:class "min-h-[calc(100vh-58px)]"}
       (when-let [view (-> current-match :data :view)]
