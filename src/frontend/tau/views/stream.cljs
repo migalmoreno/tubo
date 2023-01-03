@@ -17,30 +17,43 @@
                 uploader-url upload-date related-streams
                 thumbnail-url show-comments-loading comments-page
                 show-comments service-id] :as stream} @(rf/subscribe [:stream])
-        stream-type (-> (if (empty? video-streams) audio-streams video-streams)
-                        last
-                        :content)
+        available-streams (apply conj audio-streams video-streams)
+        {:keys [content id] :as stream-format} @(rf/subscribe [:stream-format])
         page-loading? @(rf/subscribe [:show-page-loading])
         service-color @(rf/subscribe [:service-color])]
     [:div.flex.flex-col.items-center.justify-center.text-white.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
-       [:div.w-full.pb-4 {:class "ml:w-4/5 xl:w-3/5"}
+       [:div.w-full.pb-4.relative {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         [:div.flex.justify-center.relative
          {:style {:background (str "center / cover no-repeat url('" thumbnail-url"')")}
           :class "ml:h-[450px] lg:h-[600px]"}
-         [:video.bottom-0.object-cover.max-h-full.min-w-full
-          {:src stream-type :controls true}]]
+         [:video.bottom-0.object-cover.min-h-full.max-h-full.min-w-full
+          {:src content :controls true}
+          "This browser can't play the stream format."]]
         [:div.px-4.ml:p-0
-         [:div.flex.flex.w-full.mt-3.justify-center
+         [:div.flex.flex.w-full.mt-3
+          (when stream-format
+            [:div.relative.flex.bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
+             [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.pl-4.pr-8.w-full
+              {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
+               :value id
+               :style {:background "transparent"}}
+              (when available-streams
+                (for [[i {:keys [id format resolution averageBitrate]}] (map-indexed vector available-streams)]
+                  [:option.bg-neutral-900.border-none {:value id :key i}
+                   (str (or resolution "audio-only") " " format (when-not resolution (str " " averageBitrate "kbit/s")))]))]
+             [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
+              {:style {:zIndex "-1"}}
+              [:i.fa-solid.fa-caret-down]]])
           [:button.border.rounded.border-black.px-3.py-1.bg-stone-800
            {:on-click #(rf/dispatch [::events/switch-to-global-player
                                      {:uploader-name uploader-name :uploader-url uploader-url
-                                      :name name :url url :stream stream-type :service-color service-color}])}
+                                      :name name :url url :stream content :service-color service-color}])}
            [:i.fa-solid.fa-headphones]]
-          [:a {:href url}
-           [:button.border.rounded.border-black.px-3.py-1.bg-stone-800.mx-2
+          [:button.border.rounded.border-black.px-3.py-1.bg-stone-800.mx-2
+           [:a {:href url}
             [:i.fa-solid.fa-external-link-alt]]]]
          [:div.flex.flex-col.py-1.comments
           [:div.min-w-full.py-3

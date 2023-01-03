@@ -309,11 +309,12 @@
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::load-stream
- (fn [db [_ res]]
-   (assoc db :stream (js->clj res :keywordize-keys true)
-          :show-page-loading false)))
+ (fn [{:keys [db]} [_ res]]
+   {:db (assoc db :stream (js->clj res :keywordize-keys true)
+               :show-page-loading false)
+    :fx [[:dispatch [::change-stream-format nil]]]}))
 
 (rf/reg-event-fx
  ::get-stream
@@ -322,6 +323,16 @@
     (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
                      [::load-stream] [::bad-response])
     :db (assoc db :show-page-loading true))))
+
+(rf/reg-event-db
+ ::change-stream-format
+ (fn [{:keys [stream] :as db} [_ format-id]]
+   (let [{:keys [audio-streams video-streams]} stream]
+     (if format-id
+       (assoc db :stream-format
+              (first (filter #(= format-id (:id %)) (apply conj audio-streams video-streams))))
+       (assoc db :stream-format (-> (if (empty? video-streams) audio-streams video-streams)
+                                    last))))))
 
 (rf/reg-event-db
  ::load-channel

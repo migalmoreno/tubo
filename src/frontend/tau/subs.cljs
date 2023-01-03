@@ -18,6 +18,11 @@
    (:stream db)))
 
 (rf/reg-sub
+ :stream-format
+ (fn [db _]
+   (:stream-format db)))
+
+(rf/reg-sub
  :playlist
  (fn [db _]
    (:playlist db)))
