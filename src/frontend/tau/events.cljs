@@ -312,9 +312,11 @@
 (rf/reg-event-fx
  ::load-stream
  (fn [{:keys [db]} [_ res]]
-   {:db (assoc db :stream (js->clj res :keywordize-keys true)
-               :show-page-loading false)
-    :fx [[:dispatch [::change-stream-format nil]]]}))
+   (let [stream-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :stream stream-res
+                 :show-page-loading false)
+      :fx [[:dispatch [::change-stream-format nil]]
+           [:dispatch [::get-comments (:url stream-res)]]]})))
 
 (rf/reg-event-fx
  ::get-stream
