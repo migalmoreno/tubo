@@ -1,7 +1,7 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil
 * Tau
-A front-end alternative to various streaming sites. It currently supports the following platforms:
+An alternative front-end to various streaming sites. The aim of Tau is to free you from the world of ad-ridden streaming sites full of vendor lock-ins and restrictions, by providing you with a minimal interface to enjoy your favorite content from these sites. It currently supports the following platforms:
 
 - YouTube
 - SoundCloud
@@ -9,8 +9,9 @@ A front-end alternative to various streaming sites. It currently supports the fo
 - PeerTube
 - Bandcamp
 
-To retrieve the data, it leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+To retrieve the data, it leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA. I built Tau because I stopped using Android and wanted to replicate the Newpipe experience  both on desktop and mobile GNU/Linux.
 
+** Installation
 The easiest way to set up Tau's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
 
 #+begin_src sh
@@ -45,4 +46,14 @@ clojure -M:run
 
 Access the front-end in your browser at =http://localhost:3000=.
 
+** Screenshots
+Tau aims to create a uniform interface between all the aforementioned services. Hence, as in Newpipe, many interface elements are shared.
+
+[[file:assets/kiosk.jpg]]
+[[file:assets/channel.jpg]]
+[[file:assets/stream.jpg]]
+[[file:assets/mobile_comments.jpg]]
+[[file:assets/mobile_nav.jpg]]
+
+** Contributing
 You can use the project's [[https://lists.sr.ht/~conses/tau][mailing list]] to send feedback, patches or open discussions. Bugs should be reported on the project's [[https://todo.sr.ht/~conses/tau][bug-tracker]].
