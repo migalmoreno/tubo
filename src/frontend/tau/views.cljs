@@ -9,6 +9,7 @@
    [tau.routes :as routes]))
 
 (defonce scroll-hook (.addEventListener js/window "scroll" #(rf/dispatch [::events/page-scroll])))
+(defonce mobile-touch-hook (.addEventListener js/document.body "touchmove" #(rf/dispatch [::events/page-scroll])))
 (defonce services (rf/dispatch [::events/get-services]))
 (defonce kiosks (rf/dispatch [::events/get-kiosks 0]))
 
