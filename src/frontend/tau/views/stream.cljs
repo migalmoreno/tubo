@@ -7,6 +7,7 @@
    [tau.components.loading :as loading]
    [tau.components.navigation :as navigation]
    [tau.components.comments :as comments]
+   [tau.components.player :as player]
    [tau.util :as util]))
 
 (defn stream
@@ -27,11 +28,13 @@
        [:div.w-full.pb-4.relative {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         [:div.flex.justify-center.relative
-         {:style {:background (str "center / cover no-repeat url('" thumbnail-url"')")}
-          :class "ml:h-[450px] lg:h-[600px]"}
-         [:video.bottom-0.object-cover.min-h-full.max-h-full.min-w-full
-          {:src content :controls true}
-          "This browser can't play the stream format."]]
+         {:class "ml:h-[450px] lg:h-[600px]"}
+         (when stream-format
+           [player/stream-player {"sources" [{"src" content "type" "video/mp4"}
+                                             {"src" content "type" "video/webm"}]
+                                  "poster" thumbnail-url
+                                  "controls" true}
+            content])]
         [:div.px-4.ml:p-0
          [:div.flex.flex.w-full.mt-3
           (when stream-format
