@@ -23,4 +23,4 @@
                 day8.re-frame/http-fx {:mvn/version "0.2.4"}
                 cljs-ajax/cljs-ajax {:mvn/version "0.8.4"}}
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
-  :run {:main-opts ["-m" "tau.core"]}}}
+  :run {:main-opts ["-m" "tubo.core"]}}}

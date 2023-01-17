@@ -1,7 +1,7 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil
-* Tau
-An alternative front-end to various streaming sites. The aim of Tau is to free you from the world of ad-ridden streaming sites full of vendor lock-ins by providing you with a minimal interface to enjoy your favorite content. It currently supports the following platforms:
+* Tubo
+An alternative front-end to various streaming sites. The aim of Tubo is to free you from the world of ad-ridden streaming sites full of vendor lock-ins by providing you with a minimal interface to enjoy your favorite content. It currently supports the following platforms:
 
 - YouTube
 - SoundCloud
@@ -9,22 +9,22 @@ An alternative front-end to various streaming sites. The aim of Tau is to free y
 - PeerTube
 - Bandcamp
 
-To retrieve the data, it leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tau exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+To retrieve the data, it leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tubo exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
-The ultimate goal behind Tau is to replicate the Newpipe experience on the web, so that it's accessible to those that don't use an Android device.
+The ultimate goal behind Tubo is to replicate the Newpipe experience on the web, so that it's accessible to those that don't use an Android device.
 
 ** Installation
-The easiest way to set up Tau's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
+The easiest way to set up Tubo's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
 
 #+begin_src sh
-cd /path/to/tau
+cd /path/to/tubo
 guix shell
 #+end_src
 
 To run the application, first compile the downloader ahead-of-time.
 
 #+begin_src sh
-clojure -M -e "(compile 'tau.downloader-impl)"
+clojure -M -e "(compile 'tubo.downloader-impl)"
 #+end_src
 
 Fetch the front-end dependencies and build the front-end assets.
@@ -37,7 +37,7 @@ npm run build
 Then, compile the front-end.
 
 #+begin_src sh
-clojure -M:frontend compile tau
+clojure -M:frontend compile tubo
 #+end_src
 
 You can now start a local server that listens on port 3000 by running the following:
@@ -48,10 +48,16 @@ clojure -M:run
 
 Access the front-end in your browser at =http://localhost:3000=.
 
+** Road-map
+- [X] Basic audio player
+- [ ] Track queuing system
+- [ ] Playlists
+- [ ] User settings
+
 ** Screenshots
-https://raw.githubusercontent.com/efimerspan/tau/master/assets/kiosk.jpg
-https://raw.githubusercontent.com/efimerspan/tau/master/assets/channel.jpg
-https://raw.githubusercontent.com/efimerspan/tau/master/assets/stream.jpg
+[[https://raw.githubusercontent.com/efimerspan/tubo/master/assets/kiosk.jpg]]
+[[https://raw.githubusercontent.com/efimerspan/tubo/master/assets/channel.jpg]]
+[[https://raw.githubusercontent.com/efimerspan/tubo/master/assets/stream.jpg]]
 
 ** Contributing
-You can use the project's [[https://lists.sr.ht/~conses/tau][mailing list]] to send feedback, patches or open discussions. Bugs should be reported on the project's [[https://todo.sr.ht/~conses/tau][bug-tracker]].
+You can use the project's [[https://lists.sr.ht/~conses/tubo][mailing list]] to send feedback, patches or open discussions. Bugs should be reported on the project's [[https://todo.sr.ht/~conses/tubo][bug-tracker]].

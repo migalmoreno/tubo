@@ -5,7 +5,7 @@ const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts")
 module.exports = {
   mode: process.env.NODE_ENV,
   entry: {
-    tau: "./resources/src/css/tau.scss"
+    tubo: "./resources/src/css/tubo.scss"
   },
   output: {
     path: path.resolve(__dirname, "resources/public")
