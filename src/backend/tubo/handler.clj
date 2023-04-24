@@ -17,6 +17,7 @@
      [:meta {:charset "UTF-8"}]
      [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
      [:title "Tubo"]
+     [:link {:rel "shortcut icon" :href "#"}]
      (hiccup/include-css "/css/tubo.css")]
     [:body
      [:div#app]
