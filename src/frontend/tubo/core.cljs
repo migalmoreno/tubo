@@ -14,7 +14,7 @@
   []
   (rf/clear-subscription-cache!)
   (routes/start-routes!)
-  (.render root (r/as-element [views/app])))
+  (.render root (r/as-element [(fn [] views/app)])))
 
 (defn ^:export init
   []
