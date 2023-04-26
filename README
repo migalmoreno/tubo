@@ -1,7 +1,7 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil num:nil
 * Tubo
-An alternative front-end to various streaming sites. The aim of Tubo is to free you from the world of ad-ridden streaming sites full of vendor lock-ins by providing you with a minimal interface to enjoy your favorite content. It currently supports the following platforms:
+Tubo is an alternative web front-end to various streaming sites. It aims to free users from the world of ad-ridden streaming sites by providing a distraction-free interface to consume content from. It currently supports the following platforms:
 
 - YouTube
 - SoundCloud
