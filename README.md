@@ -59,5 +59,5 @@ Access the front-end in your browser at `http://localhost:3000`.
 
 ## Contributing
 
-You can use the project's [mailing list](https://lists.sr.ht/~mmoreno/tubo) to send feedback, patches or open discussions. Bugs should be reported on the project's [bug-tracker](https://todo.sr.ht/~mmoreno/tubo).  
+You can send feedback, patches, or bug reports to [public@mianmoreno.com](mailto:public@mianmoreno.com).  
 
