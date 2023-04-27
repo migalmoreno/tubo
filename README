@@ -55,9 +55,9 @@ Access the front-end in your browser at =http://localhost:3000=.
 - [ ] User settings
 
 ** Screenshots
-[[https://mmoreno.eu/assets/images/tubo_kiosk.jpg]]
-[[https://mmoreno.eu/assets/images/tubo_channel.jpg]]
-[[https://mmoreno.eu/assets/images/tubo_stream.jpg]]
+[[https://files.mianmoreno.com/tubo_kiosk.jpg]]
+[[https://files.mianmoreno.com/tubo_channel.jpg]]
+[[https://files.mianmoreno.com/tubo_stream.jpg]]
 
 ** Contributing
 You can use the project's [[https://lists.sr.ht/~mmoreno/tubo][mailing list]] to send feedback, patches or open discussions. Bugs should be reported on the project's [[https://todo.sr.ht/~mmoreno/tubo][bug-tracker]].
