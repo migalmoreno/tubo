@@ -1,19 +1,15 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil num:nil
 * Tubo
-Tubo is an alternative web front-end to various streaming sites. It aims to free users from the world of ad-ridden streaming sites by providing a distraction-free interface to consume content from. It currently supports the following platforms:
+Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] experience to the web. It currently supports the same platforms as NewPipe, including YouTube, SoundCloud, and more.
 
-- YouTube
-- SoundCloud
-- media.ccc.de
-- PeerTube
-- Bandcamp
+To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
-To retrieve the data, it leverages the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library that powers the popular [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] Android app. Tubo exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
-
-The ultimate goal behind Tubo is to replicate the Newpipe experience on the web, so that it's accessible to those that don't use an Android device.
+** Try It Out
+You can try a live demo at https://tubo.mianmoreno.com but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [[*Contributing][contribution methods]]. See [[*Installation][installation]] for ways to set up Tubo in your server.
 
 ** Installation
+*** Manual
 The easiest way to set up Tubo's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
 
 #+begin_src sh
