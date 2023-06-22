@@ -9,15 +9,38 @@ To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/Ne
 You can try a live demo at https://tubo.mianmoreno.com but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [[*Contributing][contribution methods]]. See [[*Installation][installation]] for ways to set up Tubo in your server.
 
 ** Installation
-*** Manual
-The easiest way to set up Tubo's dependencies is via the [[https://guix.gnu.org/][GNU Guix]] package manager. Simply invoke what follows:
+*** Packaging
+**** Uberjar
+To bundle the whole project into a self-contained uber-jar you need to follow these build steps:
+
+#+begin_src sh
+npm i
+npm run build
+clojure -T:frontend:build uberjar
+#+end_src
+
+After the last command is completed, you'll get a path to the uber-jar, which you can run like this:
+
+#+begin_src sh
+java -jar target/tubo-<VERSION>.jar
+#+end_src
+
+**** Docker
+Alternatively, you can use Docker to set up Tubo. Simply invoke this:
+
+#+begin_src sh
+docker-compose up -d
+#+end_src
+
+**** Manual
+You can also set up Tubo manually via the [[https://guix.gnu.org/][GNU Guix]] package manager. First, download the necessary tooling:
 
 #+begin_src sh
 cd /path/to/tubo
 guix shell
 #+end_src
 
-To run the application, first compile the downloader ahead-of-time.
+Then, compile the downloader ahead-of-time:
 
 #+begin_src sh
 clojure -M -e "(compile 'tubo.downloader-impl)"
@@ -30,19 +53,39 @@ npm i
 npm run build
 #+end_src
 
-Then, compile the front-end.
+Finally, compile the front-end.
 
 #+begin_src sh
-clojure -M:frontend compile tubo
+clojure -M:frontend release tubo
 #+end_src
 
-You can now start a local server that listens on port 3000 by running the following:
+You can now start a local server that listens on port 3000 by running this:
 
 #+begin_src sh
 clojure -M:run
 #+end_src
 
 Access the front-end in your browser at =http://localhost:3000=.
+
+*** Reverse Proxy
+If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.
+
+**** Nginx
+
+#+begin_src nginx
+server {
+    listen 443 ssl http2;
+    server_name tubo.<YOUR_DOMAIN>
+    ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header HOST $http_host;
+    }
+}
+#+end_src
 
 ** Road-map
 - [X] Basic audio player

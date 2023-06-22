@@ -2,44 +2,84 @@
 
 # Tubo
 
-Tubo is an alternative web front-end to various streaming sites. It aims to free users from the world of ad-ridden streaming sites by providing a distraction-free interface to consume content from. It currently supports the following platforms:  
+Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It currently supports the same platforms as NewPipe, including YouTube, SoundCloud, and more.  
 
--   YouTube
--   SoundCloud
--   media.ccc.de
--   PeerTube
--   Bandcamp
+To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
 
-To retrieve the data, it leverages the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library that powers the popular [NewPipe](https://github.com/TeamNewPipe/NewPipe) Android app. Tubo exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
 
-The ultimate goal behind Tubo is to replicate the Newpipe experience on the web, so that it's accessible to those that don't use an Android device.  
+## Try It Out
+
+You can try a live demo at <https://tubo.mianmoreno.com> but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org09f3d2b). See [installation](#orgb0098d1) for ways to set up Tubo in your server.  
 
 
 ## Installation
 
-The easiest way to set up Tubo's dependencies is via the [GNU Guix](https://guix.gnu.org/) package manager. Simply invoke what follows:  
 
-    cd /path/to/tubo
-    guix shell
+### Packaging
 
-To run the application, first compile the downloader ahead-of-time.  
+-   Uberjar
 
-    clojure -M -e "(compile 'tubo.downloader-impl)"
+    To bundle the whole project into a self-contained uber-jar you need to follow these build steps:  
+    
+        npm i
+        npm run build
+        clojure -T:frontend:build uberjar
+    
+    After the last command is completed, you'll get a path to the uber-jar, which you can run like this:  
+    
+        java -jar target/tubo-<VERSION>.jar
 
-Fetch the front-end dependencies and build the front-end assets.  
+-   Docker
 
-    npm i
-    npm run build
+    Alternatively, you can use Docker to set up Tubo. Simply invoke this:  
+    
+        docker-compose up -d
 
-Then, compile the front-end.  
+-   Manual
 
-    clojure -M:frontend compile tubo
+    You can also set up Tubo manually via the [GNU Guix](https://guix.gnu.org/) package manager. First, download the necessary tooling:  
+    
+        cd /path/to/tubo
+        guix shell
+    
+    Then, compile the downloader ahead-of-time:  
+    
+        clojure -M -e "(compile 'tubo.downloader-impl)"
+    
+    Fetch the front-end dependencies and build the front-end assets.  
+    
+        npm i
+        npm run build
+    
+    Finally, compile the front-end.  
+    
+        clojure -M:frontend release tubo
+    
+    You can now start a local server that listens on port 3000 by running this:  
+    
+        clojure -M:run
+    
+    Access the front-end in your browser at `http://localhost:3000`.  
 
-You can now start a local server that listens on port 3000 by running the following:  
 
-    clojure -M:run
+### Reverse Proxy
 
-Access the front-end in your browser at `http://localhost:3000`.  
+If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.  
+
+-   Nginx
+
+        server {
+            listen 443 ssl http2;
+            server_name tubo.<YOUR_DOMAIN>
+            ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
+        
+            location / {
+                proxy_pass http://localhost:3000;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header HOST $http_host;
+            }
+        }
 
 
 ## Road-map
