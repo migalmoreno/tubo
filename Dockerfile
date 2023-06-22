@@ -20,6 +20,7 @@ COPY deps.edn /app
 RUN clojure -P
 
 COPY . /app
+RUN clojure -M -e "(compile 'tubo.downloader-impl)"
 COPY --from=build /app/resources /app/resources
 
 EXPOSE 3000
