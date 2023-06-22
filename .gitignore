@@ -1,6 +1,7 @@
 node_modules
-.shadow-cljs
 public
+target
 *.jar
 .cpcache
 .nrepl-port
+.shadow-cljs
