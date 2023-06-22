@@ -13,7 +13,9 @@
  :paths ["src/backend" "resources" "classes"]
  :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :aliases
- {:frontend
+ {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
+          :ns-default build}
+  :frontend
   {:extra-paths ["src/frontend"]
    :extra-deps {thheller/shadow-cljs {:mvn/version "2.20.1"}
                 cider/cider-nrepl {:mvn/version "0.28.4"}
