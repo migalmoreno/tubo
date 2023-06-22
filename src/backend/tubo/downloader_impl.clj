@@ -43,7 +43,7 @@
         url (.url request)
         headers (.headers request)
         data-to-send (.dataToSend request)
-        request-body (when data-to-send (RequestBody/create nil data-to-send))
+        request-body (and data-to-send (RequestBody/create nil data-to-send))
         request-builder (.. (Request$Builder.)
                             (method http-method request-body)
                             (url url)
@@ -60,7 +60,7 @@
             (.header request-builder header-name (.get header-value-list 0))))))
     (let [response (.. (@(.state this) :client) (newCall (.build request-builder)) (execute))
           body (.body response)
-          response-body-to-return (when body (.string body))
+          response-body-to-return (and body (.string body))
           latest-url (.. response (request) (url) (toString))]
       (when (= (.code response) 429)
         (.close response))
@@ -69,3 +69,5 @@
                  (.. response (headers) (toMultimap))
                  response-body-to-return
                  latest-url))))
+
+(comment (compile 'tubo.downloader-impl))
