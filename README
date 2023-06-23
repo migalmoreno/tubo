@@ -75,7 +75,7 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 #+begin_src nginx
 server {
     listen 443 ssl http2;
-    server_name tubo.<YOUR_DOMAIN>
+    server_name tubo.<YOUR_DOMAIN>;
     ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
 

@@ -9,7 +9,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 ## Try It Out
 
-You can try a live demo at <https://tubo.mianmoreno.com> but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org09f3d2b). See [installation](#orgb0098d1) for ways to set up Tubo in your server.  
+You can try a live demo at <https://tubo.mianmoreno.com> but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org7023291). See [installation](#orgc5ad820) for ways to set up Tubo in your server.  
 
 
 ## Installation
@@ -70,7 +70,7 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 
         server {
             listen 443 ssl http2;
-            server_name tubo.<YOUR_DOMAIN>
+            server_name tubo.<YOUR_DOMAIN>;
             ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
             ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
         
