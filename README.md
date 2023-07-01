@@ -9,7 +9,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 ## Try It Out
 
-You can try a live demo at <https://tubo.mianmoreno.com> but beware this is hosted on a personal low-end VPS. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org7023291). See [installation](#orgc5ad820) for ways to set up Tubo in your server.  
+You can try a live demo at <https://tubo.migalmoreno.com>. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org36cfc60). See [installation](#org88ed64e) for ways to set up Tubo in your server.  
 
 
 ## Installation
@@ -92,12 +92,12 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 
 ## Screenshots
 
-![img](https://files.mianmoreno.com/tubo_kiosk.jpg)  
-![img](https://files.mianmoreno.com/tubo_channel.jpg)  
-![img](https://files.mianmoreno.com/tubo_stream.jpg)  
+![img](https://files.migalmoreno.com/tubo_kiosk.jpg)  
+![img](https://files.migalmoreno.com/tubo_channel.jpg)  
+![img](https://files.migalmoreno.com/tubo_stream.jpg)  
 
 
 ## Contributing
 
-You can send feedback, patches, or bug reports to [public@mianmoreno.com](mailto:public@mianmoreno.com).  
+Feel free to open an issue with bug reports or feature requests. PRs are more than welcome too.  
 
