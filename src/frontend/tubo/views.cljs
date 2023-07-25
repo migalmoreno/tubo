@@ -83,9 +83,8 @@
     [:div.flex.flex-col.justify-center.items-center
      [:div.flex.items-center.justify-center
       [:div.items-center
-       [:a.font-bold {:href "https://git.mianmoreno.com/tubo"} "tubo"]]
-      [:div
-       [:p.px-2 (str "2022-" (.getFullYear (js/Date.)))]]]]]])
+       [:a {:href "https://github.com/migalmoreno/tubo" :target "_blank"}
+        "https://github.com/migalmoreno/tubo"]]]]]])
 
 (defn app
   []
