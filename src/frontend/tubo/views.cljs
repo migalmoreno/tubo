@@ -92,7 +92,7 @@
   (let [current-match @(rf/subscribe [:current-match])]
     [:div.min-h-screen.flex.flex-col.h-full.text-white.bg-neutral-900.relative
      [navbar current-match]
-     [:div.flex.flex-col.justify-between.relative.font-nunito {:class "min-h-[calc(100vh-58px)]"}
+     [:div.flex.flex-col.justify-between.relative.font-nunito {:style {:minHeight "100vh"}}
       (when-let [view (-> current-match :data :view)]
         [view current-match])
       [footer]
