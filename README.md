@@ -9,7 +9,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 ## Try It Out
 
-You can try a live demo at <https://tubo.migalmoreno.com>. If you can, please consider self-hosting Tubo and let me know about your instance via the [contribution methods](#org36cfc60). See [installation](#org88ed64e) for ways to set up Tubo in your server.  
+You can try a live demo at <https://tubo.migalmoreno.com>. If you consider self-hosting Tubo  let me know about your instance via the [contribution methods](#orga74f48b). See [installation](#org688510e) for ways to set up Tubo in your server.  
 
 
 ## Installation
