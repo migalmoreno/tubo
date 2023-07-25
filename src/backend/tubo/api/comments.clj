@@ -12,7 +12,7 @@
 (defn get-comment-item
   [item extractor]
   {:id (.getCommentId item)
-   :text (.getCommentText item)
+   :text (.. item (getCommentText) (getContent))
    :uploader-name (.getUploaderName item)
    :uploader-avatar (.getUploaderAvatarUrl item)
    :uploader-url (.getUploaderUrl item)
