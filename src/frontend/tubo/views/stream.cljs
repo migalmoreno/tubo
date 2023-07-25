@@ -98,24 +98,25 @@
           [:div.min-w-full.py-3
            [:h1 name]
            [:div {:dangerouslySetInnerHTML {:__html description}}]]
-          [:div.py-6
-           [:div.flex.items-center
-            [:i.fa-solid.fa-comments]
-            [:p.px-2.py-4 "Comments"]
-            (if show-comments
-              [:i.fa-solid.fa-chevron-up {:on-click #(rf/dispatch [::events/toggle-comments])
-                                          :style {:cursor "pointer"}}]
-              [:i.fa-solid.fa-chevron-down {:on-click #(if (or show-comments comments-page)
-                                                         (rf/dispatch [::events/toggle-comments])
-                                                         (rf/dispatch [::events/get-comments url]))
-                                            :style {:cursor "pointer"}}])]
-           [:div
-            (if show-comments-loading
-              [loading/loading-icon service-color "text-2xl"]
-              (when (and show-comments comments-page)
-                [comments/comments comments-page uploader-name uploader-avatar url]))]]
+          (when-not (empty? (:comments comments-page))
+            [:div.py-6
+             [:div.flex.items-center
+              [:i.fa-solid.fa-comments]
+              [:p.px-2.py-4 "Comments"]
+              (if show-comments
+                [:i.fa-solid.fa-chevron-up {:on-click #(rf/dispatch [::events/toggle-comments])
+                                            :style    {:cursor "pointer"}}]
+                [:i.fa-solid.fa-chevron-down {:on-click #(if (or show-comments comments-page)
+                                                           (rf/dispatch [::events/toggle-comments])
+                                                           (rf/dispatch [::events/get-comments url]))
+                                              :style    {:cursor "pointer"}}])]
+             [:div
+              (if show-comments-loading
+                [loading/loading-icon service-color "text-2xl"]
+                (when (and show-comments comments-page)
+                  [comments/comments comments-page uploader-name uploader-avatar url]))]])
           (when-not (empty? related-streams)
-            [:div.py-3
+            [:div.py-6
              [:div.flex.items-center
               [:i.fa-solid.fa-list]
               [:h1.px-2.text-lg.bold "Related Results"]]

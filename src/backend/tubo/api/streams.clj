@@ -25,7 +25,7 @@
      :duration (.getDuration info)
      :tags (.getTags info)
      :category (.getCategory info)
-     :view-count (.getViewCount info)
+     :view-count (when-not (= (.getViewCount info) -1) (.getViewCount info))
      :like-count (when-not (= (.getLikeCount info) -1) (.getLikeCount info))
      :dislike-count (when-not (= (.getDislikeCount info) -1) (.getDislikeCount info))
      :subscriber-count (when-not (= (.getUploaderSubscriberCount info) -1) (.getUploaderSubscriberCount info))
