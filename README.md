@@ -1,15 +1,33 @@
-
-
-# Tubo
+#### Tubo
 
 Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It currently supports the same platforms as NewPipe, including YouTube, SoundCloud, and more.  
 
-To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
+To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
+#### Screenshots
 
-## Try It Out
+![img](https://files.migalmoreno.com/tubo_kiosk.jpg)  
+![img](https://files.migalmoreno.com/tubo_channel.jpg)  
+![img](https://files.migalmoreno.com/tubo_stream.jpg) 
 
-You can try a live demo at <https://tubo.migalmoreno.com>. If you consider self-hosting Tubo  let me know about your instance via the [contribution methods](#orga74f48b). See [installation](#org688510e) for ways to set up Tubo in your server.  
+#### Road-map
+
+-   [X] Basic audio player
+-   [ ] Track queuing system
+-   [ ] Playlists
+-   [ ] User settings
+
+## Clearnet Instances
+
+| Instance URL                                                                    | Region                           | Notes                                                                                            |
+| ------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [tubo.migalmoreno.com](https://tubo.migalmoreno.com)                            | Spain                            | Operated by [MigalMoreno](https://migalmoreno.com)                                               |
+
+## Darknet Instances
+
+| Instance URL                                                                                                                                                                | Region                           | Notes                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------- |
+|                              | N/A                 | Operated by N/A
 
 
 ## Installation
@@ -66,8 +84,8 @@ You can try a live demo at <https://tubo.migalmoreno.com>. If you consider self-
 
 If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.  
 
--   Nginx
-
+NGINX
+```
         server {
             listen 443 ssl http2;
             server_name tubo.<YOUR_DOMAIN>;
@@ -80,24 +98,4 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
                 proxy_set_header HOST $http_host;
             }
         }
-
-
-## Road-map
-
--   [X] Basic audio player
--   [ ] Track queuing system
--   [ ] Playlists
--   [ ] User settings
-
-
-## Screenshots
-
-![img](https://files.migalmoreno.com/tubo_kiosk.jpg)  
-![img](https://files.migalmoreno.com/tubo_channel.jpg)  
-![img](https://files.migalmoreno.com/tubo_stream.jpg)  
-
-
-## Contributing
-
-Feel free to open an issue with bug reports or feature requests. PRs are more than welcome too.  
-
+    ```
