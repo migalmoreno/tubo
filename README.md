@@ -52,6 +52,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
     Alternatively, you can use Docker to set up Tubo. Simply invoke this:  
     
         docker-compose up -d --build
+        sudo docker network create ```"changethis" --subnet="172.**.*.*/24"```
 
 -   Manual
 
