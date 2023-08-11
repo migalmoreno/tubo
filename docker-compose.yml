@@ -4,8 +4,6 @@ services:
   tubo:
     container_name: tubo
     hostname: tubo
-    user: 65534:65534
-    read_only: true
     build:
       context: .
       dockerfile: Dockerfile
