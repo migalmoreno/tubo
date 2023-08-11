@@ -11,9 +11,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-
-  # Maintain dependencies for clojure
-  - package-ecosystem: "clojure"
-    directory: "/"
-    schedule:
-      interval: "daily"
