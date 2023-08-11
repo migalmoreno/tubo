@@ -21,7 +21,8 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 | Instance URL                                                                    | Region                           | Notes                                                                                            |
 | ------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [tubo.migalmoreno.com](https://tubo.migalmoreno.com) (Official)                           | Spain                            | Operated by [MigalMoreno](https://migalmoreno.com)                                               |
+| [tubo.migalmoreno.com](https://tubo.migalmoreno.com) (Official)                           | Spain                            | Operated by [MigalMoreno](https://migalmoreno.com)                                     |
+| [tv.whateveritworks.org](https://tv.whateveritworks.org)                           | Germany                            | Operated by [WhateverItWorks](https://www.whateveritworks.org)                                     |
 
 ## Darknet Instances
 
@@ -52,7 +53,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
     Alternatively, you can use Docker to set up Tubo. Simply invoke this:  
     
         docker-compose up -d --build
-        sudo docker network create ```"changethis" --subnet="172.**.*.*/24"```
+        sudo docker network create "changethis" --subnet="172.**.*.*/24"
 
 -   Manual
 
