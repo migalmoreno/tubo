@@ -1,7 +1,18 @@
-version: "3"
+version: '3.7'
+
 services:
   tubo:
-    build: .
-    restart: unless-stopped
+    container_name: tubo
+    hostname: tubo
+    user: 65534:65534
+    read_only: true
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - '127.0.0.1:3080:3000'
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
