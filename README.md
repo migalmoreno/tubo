@@ -7,9 +7,32 @@ Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.c
 To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
 
 
-## Try It Out
+## Instances
 
-You can try a live demo at <https://tubo.migalmoreno.com>. If you consider self-hosting Tubo  let me know about your instance via the [contribution methods](#orga74f48b). See [installation](#org688510e) for ways to set up Tubo in your server.  
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">URL</th>
+<th scope="col" class="org-left">Country</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td class="org-left"><a href="https://tubo.migalmoreno.com">https://tubo.migalmoreno.com</a> (Official)</td>
+<td class="org-left">🇪🇸</td>
+</tr>
+</tbody>
+</table>
+
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#orgd4254ad). See [installation](#orgb8016f7) for ways to set up Tubo in your server.  
 
 
 ## Installation
