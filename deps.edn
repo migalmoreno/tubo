@@ -1,4 +1,4 @@
-{:deps {com.github.TeamNewPipe/NewpipeExtractor {:mvn/version "0.22.6"}
+{:deps {com.github.TeamNewPipe/NewpipeExtractor {:mvn/version "0.22.7"}
         com.squareup.okhttp3/okhttp {:mvn/version "4.10.0"}
         http-kit/http-kit {:mvn/version "2.7.0-alpha1"}
         metosin/reitit-core {:mvn/version "0.5.18"}
