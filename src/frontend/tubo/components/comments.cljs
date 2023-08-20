@@ -30,7 +30,7 @@
      (when uploader-verified?
        [:i.fa-solid.fa-circle-check.ml-2])]
     [:div.my-2
-     [:p text]]
+     [:p {:dangerouslySetInnerHTML {:__html text}}]]
     [:div..flex.items-center.my-2
      [:div.mr-4
       [:p (util/format-date upload-date)]]
