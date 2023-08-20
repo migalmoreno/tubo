@@ -59,7 +59,7 @@
       (fn [this [_ prev-argv prev-more]]
         (when (and @!player (not= prev-more (first (r/children this))))
           (.src @!player (apply array (map #(js-obj "type" % "src" (first (r/children this)))
-                                           ["video/mp4" "video/webm"])))
+                                           (map #(get % "type") (get options "sources")))))
           (.ready @!player #(.play @!player))))
       :component-will-unmount
       (fn [_]
