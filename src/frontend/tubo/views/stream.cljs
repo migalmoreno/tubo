@@ -28,7 +28,7 @@
        [:div.w-full.pb-4.relative {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         [:div.flex.justify-center.relative
-         {:class "h-[350px] ml:h-[450px] lg:h-[600px]"}
+         {:class "h-[300px] ml:h-[450px] lg:h-[600px]"}
          (when stream-format
            [player/stream-player {"sources" [{"src" content "type" "video/mp4"}
                                              {"src" content "type" "video/webm"}]
