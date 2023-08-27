@@ -37,49 +37,49 @@
                                     :params {}
                                     :query  {:q global-search :serviceId service-id}}]))}
        [:div
-        [:input.bg-transparent.border-none.rounded.py-2.px-1.focus:ring-transparent.placeholder-white.box-border.w-40.xs:w-auto
-         {:type "text"
-          :value global-search
-          :on-change #(rf/dispatch [::events/change-global-search (.. % -target -value)])
+        [:input.bg-transparent.text-white.border-none.rounded.py-2.px-1.focus:ring-transparent.placeholder-white.box-border.w-40.xs:w-auto
+         {:type        "text"
+          :value       global-search
+          :on-change   #(rf/dispatch [::events/change-global-search (.. % -target -value)])
           :placeholder "Search for something"}]]
        [:div.flex.items-center.px-2
         [:button.text-white
          {:type "submit"}
          [:i.fas.fa-search]]]]
-      [:div.cursor-pointer.px-2.ml:hidden
+      [:div.cursor-pointer.px-2.ml:hidden.text-white
        {:on-click #(rf/dispatch [::events/toggle-mobile-nav])}
        [:i.fa-solid.fa-bars]]
-      [:div.bg-neutral-900.items-center.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.shadow-xl.shadow-black.pt-8
+      [:div.bg-white.dark:bg-neutral-900.items-center.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.shadow-xl.shadow-black.pt-8
        {:class (str "ease-in-out delay-75 transition-[right] "
-                    "ml:w-full ml:flex ml:min-h-0 ml:relative ml:text-white ml:bg-transparent ml:shadow-none ml:p-0 ml:right-0 "
+                    "ml:w-full ml:flex ml:min-h-0 ml:relative ml:bg-transparent ml:shadow-none ml:p-0 ml:right-0 "
                     (if mobile-nav? "right-0" "right-[-245px]"))}
        [:div.cursor-pointer.px-2.ml:hidden.absolute.top-1.right-2
         {:on-click #(rf/dispatch [::events/toggle-mobile-nav])}
         [:i.fa-solid.fa-close.text-xl]]
        [:div.relative.flex.flex-col.items-center.justify-center.ml:flex-row
-        [:div.w-full.box-border.z-10
+        [:div.w-full.box-border.z-10.ml:text-white
          [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.font-nunito.px-5.w-full
           {:on-change #(rf/dispatch [::events/change-service (js/parseInt (.. % -target -value))])
-           :value service-id
-           :style {:background "transparent"}}
+           :value     service-id
+           :style     {:background "transparent"}}
           (when services
             (for [service services]
               [:option.bg-neutral-900.border-none {:value (:id service) :key (:id service)}
                (-> service :info :name)]))]]
-        [:div.flex.absolute.min-h-full.top-0.right-4.ml:right-0.items-center.justify-end.z-0
+        [:div.flex.absolute.min-h-full.top-0.right-4.ml:right-0.items-center.justify-end.z-0.ml:text-white
          [:i.fa-solid.fa-caret-down]]]
        [:div.relative.flex-auto.ml:pl-4
-        [:ul.flex.font-roboto.flex-col.ml:flex-row
+        [:ul.flex.font-roboto.flex-col.ml:flex-row.ml:text-white
          (for [kiosk available-kiosks]
            [:li.px-5.py-2 {:key kiosk}
             [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
-                                                     :kioskId kiosk})}
+                                                     :kioskId   kiosk})}
              kiosk]])]]]]]))
 
 (defn footer
   []
   [:footer
-   [:div.bg-black.text-gray-300.p-5.text-center.w-full
+   [:div.bg-neutral-300.dark:bg-black.dark:text-gray-300.p-5.text-center.w-full
     [:div.flex.flex-col.justify-center.items-center
      [:div.flex.items-center.justify-center
       [:div.items-center
@@ -89,7 +89,7 @@
 (defn app
   []
   (let [current-match @(rf/subscribe [:current-match])]
-    [:div.min-h-screen.flex.flex-col.h-full.text-white.bg-neutral-900.relative
+    [:div.min-h-screen.flex.flex-col.h-full.dark:text-white.dark:bg-neutral-900.relative
      [navbar current-match]
      [:div.flex.flex-col.justify-between.relative.font-nunito {:style {:minHeight "100vh"}}
       (when-let [view (-> current-match :data :view)]

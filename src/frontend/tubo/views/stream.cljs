@@ -22,7 +22,7 @@
         {:keys [content id] :as stream-format} @(rf/subscribe [:stream-format])
         page-loading? @(rf/subscribe [:show-page-loading])
         service-color @(rf/subscribe [:service-color])]
-    [:div.flex.flex-col.items-center.justify-center.text-white.flex-auto
+    [:div.flex.flex-col.items-center.justify-center.dark:text-white.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
        [:div.w-full.pb-4.relative {:class "ml:w-4/5 xl:w-3/5"}
@@ -40,7 +40,7 @@
         [:div.px-4.ml:p-0
          [:div.flex.flex.w-full.mt-3
           (when stream-format
-            [:div.relative.flex.bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
+            [:div.relative.flex.dark:bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
              [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.pl-4.pr-8.w-full
               {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
                :value id
@@ -52,12 +52,12 @@
              [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
               {:style {:zIndex "-1"}}
               [:i.fa-solid.fa-caret-down]]])
-          [:button.border.rounded.border-black.px-3.py-1.bg-stone-800
+          [:button.border.rounded.border-black.px-3.py-1.dark:bg-stone-800
            {:on-click #(rf/dispatch [::events/switch-to-global-player
                                      {:uploader-name uploader-name :uploader-url uploader-url
                                       :name name :url url :stream content :service-color service-color}])}
            [:i.fa-solid.fa-headphones]]
-          [:button.border.rounded.border-black.px-3.py-1.bg-stone-800.mx-2
+          [:button.border.rounded.border-black.px-3.py-1.dark:bg-stone-800.mx-2
            [:a {:href url}
             [:i.fa-solid.fa-external-link-alt]]]]
          [:div.flex.flex-col.py-1.comments

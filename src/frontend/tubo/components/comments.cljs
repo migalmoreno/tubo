@@ -24,7 +24,7 @@
      (when uploader-name
        [:div.flex.items-center
         [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-         [:h1.text-gray-300.font-bold uploader-name]]
+         [:h1.text-neutral-800.dark:text-gray-300.font-bold uploader-name]]
         (when stream-position
           [:p.mx-1.text-xs (str "at " (util/format-duration stream-position))])])
      (when uploader-verified?

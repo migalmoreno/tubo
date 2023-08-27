@@ -13,7 +13,7 @@
     [:img.rounded.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url}]
     (when duration
       [:div.rounded.p-2.absolute {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
-       [:p {:style {:fontSize "14px"}}
+       [:p.text-white {:style {:fontSize "14px"}}
         (if (= duration 0)
           "LIVE"
           (util/format-duration duration))]])]])
@@ -31,8 +31,8 @@
      [:div.flex.items-center.my-2
       (if uploader-url
         [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-         [:h1.line-clamp-1.text-gray-300.font-bold.pr-2 uploader-name]]
-        [:h1.line-clamp-1.text-gray-300.font-bold.pr-2 uploader-name])
+         [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name]]
+        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
       (when verified?
         [:i.fa-solid.fa-circle-check])])
    (when subscriber-count
