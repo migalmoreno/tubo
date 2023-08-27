@@ -1,4 +1,4 @@
-(ns tubo.router
+(ns tubo.routes
   (:require
    [malli.experimental.lite :as l]
    [reitit.ring :as ring]
