@@ -33,7 +33,7 @@
        {:on-submit (fn [e]
                      (.preventDefault e)
                      (rf/dispatch [::events/navigate
-                                   {:name ::routes/search
+                                   {:name   ::routes/search
                                     :params {}
                                     :query  {:q global-search :serviceId service-id}}]))}
        [:div

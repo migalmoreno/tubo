@@ -10,7 +10,7 @@
    [tubo.views.search :as search]
    [tubo.views.stream :as stream]))
 
-(def routes
+(def router
   (ref/router
    [["/" {:view kiosk/kiosk
           :name ::home
@@ -22,8 +22,9 @@
                 :name ::search
                 :controllers [{:parameters {:query [:q :serviceId]}
                                :start (fn [{{:keys [serviceId q]} :query}]
+                                        (rf/dispatch [::events/get-search-results serviceId q])
                                         (rf/dispatch [::events/change-service-id (js/parseInt serviceId)])
-                                        (rf/dispatch [::events/get-search-results serviceId q]))}]}]
+                                        (rf/dispatch [::events/get-kiosks (js/parseInt serviceId)]))}]}]
     ["/stream" {:view stream/stream
                 :name ::stream
                 :controllers [{:parameters {:query [:url]}
@@ -55,4 +56,4 @@
 
 (defn start-routes!
   []
-  (rfe/start! routes on-navigate {:use-fragment false}))
+  (rfe/start! router on-navigate {:use-fragment false}))

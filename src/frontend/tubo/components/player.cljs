@@ -21,9 +21,9 @@
             [:div.flex.flex-wrap.items-center
              [:div.flex.flex-col
               [:a.text-xs
-               {:href (rfe/href :tubo.router/stream nil {:url url})} name]
+               {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
               [:a.text-xs.text-gray-300
-               {:href (rfe/href :tubo.router/channel nil {:url uploader-url})} uploader-name]]
+               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
              [:div.px-2.py-0.md:pt-4
               [:audio {:src stream :ref #(reset! !player %) :loop @!loop?}]]
              [:div.mx-2
