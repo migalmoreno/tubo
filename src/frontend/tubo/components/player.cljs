@@ -15,18 +15,18 @@
       (let [{:keys [uploader-name uploader-url name stream url service-color]} @(rf/subscribe [:global-stream])
             show-global-player? @(rf/subscribe [:show-global-player])]
         (when show-global-player?
-          [:div.sticky.bottom-0.z-50.bg-neutral-900.p-5.absolute.box-border.m-0
+          [:div.sticky.bottom-0.z-50.bg-white.dark:bg-neutral-900.p-5.absolute.box-border.m-0
            {:style {:borderColor service-color :borderTopWidth "2px" :borderStyle "solid"}}
            [:div.flex.items-center.justify-between
-            [:div.flex.flex-wrap.items-center
+            [:div.flex.items-center
              [:div.flex.flex-col
-              [:a.text-xs
+              [:a.text-xs.line-clamp-1
                {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
-              [:a.text-xs.text-gray-300
+              [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300
                {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
              [:div.px-2.py-0.md:pt-4
               [:audio {:src stream :ref #(reset! !player %) :loop @!loop?}]]
-             [:div.mx-2
+             [:div.mx-2.flex
               [:button.focus:ring-transparent.mx-2
                {:on-click (fn [] (swap! !loop? #(not %)))}
                [:i.fa-solid.fa-repeat

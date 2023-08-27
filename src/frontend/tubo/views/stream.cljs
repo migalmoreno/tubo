@@ -37,7 +37,7 @@
                                   "responsive" true
                                   "fill" true}
             content])]
-        [:div.px-4.ml:p-0
+        [:div.px-4.ml:p-0.overflow-x-hidden
          [:div.flex.flex.w-full.mt-3
           (when stream-format
             [:div.relative.flex.dark:bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
