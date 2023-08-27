@@ -37,7 +37,8 @@
  ::page-scroll
  (fn [db _]
    (when (> (.-scrollY js/window) 0)
-     (assoc db :page-scroll (+ (.-scrollY js/window) (.-innerHeight js/window))))))
+     (assoc db :page-scroll
+            (+ (.-scrollY js/window) (.-innerHeight js/window))))))
 
 (rf/reg-event-db
  ::reset-page-scroll
@@ -252,7 +253,8 @@
 (rf/reg-event-fx
  ::get-kiosks
  (fn [{:keys [db]} [_ id]]
-   (api/get-request (str "/api/services/" id "/kiosks") [::load-kiosks] [::bad-response])))
+   (api/get-request (str "/api/services/" id "/kiosks")
+                    [::load-kiosks] [::bad-response])))
 
 (rf/reg-event-db
  ::load-kiosk
@@ -304,7 +306,8 @@
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/api/services/" service-id "/kiosks/" (js/encodeURIComponent kiosk-id))
+       (str "/api/services/" service-id "/kiosks/"
+            (js/encodeURIComponent kiosk-id))
        [::load-paginated-kiosk-results] [::bad-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
@@ -316,7 +319,9 @@
      {:db (assoc db :stream stream-res
                  :show-page-loading false)
       :fx [[:dispatch [::change-stream-format nil]]
-           [:dispatch [::get-comments (:url stream-res)]]]})))
+           [:dispatch [::get-comments (:url stream-res)]]
+           [:dispatch [::change-service-id (:service-id stream-res)]]
+           [:dispatch [::get-kiosks (:service-id stream-res)]]]})))
 
 (rf/reg-event-fx
  ::get-stream
@@ -332,15 +337,20 @@
    (let [{:keys [audio-streams video-streams]} stream]
      (if format-id
        (assoc db :stream-format
-              (first (filter #(= format-id (:id %)) (apply conj audio-streams video-streams))))
-       (assoc db :stream-format (-> (if (empty? video-streams) audio-streams video-streams)
-                                    last))))))
+              (first (filter #(= format-id (:id %))
+                             (apply conj audio-streams video-streams))))
+       (assoc db :stream-format (if (empty? video-streams)
+                                  (first audio-streams)
+                                  (last video-streams)))))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::load-channel
- (fn [db [_ res]]
-   (assoc db :channel (js->clj res :keywordize-keys true)
-          :show-page-loading false)))
+ (fn [{:keys [db]} [_ res]]
+   (let [channel-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :channel channel-res
+                 :show-page-loading false)
+      :fx [[:dispatch [::change-service-id (:service-id channel-res)]]
+           [:dispatch [::get-kiosks (:service-id channel-res)]]]})))
 
 (rf/reg-event-fx
  ::get-channel
@@ -351,11 +361,14 @@
      [::load-channel] [::bad-response])
     :db (assoc db :show-page-loading true))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::load-playlist
- (fn [db [_ res]]
-   (assoc db :playlist (js->clj res :keywordize-keys true)
-          :show-page-loading false)))
+ (fn [{:keys [db]} [_ res]]
+   (let [playlist-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :playlist playlist-res
+                 :show-page-loading false)
+      :fx [[:dispatch [::change-service-id (:service-id playlist-res)]]
+           [:dispatch [::get-kiosks (:service-id playlist-res)]]]})))
 
 (rf/reg-event-fx
  ::get-playlist
