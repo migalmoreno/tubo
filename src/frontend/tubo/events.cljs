@@ -188,6 +188,13 @@
    (assoc db :services (js->clj res :keywordize-keys true))))
 
 (rf/reg-event-fx
+ ::set-service-styles
+ (fn [{:keys [db]} [_ res]]
+   {:db db
+    :fx [[:dispatch [::change-service-id (:service-id res)]]
+         [:dispatch [::get-kiosks (:service-id res)]]]}))
+
+(rf/reg-event-fx
  ::get-services
  (fn [{:keys [db]} _]
    (api/get-request "/api/services" [::load-services] [::bad-response])))
@@ -256,14 +263,16 @@
    (api/get-request (str "/api/services/" id "/kiosks")
                     [::load-kiosks] [::bad-response])))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::load-kiosk
- (fn [db [_ res]]
-   (assoc db :kiosk (js->clj res :keywordize-keys true)
-          :show-page-loading false)))
+ (fn [{:keys [db]} [_ res]]
+   (let [kiosk-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :kiosk kiosk-res
+                 :show-page-loading false)
+      :fx [[:dispatch [::set-service-styles kiosk-res]]]})))
 
 (rf/reg-event-fx
- ::get-default-kiosk
+ ::get-default-kiosk-page
  (fn [{:keys [db]} [_ service-id]]
    (assoc
     (api/get-request (str "/api/services/" service-id "/default-kiosk")
@@ -271,7 +280,7 @@
     :db (assoc db :show-page-loading true))))
 
 (rf/reg-event-fx
- ::get-kiosk
+ ::get-kiosk-page
  (fn [{:keys [db]} [_ service-id kiosk-id]]
    (if kiosk-id
      (assoc
@@ -279,7 +288,7 @@
                             (js/encodeURIComponent kiosk-id))
                        [::load-kiosk] [::bad-response])
       :db (assoc db :show-page-loading true))
-     {:fx [[:dispatch [::get-default-kiosk service-id]]]})))
+     {:fx [[:dispatch [::get-default-kiosk-page service-id]]]})))
 
 (rf/reg-event-fx
  ::change-service
@@ -313,23 +322,42 @@
       :db (assoc db :show-pagination-loading true)))))
 
 (rf/reg-event-fx
- ::load-stream
+ ::load-global-player-stream
+ (fn [{:keys [db]} [_ res]]
+   (let [stream-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :show-global-player-loading false)
+      :fx [[:dispatch [::change-media-queue-stream
+                       (-> stream-res :audio-streams first :content)]]]})))
+
+(rf/reg-event-fx
+ ::load-stream-page
  (fn [{:keys [db]} [_ res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :stream stream-res
                  :show-page-loading false)
       :fx [[:dispatch [::change-stream-format nil]]
            [:dispatch [::get-comments (:url stream-res)]]
-           [:dispatch [::change-service-id (:service-id stream-res)]]
-           [:dispatch [::get-kiosks (:service-id stream-res)]]]})))
+           [:dispatch [::set-service-styles stream-res]]]})))
 
 (rf/reg-event-fx
- ::get-stream
+ ::fetch-stream-page
+ (fn [{:keys [db]} [_ uri]]
+    (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+                     [::load-stream-page] [::bad-response])))
+
+(rf/reg-event-fx
+ ::fetch-global-player-stream
  (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
-                     [::load-stream] [::bad-response])
-    :db (assoc db :show-page-loading true))))
+                     [::load-global-player-stream] [::bad-response])
+    :db (assoc db :show-global-player-loading true))))
+
+(rf/reg-event-fx
+ ::get-stream-page
+ (fn [{:keys [db]} [_ uri]]
+   {:db (assoc db :show-page-loading true)
+    :fx [[:dispatch [::fetch-stream-page uri]]]}))
 
 (rf/reg-event-db
  ::change-stream-format
@@ -349,11 +377,10 @@
    (let [channel-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :channel channel-res
                  :show-page-loading false)
-      :fx [[:dispatch [::change-service-id (:service-id channel-res)]]
-           [:dispatch [::get-kiosks (:service-id channel-res)]]]})))
+      :fx [[:dispatch [::set-service-styles channel-res]]]})))
 
 (rf/reg-event-fx
- ::get-channel
+ ::get-channel-page
  (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request
@@ -367,26 +394,27 @@
    (let [playlist-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :playlist playlist-res
                  :show-page-loading false)
-      :fx [[:dispatch [::change-service-id (:service-id playlist-res)]]
-           [:dispatch [::get-kiosks (:service-id playlist-res)]]]})))
+      :fx [[:dispatch [::set-service-styles playlist-res]]]})))
 
 (rf/reg-event-fx
- ::get-playlist
+ ::get-playlist-page
  (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request (str "/api/playlists/" (js/encodeURIComponent uri))
                      [::load-playlist] [::bad-response])
     :db (assoc db :show-page-loading true))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::load-search-results
- (fn [db [_ res]]
-   (assoc db :search-results (js->clj res :keywordize-keys true)
-          :show-page-loading false
-          :global-search "")))
+ (fn [{:keys [db]} [_ res]]
+   (let [search-res (js->clj res :keywordize-keys true)]
+     {:db (assoc db :search-results search-res
+                 :show-page-loading false
+                 :global-search "")
+      :fx [[:dispatch [::set-service-styles search-res]]]})))
 
 (rf/reg-event-fx
- ::get-search-results
+ ::get-search-page
  (fn [{:keys [db]} [_ service-id query]]
    (assoc
     (api/get-request (str "/api/services/" service-id "/search")

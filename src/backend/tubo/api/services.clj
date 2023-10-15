@@ -21,6 +21,7 @@
          info (SearchInfo/getInfo service query-handler)]
      {:items (items/get-items (.getRelatedItems info))
       :next-page (j/from-java (.getNextPage info))
+      :service-id service-id
       :search-suggestion (.getSearchSuggestion info)
       :corrected-search? (.isCorrectedSearch info)}))
   ([service-id query content-filters sort-filter page-url]
@@ -41,6 +42,7 @@
          info (KioskInfo/getInfo extractor)]
      {:id (.getId info)
       :url (.getUrl info)
+      :service-id service-id
       :next-page (j/from-java (.getNextPage info))
       :related-streams (items/get-items (.getRelatedItems info))}))
   ([kiosk-id service-id]
@@ -50,6 +52,7 @@
          info (KioskInfo/getInfo extractor)]
      {:id (.getId info)
       :url (.getUrl info)
+      :service-id service-id
       :next-page (j/from-java (.getNextPage info))
       :related-streams (items/get-items (.getRelatedItems info))}))
   ([kiosk-id service-id page-url]
