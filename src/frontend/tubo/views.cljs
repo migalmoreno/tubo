@@ -39,7 +39,7 @@
        [:div
         [:input.bg-transparent.text-white.border-none.rounded.py-2.px-1.focus:ring-transparent.placeholder-white.box-border.w-40.xs:w-auto
          {:type        "text"
-          :value       global-search
+          :default-value       global-search
           :on-change   #(rf/dispatch [::events/change-global-search (.. % -target -value)])
           :placeholder "Search for something"}]]
        [:div.flex.items-center.px-2
