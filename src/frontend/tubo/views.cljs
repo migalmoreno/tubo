@@ -25,10 +25,11 @@
     [:nav.flex.px-2.py-2.5.items-center.sticky.top-0.z-50.font-nunito
      {:style {:background service-color}}
      [:div.flex.items-center.justify-between.flex-auto
-      [:div.py-2
-       [:a.px-5.text-white.font-bold
+      [:div.px-2
+       [:a.text-white.font-bold
         {:href (rfe/href ::routes/home)}
-        "tubo"]]
+        [:img.mb-1 {:src "/images/tubo.png" :style {:maxHeight "35px" :maxWidth "50px"}
+               :title "Tubo"}]]]
       [:form.flex.items-center.relative
        {:on-submit (fn [e]
                      (.preventDefault e)
@@ -64,7 +65,8 @@
            :style     {:background "transparent"}}
           (when services
             (for [service services]
-              [:option.bg-neutral-900.border-none {:value (:id service) :key (:id service)}
+              [:option.bg-neutral-900.border-none
+               {:value (:id service) :key (:id service)}
                (-> service :info :name)]))]]
         [:div.flex.absolute.min-h-full.top-0.right-4.ml:right-0.items-center.justify-end.z-0.ml:text-white
          [:i.fa-solid.fa-caret-down]]]
@@ -82,9 +84,10 @@
    [:div.bg-neutral-300.dark:bg-black.dark:text-gray-300.p-5.text-center.w-full
     [:div.flex.flex-col.justify-center.items-center
      [:div.flex.items-center.justify-center
-      [:div.items-center
+      [:div.items-center.font-nunito
        [:a {:href "https://github.com/migalmoreno/tubo" :target "_blank"}
-        "https://github.com/migalmoreno/tubo"]]]]]])
+        [:i.fa-brands.fa-github]
+        [:span.ml-2.font-bold "Source"]]]]]]])
 
 (defn app
   []
