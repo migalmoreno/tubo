@@ -26,16 +26,18 @@
    item-route service-color]
   [:<>
    (when name
-     [:div.my-2
+     [:div.flex.items-center.my-2
       [:a {:href item-route :title name}
-       [:h1.line-clamp-2.my-1 name]]])
+       [:h1.line-clamp-2.my-1 name]]
+      (when (and verified? (not uploader-url))
+       [:i.fa-solid.fa-circle-check.pl-2])])
    [:div.flex.justify-between
     [:div.flex.items-center.my-2
      (if uploader-url
        [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
         [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name]]
        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
-     (when verified?
+     (when (and uploader-url verified?)
        [:i.fa-solid.fa-circle-check])]
     (when (= type "stream")
       [:button.pl-4.focus:outline-none
@@ -49,11 +51,11 @@
    (when subscriber-count
       [:div.flex.items-center
        [:i.fa-solid.fa-users.text-xs]
-       [:p.mx-2 subscriber-count]])
+       [:p.mx-2 (util/format-quantity subscriber-count)]])
    (when stream-count
      [:div.flex.items-center
       [:i.fa-solid.fa-video.text-xs]
-      [:p.mx-2 stream-count]])
+      [:p.mx-2 (util/format-quantity stream-count)]])
    [:div.flex.my-1.justify-between
     [:p (util/format-date upload-date)]
     (when view-count
