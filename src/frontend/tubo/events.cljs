@@ -15,6 +15,8 @@
     :stream {}
     :search-results []
     :services []
+    :media-queue []
+    :media-queue-pos 0
     :current-match nil
     :page-scroll 0}))
 
@@ -166,21 +168,38 @@
         :nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
 
+(rf/reg-event-fx
+ ::add-to-media-queue
+ (fn [{:keys [db]} [_ stream]]
+   (let [media-queue (update db :media-queue conj stream)]
+     {:db media-queue
+      :fx [[:dispatch [::fetch-global-player-stream (:url stream)]]]})))
+
+(rf/reg-event-fx
+ ::change-media-queue-pos
+ (fn [{:keys [db]} [_ idx]]
+   {:db (assoc db :media-queue-pos idx)}))
+
 (rf/reg-event-db
- ::change-global-stream
- (fn [db [_ global-stream]]
-   (assoc db :global-stream global-stream)))
+ ::change-media-queue-stream
+ (fn [db [_ src]]
+   (let [idx (- (count (:media-queue db)) 1)]
+     (when-not (-> db :media-queue (nth idx) :stream)
+       (assoc-in db [:media-queue idx :stream] src)))))
 
 (rf/reg-event-db
  ::toggle-global-player
  (fn [db _]
-   (assoc db :show-global-player (not (:show-global-player db)))))
+   (-> db
+       (assoc :show-global-player (not (:show-global-player db)))
+       (assoc :media-queue [])
+       (assoc :media-queue-pos 0))))
 
 (rf/reg-event-fx
  ::switch-to-global-player
- (fn [{:keys [db]} [_ global-stream]]
+ (fn [{:keys [db]} [_ stream]]
    {:db (assoc db :show-global-player true)
-    :fx [[:dispatch [::change-global-stream global-stream]]]}))
+    :fx [[:dispatch [::add-to-media-queue stream]]]}))
 
 (rf/reg-event-db
  ::load-services

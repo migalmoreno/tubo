@@ -73,9 +73,14 @@
    (:page-scroll db)))
 
 (rf/reg-sub
- :global-stream
+ :media-queue
  (fn [db _]
-   (:global-stream db)))
+   (:media-queue db)))
+
+(rf/reg-sub
+ :media-queue-pos
+ (fn [db _]
+   (:media-queue-pos db)))
 
 (rf/reg-sub
  :show-global-player
