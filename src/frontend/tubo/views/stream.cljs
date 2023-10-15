@@ -41,13 +41,13 @@
          [:div.flex.flex.w-full.mt-3
           (when stream-format
             [:div.relative.flex.dark:bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
-             [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.pl-4.pr-8.w-full
+             [:select.border-none.focus:ring-transparent.dark:bg-blend-color-dodge.pl-4.pr-8.w-full
               {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
                :value id
                :style {:background "transparent"}}
               (when available-streams
                 (for [[i {:keys [id format resolution averageBitrate]}] (map-indexed vector available-streams)]
-                  [:option.bg-neutral-900.border-none {:value id :key i}
+                  [:option.dark:bg-neutral-900.border-none {:value id :key i}
                    (str (or resolution "audio-only") " " format (when-not resolution (str " " averageBitrate "kbit/s")))]))]
              [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
               {:style {:zIndex "-1"}}
