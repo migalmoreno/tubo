@@ -3,6 +3,7 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.loading :as loading]
+   [tubo.events :as events]
    [tubo.util :as util]))
 
 (defn thumbnail
@@ -21,20 +22,30 @@
 (defn item-content
   [{:keys [url name thumbnail-url description subscriber-count
            stream-count verified? key uploader-name uploader-url
-           uploader-avatar upload-date short-description view-count]} item-route]
+           uploader-avatar upload-date short-description view-count]}
+   item-route service-color]
   [:<>
    (when name
      [:div.my-2
       [:a {:href item-route :title name}
        [:h1.line-clamp-2.my-1 name]]])
-   (when-not (empty? uploader-name)
-     [:div.flex.items-center.my-2
-      (if uploader-url
-        [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-         [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name]]
-        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
-      (when verified?
-        [:i.fa-solid.fa-circle-check])])
+   [:div.flex.justify-between
+    [:div.flex.items-center.my-2
+     (if uploader-url
+       [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
+        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name]]
+       [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
+     (when verified?
+       [:i.fa-solid.fa-circle-check])]
+    (when-not stream-count
+      [:button.pl-4.focus:outline-none
+       {:on-click #(rf/dispatch [::events/switch-to-global-player
+                                 {:uploader-name uploader-name
+                                  :uploader-url  uploader-url
+                                  :name          name
+                                  :url           url
+                                  :service-color service-color}])}
+       [:i.fa-solid.fa-headphones]])]
    (when subscriber-count
       [:div.flex.items-center
        [:i.fa-solid.fa-users.text-xs]
@@ -51,31 +62,31 @@
        [:p.pl-1.5 (util/format-quantity view-count)]])]])
 
 (defn stream-item
-  [{:keys [url name thumbnail-url duration] :as item}]
+  [{:keys [url name thumbnail-url duration] :as item} service-color]
   [:<>
    [thumbnail thumbnail-url (rfe/href :tubo.routes/stream nil {:url url}) url name duration]
-   [item-content item (rfe/href :tubo.routes/stream nil {:url url})]])
+   [item-content item (rfe/href :tubo.routes/stream nil {:url url}) service-color]])
 
 (defn channel-item
-  [{:keys [url name thumbnail-url] :as item}]
+  [{:keys [url name thumbnail-url] :as item} service-color]
   [:<>
    [thumbnail thumbnail-url (rfe/href :tubo.routes/channel nil {:url url}) url name nil]
-   [item-content item (rfe/href :tubo.routes/channel nil {:url url})]])
+   [item-content item (rfe/href :tubo.routes/channel nil {:url url}) service-color]])
 
 (defn playlist-item
-  [{:keys [url name thumbnail-url] :as item}]
+  [{:keys [url name thumbnail-url] :as item} service-color]
   [:<>
    [thumbnail thumbnail-url (rfe/href :tubo.routes/playlist nil {:url url}) url name nil]
-   [item-content item (rfe/href :tubo.routes/playlist nil {:url url})]])
+   [item-content item (rfe/href :tubo.routes/playlist nil {:url url}) service-color]])
 
 (defn generic-item
-  [item]
+  [item service-color]
   [:div.w-full.xs:w-56.h-80.xs:h-72.my-2 {:key key}
    [:div.px-5.py-2.m-2.flex.flex-col.max-w-full.min-h-full.max-h-full
     (case (:type item)
-      "stream" [stream-item item]
-      "channel" [channel-item item]
-      "playlist" [playlist-item item])]])
+      "stream" [stream-item item service-color]
+      "channel" [channel-item item service-color]
+      "playlist" [playlist-item item service-color])]])
 
 (defn related-streams
   [related-streams next-page-url]
@@ -88,6 +99,6 @@
        [:div.flex.justify-center.flex-wrap
         (for [[i item] (map-indexed vector related-streams)
               :let [keyed-item (assoc item :key i)]]
-          [generic-item keyed-item])])
+          [generic-item keyed-item service-color])])
      (when-not (empty? next-page-url)
        [loading/loading-icon service-color "text-2xl" (when-not pagination-loading? "invisible")])]))
