@@ -20,7 +20,7 @@
           (util/format-duration duration))]])]])
 
 (defn item-content
-  [{:keys [url name thumbnail-url description subscriber-count
+  [{:keys [type url name thumbnail-url description subscriber-count
            stream-count verified? key uploader-name uploader-url
            uploader-avatar upload-date short-description view-count]}
    item-route service-color]
@@ -37,7 +37,7 @@
        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
      (when verified?
        [:i.fa-solid.fa-circle-check])]
-    (when-not stream-count
+    (when (= type "stream")
       [:button.pl-4.focus:outline-none
        {:on-click #(rf/dispatch [::events/switch-to-global-player
                                  {:uploader-name uploader-name
