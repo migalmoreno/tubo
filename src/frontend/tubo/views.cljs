@@ -65,7 +65,7 @@
            :style     {:background "transparent"}}
           (when services
             (for [service services]
-              [:option.bg-neutral-900.border-none
+              [:option.text-white.bg-neutral-900.border-none
                {:value (:id service) :key (:id service)}
                (-> service :info :name)]))]]
         [:div.flex.absolute.min-h-full.top-0.right-4.ml:right-0.items-center.justify-end.z-0.ml:text-white
