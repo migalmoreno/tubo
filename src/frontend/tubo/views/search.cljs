@@ -19,7 +19,7 @@
     (when scrolled-to-bottom?
       (rf/dispatch [::events/search-pagination q serviceId next-page-url]))
     [:div.flex.flex-col.items-center.flex-auto
-     [:div.flex.flex-col.items-center.w-full.pt-4.flex-initial
+     [:div.flex.flex-col.items-center.w-full.p-4.flex-initial
       [:h2 (str "Showing search results for: \"" q "\"")]
       [:h1 (str "Number of search results: " (count items))]]
      (if page-loading?
