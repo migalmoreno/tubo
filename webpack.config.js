@@ -1,11 +1,12 @@
 const path = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts")
+const CopyPlugin = require("copy-webpack-plugin")
 
 module.exports = {
   mode: process.env.NODE_ENV,
   entry: {
-    tubo: "./resources/src/css/tubo.scss"
+    tubo: path.resolve(__dirname, "resources/src/css/tubo.scss")
   },
   output: {
     path: path.resolve(__dirname, "resources/public")
@@ -14,6 +15,14 @@ module.exports = {
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: "css/[name].css",
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "resources/src/images"),
+          to: "images"
+        }
+      ]
     })
   ],
   module: {
