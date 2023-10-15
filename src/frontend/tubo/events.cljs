@@ -428,8 +428,7 @@
  (fn [{:keys [db]} [_ res]]
    (let [search-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :search-results search-res
-                 :show-page-loading false
-                 :global-search "")
+                 :show-page-loading false)
       :fx [[:dispatch [::set-service-styles search-res]]]})))
 
 (rf/reg-event-fx
