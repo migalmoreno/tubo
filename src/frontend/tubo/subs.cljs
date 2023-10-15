@@ -88,6 +88,11 @@
    (:show-global-player db)))
 
 (rf/reg-sub
+ :show-global-player-loading
+ (fn [db _]
+   (:show-global-player-loading db)))
+
+(rf/reg-sub
  :show-page-loading
  (fn [db _]
    (:show-page-loading db)))
