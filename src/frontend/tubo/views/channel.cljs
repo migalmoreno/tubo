@@ -14,8 +14,7 @@
         service-color @(rf/subscribe [:service-color])
         page-loading? @(rf/subscribe [:show-page-loading])
         pagination-loading? @(rf/subscribe [:show-pagination-loading])
-        page-scroll @(rf/subscribe [:page-scroll])
-        scrolled-to-bottom? (= page-scroll (.-scrollHeight js/document.body))]
+        scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [::events/channel-pagination url next-page-url]))
     [:div.flex.flex-col.items-center.px-5.py-2.flex-auto

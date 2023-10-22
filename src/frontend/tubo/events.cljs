@@ -51,18 +51,6 @@
    {::history-back! nil}))
 
 (rf/reg-event-db
- ::page-scroll
- (fn [db _]
-   (when (> (.-scrollY js/window) 0)
-     (assoc db :page-scroll
-            (+ (.-scrollY js/window) (.-innerHeight js/window))))))
-
-(rf/reg-event-db
- ::reset-page-scroll
- (fn [db _]
-   (assoc db :page-scroll 0)))
-
-(rf/reg-event-db
  ::toggle-mobile-nav
  (fn [db _]
    (assoc db :show-mobile-nav (not (:show-mobile-nav db)))))

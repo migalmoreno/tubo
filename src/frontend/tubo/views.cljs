@@ -2,14 +2,11 @@
   (:require
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
-   [reagent.ratom :as ratom]
    [tubo.components.navigation :as navigation]
    [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.routes :as routes]))
 
-(defonce scroll-hook (.addEventListener js/window "scroll" #(rf/dispatch [::events/page-scroll])))
-(defonce mobile-touch-hook (.addEventListener js/document.body "touchmove" #(rf/dispatch [::events/page-scroll])))
 (defonce services (rf/dispatch [::events/get-services]))
 (defonce kiosks (rf/dispatch [::events/get-kiosks 0]))
 

@@ -13,9 +13,8 @@
         services @(rf/subscribe [:services])
         service-id @(rf/subscribe [:service-id])
         service-color @(rf/subscribe [:service-color])
-        page-scroll @(rf/subscribe [:page-scroll])
         page-loading? @(rf/subscribe [:show-page-loading])
-        scrolled-to-bottom? (= page-scroll (.-scrollHeight js/document.body))]
+        scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [::events/search-pagination q serviceId next-page-url]))
     [:div.flex.flex-col.items-center.flex-auto

@@ -1,6 +1,31 @@
 (ns tubo.subs
   (:require
+   [reagent.core :as r]
    [re-frame.core :as rf]))
+
+(defonce is-window-visible
+  (let [a (r/atom true)]
+    (.addEventListener js/window "focus" #(reset! a true))
+    (.addEventListener js/window "blur" #(reset! a false))
+    a))
+
+(defonce scroll-distance
+  (let [a (r/atom 0)
+        compute-scroll-distance #(when (> (.-scrollY js/window) 0)
+                                   (reset! a (+ (.-scrollY js/window) (.-innerHeight js/window))))]
+    (.addEventListener js/window "scroll" compute-scroll-distance)
+    (.addEventListener js/window "touchmove" compute-scroll-distance)
+    a))
+
+(rf/reg-sub
+ :is-window-visible
+ (fn [_ _]
+   @is-window-visible))
+
+(rf/reg-sub
+ :scrolled-to-bottom
+ (fn [_ _]
+   (> (+ @scroll-distance 35) (.-scrollHeight js/document.body))))
 
 (rf/reg-sub
  :http-response
