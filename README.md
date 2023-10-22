@@ -2,9 +2,20 @@
 
 # Tubo
 
-Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It currently supports the same platforms as NewPipe, including YouTube, SoundCloud, and more.  
+Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.  
 
-To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
+To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
+
+
+## Features
+
+-   [X] No ads
+-   [X] Audio player
+-   [X] Media queue
+-   [ ] Playlists
+-   [X] Local settings
+-   [ ] Local subscriptions
+-   [ ] User management
 
 
 ## Instances
@@ -32,7 +43,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#orgd4254ad). See [installation](#orgb8016f7) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org6588695). See [installation](#org4704244) for ways to set up Tubo in your server.  
 
 
 ## Installation
@@ -103,14 +114,6 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
                 proxy_set_header HOST $http_host;
             }
         }
-
-
-## Road-map
-
--   [X] Basic audio player
--   [ ] Track queuing system
--   [ ] Playlists
--   [ ] User settings
 
 
 ## Screenshots

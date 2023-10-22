@@ -1,9 +1,18 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; after-save-hook: org-md-export-to-markdown; -*-
 #+OPTIONS: toc:nil num:nil
 * Tubo
-Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] experience to the web. It currently supports the same platforms as NewPipe, including YouTube, SoundCloud, and more.
+Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
 
-To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library and exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+
+** Features
+- [X] No ads
+- [X] Audio player
+- [X] Media queue
+- [ ] Playlists
+- [X] Local settings
+- [ ] Local subscriptions
+- [ ] User management
 
 ** Instances
 | URL                                     | Country |
@@ -90,12 +99,6 @@ server {
     }
 }
 #+end_src
-
-** Road-map
-- [X] Basic audio player
-- [ ] Track queuing system
-- [ ] Playlists
-- [ ] User settings
 
 ** Screenshots
 [[https://files.migalmoreno.com/tubo_kiosk.jpg]]
