@@ -19,6 +19,7 @@
     ["/channel" handler/index]
     ["/playlist" handler/index]
     ["/kiosk" handler/index]
+    ["/settings" handler/index]
     ["/api"
      ["/services"
       ["" {:get handler/services}]

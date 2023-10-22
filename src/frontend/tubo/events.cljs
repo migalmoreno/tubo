@@ -1,24 +1,39 @@
 (ns tubo.events
   (:require
+   [akiroz.re-frame.storage :refer [reg-co-fx!]]
    [day8.re-frame.http-fx]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
    [tubo.api :as api]))
 
-(rf/reg-event-db
- ::initialize-db
- (fn [_ _]
-   {:global-search ""
-    :service-id 0
-    :service-color "#cc0000"
-    :stream {}
-    :search-results []
-    :services []
-    :media-queue []
-    :media-queue-pos 0
-    :current-match nil
-    :page-scroll 0}))
+(reg-co-fx! :tubo {:fx :store :cofx :store})
+
+(rf/reg-event-fx
+  ::initialize-db
+  [(rf/inject-cofx :store)]
+  (fn [{:keys [store]} _]
+    (let [{:keys [current-theme show-comments show-related show-description
+                  media-queue media-queue-pos show-audio-player
+                  loop-file loop-playlist]} store]
+      {:db
+       {:search-query   ""
+        :service-id      0
+        :stream          {}
+        :search-results  []
+        :services        []
+        :loop-file (if (nil? loop-file) false loop-file)
+        :loop-playlist (if (nil? loop-playlist) true loop-playlist)
+        :media-queue     (if (nil? media-queue) [] media-queue)
+        :media-queue-pos (if (nil? media-queue-pos) 0 media-queue-pos)
+        :current-match   nil
+        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
+        :settings
+        {:current-theme (if (nil? current-theme) :light current-theme)
+         :themes        #{:light :dark}
+         :show-comments (if (nil? show-comments) true show-comments)
+         :show-related  (if (nil? show-related) true show-related)
+         :show-description (if (nil? show-description) true show-description)}}})))
 
 (rf/reg-fx
  ::scroll-to-top
@@ -170,35 +185,50 @@
 
 (rf/reg-event-fx
  ::add-to-media-queue
- (fn [{:keys [db]} [_ stream]]
-   (let [media-queue (update db :media-queue conj stream)]
-     {:db media-queue
-      :fx [[:dispatch [::fetch-global-player-stream (:url stream)]]]})))
+  [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ stream]]
+   (let [updated-db (update db :media-queue conj stream)]
+     {:db updated-db
+      :store (assoc store :media-queue (:media-queue updated-db))
+      :fx [[:dispatch [::fetch-audio-player-stream (:url stream)]]]})))
 
 (rf/reg-event-fx
  ::change-media-queue-pos
- (fn [{:keys [db]} [_ idx]]
-   {:db (assoc db :media-queue-pos idx)}))
-
-(rf/reg-event-db
- ::change-media-queue-stream
- (fn [db [_ src]]
-   (let [idx (- (count (:media-queue db)) 1)]
-     (when-not (-> db :media-queue (nth idx) :stream)
-       (assoc-in db [:media-queue idx :stream] src)))))
-
-(rf/reg-event-db
- ::toggle-global-player
- (fn [db _]
-   (-> db
-       (assoc :show-global-player (not (:show-global-player db)))
-       (assoc :media-queue [])
-       (assoc :media-queue-pos 0))))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ idx]]
+   {:db (assoc db :media-queue-pos idx)
+    :store (assoc store :media-queue-pos idx)}))
 
 (rf/reg-event-fx
- ::switch-to-global-player
- (fn [{:keys [db]} [_ stream]]
-   {:db (assoc db :show-global-player true)
+ ::change-media-queue-stream
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ src]]
+   (let [idx (- (count (:media-queue db)) 1)
+         update-entry
+         (fn [elem] (assoc-in elem [:media-queue idx :stream] src))]
+     (when-not (-> db :media-queue (nth idx) :stream)
+       {:db (update-entry db)
+        :store (update-entry store)}))))
+
+(rf/reg-event-fx
+ ::toggle-audio-player
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} _]
+   (let [remove-entries
+         (fn [elem]
+           (-> elem
+               (assoc :show-audio-player (not (:show-audio-player elem)))
+               (assoc :media-queue [])
+               (assoc :media-queue-pos 0)))]
+     {:db    (remove-entries db)
+      :store (remove-entries store)})))
+
+(rf/reg-event-fx
+ ::switch-to-audio-player
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ stream]]
+   {:db (assoc db :show-audio-player true)
+    :store (assoc store :show-audio-player true)
     :fx [[:dispatch [::add-to-media-queue stream]]]}))
 
 (rf/reg-event-db
@@ -236,9 +266,9 @@
             (assoc-in [:stream :show-comments] true)))))
 
 (rf/reg-event-db
- ::toggle-comments
- (fn [db _]
-   (assoc-in db [:stream :show-comments] (not (-> db :stream :show-comments)))))
+ ::toggle-stream-layout
+ (fn [db [_ layout]]
+   (assoc-in db [:stream layout] (not (-> db :stream layout)))))
 
 (rf/reg-event-db
  ::toggle-comment-replies
@@ -439,3 +469,10 @@
                      [::load-search-results] [::bad-response]
                      {:q query})
     :db (assoc db :show-page-loading true))))
+
+(rf/reg-event-fx
+  ::change-setting
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ key val]]
+   {:db (assoc-in db [:settings key] val)
+    :store (assoc store key val)}))

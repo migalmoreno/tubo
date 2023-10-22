@@ -8,6 +8,7 @@
    [tubo.views.kiosk :as kiosk]
    [tubo.views.playlist :as playlist]
    [tubo.views.search :as search]
+   [tubo.views.settings :as settings]
    [tubo.views.stream :as stream]))
 
 (def router
@@ -40,11 +41,12 @@
                :name ::kiosk
                :controllers [{:parameters {:query [:kioskId :serviceId]}
                               :start (fn [{{:keys [serviceId kioskId]} :query}]
-                                       (rf/dispatch [::events/get-kiosk-page serviceId kioskId]))}]}]]))
+                                       (rf/dispatch [::events/get-kiosk-page serviceId kioskId]))}]}]
+    ["/settings" {:view settings/settings-page
+                  :name ::settings}]]))
 
 (defn on-navigate
   [new-match]
-  (rf/dispatch [::events/reset-page-scroll])
   (when new-match
     (rf/dispatch [::events/navigated new-match])))
 

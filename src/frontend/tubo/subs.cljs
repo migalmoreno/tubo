@@ -106,3 +106,14 @@
  :show-mobile-nav
  (fn [db _]
    (:show-mobile-nav db)))
+
+(rf/reg-sub
+ :theme
+ (fn [db _]
+   (:theme db)))
+
+(rf/reg-sub
+ :settings
+ (fn [db _]
+   (:settings db)))
+
