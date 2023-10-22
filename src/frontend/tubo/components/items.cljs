@@ -41,7 +41,7 @@
        [:i.fa-solid.fa-circle-check])]
     (when (= type "stream")
       [:button.pl-4.focus:outline-none
-       {:on-click #(rf/dispatch [::events/switch-to-global-player
+       {:on-click #(rf/dispatch [::events/switch-to-audio-player
                                  {:uploader-name uploader-name
                                   :uploader-url  uploader-url
                                   :name          name

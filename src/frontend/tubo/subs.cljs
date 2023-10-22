@@ -115,14 +115,21 @@
    (:media-queue-pos db)))
 
 (rf/reg-sub
- :show-global-player
- (fn [db _]
-   (:show-global-player db)))
+ :media-queue-stream
+ (fn [_]
+   [(rf/subscribe [:media-queue]) (rf/subscribe [:media-queue-pos])])
+ (fn [[queue pos] _]
+   (and (not-empty queue) (nth queue pos))))
 
 (rf/reg-sub
- :show-global-player-loading
+ :show-audio-player
  (fn [db _]
-   (:show-global-player-loading db)))
+   (:show-audio-player db)))
+
+(rf/reg-sub
+ :show-audio-player-loading
+ (fn [db _]
+   (:show-audio-player-loading db)))
 
 (rf/reg-sub
  :show-page-loading
@@ -149,3 +156,12 @@
  (fn [db _]
    (:settings db)))
 
+(rf/reg-sub
+ :loop-file
+ (fn [db _]
+   (:loop-file db)))
+
+(rf/reg-sub
+ :loop-playlist
+ (fn [db _]
+   (:loop-playlist db)))

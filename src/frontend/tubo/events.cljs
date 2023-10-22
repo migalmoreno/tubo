@@ -56,6 +56,20 @@
    (assoc db :show-mobile-nav (not (:show-mobile-nav db)))))
 
 (rf/reg-event-fx
+ ::toggle-loop-file
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} _]
+   {:db (assoc db :loop-file (not (:loop-file db)))
+    :store (assoc store :loop-file (not (:loop-file store)))}))
+
+(rf/reg-event-fx
+ ::toggle-loop-playlist
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} _]
+   {:db (assoc db :loop-playlist (not (:loop-playlist db)))
+    :store (assoc store :loop-playlist (not (:loop-playlist store)))}))
+
+(rf/reg-event-fx
  ::navigated
  (fn [{:keys [db]} [_ new-match]]
    (let [old-match (:current-match db)
@@ -348,10 +362,10 @@
       :db (assoc db :show-pagination-loading true)))))
 
 (rf/reg-event-fx
- ::load-global-player-stream
+ ::load-audio-player-stream
  (fn [{:keys [db]} [_ res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db :show-global-player-loading false)
+     {:db (assoc db :show-audio-player-loading false)
       :fx [[:dispatch [::change-media-queue-stream
                        (-> stream-res :audio-streams first :content)]]]})))
 
@@ -362,7 +376,8 @@
      {:db (assoc db :stream stream-res
                  :show-page-loading false)
       :fx [[:dispatch [::change-stream-format nil]]
-           [:dispatch [::get-comments (:url stream-res)]]
+           (when (and (-> db :settings :show-comments))
+             [:dispatch [::get-comments (:url stream-res)]])
            [:dispatch [::set-service-styles stream-res]]]})))
 
 (rf/reg-event-fx
@@ -372,12 +387,12 @@
                      [::load-stream-page] [::bad-response])))
 
 (rf/reg-event-fx
- ::fetch-global-player-stream
+ ::fetch-audio-player-stream
  (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
-                     [::load-global-player-stream] [::bad-response])
-    :db (assoc db :show-global-player-loading true))))
+                     [::load-audio-player-stream] [::bad-response])
+    :db (assoc db :show-audio-player-loading true))))
 
 (rf/reg-event-fx
  ::get-stream-page

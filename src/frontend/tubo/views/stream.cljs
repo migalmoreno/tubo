@@ -7,7 +7,7 @@
    [tubo.components.loading :as loading]
    [tubo.components.navigation :as navigation]
    [tubo.components.comments :as comments]
-   [tubo.components.player :as player]
+   [tubo.components.video-player :as player]
    [tubo.util :as util]))
 
 (defn stream
@@ -17,7 +17,10 @@
                 description uploader-avatar uploader-name
                 uploader-url upload-date related-streams
                 thumbnail-url show-comments-loading comments-page
-                show-comments service-id] :as stream} @(rf/subscribe [:stream])
+                show-comments show-related show-description service-id]
+         :as stream} @(rf/subscribe [:stream])
+        {show-comments? :show-comments show-related? :show-related
+         show-description? :show-description} @(rf/subscribe [:settings])
         available-streams (apply conj audio-streams video-streams)
         {:keys [content id] :as stream-format} @(rf/subscribe [:stream-format])
         page-loading? @(rf/subscribe [:show-page-loading])
@@ -30,12 +33,12 @@
         [:div.flex.justify-center.relative
          {:class "h-[300px] ml:h-[450px] lg:h-[600px]"}
          (when stream-format
-           [player/stream-player {"sources" [{"src" content "type" "video/mp4"}
-                                             {"src" content "type" "video/webm"}]
-                                  "poster" thumbnail-url
-                                  "controls" true
-                                  "responsive" true
-                                  "fill" true}
+           [player/player {"sources"    [{"src" content "type" "video/mp4"}
+                                         {"src" content "type" "video/webm"}]
+                           "poster"     thumbnail-url
+                           "controls"   true
+                           "responsive" true
+                           "fill"       true}
             content])]
         [:div.px-4.ml:p-0.overflow-x-hidden
          [:div.flex.flex.w-full.mt-3
@@ -53,7 +56,7 @@
               {:style {:zIndex "-1"}}
               [:i.fa-solid.fa-caret-down]]])
           [:button.border.rounded.border-black.px-3.py-1.dark:bg-stone-800
-           {:on-click #(rf/dispatch [::events/switch-to-global-player
+           {:on-click #(rf/dispatch [::events/switch-to-audio-player
                                      {:uploader-name uploader-name :uploader-url uploader-url
                                       :name name :url url :stream content :service-color service-color}])}
            [:i.fa-solid.fa-headphones]]
@@ -97,29 +100,38 @@
                     js/Date.parse
                     js/Date.
                     .toDateString)]])]]
-          [:div.min-w-full.py-3
-           [:h1 name]
-           [:div {:dangerouslySetInnerHTML {:__html description}}]]
-          (when-not (empty? (:comments comments-page))
+          (when show-description?
+            [:div.py-3.flex.flex-wrap.min-w-full
+             [:div {:dangerouslySetInnerHTML {:__html description}
+                    :class (when (not show-description) "line-clamp-1")}]
+             [:div.flex.justify-center.font-bold.min-w-full.pt-4.cursor-pointer
+              [:button
+               {:on-click #(rf/dispatch [::events/toggle-stream-layout :show-description])}
+               (if (not show-description) "Show More" "Show Less")]]])
+          (when (and comments-page (not (empty? (:comments comments-page))) show-comments?)
             [:div.py-6
              [:div.flex.items-center
               [:i.fa-solid.fa-comments]
               [:p.px-2.py-4 "Comments"]
               (if show-comments
-                [:i.fa-solid.fa-chevron-up {:on-click #(rf/dispatch [::events/toggle-comments])
-                                            :style    {:cursor "pointer"}}]
-                [:i.fa-solid.fa-chevron-down {:on-click #(if (or show-comments comments-page)
-                                                           (rf/dispatch [::events/toggle-comments])
-                                                           (rf/dispatch [::events/get-comments url]))
-                                              :style    {:cursor "pointer"}}])]
+                [:i.fa-solid.fa-chevron-up.cursor-pointer
+                 {:on-click #(rf/dispatch [::events/toggle-stream-layout :show-comments])}]
+                [:i.fa-solid.fa-chevron-down.cursor-pointer
+                 {:on-click #(if (or show-comments comments-page)
+                               (rf/dispatch [::events/toggle-stream-layout :show-comments])
+                               (rf/dispatch [::events/get-comments url]))}])]
              [:div
               (if show-comments-loading
                 [loading/loading-icon service-color "text-2xl"]
                 (when (and show-comments comments-page)
                   [comments/comments comments-page uploader-name uploader-avatar url]))]])
-          (when-not (empty? related-streams)
+          (when (and show-related? (not (empty? related-streams)))
             [:div.py-6
              [:div.flex.items-center
               [:i.fa-solid.fa-list]
-              [:h1.px-2.text-lg.bold "Related Results"]]
-             [items/related-streams related-streams nil]])]]])]))
+              [:h1.px-2.text-lg.bold "Related Results"]
+              [:i.fa-solid.fa-chevron-up.cursor-pointer
+               {:class    (if (not show-related) "fa-chevron-up" "fa-chevron-down")
+                :on-click #(rf/dispatch [::events/toggle-stream-layout :show-related])}]]
+             (when (not show-related)
+               [items/related-streams related-streams nil])])]]])]))
