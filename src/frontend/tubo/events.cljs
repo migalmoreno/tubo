@@ -83,26 +83,14 @@
    (assoc db :http-response (get-in res [:response :error]))))
 
 (rf/reg-event-db
- ::change-global-search
+ ::change-search-query
  (fn [db [_ res]]
-   (assoc db :global-search res)))
+   (assoc db :search-query res)))
 
 (rf/reg-event-db
- ::change-service-color
- (fn [db [_ service-id]]
-   (assoc db :service-color
-          (case service-id
-            0 "#cc0000"
-            1 "#ff7700"
-            2 "#333333"
-            3 "#F2690D"
-            4 "#629aa9"))))
-
-(rf/reg-event-fx
  ::change-service-id
- (fn [{:keys [db]} [_ service-id]]
-   {:db (assoc db :service-id service-id)
-    :fx [[:dispatch [::change-service-color service-id]]]}))
+ (fn [db [_ service-id]]
+   (assoc db :service-id service-id)))
 
 (rf/reg-event-db
  ::load-paginated-channel-results
@@ -328,9 +316,10 @@
      {:fx [[:dispatch [::get-default-kiosk-page service-id]]]})))
 
 (rf/reg-event-fx
- ::change-service
+ ::change-service-kiosk
  (fn [{:keys [db]} [_ service-id]]
-   {:fx [[:dispatch
+   {:fx [[:dispatch [::change-service-id service-id]]
+         [:dispatch
           [::navigate {:name :tubo.routes/kiosk
                        :params {}
                        :query  {:serviceId service-id}}]]]}))

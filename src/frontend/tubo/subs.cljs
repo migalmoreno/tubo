@@ -58,9 +58,9 @@
    (:channel db)))
 
 (rf/reg-sub
- :global-search
+ :search-query
  (fn [db _]
-   (:global-search db)))
+   (:search-query db)))
 
 (rf/reg-sub
  :service-id
@@ -69,8 +69,15 @@
 
 (rf/reg-sub
  :service-color
- (fn [db _]
-   (:service-color db)))
+ (fn [_]
+   (rf/subscribe [:service-id]))
+ (fn [id _]
+   (case id
+     0 "#cc0000"
+     1 "#ff7700"
+     2 "#333333"
+     3 "#F2690D"
+     4 "#629aa9")))
 
 (rf/reg-sub
  :services
