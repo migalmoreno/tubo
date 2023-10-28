@@ -18,7 +18,7 @@
     [:div.flex.flex-col.items-center.px-5.py-2.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
-       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5"}
+       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5 xl:w-3/5"}
         [:div.flex.justify-center.items-center.my-4.mx-2
          [:div.m-4
           [:h1.text-2xl id]]]

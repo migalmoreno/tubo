@@ -18,10 +18,7 @@
     (when scrolled-to-bottom?
       (rf/dispatch [::events/search-pagination q serviceId next-page-url]))
     [:div.flex.flex-col.items-center.flex-auto
-     [:div.flex.flex-col.items-center.w-full.p-4.flex-initial
-      [:h2 (str "Showing search results for: \"" q "\"")]
-      [:h1 (str "Number of search results: " (count items))]]
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
-       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5"}
+       [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5 xl:w-3/5"}
         [items/related-streams items next-page-url]])]))
