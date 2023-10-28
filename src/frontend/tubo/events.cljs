@@ -45,15 +45,27 @@
  (fn [_]
    (.back js/window.history)))
 
+(rf/reg-fx
+ ::body-overflow!
+ (fn [active]
+   (set! (.. js/document.body -style -overflow) (if active "hidden" "auto"))))
+
 (rf/reg-event-fx
  ::history-back
  (fn [_ _]
    {::history-back! nil}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::toggle-mobile-nav
- (fn [db _]
-   (assoc db :show-mobile-nav (not (:show-mobile-nav db)))))
+ (fn [{:keys [db]} _]
+   {:db (assoc db :show-mobile-nav (not (:show-mobile-nav db)))
+    ::body-overflow! (not (:show-mobile-nav db))}))
+
+(rf/reg-event-fx
+ ::toggle-media-queue
+ (fn [{:keys [db]} _]
+   {:db (assoc db :show-media-queue (not (:show-media-queue db)))
+    ::body-overflow! (not (:show-media-queue db))}))
 
 (rf/reg-event-fx
  ::toggle-loop-file
@@ -77,8 +89,11 @@
          match (assoc new-match :controllers controllers)]
      {:db (-> db
               (assoc :current-match match)
+              (assoc :show-media-queue false)
+              (assoc :show-mobile-nav false)
               (assoc :show-pagination-loading false))
-      ::scroll-to-top nil})))
+      ::scroll-to-top nil
+      ::body-overflow! false})))
 
 (rf/reg-event-fx
  ::navigate

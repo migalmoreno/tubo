@@ -3,13 +3,13 @@
    [reagent.core :as r]
    [re-frame.core :as rf]))
 
-(defonce is-window-visible
+(defonce !is-window-visible
   (let [a (r/atom true)]
     (.addEventListener js/window "focus" #(reset! a true))
     (.addEventListener js/window "blur" #(reset! a false))
     a))
 
-(defonce scroll-distance
+(defonce !scroll-distance
   (let [a (r/atom 0)
         compute-scroll-distance #(when (> (.-scrollY js/window) 0)
                                    (reset! a (+ (.-scrollY js/window) (.-innerHeight js/window))))]
@@ -17,15 +17,28 @@
     (.addEventListener js/window "touchmove" compute-scroll-distance)
     a))
 
+(def !elapsed-time (r/atom 0))
+(def !player (r/atom nil))
+
 (rf/reg-sub
  :is-window-visible
  (fn [_ _]
-   @is-window-visible))
+   @!is-window-visible))
 
 (rf/reg-sub
  :scrolled-to-bottom
  (fn [_ _]
-   (> (+ @scroll-distance 35) (.-scrollHeight js/document.body))))
+   (> (+ @!scroll-distance 35) (.-scrollHeight js/document.body))))
+
+(rf/reg-sub
+ :elapsed-time
+ (fn [db _]
+   !elapsed-time))
+
+(rf/reg-sub
+ :player
+ (fn [db _]
+   !player))
 
 (rf/reg-sub
  :http-response
@@ -78,6 +91,18 @@
      2 "#333333"
      3 "#F2690D"
      4 "#629aa9")))
+
+(rf/reg-sub
+ :service-name
+ (fn [_]
+   (rf/subscribe [:service-id]))
+ (fn [id _]
+   (case id
+     0 "YouTube"
+     1 "SoundCloud"
+     2 "media.ccc.de"
+     3 "PeerTube"
+     4 "Bandcamp")))
 
 (rf/reg-sub
  :services
@@ -145,6 +170,11 @@
  :show-mobile-nav
  (fn [db _]
    (:show-mobile-nav db)))
+
+(rf/reg-sub
+ :show-media-queue
+ (fn [db _]
+   (:show-media-queue db)))
 
 (rf/reg-sub
  :theme

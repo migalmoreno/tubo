@@ -5,6 +5,7 @@
    [reagent.core :as r]
    [tubo.components.navigation :as navigation]
    [tubo.components.audio-player :as player]
+   [tubo.components.play-queue :as queue]
    [tubo.events :as events]
    [tubo.routes :as routes]))
 
@@ -152,4 +153,5 @@
        (when-let [view (-> current-match :data :view)]
          [view current-match])
        [footer]
+       [queue/queue]
        [player/player]]]]))
