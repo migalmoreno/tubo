@@ -22,27 +22,30 @@
 (defn item-content
   [{:keys [type url name thumbnail-url description subscriber-count
            stream-count verified? key uploader-name uploader-url
-           uploader-avatar upload-date short-description view-count]}
+           uploader-avatar upload-date short-description view-count
+           duration]}
    item-route service-color]
   [:<>
    (when name
      [:div.flex.items-center.my-2
       [:a {:href item-route :title name}
-       [:h1.line-clamp-2.my-1 name]]
+       [:h1.line-clamp-2.my-1.break-words name]]
       (when (and verified? (not uploader-url))
        [:i.fa-solid.fa-circle-check.pl-2])])
    [:div.flex.justify-between
     [:div.flex.items-center.my-2
      (if uploader-url
        [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name]]
+        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2.break-all uploader-name]]
        [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
      (when (and uploader-url verified?)
        [:i.fa-solid.fa-circle-check])]
     (when (= type "stream")
       [:button.pl-4.focus:outline-none
        {:on-click #(rf/dispatch [::events/switch-to-audio-player
-                                 {:uploader-name uploader-name
+                                 {:duration duration
+                                  :thumbnail-url thumbnail-url
+                                  :uploader-name uploader-name
                                   :uploader-url  uploader-url
                                   :name          name
                                   :url           url
@@ -83,7 +86,7 @@
 
 (defn generic-item
   [item service-color]
-  [:div.w-full.xs:w-56.h-80.xs:h-72.my-2 {:key key}
+  [:div.w-full.h-80.xs:h-72.my-2 {:key key}
    [:div.px-5.py-2.m-2.flex.flex-col.max-w-full.min-h-full.max-h-full
     (case (:type item)
       "stream" [stream-item item service-color]
@@ -98,7 +101,8 @@
      (if (empty? related-streams)
        [:div.flex.items-center
         [:p "No available streams"]]
-       [:div.flex.justify-center.flex-wrap
+       [:div.grid.w-full
+        {:class "grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))]"}
         (for [[i item] (map-indexed vector related-streams)
               :let [keyed-item (assoc item :key i)]]
           [generic-item keyed-item service-color])])
