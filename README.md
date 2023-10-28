@@ -43,7 +43,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org6588695). See [installation](#org4704244) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org7e7911e). See [installation](#org0916606) for ways to set up Tubo in your server.  
 
 
 ## Installation
@@ -118,9 +118,32 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 
 ## Screenshots
 
-![img](https://files.migalmoreno.com/tubo_kiosk.jpg)  
-![img](https://files.migalmoreno.com/tubo_channel.jpg)  
-![img](https://files.migalmoreno.com/tubo_stream.jpg)  
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Kiosk</th>
+<th scope="col" class="org-left">Channel</th>
+<th scope="col" class="org-left">Stream</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk.jpg" alt="tubo_kiosk.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_channel.jpg" alt="tubo_channel.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_stream.jpg" alt="tubo_stream.jpg" /></td>
+</tr>
+</tbody>
+</table>
 
 
 ## Contributing
