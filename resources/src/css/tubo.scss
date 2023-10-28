@@ -8,3 +8,11 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "video.js/dist/video-js.css";
+
+video[poster] {
+  object-fit: cover;
+}
+.vjs-poster {
+  background-size: cover !important;
+  background-position: inherit;
+}

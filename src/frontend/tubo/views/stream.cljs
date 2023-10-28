@@ -41,30 +41,32 @@
                            "fill"       true}
             content])]
         [:div.px-4.ml:p-0.overflow-x-hidden
-         [:div.flex.flex.w-full.mt-3
+         [:div.flex.flex.w-full.my-4.justify-center
+          [:button.px-3.py-1.mx-2
+           {:on-click #(rf/dispatch [::events/switch-to-audio-player
+                                     {:uploader-name uploader-name :uploader-url uploader-url
+                                      :name name :url url :stream content :service-color service-color}])}
+           [:i.fa-solid.fa-headphones]
+           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Background"]]
+          [:button.px-3.py-1.mx-2
+           [:a.block.sm:inline-block {:href url}
+            [:i.fa-solid.fa-external-link-alt]]
+           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Original"]]
           (when stream-format
-            [:div.relative.flex.dark:bg-stone-800.flex-col.items-center.justify-center.z-10.mr-2.border.rounded.border-black
+            [:div.relative.flex.flex-col.items-center.justify-center.z-10.mr-2
              [:select.border-none.focus:ring-transparent.dark:bg-blend-color-dodge.pl-4.pr-8.w-full
               {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
-               :value id
-               :style {:background "transparent"}}
+               :value     id
+               :style     {:background "transparent"}}
               (when available-streams
                 (for [[i {:keys [id format resolution averageBitrate]}] (map-indexed vector available-streams)]
                   [:option.dark:bg-neutral-900.border-none {:value id :key i}
                    (str (or resolution "audio-only") " " format (when-not resolution (str " " averageBitrate "kbit/s")))]))]
              [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
               {:style {:zIndex "-1"}}
-              [:i.fa-solid.fa-caret-down]]])
-          [:button.border.rounded.border-black.px-3.py-1.dark:bg-stone-800
-           {:on-click #(rf/dispatch [::events/switch-to-audio-player
-                                     {:uploader-name uploader-name :uploader-url uploader-url
-                                      :name name :url url :stream content :service-color service-color}])}
-           [:i.fa-solid.fa-headphones]]
-          [:button.border.rounded.border-black.px-3.py-1.dark:bg-stone-800.mx-2
-           [:a {:href url}
-            [:i.fa-solid.fa-external-link-alt]]]]
-         [:div.flex.flex-col.py-1.comments
-          [:div.min-w-full.py-3
+              [:i.fa-solid.fa-caret-down]]])]
+         [:div.flex.flex-col
+          [:div.min-w-full.pb-3
            [:h1.text-2xl.font-extrabold.line-clamp-1 name]]
           [:div.flex.justify-between.py-2
            [:div.flex.items-center.flex-auto
@@ -100,7 +102,7 @@
                     js/Date.parse
                     js/Date.
                     .toDateString)]])]]
-          (when show-description?
+          (when (and show-description? description)
             [:div.py-3.flex.flex-wrap.min-w-full
              [:div {:dangerouslySetInnerHTML {:__html description}
                     :class (when (not show-description) "line-clamp-1")}]
