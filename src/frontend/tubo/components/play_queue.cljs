@@ -27,31 +27,30 @@
         [:div.mx-2
          [:i.fa-solid.fa-close.cursor-pointer
           {:on-click #(rf/dispatch [::events/toggle-media-queue])}]]]
-       [:div.flex.flex-col.p-4.w-full.overflow-y-auto.flex-auto
+       [:div.flex.flex-col.sm:p-4.w-full.overflow-y-auto.flex-auto
         {:class "ml:w-4/5 xl:w-3/5"}
-        [:div
-         (for [[i {:keys [uploader-name uploader-url name duration
-                          stream url service-color thumbnail-url]}] (map-indexed vector media-queue)]
-           (let [service-name (case service-color
-                                "#cc0000" "YouTube"
-                                "#ff7700" "SoundCloud"
-                                "#333333" "media.ccc.de"
-                                "#F2690D" "PeerTube"
-                                "#629aa9" "Bandcamp")]
-             [:div.flex.w-full.rounded.px-2.cursor-pointer
-              {:key i
-               :class (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
-               :on-click #(do
-                            (rf/dispatch [::events/change-media-queue-pos i])
-                            (reset! !elapsed-time 0))}
-              [:div.xs:w-56.items-center
-               [items/thumbnail thumbnail-url nil url name duration]]
-              [:div.flex.flex-col.px-4.py-2.w-full
-               [:h1.pb-4.line-clamp-2 name]
-               [:h3.text-neutral-600.dark:text-neutral-300.text-sm
-                [:span.pr-2 uploader-name]
-                [:span {:dangerouslySetInnerHTML {:__html "&bull;"}}]
-                [:span.pl-2 service-name]]]]))]]
+        (for [[i {:keys [uploader-name uploader-url name duration
+                         stream url service-color thumbnail-url]}] (map-indexed vector media-queue)]
+          (let [service-name (case service-color
+                               "#cc0000" "YouTube"
+                               "#ff7700" "SoundCloud"
+                               "#333333" "media.ccc.de"
+                               "#F2690D" "PeerTube"
+                               "#629aa9" "Bandcamp")]
+            [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.my-2
+             {:key      i
+              :class    (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
+              :on-click #(do
+                           (rf/dispatch [::events/change-media-queue-pos i])
+                           (reset! !elapsed-time 0))}
+             [:div.w-56
+              [items/thumbnail thumbnail-url nil url name duration {:classes "h-24"}]]
+             [:div.flex.flex-col.px-4.py-2.w-full
+              [:h1.line-clamp-1 name]
+              [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex.flex-col.xs:flex-row
+               [:span.line-clamp-1 uploader-name]
+               [:span.px-2.hidden.xs:inline-block {:dangerouslySetInnerHTML {:__html "&bull;"}}]
+               [:span service-name]]]]))]
        [:div.flex.flex-col.p-4.w-full.shrink-0
         {:class "ml:w-4/5 xl:w-3/5"}
         [:div.flex.flex-col.w-full.py-2
