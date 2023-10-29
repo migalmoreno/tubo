@@ -17,8 +17,8 @@
     (.addEventListener js/window "touchmove" compute-scroll-distance)
     a))
 
-(def !elapsed-time (r/atom 0))
-(def !player (r/atom nil))
+(defonce !elapsed-time (r/atom 0))
+(defonce !player (r/atom nil))
 
 (rf/reg-sub
  :is-window-visible
@@ -39,6 +39,16 @@
  :player
  (fn [db _]
    !player))
+
+(rf/reg-sub
+ :volume-level
+ (fn [db _]
+   (:volume-level db)))
+
+(rf/reg-sub
+ :muted
+ (fn [db _]
+   (:muted db)))
 
 (rf/reg-sub
  :http-response

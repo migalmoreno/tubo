@@ -26,6 +26,8 @@
         :loop-playlist (if (nil? loop-playlist) true loop-playlist)
         :media-queue     (if (nil? media-queue) [] media-queue)
         :media-queue-pos (if (nil? media-queue-pos) 0 media-queue-pos)
+        :volume-level (if (nil? volume-level) 100 volume-level)
+        :muted (if (nil? muted) false muted)
         :current-match   nil
         :show-audio-player (if (nil? show-audio-player) false show-audio-player)
         :settings
@@ -55,6 +57,26 @@
  (fn [_ _]
    {::history-back! nil}))
 
+(rf/reg-fx
+ ::player-volume
+ (fn [{:keys [player volume]}]
+   (when (and player (> (.-readyState player) 0))
+     (set! (.-volume player) (/ volume 100)))))
+
+(rf/reg-fx
+ ::player-mute
+ (fn [{:keys [player muted?]}]
+   (when (and player (> (.-readyState player) 0))
+     (set! (.-muted player) muted?))))
+
+(rf/reg-fx
+ ::player-playback
+ (fn [{:keys [player]}]
+   (when (and player (> (.-readyState player) 0))
+     (if (.-paused player)
+       (.play player)
+       (.pause player)))))
+
 (rf/reg-event-fx
  ::toggle-mobile-nav
  (fn [{:keys [db]} _]
@@ -73,6 +95,29 @@
  (fn [{:keys [db store]} _]
    {:db (assoc db :loop-file (not (:loop-file db)))
     :store (assoc store :loop-file (not (:loop-file store)))}))
+
+(rf/reg-event-fx
+ ::change-volume-level
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ value player]]
+   {:db (assoc db :volume-level value)
+    :store (assoc store :volume-level value)
+    ::player-volume {:player player :volume value}}))
+
+(rf/reg-event-fx
+ ::start-playback
+ (fn [{:keys [db]} [_ player]]
+   {::player-playback {:player player}
+    ::player-volume {:player player :volume (:volume-level db)}
+    ::player-mute {:player player :muted? (:muted db)}}))
+
+(rf/reg-event-fx
+ ::toggle-mute
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ player]]
+   {:db (assoc db :muted (not (:muted db)))
+    :store (assoc store :muted (not (:muted store)))
+    ::player-mute {:player player :muted? (not (:muted db))}}))
 
 (rf/reg-event-fx
  ::toggle-loop-playlist

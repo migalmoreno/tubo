@@ -9,8 +9,7 @@
 
 (defn player
   []
-  (let [!autoplay? (r/atom true)
-        !volume-level (r/atom 100)]
+  (let [!autoplay? (r/atom true)]
     (fn []
       (let [media-queue @(rf/subscribe [:media-queue])
             media-queue-pos @(rf/subscribe [:media-queue-pos])
@@ -22,16 +21,18 @@
             is-window-visible @(rf/subscribe [:is-window-visible])
             loop-file? @(rf/subscribe [:loop-file])
             loop-playlist? @(rf/subscribe [:loop-playlist])
+            volume-level @(rf/subscribe [:volume-level])
+            muted? @(rf/subscribe [:muted])
             !elapsed-time @(rf/subscribe [:elapsed-time])
             !player @(rf/subscribe [:player])]
         (when show-audio-player?
-          [:div.sticky.bottom-0.z-40.bg-white.dark:bg-neutral-900.px-3.py-5.sm:p-5.absolute.box-border.m-0
+          [:div.sticky.bottom-0.z-40.bg-white.dark:bg-neutral-900.p-3.sm:p-5.absolute.box-border.m-0
            {:style {:borderTop (str "2px solid " service-color) :display (when show-media-queue? "none")}}
            [:div.flex.items-center.justify-between
             [:div.flex.items-center
              [:div {:style {:height "40px" :width "70px" :maxWidth "70px" :minWidth "70px"}}
               [:img.min-h-full.max-h-full.object-cover.min-w-full.max-w-full.w-full {:src thumbnail-url}]]
-             [:div.flex.flex-col.px-4
+             [:div.flex.flex-col.px-2
               [:a.text-xs.line-clamp-1
                {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
               [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
@@ -43,7 +44,7 @@
                :on-time-update     #(when (and @!player (> (.-readyState @!player) 0))
                                       (reset! !elapsed-time (.-currentTime @!player)))
                :on-loaded-data #(when (and @!player (> (.-readyState @!player) 0))
-                                  (.play @!player)
+                                  (rf/dispatch [::events/start-playback @!player])
                                   (set! (.-currentTime @!player) @!elapsed-time))
                :on-ended           #(when (and @!player (> (.-readyState @!player) 0))
                                       (let [idx (if (< (+ media-queue-pos 1) (count media-queue))
@@ -53,7 +54,7 @@
                                         (reset! !elapsed-time 0)
                                         (when (and (not is-window-visible) loop-playlist?)
                                           (set! (.-src @!player) (:stream (nth media-queue idx)))
-                                          (.play @!player))))}]]
+                                          (rf/dispatch [::events/start-playback @!player]))))}]]
             [:div.flex
              [:button:focus:ring-transparent.mx-2.cursor-pointer
                {:on-click #(rf/dispatch [::events/toggle-media-queue])}
@@ -71,10 +72,7 @@
               {:on-click #(set! (.-currentTime @!player) (- @!elapsed-time 5))}
               [:i.fa-solid.fa-backward]]
              [:button.focus:outline-none.mx-2
-              {:on-click #(when-let [player @!player]
-                            (if (.-paused player)
-                              (.play player)
-                              (.pause player)))}
+              {:on-click #(rf/dispatch [::events/start-playback @!player])}
               (if @!player
                 (if show-audio-player-loading?
                   [loading/loading-icon service-color "text-1xl"]
@@ -119,19 +117,16 @@
                 {:style {:color (when loop-playlist? service-color)}}]]
               [:div.hidden.ml:flex.items-center
                [:button.focus:outline-none.mx-2
-                {:on-click #(when-let [player @!player]
-                              (set! (.-muted player) (not (.-muted player))))}
-                (if (and @!player (.-muted @!player))
+                {:on-click #(rf/dispatch [::events/toggle-mute @!player])}
+                (if (or (and @!player muted?))
                   [:i.fa-solid.fa-volume-xmark]
                   [:i.fa-solid.fa-volume-low])]
                [:input.w-20.bg-gray-200.rounded-lg.cursor-pointer.focus:outline-none.h-1.range-sm.mx-2
                 {:type "range"
-                 :on-input #(do (reset! !volume-level (.. % -target -value))
-                                (and @!player (> (.-readyState @!player) 0)
-                                     (set! (.-volume @!player) (/ @!volume-level 100))))
+                 :on-input #(rf/dispatch [::events/change-volume-level (.. % -target -value) @!player])
                  :style {:accentColor service-color}
                  :max 100
-                 :value (if (and @!player (.-muted @!player)) 0 @!volume-level)}]]]
+                 :value volume-level}]]]
              [:div.mx-2
               [:i.fa-solid.fa-close.cursor-pointer
                {:on-click (fn []
