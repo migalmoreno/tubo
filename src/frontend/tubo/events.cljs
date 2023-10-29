@@ -191,11 +191,12 @@
 (rf/reg-event-fx
  ::add-to-media-queue
   [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream]]
-   (let [updated-db (update db :media-queue conj stream)]
-     {:db updated-db
-      :store (assoc store :media-queue (:media-queue updated-db))
-      :fx [[:dispatch [::fetch-audio-player-stream (:url stream)]]]})))
+  (fn [{:keys [db store]} [_ stream]]
+    (let [updated-db (update db :media-queue conj stream)
+          idx (.indexOf (:media-queue updated-db) stream)]
+      {:db    updated-db
+       :store (assoc store :media-queue (:media-queue updated-db))
+       :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
 
 (rf/reg-event-fx
  ::change-media-queue-pos
@@ -207,10 +208,8 @@
 (rf/reg-event-fx
  ::change-media-queue-stream
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ src]]
-   (let [idx (- (count (:media-queue db)) 1)
-         update-entry
-         (fn [elem] (assoc-in elem [:media-queue idx :stream] src))]
+ (fn [{:keys [db store]} [_ src idx]]
+   (let [update-entry #(assoc-in % [:media-queue idx :stream] src)]
      (when-not (-> db :media-queue (nth idx) :stream)
        {:db (update-entry db)
         :store (update-entry store)}))))
@@ -231,10 +230,22 @@
 (rf/reg-event-fx
  ::switch-to-audio-player
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream]]
+ (fn [{:keys [db store]} [_ stream service-color]]
    {:db (assoc db :show-audio-player true)
     :store (assoc store :show-audio-player true)
-    :fx [[:dispatch [::add-to-media-queue stream]]]}))
+    :fx [[:dispatch [::add-to-media-queue (conj stream {:service-color service-color})]]]}))
+
+(rf/reg-event-fx
+ ::enqueue-related-streams
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ streams service-color]]
+   {:db (assoc db :show-audio-player true)
+    :store (assoc store :show-audio-player true)
+    :fx (into [] (map #(identity [:dispatch
+                                  [::add-to-media-queue
+                                   (conj {:service-color service-color} %)]])
+                      streams))}))
+
 
 (rf/reg-event-db
  ::load-services
@@ -378,11 +389,12 @@
 
 (rf/reg-event-fx
  ::load-audio-player-stream
- (fn [{:keys [db]} [_ res]]
+ (fn [{:keys [db]} [_ idx res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :show-audio-player-loading false)
       :fx [[:dispatch [::change-media-queue-stream
-                       (-> stream-res :audio-streams first :content)]]]})))
+                       (-> stream-res :audio-streams first :content)
+                       idx]]]})))
 
 (rf/reg-event-fx
  ::load-stream-page
@@ -403,10 +415,10 @@
 
 (rf/reg-event-fx
  ::fetch-audio-player-stream
- (fn [{:keys [db]} [_ uri]]
+ (fn [{:keys [db]} [_ uri idx]]
    (assoc
     (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
-                     [::load-audio-player-stream] [::bad-response])
+                     [::load-audio-player-stream idx] [::bad-response])
     :db (assoc db :show-audio-player-loading true))))
 
 (rf/reg-event-fx

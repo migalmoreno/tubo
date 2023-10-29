@@ -26,14 +26,20 @@
         (when banner-url
           [:div
            [:img {:src banner-url}]])
-        [:div.flex.items-center.justify-center.my-4.mx-2
-         [:div.flex.flex-col.justify-center.items-center
-          [:h1.text-2xl.font-bold name]
-          [:div.flex.items-center.pt-4
-           [:span.mr-2 "By"]
-           [:div.flex.items-center.py-3.box-border.h-12
+        [:div.flex.flex-col.justify-center.my-4.mx-2
+         [:h1.text-2xl.font-bold.mb-4.line-clamp-1 {:title name} name]
+         [:div.flex.items-center.justify-between
+          [:div.flex.items-center.my-4.mr-2
+           [:div.flex.items-center.py-3.pr-3.box-border.h-12
             [:div.w-12
              [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-              [:img.rounded-full.object-cover.min-h-full.min-w-full {:src uploader-avatar :alt uploader-name}]]]]]
-          [:p.pt-4 (str stream-count " streams")]]]
+              [:img.rounded-full.object-cover.min-h-full.min-w-full {:src uploader-avatar :alt uploader-name}]]]]
+           [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
+            uploader-name]]
+          [:span.ml-2 (str stream-count " streams")]]
+         [:div.flex.flex.w-full.my-4.justify-center
+          [:button.px-3.py-1.mx-2
+           {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
+           [:i.fa-solid.fa-headphones]
+           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Background"]]]]
         [items/related-streams related-streams next-page-url]])]))

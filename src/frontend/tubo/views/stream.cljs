@@ -42,10 +42,8 @@
             content])]
         [:div.px-4.ml:p-0.overflow-x-hidden
          [:div.flex.flex.w-full.my-4.justify-center
-          [:button.px-3.py-1.mx-2
-           {:on-click #(rf/dispatch [::events/switch-to-audio-player
-                                     {:uploader-name uploader-name :uploader-url uploader-url
-                                      :name name :url url :stream content :service-color service-color}])}
+          [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
+           {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
            [:i.fa-solid.fa-headphones]
            [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Background"]]
           [:button.px-3.py-1.mx-2
@@ -129,11 +127,16 @@
                   [comments/comments comments-page uploader-name uploader-avatar url]))]])
           (when (and show-related? (not (empty? related-streams)))
             [:div.py-6
-             [:div.flex.items-center
-              [:i.fa-solid.fa-list]
-              [:h1.px-2.text-lg.bold "Related Results"]
-              [:i.fa-solid.fa-chevron-up.cursor-pointer
-               {:class    (if (not show-related) "fa-chevron-up" "fa-chevron-down")
-                :on-click #(rf/dispatch [::events/toggle-stream-layout :show-related])}]]
+             [:div.flex.justify-between
+              [:div.flex.items-center.text-sm.sm:text-base
+               [:i.fa-solid.fa-list]
+               [:h1.px-2.text-lg.bold "Suggested"]
+               [:i.fa-solid.fa-chevron-up.cursor-pointer
+                {:class    (if (not show-related) "fa-chevron-up" "fa-chevron-down")
+                 :on-click #(rf/dispatch [::events/toggle-stream-layout :show-related])}]]
+              [:button
+               {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
+               [:i.fa-solid.fa-headphones]
+               [:span.mx-2.text-neutral-600.dark:text-neutral-300 "Background"]]]
              (when (not show-related)
                [items/related-streams related-streams nil])])]]])]))
