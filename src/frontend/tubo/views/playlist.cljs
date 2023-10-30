@@ -27,7 +27,14 @@
           [:div
            [:img {:src banner-url}]])
         [:div.flex.flex-col.justify-center.my-4.mx-2
-         [:h1.text-2xl.font-bold.mb-4.line-clamp-1 {:title name} name]
+         [:div.flex.justify-between.items-center.mb-4
+          [:div
+           [:h1.text-2xl.font-bold.line-clamp-1 {:title name} name]]
+          [:div.flex-auto.whitespace-nowrap.ml-4
+           [:button
+            {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
+            [:i.fa-solid.fa-headphones]
+            [:span.ml-4.text-neutral-600.dark:text-neutral-300 "Background"]]]]
          [:div.flex.items-center.justify-between
           [:div.flex.items-center.my-4.mr-2
            [:div.flex.items-center.py-3.pr-3.box-border.h-12
@@ -38,8 +45,5 @@
             uploader-name]]
           [:span.ml-2 (str stream-count " streams")]]
          [:div.flex.flex.w-full.my-4.justify-center
-          [:button.px-3.py-1.mx-2
-           {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
-           [:i.fa-solid.fa-headphones]
-           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Background"]]]]
+          ]]
         [items/related-streams related-streams next-page-url]])]))

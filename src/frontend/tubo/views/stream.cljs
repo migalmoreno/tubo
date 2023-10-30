@@ -29,7 +29,7 @@
     [:div.flex.flex-col.items-center.justify-center.dark:text-white.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
-       [:div.w-full.pb-4.relative {:class "ml:w-4/5 xl:w-3/5"}
+       [:div.w-full.pb-4.relative.w-full {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         [:div.flex.justify-center.relative
          {:class "h-[300px] ml:h-[450px] lg:h-[600px]"}

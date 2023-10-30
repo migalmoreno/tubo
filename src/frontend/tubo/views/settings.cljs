@@ -19,7 +19,7 @@
                 show-description]} @(rf/subscribe [:settings])
         service-color @(rf/subscribe [:service-color])]
     [:div.flex.flex-col.items-center.px-5.py-2.flex-auto
-     [:div.flex.flex-col.flex-auto {:class "ml:w-4/5 xl:w-3/5"}
+     [:div.flex.flex-col.flex-auto.w-full {:class "ml:w-4/5 xl:w-3/5"}
       [navigation/back-button service-color]
       [:h1.text-2xl.font-bold.py-6 "Settings"]
       [:form.flex.flex-wrap
