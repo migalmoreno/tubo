@@ -157,6 +157,11 @@
    (and (not-empty queue) (nth queue pos))))
 
 (rf/reg-sub
+ :bookmarks
+ (fn [db _]
+   (:bookmarks db)))
+
+(rf/reg-sub
  :show-audio-player
  (fn [db _]
    (:show-audio-player db)))

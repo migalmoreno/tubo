@@ -15,7 +15,7 @@
   (fn [{:keys [store]} _]
     (let [{:keys [current-theme show-comments show-related show-description
                   media-queue media-queue-pos show-audio-player
-                  loop-file loop-playlist]} store]
+                  loop-file loop-playlist volume-level muted bookmarks]} store]
       {:db
        {:search-query   ""
         :service-id      0
@@ -27,6 +27,7 @@
         :media-queue     (if (nil? media-queue) [] media-queue)
         :media-queue-pos (if (nil? media-queue-pos) 0 media-queue-pos)
         :volume-level (if (nil? volume-level) 100 volume-level)
+        :bookmarks (if (nil? bookmarks) [] bookmarks)
         :muted (if (nil? muted) false muted)
         :current-match   nil
         :show-audio-player (if (nil? show-audio-player) false show-audio-player)
@@ -291,6 +292,22 @@
                                    (conj {:service-color service-color} %)]])
                       streams))}))
 
+(rf/reg-event-fx
+ ::add-to-bookmarks
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ bookmark]]
+   (when-not (some #(= (:url %) (:url bookmark)) (:bookmarks db))
+     (let [updated-db (update db :bookmarks conj bookmark)]
+       {:db    updated-db
+        :store (assoc store :bookmarks (:bookmarks updated-db))}))))
+
+(rf/reg-event-fx
+ ::remove-from-bookmarks
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ bookmark]]
+   (let [updated-db (update db :bookmarks #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
+     {:db updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))})))
 
 (rf/reg-event-db
  ::load-services

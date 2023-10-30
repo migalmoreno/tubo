@@ -20,6 +20,7 @@
     ["/playlist" handler/index]
     ["/kiosk" handler/index]
     ["/settings" handler/index]
+    ["/bookmarks" handler/index]
     ["/api"
      ["/services"
       ["" {:get handler/services}]

@@ -24,7 +24,8 @@
         available-streams (apply conj audio-streams video-streams)
         {:keys [content id] :as stream-format} @(rf/subscribe [:stream-format])
         page-loading? @(rf/subscribe [:show-page-loading])
-        service-color @(rf/subscribe [:service-color])]
+        service-color @(rf/subscribe [:service-color])
+        bookmarks @(rf/subscribe [:bookmarks])]
     [:div.flex.flex-col.items-center.justify-center.dark:text-white.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
@@ -45,8 +46,17 @@
           [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
            {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
            [:i.fa-solid.fa-headphones]
-           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Background"]]
-          [:button.px-3.py-1.mx-2
+           [:span.mx-3 "Background"]]
+          (if (some #(= (:url %) url) bookmarks)
+            [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
+             {:on-click #(rf/dispatch [::events/remove-from-bookmarks stream])}
+             [:i.fa-solid.fa-bookmark]
+             [:span.mx-3 "Bookmarked"]]
+            [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
+             {:on-click #(rf/dispatch [::events/add-to-bookmarks stream])}
+             [:i.fa-regular.fa-bookmark]
+             [:span.mx-3 "Bookmark"]])
+          [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
            [:a.block.sm:inline-block {:href url}
             [:i.fa-solid.fa-external-link-alt]]
            [:span.mx-3 "Original"]]

@@ -4,6 +4,7 @@
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
    [tubo.events :as events]
+   [tubo.views.bookmarks :as bookmarks]
    [tubo.views.channel :as channel]
    [tubo.views.kiosk :as kiosk]
    [tubo.views.playlist :as playlist]
@@ -43,7 +44,9 @@
                               :start (fn [{{:keys [serviceId kioskId]} :query}]
                                        (rf/dispatch [::events/get-kiosk-page serviceId kioskId]))}]}]
     ["/settings" {:view settings/settings-page
-                  :name ::settings}]]))
+                  :name ::settings}]
+    ["/bookmarks" {:view bookmarks/bookmarks-page
+                   :name ::bookmarks}]]))
 
 (defn on-navigate
   [new-match]

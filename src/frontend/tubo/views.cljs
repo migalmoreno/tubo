@@ -51,7 +51,11 @@
           [:span.ml-7 kiosk]]])]]
     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
      {:class "border-t-[1px]"}
-     [:ul.flex.font-roboto
+     [:ul.flex.flex-col.font-roboto
+      [:li.px-5.py-2
+       [:a {:href (rfe/href ::routes/bookmarks)}
+        [:i.fa-solid.fa-bookmark.text-neutral-600.dark:text-neutral-300]
+        [:span.ml-8 "Bookmarks"]]]
       [:li.px-5.py-2
        [:a {:href (rfe/href ::routes/settings)}
         [:i.fa-solid.fa-cog.text-neutral-600.dark:text-neutral-300]
@@ -113,7 +117,10 @@
              [:i.fa-solid.fa-search]]
             [:a.mx-2.hidden.ml:block
              {:href (rfe/href ::routes/settings)}
-             [:i.fa-solid.fa-cog]]]]
+             [:i.fa-solid.fa-cog]]
+            [:a.mx-2.hidden.ml:block
+             {:href (rfe/href ::routes/bookmarks)}
+             [:i.fa-solid.fa-bookmark]]]]
           [:div.cursor-pointer.px-2.ml:hidden.text-white
            {:on-click #(rf/dispatch [::events/toggle-mobile-nav])}
            [:i.fa-solid.fa-bars]]
