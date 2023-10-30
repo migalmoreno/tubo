@@ -43,7 +43,7 @@
               [:img.rounded-full.object-cover.min-h-full.min-w-full {:src uploader-avatar :alt uploader-name}]]]]
            [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
             uploader-name]]
-          [:span.ml-2 (str stream-count " streams")]]
+          [:span.ml-2.whitespace-nowrap (str stream-count " streams")]]
          [:div.flex.flex.w-full.my-4.justify-center
           ]]
         [items/related-streams related-streams next-page-url]])]))

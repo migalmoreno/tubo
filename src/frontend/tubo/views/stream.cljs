@@ -102,7 +102,7 @@
                 [:i.fa-solid.fa-thumbs-down]
                 [:span.ml-2 dislike-count]])]
             (when upload-date
-              [:div.sm:text-base.text-sm.mt-1
+              [:div.sm:text-base.text-sm.mt-1.whitespace-nowrap
                [:i.fa-solid.fa-calendar.mx-2]
                [:span
                 (-> upload-date
