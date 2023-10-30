@@ -49,10 +49,10 @@
           [:button.px-3.py-1.mx-2
            [:a.block.sm:inline-block {:href url}
             [:i.fa-solid.fa-external-link-alt]]
-           [:span.mx-3.text-neutral-600.dark:text-neutral-300 "Original"]]
+           [:span.mx-3 "Original"]]
           (when stream-format
-            [:div.relative.flex.flex-col.items-center.justify-center.z-10.mr-2
-             [:select.border-none.focus:ring-transparent.dark:bg-blend-color-dodge.pl-4.pr-8.w-full
+            [:div.relative.flex.flex-col.items-center.justify-center.text-neutral-600.dark:text-neutral-300
+             [:select.border-none.focus:ring-transparent.dark:bg-blend-color-dodge.pr-8.w-full.text-ellipsis.text-sm.sm:text-base
               {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
                :value     id
                :style     {:background "transparent"}}
@@ -61,40 +61,39 @@
                   [:option.dark:bg-neutral-900.border-none {:value id :key i}
                    (str (or resolution "audio-only") " " format (when-not resolution (str " " averageBitrate "kbit/s")))]))]
              [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
-              {:style {:zIndex "-1"}}
               [:i.fa-solid.fa-caret-down]]])]
          [:div.flex.flex-col
           [:div.min-w-full.pb-3
            [:h1.text-2xl.font-extrabold.line-clamp-1 name]]
           [:div.flex.justify-between.py-2
-           [:div.flex.items-center.flex-auto
+           [:div.flex.items-center
             (when uploader-avatar
               [:div.relative.w-16.h-16
                [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
                 [:img.rounded-full.object-cover.max-w-full.min-h-full {:src uploader-avatar :alt uploader-name}]]])
-            [:div.mx-2
+            [:div.mx-3
              [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]
              (when subscriber-count
                [:div.flex.my-2.items-center
                 [:i.fa-solid.fa-users.text-xs]
                 [:p.mx-2 (util/format-quantity subscriber-count)]])]]
-           [:div.flex.flex-col.items-end
+           [:div.flex.flex-col.items-end.flex-auto
             (when view-count
-              [:div
-               [:i.fa-solid.fa-eye.text-xs]
+              [:div.sm:text-base.text-sm.mb-1
+               [:i.fa-solid.fa-eye]
                [:span.ml-2 (.toLocaleString view-count)]])
             [:div.flex
              (when like-count
-               [:div.items-center
-                [:i.fa-solid.fa-thumbs-up.text-xs]
+               [:div.items-center.sm:text-base.text-sm
+                [:i.fa-solid.fa-thumbs-up]
                 [:span.ml-2 (.toLocaleString like-count)]])
              (when dislike-count
-               [:div.ml-2.items-center
-                [:i.fa-solid.fa-thumbs-down.text-xs]
+               [:div.ml-2.items-center.sm:text-base.text-sm
+                [:i.fa-solid.fa-thumbs-down]
                 [:span.ml-2 dislike-count]])]
             (when upload-date
-              [:div
-               [:i.fa-solid.fa-calendar.mx-2.text-xs]
+              [:div.sm:text-base.text-sm.mt-1
+               [:i.fa-solid.fa-calendar.mx-2]
                [:span
                 (-> upload-date
                     js/Date.parse
@@ -103,7 +102,7 @@
           (when (and show-description? description)
             [:div.py-3.flex.flex-wrap.min-w-full
              [:div {:dangerouslySetInnerHTML {:__html description}
-                    :class (when (not show-description) "line-clamp-1")}]
+                    :class (when (not show-description) "line-clamp-2")}]
              [:div.flex.justify-center.font-bold.min-w-full.pt-4.cursor-pointer
               [:button
                {:on-click #(rf/dispatch [::events/toggle-stream-layout :show-description])}

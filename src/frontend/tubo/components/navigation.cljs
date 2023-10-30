@@ -5,7 +5,7 @@
 
 (defn back-button [service-color]
   [:div.flex.items-center
-   [:button.py-4.px-2
+   [:button.py-4.pl-2.sm:pl-0
     {:on-click #(rf/dispatch [::events/history-back])}
     [:i.fa-solid.fa-chevron-left
      {:style {:color service-color}}]

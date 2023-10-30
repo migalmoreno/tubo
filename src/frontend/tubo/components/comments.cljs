@@ -22,15 +22,17 @@
      (when pinned?
        [:i.fa-solid.fa-thumbtack.mr-2.text-xs])
      (when uploader-name
-       [:div.flex.items-center
+       [:div.flex.items-stretch
         [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-         [:h1.text-neutral-800.dark:text-gray-300.font-bold uploader-name]]
+         [:h1.text-neutral-800.dark:text-gray-300.font-bold.line-clamp-1 uploader-name]]
         (when stream-position
-          [:p.mx-1.text-xs (str "at " (util/format-duration stream-position))])])
+          [:div.text-neutral-600.dark:text-neutral-300.flex.items-center
+           [:span.mx-2.mb-1.text-xs {:dangerouslySetInnerHTML {:__html "&bull;"}}]
+           [:span.text-xs.whitespace-nowrap (util/format-duration stream-position)]])])
      (when uploader-verified?
        [:i.fa-solid.fa-circle-check.ml-2])]
     [:div.my-2
-     [:p {:dangerouslySetInnerHTML {:__html text}}]]
+     [:p.break-words {:dangerouslySetInnerHTML {:__html text}}]]
     [:div..flex.items-center.my-2
      [:div.mr-4
       [:p (util/format-date upload-date)]]
