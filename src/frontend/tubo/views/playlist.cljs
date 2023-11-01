@@ -21,7 +21,7 @@
     [:div.flex.flex-col.items-center.px-5.pt-4.flex-auto
      (if page-loading?
        [loading/loading-icon service-color "text-5xl"]
-       [:div.flex.flex-col.flex-auto.w-full {:class "ml:w-4/5"}
+       [:div.flex.flex-col.flex-auto.w-full {:class "ml:w-4/5 xl:w-3/5"}
         [navigation/back-button service-color]
         (when banner-url
           [:div
@@ -30,11 +30,11 @@
          [:div.flex.justify-between.items-center.mb-4
           [:div
            [:h1.text-2xl.font-bold.line-clamp-1 {:title name} name]]
-          [:div.flex-auto.whitespace-nowrap.ml-4
+          [:div.whitespace-nowrap.ml-4
            [:button
             {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
-            [:i.fa-solid.fa-headphones]
-            [:span.ml-4.text-neutral-600.dark:text-neutral-300 "Background"]]]]
+            [:i.mx-3.fa-solid.fa-headphones]
+            [:span.text-neutral-600.dark:text-neutral-300 "Background"]]]]
          [:div.flex.items-center.justify-between
           [:div.flex.items-center.my-4.mr-2
            [:div.flex.items-center.py-3.pr-3.box-border.h-12
@@ -43,7 +43,5 @@
               [:img.rounded-full.object-cover.min-h-full.min-w-full {:src uploader-avatar :alt uploader-name}]]]]
            [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
             uploader-name]]
-          [:span.ml-2.whitespace-nowrap (str stream-count " streams")]]
-         [:div.flex.flex.w-full.my-4.justify-center
-          ]]
+          [:span.ml-2.whitespace-nowrap (str stream-count " streams")]]]
         [items/related-streams related-streams next-page-url]])]))

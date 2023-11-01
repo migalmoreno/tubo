@@ -145,7 +145,7 @@
                  :on-click #(rf/dispatch [::events/toggle-stream-layout :show-related])}]]
               [:button
                {:on-click #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])}
-               [:i.fa-solid.fa-headphones]
-               [:span.mx-2.text-neutral-600.dark:text-neutral-300 "Background"]]]
+               [:i.mx-2.fa-solid.fa-headphones]
+               [:span.text-neutral-600.dark:text-neutral-300 "Background"]]]
              (when (not show-related)
                [items/related-streams related-streams nil])])]]])]))
