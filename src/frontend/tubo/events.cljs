@@ -292,7 +292,8 @@
                                    [::add-to-media-queue
                                     (conj {:service-color service-color} %)]])
                        streams)
-                  [:dispatch [::fetch-audio-player-stream (:url (first streams)) 0]]))}))
+                  [:dispatch [::fetch-audio-player-stream (:url (first streams))
+                              (count (:media-queue db))]]))}))
 
 (rf/reg-event-fx
  ::add-to-bookmarks
