@@ -72,9 +72,9 @@
 
 (rf/reg-fx
  ::player-playback
- (fn [{:keys [player]}]
+ (fn [{:keys [player paused?]}]
    (when (and player (> (.-readyState player) 0))
-     (if (.-paused player)
+     (if paused?
        (.play player)
        (.pause player)))))
 
@@ -104,13 +104,6 @@
    {:db (assoc db :volume-level value)
     :store (assoc store :volume-level value)
     ::player-volume {:player player :volume value}}))
-
-(rf/reg-event-fx
- ::start-playback
- (fn [{:keys [db]} [_ player]]
-   {::player-playback {:player player}
-    ::player-volume {:player player :volume (:volume-level db)}
-    ::player-mute {:player player :muted? (:muted db)}}))
 
 (rf/reg-event-fx
  ::toggle-mute
@@ -238,27 +231,28 @@
  ::add-to-media-queue
   [(rf/inject-cofx :store)]
   (fn [{:keys [db store]} [_ stream]]
-    (let [updated-db (update db :media-queue conj stream)
-          idx (.indexOf (:media-queue updated-db) stream)]
+    (let [updated-db (update db :media-queue conj stream)]
       {:db    updated-db
-       :store (assoc store :media-queue (:media-queue updated-db))
-       :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
+       :store (assoc store :media-queue (:media-queue updated-db))})))
 
 (rf/reg-event-fx
  ::change-media-queue-pos
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ idx]]
-   {:db (assoc db :media-queue-pos idx)
-    :store (assoc store :media-queue-pos idx)}))
+   (let [stream (get (:media-queue db) idx)]
+     {:db    (-> db
+                 (assoc :media-queue-pos idx)
+                 (assoc-in [:media-queue idx :stream] ""))
+      :store (assoc store :media-queue-pos idx)
+      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
 
 (rf/reg-event-fx
  ::change-media-queue-stream
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ src idx]]
    (let [update-entry #(assoc-in % [:media-queue idx :stream] src)]
-     (when-not (-> db :media-queue (nth idx) :stream)
-       {:db (update-entry db)
-        :store (update-entry store)}))))
+     {:db    (update-entry db)
+      :store (update-entry store)})))
 
 (rf/reg-event-fx
  ::toggle-audio-player
@@ -277,9 +271,15 @@
  ::switch-to-audio-player
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream service-color]]
-   {:db (assoc db :show-audio-player true)
-    :store (assoc store :show-audio-player true)
-    :fx [[:dispatch [::add-to-media-queue (conj stream {:service-color service-color})]]]}))
+   (let [full-stream (conj {:service-color service-color} stream)
+         updated-db (update db :media-queue conj full-stream)
+         idx        (.indexOf (:media-queue updated-db) full-stream)]
+     {:db    (-> updated-db
+                 (assoc :show-audio-player true))
+      :store (-> store
+                 (assoc :show-audio-player true)
+                 (assoc :media-queue (:media-queue updated-db)))
+      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
 
 (rf/reg-event-fx
  ::enqueue-related-streams
@@ -287,10 +287,12 @@
  (fn [{:keys [db store]} [_ streams service-color]]
    {:db (assoc db :show-audio-player true)
     :store (assoc store :show-audio-player true)
-    :fx (into [] (map #(identity [:dispatch
-                                  [::add-to-media-queue
-                                   (conj {:service-color service-color} %)]])
-                      streams))}))
+    :fx (into [] (conj
+                  (map #(identity [:dispatch
+                                   [::add-to-media-queue
+                                    (conj {:service-color service-color} %)]])
+                       streams)
+                  [:dispatch [::fetch-audio-player-stream (:url (first streams)) 0]]))}))
 
 (rf/reg-event-fx
  ::add-to-bookmarks
