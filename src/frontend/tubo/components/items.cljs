@@ -85,8 +85,8 @@
 
 (defn generic-item
   [item service-color bookmarks]
-  [:div.w-full.h-80.xs:h-72.my-2 {:key key}
-   [:div.px-5.py-2.m-2.flex.flex-col.max-w-full.min-h-full.max-h-full
+  [:div.w-full.h-80.xs:h-72 {:key key}
+   [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
     (case (:type item)
       "stream" [stream-item item service-color bookmarks]
       "channel" [channel-item item service-color bookmarks]
@@ -102,10 +102,9 @@
      (if (empty? related-streams)
        [:div.flex.items-center.flex-auto
         [:p "No available streams"]]
-       [:div.grid.w-full
-        {:class "grid-cols-[repeat(auto-fill,_minmax(200px,_1fr))]"}
-        (for [[i item] (map-indexed vector related-streams)
-              :let [keyed-item (assoc item :key i)]]
-          [generic-item keyed-item service-color bookmarks])])
+       [:div.grid.w-full.gap-x-10.gap-y-5
+        {:class "grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
+        (for [[i item] (map-indexed vector related-streams)]
+          ^{:key i} [generic-item item service-color bookmarks])])
      (when-not (empty? next-page-url)
        [loading/loading-icon service-color "text-2xl" (when-not pagination-loading? "invisible")])]))
