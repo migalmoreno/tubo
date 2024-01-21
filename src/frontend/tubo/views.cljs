@@ -125,7 +125,7 @@
     [:div {:class (when (= current-theme "dark") "dark")}
      [:div.min-h-screen.flex.flex-col.h-full.dark:text-white.dark:bg-neutral-900.relative
       [navbar current-match]
-      [:div.flex.flex-col.justify-between.relative.font-nunito {:style {:minHeight "100vh"}}
+      [:div.flex.flex-col.flex-auto.justify-between.relative.font-nunito
        (when-let [view (-> current-match :data :view)]
          [view current-match])
        [footer]
