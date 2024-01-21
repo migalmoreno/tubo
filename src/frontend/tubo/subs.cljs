@@ -187,6 +187,11 @@
    (:show-mobile-nav db)))
 
 (rf/reg-sub
+ :show-search-form
+ (fn [db _]
+   (:show-search-form db)))
+
+(rf/reg-sub
  :show-media-queue
  (fn [db _]
    (:show-media-queue db)))
