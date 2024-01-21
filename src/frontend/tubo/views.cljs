@@ -13,6 +13,29 @@
 (defonce services (rf/dispatch [::events/get-services]))
 (defonce kiosks (rf/dispatch [::events/get-kiosks 0]))
 
+(defn services-dropdown [services service-id service-color]
+  [:div.relative.flex.flex-col.items-center-justify-center.text-white.px-2
+   {:style {:background service-color}}
+   [:div.w-full.box-border.z-10.lg:z-0
+    [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.font-nunito.w-full
+     {:on-change #(rf/dispatch [::events/change-service-kiosk (js/parseInt (.. % -target -value))])
+      :value     service-id
+      :style     {:background "transparent"}}
+     (when services
+       (for [service services]
+         [:option.text-white.bg-neutral-900.border-none
+          {:value (:id service) :key (:id service)}
+          (-> service :info :name)]))]]
+   [:div.flex.items-center.justify-end.absolute.min-h-full.top-0.right-4.lg:right-0.z-0
+    [:i.fa-solid.fa-caret-down]]])
+
+(defn mobile-nav-item [route icon label & {:keys [new-tab?]}]
+  [:li.px-5.py-2
+   [:a.flex {:href route :target (when new-tab? "_blank")}
+    [:div.w-6.flex.justify-center.items-center.mr-4
+     [:i.text-neutral-600.dark:text-neutral-300 {:class icon}]]
+    [:span label]]])
+
 (defn mobile-nav
   [show-mobile-nav? service-id service-color services available-kiosks]
   [:<>
@@ -22,124 +45,67 @@
     [:div.flex.justify-center.py-8.items-center.text-white {:style {:background service-color}}
      [layout/logo]
      [:h3.text-3xl.font-bold.px-4.font-roboto "Tubo"]]
-    [:div.relative.flex.flex-col.items-center-justify-center.text-white {:style {:background service-color}}
-     [:div.w-full.box-border.z-10
-      [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.font-nunito.px-5.w-full
-       {:on-change #(rf/dispatch [::events/change-service-kiosk (js/parseInt (.. % -target -value))])
-        :value     service-id
-        :style     {:background "transparent"}}
-       (when services
-         (for [service services]
-           [:option.text-white.bg-neutral-900.border-none
-            {:value (:id service) :key (:id service)}
-            (-> service :info :name)]))]]
-     [:div.flex.absolute.min-h-full.top-0.right-6.items-center.justify-end.z-0
-      [:i.fa-solid.fa-caret-down]]]
+    [services-dropdown services service-id service-color]
     [:div.relative.py-4
      [:ul.flex.font-roboto.flex-col
       (for [kiosk available-kiosks]
-        [:li.px-5.py-2 {:key kiosk}
-         [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
-                                                  :kioskId   kiosk})}
-          [:i.fa-solid.fa-fire.text-neutral-600.dark:text-neutral-300]
-          [:span.ml-7 kiosk]]])]]
+        ^{:key kiosk} [mobile-nav-item
+                       (rfe/href ::routes/kiosk nil
+                                 {:serviceId service-id
+                                  :kioskId   kiosk})
+                       "fa-solid fa-fire" kiosk])]]
     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
      {:class "border-t-[1px]"}
      [:ul.flex.flex-col.font-roboto
-      [:li.px-5.py-2
-       [:a {:href (rfe/href ::routes/bookmarks)}
-        [:i.fa-solid.fa-bookmark.text-neutral-600.dark:text-neutral-300]
-        [:span.ml-8 "Bookmarks"]]]
-      [:li.px-5.py-2
-       [:a {:href (rfe/href ::routes/settings)}
-        [:i.fa-solid.fa-cog.text-neutral-600.dark:text-neutral-300]
-        [:span.ml-7 "Settings"]]]
-      [:li.px-5.py-2
-       [:a {:href "https://github.com/migalmoreno/tubo" :target "_blank"}
-        [:i.fa-brands.fa-github]
-        [:span.ml-7 "Source"]]]]]]])
+      [mobile-nav-item (rfe/href ::routes/bookmarks) "fa-solid fa-bookmark" "Bookmarks"]
+      [mobile-nav-item (rfe/href ::routes/settings) "fa-solid fa-cog" "Settings"]
+      [mobile-nav-item "https://github.com/migalmoreno/tubo" "fa-brands fa-github" "Source" :new-tab? true]]]]])
 
 (defn navbar
   [{{:keys [serviceId]} :query-params}]
-  (let [!query (r/atom "")
-        !input (r/atom nil)]
-    (fn [{{:keys [serviceId]} :query-params}]
-      (let [service-id                               @(rf/subscribe [:service-id])
-            service-color                            @(rf/subscribe [:service-color])
-            search-query                             @(rf/subscribe [:search-query])
-            services                                 @(rf/subscribe [:services])
-            {:keys [current-theme]}                  @(rf/subscribe [:settings])
-            id                                       (js/parseInt (or serviceId service-id))
-            show-mobile-nav?                         @(rf/subscribe [:show-mobile-nav])
-            {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
-        [:nav.flex.px-2.py-2.5.items-center.sticky.top-0.z-50.font-nunito
-         {:style {:background service-color}}
-         [:div.flex.items-center.justify-between.flex-auto
-          [:div.px-2
-           [:a.text-white.font-bold
-            {:href (rfe/href ::routes/home)}
-            [:img.mb-1 {:src   "/images/tubo.png" :style {:maxHeight "25px" :maxWidth "40px"}
-                        :title "Tubo"}]]]
-          [:form.flex.items-center.relative
-           {:on-submit (fn [e]
-                         (.preventDefault e)
-                         (when-not (empty? @!query)
-                           (rf/dispatch [::events/navigate
-                                         {:name   ::routes/search
-                                          :params {}
-                                          :query  {:q search-query :serviceId service-id}}])))}
-           [:div.relative
-            [:input.bg-transparent.text-white.border-none.py-2.pr-6.mx-2.focus:ring-transparent.placeholder-white.w-40.xs:w-auto
-             {:type          "text"
-              :ref #(reset! !input %)
-              :default-value @!query
-              :on-change     #(let [input (.. % -target -value)]
-                                (when-not (empty? input) (rf/dispatch [::events/change-search-query input]))
-                                (reset! !query input))
-              :placeholder   "Search"}]
-            [:button.mx-2.text-xs.text-white.absolute.right-0.top-3
-             {:type     "button"
-              :on-click #(when @!input
-                           (set! (.-value @!input) "")
-                           (reset! !query "")
-                           (.focus @!input))
-              :class    (when (empty? @!query) "invisible")}
-             [:i.fa-solid.fa-circle-xmark]]]
-           [:div.flex.items-center.text-white
-            [:button.mx-2
-             {:type "submit"}
-             [:i.fa-solid.fa-search]]
-            [:a.mx-2.hidden.ml:block
-             {:href (rfe/href ::routes/settings)}
-             [:i.fa-solid.fa-cog]]
-            [:a.mx-2.hidden.ml:block
-             {:href (rfe/href ::routes/bookmarks)}
-             [:i.fa-solid.fa-bookmark]]]]
-          [:div.cursor-pointer.px-2.ml:hidden.text-white
-           {:on-click #(rf/dispatch [::events/toggle-mobile-nav])}
-           [:i.fa-solid.fa-bars]]
-          [mobile-nav show-mobile-nav? service-id service-color services available-kiosks]
-          [:div.hidden.ml:flex.w-full
-           [:div.relative.flex.flex-col.items-center.justify-center.ml:flex-row
-            [:div.w-full.box-border.z-10.ml:text-white
-             [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.font-nunito.px-5.w-full
-              {:on-change #(rf/dispatch [::events/change-service-kiosk (js/parseInt (.. % -target -value))])
-               :value     service-id
-               :style     {:background "transparent"}}
-              (when services
-                (for [service services]
-                  [:option.text-white.bg-neutral-900.border-none
-                   {:value (:id service) :key (:id service)}
-                   (-> service :info :name)]))]]
-            [:div.flex.absolute.min-h-full.top-0.right-4.ml:right-0.items-center.justify-end.z-0.ml:text-white
-             [:i.fa-solid.fa-caret-down]]]
-           [:div.relative.flex-auto.ml:pl-4
-            [:ul.flex.font-roboto.flex-col.ml:flex-row.ml:text-white
-             (for [kiosk available-kiosks]
-               [:li.px-3.py-2 {:key kiosk}
-                [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
-                                                         :kioskId   kiosk})}
-                 kiosk]])]]]]]))))
+  (let [service-id                               @(rf/subscribe [:service-id])
+        service-color                            @(rf/subscribe [:service-color])
+        services                                 @(rf/subscribe [:services])
+        {:keys [current-theme]}                  @(rf/subscribe [:settings])
+        id                                       (js/parseInt (or serviceId service-id))
+        show-mobile-nav?                         @(rf/subscribe [:show-mobile-nav])
+        show-search-form? @(rf/subscribe [:show-search-form])
+        {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
+    [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-50.font-nunito
+     {:style {:background service-color}}
+     [:div.flex.flex-auto.items-center
+      [:div.ml-4
+       [:a.font-bold
+        {:href (rfe/href ::routes/home)}
+        [layout/logo]]]
+      [navigation/search-form]
+      [:div.flex.flex-auto.justify-end.lg:justify-between
+       {:class (when show-search-form? "hidden")}
+       [:div.hidden.lg:flex
+        [navigation/navigation-buttons service-color]
+        [services-dropdown services service-id service-color]
+        [:ul.flex.items-center.px-4.text-white
+        (for [kiosk available-kiosks]
+          [:li.px-3 {:key kiosk}
+           [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
+                                                    :kioskId   kiosk})}
+            kiosk]])]]
+       [:div.flex.items-center.text-white.justify-end.mr-2
+        (when-not show-search-form?
+          [:button.mx-3
+           {:on-click (fn []
+                        (rf/dispatch [::events/toggle-search-form]))}
+           [:i.fa-solid.fa-search]])
+        [:a.mx-3.hidden.lg:block
+         {:href (rfe/href ::routes/settings)}
+         [:i.fa-solid.fa-cog]]
+        [:a.mx-3.hidden.lg:block
+         {:href (rfe/href ::routes/bookmarks)}
+         [:i.fa-solid.fa-bookmark]]
+        [:button.mx-3.lg:hidden
+         {:on-click #(rf/dispatch [::events/toggle-mobile-nav])}
+         [:i.fa-solid.fa-bars]]]
+       [mobile-nav show-mobile-nav? service-id service-color services available-kiosks]]]]))
 
 (defn footer
   []
