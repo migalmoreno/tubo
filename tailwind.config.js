@@ -5,16 +5,17 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        nunito: ['nunito-light', 'sans-serif'],
-        roboto: ['roboto-light', 'sans-serif'],
+        "nunito": ["nunito-light", "sans-serif"],
+        "nunito-semibold": ["nunito-semibold", "sans-serif"],
+        "roboto": ["roboto-light", "sans-serif"],
+        "roboto-medium": ["roboto-medium", "sans-serif"],
       },
       screens: {
-        'xs': '480px',
-        'ml': '930px',
+        "xs": "480px",
       },
     },
   },
   plugins: [
-    require('@tailwindcss/forms')
+    require("@tailwindcss/forms")
   ],
 }
