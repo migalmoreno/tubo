@@ -3,8 +3,9 @@
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.components.navigation :as navigation]
    [tubo.components.audio-player :as player]
+   [tubo.components.layout :as layout]
+   [tubo.components.navigation :as navigation]
    [tubo.components.play-queue :as queue]
    [tubo.events :as events]
    [tubo.routes :as routes]))
@@ -15,18 +16,11 @@
 (defn mobile-nav
   [show-mobile-nav? service-id service-color services available-kiosks]
   [:<>
-   [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out
-    {:class    "bg-black/50"
-     :style    {:visibility (when-not show-mobile-nav? "hidden")
-                :opacity (if show-mobile-nav? "1" "0")}
-     :on-click #(rf/dispatch [::events/toggle-mobile-nav])}]
-   [:div.items-center.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900
+   [layout/focus-overlay #(rf/dispatch [::events/toggle-mobile-nav]) show-mobile-nav?]
+   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900
     {:class (str "transition-[right] " (if show-mobile-nav? "right-0" "right-[-245px]"))}
     [:div.flex.justify-center.py-8.items-center.text-white {:style {:background service-color}}
-     [:img.mb-1
-      {:src   "/images/tubo.png"
-       :style {:maxHeight "25px" :maxWidth "40px"}
-       :title "Tubo"}]
+     [layout/logo]
      [:h3.text-3xl.font-bold.px-4.font-roboto "Tubo"]]
     [:div.relative.flex.flex-col.items-center-justify-center.text-white {:style {:background service-color}}
      [:div.w-full.box-border.z-10

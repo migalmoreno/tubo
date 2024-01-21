@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
+   [tubo.components.layout :as layout]
    [tubo.components.loading :as loading]
    [tubo.events :as events]
    [tubo.util :as util]))
@@ -71,7 +72,8 @@
      (when (:url next-page)
        (if pagination-loading?
          (loading/loading-icon service-color)
-         [:button.flex.items-center.justify-center
-          {:on-click #(rf/dispatch [::events/comments-pagination url (:url next-page)])}
-          [:i.fa-solid.fa-plus]
-          [:p.px-2 "Show more comments"]]))]))
+         [:div.flex.justify-center
+          [layout/secondary-button
+           "Show more comments"
+           #(rf/dispatch [::events/comments-pagination url (:url next-page)])
+           "fa-solid fa-plus"]]))]))
