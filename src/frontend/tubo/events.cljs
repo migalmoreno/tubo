@@ -2,6 +2,7 @@
   (:require
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
    [day8.re-frame.http-fx]
+   [goog.object :as gobj]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
@@ -71,6 +72,46 @@
      (if paused?
        (.play player)
        (.pause player)))))
+(rf/reg-fx
+ ::stream-metadata
+ (fn [metadata]
+   (when (gobj/containsKey js/navigator "mediaSession")
+     (set! (.-metadata js/navigator.mediaSession) (js/MediaMetadata. (clj->js metadata))))))
+
+(rf/reg-fx
+ ::media-session
+ (fn [{:keys [current-pos player stream]}]
+   (when (gobj/containsKey js/navigator "mediaSession")
+     (let [updatePositionState
+           #(.setPositionState js/navigator.mediaSession
+                               {:duration     (.-duration @player)
+                                :playbackRate (.-playbackRate @player)
+                                :position     (.-currentTime @player)})]
+       (.setActionHandler js/navigator.mediaSession "play" #(.play @player))
+       (.setActionHandler js/navigator.mediaSession "pause" #(.pause @player))
+       (.setActionHandler js/navigator.mediaSession "previoustrack"
+                          #(rf/dispatch [::change-media-queue-pos (- current-pos 1)]))
+       (.setActionHandler js/navigator.mediaSession "nexttrack"
+                          #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))
+       (.setActionHandler js/navigator.mediaSession "seekbackward"
+                          (fn [^js/navigator.MediaSessionActionDetails details]
+                            (set! (.-currentTime @player)
+                                  (- (.-currentTime @player) (or (.-seekOffset details) 10)))
+                            (updatePositionState)))
+       (.setActionHandler js/navigator.mediaSession "seekforward"
+                          (fn [^js/navigator.MediaSessionActionDetails details]
+                            (set! (.-currentTime @player)
+                                  (+ (.-currentTime @player) (or (.-seekOffset details) 10)))
+                            (updatePositionState)))
+       (.setActionHandler js/navigator.mediaSession "seekto"
+                          (fn [^js/navigator.MediaSessionActionDetails details]
+                            (set! (.-currentTime @player) (.-seekTime details))
+                            (updatePositionState)))
+       (.setActionHandler js/navigator.mediaSession "stop"
+                          (fn []
+                            (.pause @player)
+                            (set! (.-currentTime @player) 0)))))))
+
 (rf/reg-event-fx
  ::history-go
  (fn [_ [_ idx]]
