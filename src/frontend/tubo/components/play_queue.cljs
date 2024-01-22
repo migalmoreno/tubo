@@ -4,6 +4,7 @@
    [reitit.frontend.easy :as rfe]
    [tubo.components.items :as items]
    [tubo.components.loading :as loading]
+   [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
 
@@ -60,55 +61,57 @@
          [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
           {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
         [:div.flex.flex-auto.py-2.w-full.items-center
-         [:span (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
-         [:input.mx-2.bg-gray-200.rounded-lg.cursor-pointer.focus:outline-none.w-full.h-1
-          {:type      "range"
-           :on-input  #(reset! !elapsed-time (.. % -target -value))
-           :on-change #(when player-ready?
-                         (set! (.-currentTime @!player) @!elapsed-time))
-           :style     {:accentColor service-color}
-           :max       (if player-ready?
-                        (.floor js/Math (.-duration @!player))
-                        100)
-           :value     @!elapsed-time}]
-         [:span (if player-ready?
-                  (util/format-duration (.-duration @!player))
-                  "00:00")]]
+         [:span.mr-2 (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
+         [player/time-slider !player !elapsed-time service-color]
+         [:span.ml-2 (if player-ready? (util/format-duration (.-duration @!player)) "00:00")]]
         [:div.flex.justify-center.items-center
-         [:button.focus:ring-transparent.mx-2
-               {:on-click #(rf/dispatch [::events/toggle-loop-file])}
-               [:i.fa-solid.fa-repeat
-                {:style {:color (when loop-file? service-color)}}]]
-         [:button.focus:outline-none.mx-2.text-xl
-          {:class    (when-not (and media-queue (not= media-queue-pos 0))
-                       "opacity-50 cursor-auto")
-           :on-click #(when (and media-queue (not= media-queue-pos 0))
-                        (rf/dispatch [::events/change-media-queue-pos
-                                      (- media-queue-pos 1)]))}
-          [:i.fa-solid.fa-backward-step]]
-         [:button.focus:outline-none.mx-2.text-xl
-          {:on-click #(set! (.-currentTime @!player) (- @!elapsed-time 5))}
-          [:i.fa-solid.fa-backward]]
-         [:button.focus:outline-none.mx-2.text-3xl
-          {:on-click #(if (.-paused @!player)
-                        (.play @!player)
-                        (.pause @!player))}
+         [player/button
+          [:div.relative
+           [:i.fa-solid.fa-repeat
+            {:style {:color (when loop-playback service-color)}}]
+           (when (= loop-playback :stream)
+             [:span.absolute.font-bold
+              {:style {:color     (when loop-playback service-color)
+                       :font-size "6px"
+                       :right     "6px"
+                       :top       "6.5px"}}
+              "1"])]
+          #(rf/dispatch [::events/toggle-loop-playback])
+          :show-on-mobile? true]
+         [player/button
+          [:i.fa-solid.fa-backward-step]
+          #(when (and media-queue (not= media-queue-pos 0))
+             (rf/dispatch [::events/change-media-queue-pos
+                           (- media-queue-pos 1)]))
+          :disabled? (not (and media-queue (not= media-queue-pos 0)))
+          :extra-styles "text-xl"
+          :show-on-mobile? true]
+         [player/button
+          [:i.fa-solid.fa-backward]
+          #(set! (.-currentTime @!player) (- @!elapsed-time 5))
+          :extra-styles "text-xl"
+          :show-on-mobile? true]
+         [player/button
           (if show-audio-player-loading?
             [loading/loading-icon service-color "text-3xl"]
             (if (.-paused @!player)
               [:i.fa-solid.fa-play]
-              [:i.fa-solid.fa-pause]))]
-         [:button.focus:outline-none.mx-2.text-xl
-          {:on-click #(set! (.-currentTime @!player) (+ @!elapsed-time 5))}
-          [:i.fa-solid.fa-forward]]
-         [:button.focus:ring-transparent.mx-2.text-xl
-          {:class    (when-not (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
-                       "opacity-50 cursor-auto")
-           :on-click #(when (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
-                        (rf/dispatch [::events/change-media-queue-pos
-                                      (+ media-queue-pos 1)]))}
-          [:i.fa-solid.fa-forward-step]]
-         [:button.focus:ring-transparent.mx-2
-          {:on-click #(rf/dispatch [::events/toggle-loop-playlist])}
-          [:i.fa-solid.fa-retweet
-           {:style {:color (when loop-playlist? service-color)}}]]]]])))
+              [:i.fa-solid.fa-pause]))
+          #(if (.-paused @!player)
+             (.play @!player)
+             (.pause @!player))
+          :extra-styles "text-3xl"
+          :show-on-mobile? true]
+         [player/button
+          [:i.fa-solid.fa-forward]
+          #(set! (.-currentTime @!player) (+ @!elapsed-time 5))
+          :extra-styles "text-xl"
+          :show-on-mobile? true]
+         [player/button
+          [:i.fa-solid.fa-forward-step]
+          #(when (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
+             (rf/dispatch [::events/change-media-queue-pos
+                           (+ media-queue-pos 1)]))
+          :disabled? (not (and media-queue (< (+ media-queue-pos 1) (count media-queue))))
+          :extra-styles "text-xl"
+          :show-on-mobile? true]]]])))

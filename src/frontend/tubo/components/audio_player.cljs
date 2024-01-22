@@ -4,6 +4,7 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.loading :as loading]
+   [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
 
@@ -55,77 +56,59 @@
                                   (set! (.-src @!player) (:stream (nth media-queue idx)))
                                   (.play @!player))))}]]
         [:div.flex
-         [:button:focus:ring-transparent.mx-2.cursor-pointer
-          {:on-click #(rf/dispatch [::events/toggle-media-queue])}
-          [:i.fa-solid.fa-list]]
-         [:button.hidden.ml:block.focus:outline-none.mx-2
-          {:class    (when-not (and media-queue (not= media-queue-pos 0))
-                       "opacity-50 cursor-auto")
-           :on-click #(when (and media-queue (not= media-queue-pos 0))
-                        (rf/dispatch [::events/change-media-queue-pos
-                                      (- media-queue-pos 1)]))}
-          [:i.fa-solid.fa-backward-step]]
-         [:button.hidden.ml:block.focus:outline-none.mx-2
-          {:on-click #(set! (.-currentTime @!player) (- @!elapsed-time 5))}
-          [:i.fa-solid.fa-backward]]
-         [:button.focus:outline-none.mx-2
-          {:on-click #(if (.-paused @!player)
-                        (.play @!player)
-                        (.pause @!player))}
+         [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
+          :show-on-mobile? true]
+         [player/button
+          [:i.fa-solid.fa-backward-step]
+          #(when (and media-queue (not= media-queue-pos 0))
+             (rf/dispatch [::events/change-media-queue-pos
+                           (- media-queue-pos 1)]))
+          :disabled? (not (and media-queue (not= media-queue-pos 0)))]
+         [player/button [:i.fa-solid.fa-backward] #(set! (.-currentTime @!player) (- @!elapsed-time 5))]
+         [player/button
           (if @!player
             (if show-audio-player-loading?
               [loading/loading-icon service-color "text-1xl"]
               (if (.-paused @!player)
                 [:i.fa-solid.fa-play]
                 [:i.fa-solid.fa-pause]))
-            [:i.fa-solid.fa-play])]
-         [:button.hidden.ml:block.focus:outline-none.mx-2
-          {:on-click #(set! (.-currentTime @!player) (+ @!elapsed-time 5))}
-          [:i.fa-solid.fa-forward]]
-         [:button.hidden.ml:block.focus:ring-transparent.mx-2
-          {:class    (when-not (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
-                       "opacity-50 cursor-auto")
-           :on-click #(when (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
-                        (rf/dispatch [::events/change-media-queue-pos
-                                      (+ media-queue-pos 1)]))}
-          [:i.fa-solid.fa-forward-step]]
-         [:div.flex.items-center
-          [:span.hidden.ml:block.mx-2 (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
-          [:input.hidden.ml:block.mx-2.w-20.ml:w-56.bg-gray-200.rounded-lg.cursor-pointer.focus:outline-none.h-1
-           {:type      "range"
-            :on-input  #(reset! !elapsed-time (.. % -target -value))
-            :on-change #(and @!player (> (.-readyState @!player) 0)
-                             (set! (.-currentTime @!player) @!elapsed-time))
-            :style     {:accentColor service-color}
-            :max       (if (and @!player (> (.-readyState @!player) 0))
-                         (.floor js/Math (.-duration @!player))
-                         100)
-            :value     @!elapsed-time}]
-          [:span.hidden.ml:block.mx-2
+            [:i.fa-solid.fa-play])
+          #(if (.-paused @!player)
+             (.play @!player)
+             (.pause @!player))
+          :show-on-mobile? true]
+         [player/button [:i.fa-solid.fa-forward] #(set! (.-currentTime @!player) (+ @!elapsed-time 5))]
+         [player/button [:i.fa-solid.fa-forward-step]
+          #(when (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
+             (rf/dispatch [::events/change-media-queue-pos
+                           (+ media-queue-pos 1)]))
+          :disabled? (not (and media-queue (< (+ media-queue-pos 1) (count media-queue))))]
+         [:div.hidden.lg:flex.items-center
+          [:span.mx-2 (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
+          [:div.w-20.lg:w-56.mx-2
+           [player/time-slider !player !elapsed-time service-color]]
+          [:span.mx-2
            (if player-ready? (util/format-duration (.-duration @!player)) "00:00")]
-          [:button.hidden.ml:flex.focus:ring-transparent.mx-2
-           {:on-click #(rf/dispatch [::events/toggle-loop-file])}
-           [:i.fa-solid.fa-repeat
-            {:style {:color (when loop-file? service-color)}}]]
-          [:button.hidden.ml:flex.focus:ring-transparent.mx-2
-           {:on-click #(rf/dispatch [::events/toggle-loop-playlist])}
-           [:i.fa-solid.fa-retweet
-            {:style {:color (when loop-playlist? service-color)}}]]
-          [:div.hidden.ml:flex.items-center
-           [:button.focus:outline-none.mx-2
-            {:on-click #(rf/dispatch [::events/toggle-mute @!player])}
-            (if (or (and @!player muted?))
-              [:i.fa-solid.fa-volume-xmark]
-              [:i.fa-solid.fa-volume-low])]
-           [:input.w-20.bg-gray-200.rounded-lg.cursor-pointer.focus:outline-none.h-1.range-sm.mx-2
-            {:type     "range"
-             :on-input #(rf/dispatch [::events/change-volume-level (.. % -target -value) @!player])
-             :style    {:accentColor service-color}
-             :max      100
-             :value    volume-level}]]]
-         [:div.mx-2
-          [:i.fa-solid.fa-close.cursor-pointer
-           {:on-click (fn []
-                        (rf/dispatch [::events/toggle-audio-player])
-                        (.pause @!player)
-                        (set! (.-currentTime @!player) 0))}]]]]])))
+          [player/button
+           [:div.relative
+            [:i.fa-solid.fa-repeat
+             {:style {:color (when loop-playback service-color)}}]
+            (when (= loop-playback :stream)
+              [:span.absolute.font-bold
+               {:style {:color     (when loop-playback service-color)
+                        :font-size "6px"
+                        :right     "6px"
+                        :top       "6.5px"}}
+               "1"])]
+           #(rf/dispatch [::events/toggle-loop-playback])]
+          [:div.hidden.lg:flex.items-center
+           [player/button
+            (if (or (and @!player muted?)) [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
+            #(rf/dispatch [::events/toggle-mute @!player])]
+           [player/volume-slider !player volume-level service-color]]]
+         [player/button [:i.fa-solid.fa-close]
+          (fn []
+            (rf/dispatch [::events/toggle-audio-player])
+            (.pause @!player)
+            (set! (.-currentTime @!player) 0))
+          :show-on-mobile? true]]]])))

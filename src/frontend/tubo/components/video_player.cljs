@@ -8,7 +8,7 @@
   [options url]
   (let [!player (atom nil)]
     (r/create-class
-     {:display-name "StreamPlayer"
+     {:display-name "VideoPlayer"
       :component-did-mount
       (fn [this]
         (reset! !player (videojs (rdom/dom-node this) (clj->js options))))
