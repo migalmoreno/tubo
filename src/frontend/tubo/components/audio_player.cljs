@@ -55,10 +55,19 @@
         muted?                     @(rf/subscribe [:muted])
         !elapsed-time              @(rf/subscribe [:elapsed-time])
         !player                    @(rf/subscribe [:player])
+        {:keys [current-theme]}    @(rf/subscribe [:settings])
         player-ready?              (and @!player (> (.-readyState @!player) 0))]
     (when show-audio-player?
-      [:div.sticky.bottom-0.z-40.bg-white.dark:bg-neutral-900.p-3.sm:p-5.absolute.box-border.m-0
-       {:style {:borderTop (str "2px solid " service-color) :display (when show-media-queue? "none")}}
+      [:div.sticky.bottom-0.z-40.p-3.sm:p-5.absolute.box-border.m-0
+       {:style
+        {:display            (when show-media-queue? "none")
+         :background-image   (str (if (= current-theme "dark")
+                                    "linear-gradient(0deg, rgba(23, 23, 23, 0.95), rgba(23, 23, 23, 0.95)), url(\""
+                                    "linear-gradient(0deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url(\"")
+                                  thumbnail-url "\")")
+         :backgroundSize     "cover"
+         :backgroundPosition "center"
+         :backgroundRepeat   "no-repeat"}}
        [:div.flex.items-center.justify-between
         [:div.flex.items-center
          [:div {:style {:height "40px" :width "70px" :maxWidth "70px" :minWidth "70px"}}
