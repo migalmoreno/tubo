@@ -15,15 +15,14 @@
   (fn [{:keys [store]} _]
     (let [{:keys [current-theme show-comments show-related show-description
                   media-queue media-queue-pos show-audio-player
-                  loop-file loop-playlist volume-level muted bookmarks]} store]
+                  loop-playback volume-level muted bookmarks]} store]
       {:db
        {:search-query   ""
         :service-id      0
         :stream          {}
         :search-results  []
         :services        []
-        :loop-file (if (nil? loop-file) false loop-file)
-        :loop-playlist (if (nil? loop-playlist) true loop-playlist)
+        :loop-playback (if (nil? loop-playback) :playlist loop-playback)
         :media-queue     (if (nil? media-queue) [] media-queue)
         :media-queue-pos (if (nil? media-queue-pos) 0 media-queue-pos)
         :volume-level (if (nil? volume-level) 100 volume-level)
@@ -114,11 +113,15 @@
     ::player-mute {:player player :muted? (not (:muted db))}}))
 
 (rf/reg-event-fx
- ::toggle-loop-playlist
+ ::toggle-loop-playback
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} _]
-   {:db (assoc db :loop-playlist (not (:loop-playlist db)))
-    :store (assoc store :loop-playlist (not (:loop-playlist store)))}))
+   (let [loop-state (case (:loop-playback db)
+                      :stream :playlist
+                      :playlist false
+                      :stream)]
+     {:db    (assoc db :loop-playback loop-state)
+      :store (assoc store :loop-playback loop-state)})))
 
 (rf/reg-event-fx
  ::navigated

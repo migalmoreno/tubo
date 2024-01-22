@@ -202,11 +202,6 @@
    (:settings db)))
 
 (rf/reg-sub
- :loop-file
+ :loop-playback
  (fn [db _]
-   (:loop-file db)))
-
-(rf/reg-sub
- :loop-playlist
- (fn [db _]
-   (:loop-playlist db)))
+   (:loop-playback db)))
