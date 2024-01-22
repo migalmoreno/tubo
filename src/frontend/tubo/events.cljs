@@ -6,7 +6,8 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
-   [tubo.api :as api]))
+   [tubo.api :as api]
+   [vimsical.re-frame.cofx.inject :as inject]))
 
 (reg-co-fx! :tubo {:fx :store :cofx :store})
 
@@ -324,7 +325,7 @@
       :store (-> store
                  (assoc :show-audio-player true)
                  (assoc :media-queue (:media-queue updated-db)))
-      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
+      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx (= (count (:media-queue db)) 0)]]]})))
 
 (rf/reg-event-fx
  ::enqueue-related-streams
@@ -338,7 +339,7 @@
                                     (conj {:service-color service-color} %)]])
                        streams)
                   [:dispatch [::fetch-audio-player-stream (:url (first streams))
-                              (count (:media-queue db))]]))}))
+                              (count (:media-queue db)) (= (count (:media-queue db)) 0)]]))}))
 
 (rf/reg-event-fx
  ::add-to-bookmarks
@@ -499,12 +500,21 @@
 
 (rf/reg-event-fx
  ::load-audio-player-stream
- (fn [{:keys [db]} [_ idx res]]
+ [(rf/inject-cofx ::inject/sub [:player])]
+ (fn [{:keys [db player]} [_ idx play? res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :show-audio-player-loading false)
-      :fx [[:dispatch [::change-media-queue-stream
-                       (-> stream-res :audio-streams first :content)
-                       idx]]]})))
+      :fx (apply conj [[:dispatch [::change-media-queue-stream
+                                   (-> stream-res :audio-streams first :content)
+                                   idx]]]
+                 (when play?
+                   [[::stream-metadata {:title   (:name stream-res)
+                                        :artist  (:uploader-name stream-res)
+                                        :artwork [{:src (:thumbnail-url stream-res)}]}]
+                    [::media-session {:current-pos (:media-queue-pos db) :player player}]
+                    [::player-playback {:player      player
+                                        :stream      (-> stream-res :audio-streams first :content)
+                                        :current-pos (:media-queue-pos db)}]]))})))
 
 (rf/reg-event-fx
  ::load-stream-page
@@ -525,10 +535,10 @@
 
 (rf/reg-event-fx
  ::fetch-audio-player-stream
- (fn [{:keys [db]} [_ uri idx]]
+ (fn [{:keys [db]} [_ uri idx play?]]
    (assoc
     (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
-                     [::load-audio-player-stream idx] [::bad-response])
+                     [::load-audio-player-stream idx play?] [::bad-response])
     :db (assoc db :show-audio-player-loading true))))
 
 (rf/reg-event-fx
