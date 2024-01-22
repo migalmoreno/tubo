@@ -1,12 +1,43 @@
 (ns tubo.components.audio-player
   (:require
+   [goog.object :as gobj]
    [reagent.core :as r]
+   [reagent.dom :as rdom]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.loading :as loading]
    [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
+
+(defn audio-source
+  []
+  (let [{:keys [stream]} @(rf/subscribe [:media-queue-stream])]
+    (r/create-class
+     {:display-name "AudioPlayer"
+      :component-did-mount
+      (fn [this]
+        (when stream
+          (set! (.-src (rdom/dom-node this)) stream)))
+      :reagent-render
+      (fn []
+        (let [!player       @(rf/subscribe [:player])
+              !elapsed-time @(rf/subscribe [:elapsed-time])
+              player-ready? (and @!player (> (.-readyState @!player) 0))
+              muted?        @(rf/subscribe [:muted])
+              volume-level  @(rf/subscribe [:volume-level])
+              loop-playback @(rf/subscribe [:loop-playback])]
+          [:audio
+           {:ref            #(reset! !player %)
+            :loop           (= loop-playback :stream)
+            :on-loaded-data #(do (when (.-paused @!player)
+                                   (.play @!player))
+                                 (when (= (.-currentTime @!player) 0)
+                                   (set! (.-currentTime @!player) @!elapsed-time))
+                                 (set! (.-volume @!player) (/ volume-level 100)))
+            :muted          muted?
+            :on-time-update #(when player-ready?
+                               (reset! !elapsed-time (.-currentTime @!player)))}]))})))
 
 (defn player
   []
@@ -37,22 +68,7 @@
            {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
           [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
            {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
-         [:audio
-          {:src            stream
-           :ref            #(reset! !player %)
-           :loop           loop-file?
-           :on-time-update #(when player-ready?
-                              (reset! !elapsed-time (.-currentTime @!player)))
-           :on-loaded-data #(do (.play @!player)
-                                (set! (.-currentTime @!player) @!elapsed-time))
-           :on-ended       #(when player-ready?
-                              (let [idx (if (< (+ media-queue-pos 1) (count media-queue))
-                                          (+ media-queue-pos 1)
-                                          (if loop-playlist? 0 media-queue-pos))]
-                                (rf/dispatch [::events/change-media-queue-pos idx])
-                                (when (and (not is-window-visible) loop-playlist?)
-                                  (set! (.-src @!player) (:stream (nth media-queue idx)))
-                                  (.play @!player))))}]]
+         [audio-source]]
         [:div.flex
          [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
           :show-on-mobile? true]

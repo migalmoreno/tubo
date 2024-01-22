@@ -68,11 +68,12 @@
 
 (rf/reg-fx
  ::player-playback
- (fn [{:keys [player paused?]}]
-   (when (and player (> (.-readyState player) 0))
-     (if paused?
-       (.play player)
-       (.pause player)))))
+ (fn [{:keys [player stream current-pos]}]
+   (set! (.-src @player) stream)
+   (set! (.-currentTime @player) 0)
+   (set! (.-onended @player) #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))
+   (.play @player)))
+
 (rf/reg-fx
  ::stream-metadata
  (fn [metadata]
