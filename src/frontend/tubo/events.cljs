@@ -43,19 +43,14 @@
    (.scrollTo js/window #js {"top" 0 "behavior" "smooth"})))
 
 (rf/reg-fx
- ::history-back!
- (fn [_]
-   (.back js/window.history)))
+ ::history-go!
+ (fn [idx]
+   (.go js/window.history idx)))
 
 (rf/reg-fx
  ::body-overflow!
  (fn [active]
    (set! (.. js/document.body -style -overflow) (if active "hidden" "auto"))))
-
-(rf/reg-event-fx
- ::history-back
- (fn [_ _]
-   {::history-back! nil}))
 
 (rf/reg-fx
  ::player-volume
@@ -76,6 +71,15 @@
      (if paused?
        (.play player)
        (.pause player)))))
+(rf/reg-event-fx
+ ::history-go
+ (fn [_ [_ idx]]
+   {::history-go! idx}))
+
+(rf/reg-event-db
+ ::toggle-search-form
+ (fn [db _]
+   (assoc db :show-search-form (not (:show-search-form db)))))
 
 (rf/reg-event-fx
  ::toggle-mobile-nav
@@ -88,13 +92,6 @@
  (fn [{:keys [db]} _]
    {:db (assoc db :show-media-queue (not (:show-media-queue db)))
     ::body-overflow! (not (:show-media-queue db))}))
-
-(rf/reg-event-fx
- ::toggle-loop-file
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} _]
-   {:db (assoc db :loop-file (not (:loop-file db)))
-    :store (assoc store :loop-file (not (:loop-file store)))}))
 
 (rf/reg-event-fx
  ::change-volume-level
@@ -558,8 +555,8 @@
     :db (assoc db :show-page-loading true))))
 
 (rf/reg-event-fx
-  ::change-setting
+ ::change-setting
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ key val]]
-   {:db (assoc-in db [:settings key] val)
+   {:db    (assoc-in db [:settings key] val)
     :store (assoc store key val)}))
