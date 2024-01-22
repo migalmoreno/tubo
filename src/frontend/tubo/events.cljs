@@ -238,13 +238,17 @@
 (rf/reg-event-fx
  ::change-media-queue-pos
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ idx]]
-   (let [stream (get (:media-queue db) idx)]
-     {:db    (-> db
-                 (assoc :media-queue-pos idx)
-                 (assoc-in [:media-queue idx :stream] ""))
-      :store (assoc store :media-queue-pos idx)
-      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx]]]})))
+ (fn [{:keys [db store]} [_ i]]
+   (let [idx    (if (< i (count (:media-queue db)))
+                  i
+                  (when (= (:loop-playback db) :playlist) 0))
+         stream (get (:media-queue db) idx)]
+     (when stream
+       {:db    (-> db
+                   (assoc :media-queue-pos idx)
+                   (assoc-in [:media-queue idx :stream] ""))
+        :store (assoc store :media-queue-pos idx)
+        :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx true]]]}))))
 
 (rf/reg-event-fx
  ::change-media-queue-stream
