@@ -103,7 +103,7 @@
        [:div.flex.items-center.flex-auto
         [:p "No available streams"]]
        [:div.grid.w-full.gap-x-10.gap-y-5
-        {:class "grid-cols-[repeat(auto-fill,_minmax(171px,_1fr))]"}
+        {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
         (for [[i item] (map-indexed vector related-streams)]
           ^{:key i} [generic-item item service-color bookmarks])])
      (when-not (empty? next-page-url)
