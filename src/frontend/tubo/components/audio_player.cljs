@@ -55,7 +55,7 @@
        #(rf/dispatch [::events/set-player-time (- @!elapsed-time 5)])]
       [player/button
        (if (or loading? (not @!player))
-         [layout/loading-icon service-color "text-2xl"]
+         [layout/loading-icon service-color "lg:text-2xl"]
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause]))

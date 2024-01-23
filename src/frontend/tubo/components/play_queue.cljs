@@ -85,7 +85,7 @@
           :show-on-mobile? true]
          [player/button
           (if (or loading? (not @!player))
-            [layout/loading-icon service-color "text-2xl"]
+            [layout/loading-icon service-color "text-3xl"]
             (if paused?
               [:i.fa-solid.fa-play]
               [:i.fa-solid.fa-pause]))
