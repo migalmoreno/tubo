@@ -644,7 +644,8 @@
     (api/get-request (str "/api/services/" service-id "/search")
                      [::load-search-results] [::bad-response]
                      {:q query})
-    :db (assoc db :show-page-loading true))))
+    :db (assoc db :show-page-loading true
+               :show-search-form true))))
 
 (rf/reg-event-fx
  ::change-setting
