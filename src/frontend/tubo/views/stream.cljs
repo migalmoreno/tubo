@@ -5,7 +5,6 @@
    [tubo.events :as events]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
-   [tubo.components.loading :as loading]
    [tubo.components.comments :as comments]
    [tubo.components.video-player :as player]
    [tubo.util :as util]))
@@ -124,7 +123,7 @@
                             (rf/dispatch [::events/toggle-stream-layout :show-comments])
                             (rf/dispatch [::events/get-comments url]))}])]
           (if show-comments-loading
-            [loading/loading-icon service-color "text-2xl"]
+            [layout/loading-icon service-color "text-2xl"]
             (when (and show-comments comments-page)
               [comments/comments comments-page uploader-name uploader-avatar url]))])
        (when (and show-related? (not (empty? related-streams)))

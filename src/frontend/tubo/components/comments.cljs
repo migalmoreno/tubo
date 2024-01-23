@@ -3,7 +3,6 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.layout :as layout]
-   [tubo.components.loading :as loading]
    [tubo.events :as events]
    [tubo.util :as util]))
 
@@ -71,7 +70,7 @@
               [comment-item (assoc reply :key i :author-name author-name :author-avatar author-avatar)])])])]
      (when (:url next-page)
        (if pagination-loading?
-         (loading/loading-icon service-color)
+         (layout/loading-icon service-color)
          [:div.flex.justify-center
           [layout/secondary-button
            "Show more comments"

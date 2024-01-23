@@ -3,7 +3,6 @@
    [re-frame.core :as rf]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
-   [tubo.components.loading :as loading]
    [tubo.events :as events]))
 
 (defn kiosk

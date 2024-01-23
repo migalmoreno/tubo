@@ -1,13 +1,19 @@
 (ns tubo.components.layout
   (:require
-   [re-frame.core :as rf]
-   [tubo.components.loading :as loading]))
+   [re-frame.core :as rf]))
 
 (defn logo []
   [:img.mb-1
    {:src   "/images/tubo.png"
     :style {:maxHeight "25px" :maxWidth "40px"}
     :title "Tubo"}])
+
+(defn loading-icon
+  [service-color & styles]
+  [:div.w-full.flex.justify-center.items-center.flex-auto
+   [:i.fas.fa-circle-notch.fa-spin
+    {:class (apply str (if (> (count styles) 1) (interpose " " styles) styles))
+     :style {:color service-color}}]])
 
 (defn focus-overlay [on-click-cb active?]
   [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out
@@ -22,7 +28,7 @@
         service-color @(rf/subscribe [:service-color])]
     [:div.flex.flex-col.flex-auto.items-center.px-5.py-4
      (if page-loading?
-       [loading/loading-icon service-color "text-5xl"]
+       [loading-icon service-color "text-5xl"]
        [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5 xl:w-3/5"}
         (map-indexed #(with-meta %2 {:key %1}) children)])]))
 

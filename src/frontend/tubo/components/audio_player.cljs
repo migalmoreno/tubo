@@ -5,7 +5,7 @@
    [reagent.dom :as rdom]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.components.loading :as loading]
+   [tubo.components.layout :as layout]
    [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
@@ -66,17 +66,12 @@
       [player/button [:i.fa-solid.fa-backward]
        #(rf/dispatch [::events/set-player-time (- @!elapsed-time 5)])]
       [player/button
-       (if @!player
-         (if loading?
-           [loading/loading-icon service-color "text-2xl"]
-           (if paused?
-             [:i.fa-solid.fa-play
-              {:on-click #(rf/dispatch [::events/player-paused false])}]
-             [:i.fa-solid.fa-pause
-              {:on-click #(rf/dispatch [::events/player-paused true])}]))
-         [:i.fa-solid.fa-play
-          {:on-click #(rf/dispatch [::events/player-paused true])}])
-       nil
+       (if (or loading? (not @!player))
+         [layout/loading-icon service-color "text-2xl"]
+         (if paused?
+           [:i.fa-solid.fa-play]
+           [:i.fa-solid.fa-pause]))
+       #(rf/dispatch [::events/player-paused (not paused?)])
        :show-on-mobile? true
        :extra-styles "lg:text-2xl"]
       [player/button [:i.fa-solid.fa-forward]

@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.components.loading :as loading]
+   [tubo.components.layout :as layout]
    [tubo.events :as events]
    [tubo.util :as util]))
 
@@ -107,4 +107,4 @@
         (for [[i item] (map-indexed vector related-streams)]
           ^{:key i} [generic-item item service-color bookmarks])])
      (when-not (empty? next-page-url)
-       [loading/loading-icon service-color "text-2xl" (when-not pagination-loading? "invisible")])]))
+       [layout/loading-icon service-color "text-2xl" (when-not pagination-loading? "invisible")])]))

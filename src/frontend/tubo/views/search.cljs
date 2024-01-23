@@ -3,7 +3,6 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.items :as items]
-   [tubo.components.loading :as loading]
    [tubo.components.layout :as layout]
    [tubo.events :as events]))
 

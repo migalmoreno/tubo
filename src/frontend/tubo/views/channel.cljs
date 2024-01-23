@@ -3,7 +3,6 @@
    [re-frame.core :as rf]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
-   [tubo.components.loading :as loading]
    [tubo.events :as events]))
 
 (defn channel
@@ -12,8 +11,6 @@
                 related-streams next-page]} @(rf/subscribe [:channel])
         next-page-url (:url next-page)
         service-color @(rf/subscribe [:service-color])
-        page-loading? @(rf/subscribe [:show-page-loading])
-        pagination-loading? @(rf/subscribe [:show-pagination-loading])
         scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [::events/channel-pagination url next-page-url]))
