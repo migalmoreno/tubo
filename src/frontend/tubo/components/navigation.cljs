@@ -36,7 +36,7 @@
            {:on-click #(rf/dispatch [::events/toggle-search-form])
             :type     "button"}
            [:i.fa-solid.fa-arrow-left]]
-          [:input.bg-transparent.border-none.py-2.pr-6.mx-2.focus:ring-transparent.placeholder-white.sm:w-64.min-w-auto
+          [:input.bg-transparent.border-none.py-2.pr-6.mx-2.focus:ring-transparent.placeholder-white.sm:w-96.w-full
            {:type          "text"
             :ref           #(do (reset! !input %)
                                 (when %
@@ -46,10 +46,10 @@
                               (when-not (empty? input) (rf/dispatch [::events/change-search-query input]))
                               (reset! !query input))
             :placeholder   "Search"}]
-          [:button.mx-2
+          [:button.mx-4
            {:type "submit"}
            [:i.fa-solid.fa-search]]
-          [:button.mx-2.text-xs.absolute.right-8.top-3
+          [:button.mx-4.text-xs.absolute.right-8.top-3
            {:type     "button"
             :on-click #(when @!input
                          (set! (.-value @!input) "")
