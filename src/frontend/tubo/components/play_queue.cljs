@@ -17,7 +17,7 @@
                        "#333333" "media.ccc.de"
                        "#F2690D" "PeerTube"
                        "#629aa9" "Bandcamp")]
-    [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.my-2
+    [:div.flex.w-full.h-24.rounded.cursor-pointer.px-2.my-1
      {:class    (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
       :on-click #(rf/dispatch [::events/change-media-queue-pos i])}
      [:div.w-56
@@ -47,17 +47,17 @@
       [:div.fixed.flex.flex-col.items-center.px-5.py-2.min-w-full.w-full.z-30
        {:style {:minHeight "calc(100dvh - 56px)" :height "calc(100dvh - 56px)"}
         :class "dark:bg-neutral-900/90 bg-white/90 backdrop-blur"}
-       [:div.flex.justify-between.pl-4.items-center.w-full.shrink-0
+       [:div.flex.justify-between.items-center.w-full.shrink-0
         {:class "lg:w-4/5 xl:w-3/5"}
         [:h1.text-2xl.font-bold.py-6 "Play Queue"]
         [:button.mx-2
          [:i.fa-solid.fa-close
           {:on-click #(rf/dispatch [::events/toggle-media-queue])}]]]
-       [:div.flex.flex-col.sm:p-4.w-full.overflow-y-auto.flex-auto
+       [:div.flex.flex-col.pr-2.w-full.overflow-y-auto.flex-auto
         {:class "lg:w-4/5 xl:w-3/5"}
         (for [[i item] (map-indexed vector media-queue)]
           ^{:key i} [play-queue-item item media-queue-pos i])]
-       [:div.flex.flex-col.p-4.w-full.shrink-0
+       [:div.flex.flex-col.py-4.w-full.shrink-0
         {:class "lg:w-4/5 xl:w-3/5"}
         [:div.flex.flex-col.w-full.py-2
          [:a.text-md.line-clamp-1
