@@ -38,6 +38,7 @@
            [:i.fa-solid.fa-arrow-left]]
           [:input.bg-transparent.border-none.py-2.pr-6.mx-2.focus:ring-transparent.placeholder-white.sm:w-96.w-full
            {:type          "text"
+            :style         {:paddingLeft 0}
             :ref           #(do (reset! !input %)
                                 (when %
                                   (.focus %)))
