@@ -27,7 +27,7 @@
         bookmarks @(rf/subscribe [:bookmarks])]
     [layout/content-container
      [:div.flex.justify-center.relative
-      {:class "h-[300px] lg:h-[450px] lg:h-[600px]"}
+      {:class "h-[300px] md:h-[450px] lg:h-[600px]"}
       (when stream-format
         [player/player {"sources"    [{"src" content "type" "video/mp4"}
                                       {"src" content "type" "video/webm"}]
@@ -36,7 +36,7 @@
                         "responsive" true
                         "fill"       true}
          content])]
-     [:div.px-4.lg:p-0.overflow-x-hidden
+     [:div.overflow-x-hidden
       [:div.flex.flex.w-full.my-4.justify-center
        [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
         {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
@@ -70,17 +70,17 @@
       [:div.flex.flex-col
        [:div.min-w-full.pb-3
         [:h1.text-2xl.font-extrabold.line-clamp-1 name]]
-       [:div.flex.justify-between.py-2
+       [:div.flex.justify-between.py-2.flex-nowrap
         [:div.flex.items-center
          [layout/uploader-avatar uploader-avatar uploader-name
           (rfe/href :tubo.routes/channel nil {:url uploader-url})]
-         [:div.mx-3
+         [:div.mx-3.xs:flex-none.flex-auto.w-full.xs:w-auto
           [:a.line-clamp-1 {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]
           (when subscriber-count
             [:div.flex.my-2.items-center
              [:i.fa-solid.fa-users.text-xs]
              [:p.mx-2 (util/format-quantity subscriber-count)]])]]
-        [:div.flex.flex-col.items-end.flex-auto
+        [:div.flex.flex-col.items-end.flex-auto.justify-center
          (when view-count
            [:div.sm:text-base.text-sm.mb-1
             [:i.fa-solid.fa-eye]
@@ -96,8 +96,8 @@
              [:span.ml-2 dislike-count]])]
          (when upload-date
            [:div.sm:text-base.text-sm.mt-1.whitespace-nowrap
-            [:i.fa-solid.fa-calendar.mx-2]
-            [:span
+            [:i.fa-solid.fa-calendar]
+            [:span.ml-2
              (-> upload-date
                  js/Date.parse
                  js/Date.
