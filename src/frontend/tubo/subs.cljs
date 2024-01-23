@@ -18,7 +18,7 @@
     a))
 
 (defonce !elapsed-time (r/atom 0))
-(defonce !player (r/atom nil))
+(defonce !player (atom nil))
 
 (rf/reg-sub
  :is-window-visible
@@ -39,6 +39,11 @@
  :player
  (fn [db _]
    !player))
+
+(rf/reg-sub
+ :paused
+ (fn [db _]
+   (:paused db)))
 
 (rf/reg-sub
  :volume-level

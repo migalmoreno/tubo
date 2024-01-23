@@ -12,32 +12,33 @@
 (reg-co-fx! :tubo {:fx :store :cofx :store})
 
 (rf/reg-event-fx
-  ::initialize-db
-  [(rf/inject-cofx :store)]
-  (fn [{:keys [store]} _]
-    (let [{:keys [current-theme show-comments show-related show-description
-                  media-queue media-queue-pos show-audio-player
-                  loop-playback volume-level muted bookmarks]} store]
-      {:db
-       {:search-query   ""
-        :service-id      0
-        :stream          {}
-        :search-results  []
-        :services        []
-        :loop-playback (if (nil? loop-playback) :playlist loop-playback)
-        :media-queue     (if (nil? media-queue) [] media-queue)
-        :media-queue-pos (if (nil? media-queue-pos) 0 media-queue-pos)
-        :volume-level (if (nil? volume-level) 100 volume-level)
-        :bookmarks (if (nil? bookmarks) [] bookmarks)
-        :muted (if (nil? muted) false muted)
-        :current-match   nil
-        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
-        :settings
-        {:current-theme (if (nil? current-theme) :light current-theme)
-         :themes        #{:light :dark}
-         :show-comments (if (nil? show-comments) true show-comments)
-         :show-related  (if (nil? show-related) true show-related)
-         :show-description (if (nil? show-description) true show-description)}}})))
+ ::initialize-db
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [store]} _]
+   (let [{:keys [current-theme show-comments show-related show-description
+                 media-queue media-queue-pos show-audio-player
+                 loop-playback volume-level muted bookmarks]} store]
+     {:db
+      {:search-query      ""
+       :service-id        0
+       :stream            {}
+       :search-results    []
+       :services          []
+       :loop-playback     (if (nil? loop-playback) :playlist loop-playback)
+       :media-queue       (if (nil? media-queue) [] media-queue)
+       :media-queue-pos   (if (nil? media-queue-pos) 0 media-queue-pos)
+       :volume-level      (if (nil? volume-level) 100 volume-level)
+       :bookmarks         (if (nil? bookmarks) [] bookmarks)
+       :muted             (if (nil? muted) false muted)
+       :paused            true
+       :current-match     nil
+       :show-audio-player (if (nil? show-audio-player) false show-audio-player)
+       :settings
+       {:current-theme    (if (nil? current-theme) :light current-theme)
+        :themes           #{:light :dark}
+        :show-comments    (if (nil? show-comments) true show-comments)
+        :show-related     (if (nil? show-related) true show-related)
+        :show-description (if (nil? show-description) true show-description)}}})))
 
 (rf/reg-fx
  ::scroll-to-top
@@ -57,22 +58,54 @@
 (rf/reg-fx
  ::player-volume
  (fn [{:keys [player volume]}]
-   (when (and player (> (.-readyState player) 0))
-     (set! (.-volume player) (/ volume 100)))))
+   (when (and @player (> (.-readyState @player) 0))
+     (set! (.-volume @player) (/ volume 100)))))
 
 (rf/reg-fx
  ::player-mute
  (fn [{:keys [player muted?]}]
-   (when (and player (> (.-readyState player) 0))
-     (set! (.-muted player) muted?))))
+   (when (and @player (> (.-readyState @player) 0))
+     (set! (.-muted @player) muted?))))
 
 (rf/reg-fx
- ::player-playback
- (fn [{:keys [player stream current-pos]}]
-   (set! (.-src @player) stream)
-   (set! (.-currentTime @player) 0)
-   (set! (.-onended @player) #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))
-   (.play @player)))
+ ::player-src
+ (fn [{:keys [player src current-pos]}]
+   (set! (.-src @player) src)
+   (set! (.-onended @player) #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))))
+
+(rf/reg-fx
+ ::player-pause
+ (fn [{:keys [paused? player]}]
+   (when (and @player (> (.-readyState @player) 0))
+     (if paused?
+       (.play @player)
+       (.pause @player)))))
+
+(rf/reg-fx
+ ::player-current-time
+ (fn [{:keys [time player]}]
+   (set! (.-currentTime @player) time)))
+
+(rf/reg-event-fx
+ ::player-paused
+ [(rf/inject-cofx ::inject/sub [:player])]
+ (fn [{:keys [db player]} [_ paused?]]
+   {:db            (assoc db :paused paused?)
+    ::player-pause {:paused? (not paused?)
+                    :player  player}}))
+
+(rf/reg-event-fx
+ ::player-start
+ [(rf/inject-cofx ::inject/sub [:player]) (rf/inject-cofx ::inject/sub [:elapsed-time])]
+ (fn [{:keys [db player]} _]
+   {:fx [[:dispatch [::player-paused false]]
+         [::player-volume {:player player :volume (:volume-level db)}]]}))
+
+(rf/reg-event-fx
+ ::set-player-time
+ [(rf/inject-cofx ::inject/sub [:player])]
+ (fn [{:keys [db player]} [_ time]]
+   {::player-current-time {:time time :player player}}))
 
 (rf/reg-fx
  ::stream-metadata
@@ -302,7 +335,7 @@
       :store (update-entry store)})))
 
 (rf/reg-event-fx
- ::toggle-audio-player
+ ::dispose-audio-player
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} _]
    (let [remove-entries
@@ -312,7 +345,9 @@
                (assoc :media-queue [])
                (assoc :media-queue-pos 0)))]
      {:db    (remove-entries db)
-      :store (remove-entries store)})))
+      :store (remove-entries store)
+      :fx [[:dispatch [::player-paused true]]
+           [:dispatch [::set-player-time 0]]]})))
 
 (rf/reg-event-fx
  ::switch-to-audio-player
@@ -504,18 +539,19 @@
  [(rf/inject-cofx ::inject/sub [:player])]
  (fn [{:keys [db player]} [_ idx play? res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db :show-audio-player-loading false)
+     {:db (assoc db :show-audio-player-loading false
+                 :paused false)
       :fx (apply conj [[:dispatch [::change-media-queue-stream
                                    (-> stream-res :audio-streams first :content)
                                    idx]]]
                  (when play?
-                   [[::stream-metadata {:title   (:name stream-res)
+                   [[::player-src {:player      player
+                                   :src         (-> stream-res :audio-streams first :content)
+                                   :current-pos (:media-queue-pos db)}]
+                    [::stream-metadata {:title   (:name stream-res)
                                         :artist  (:uploader-name stream-res)
                                         :artwork [{:src (:thumbnail-url stream-res)}]}]
-                    [::media-session {:current-pos (:media-queue-pos db) :player player}]
-                    [::player-playback {:player      player
-                                        :stream      (-> stream-res :audio-streams first :content)
-                                        :current-pos (:media-queue-pos db)}]]))})))
+                    [::media-session {:current-pos (:media-queue-pos db) :player player}]]))})))
 
 (rf/reg-event-fx
  ::load-stream-page
