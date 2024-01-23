@@ -102,41 +102,35 @@
                  js/Date.parse
                  js/Date.
                  .toDateString)]])]]
-       (when (and show-description? description)
+       (when (and show-description? (not (empty? description)))
          [:div.py-3.flex.flex-wrap.min-w-full
           [:div {:dangerouslySetInnerHTML {:__html description}
                  :class                   (when (not show-description) "line-clamp-2")}]
-          [:div.flex.justify-center.font-bold.min-w-full.pt-4.cursor-pointer
+          [:div.flex.justify-center.font-bold.min-w-full.py-4.cursor-pointer
            [layout/secondary-button
             (if (not show-description) "Show More" "Show Less")
             #(rf/dispatch [::events/toggle-stream-layout :show-description])]]])
        (when (and comments-page (not (empty? (:comments comments-page))) show-comments?)
-         [:div
-          [:div.flex.items-center
-           [:i.fa-solid.fa-comments.w-6]
-           [:h2.mx-4.text-lg "Comments"]
-           (if show-comments
-             [:i.fa-solid.fa-chevron-up.cursor-pointer.text-sm
-              {:on-click #(rf/dispatch [::events/toggle-stream-layout :show-comments])}]
-             [:i.fa-solid.fa-chevron-down.cursor-pointer.text-sm.ml-2
-              {:on-click #(if (or show-comments comments-page)
-                            (rf/dispatch [::events/toggle-stream-layout :show-comments])
-                            (rf/dispatch [::events/get-comments url]))}])]
+         [layout/accordeon
+          {:label "Comments"
+           :on-open #(if show-comments
+                       (rf/dispatch [::events/toggle-stream-layout :show-comments])
+                       (if comments-page
+                         (rf/dispatch [::events/toggle-stream-layout :show-comments])
+                         (rf/dispatch [::events/get-comments url])))
+           :open? show-comments
+           :left-icon "fa-solid fa-comments"}
           (if show-comments-loading
             [layout/loading-icon service-color "text-2xl"]
             (when (and show-comments comments-page)
               [comments/comments comments-page uploader-name uploader-avatar url]))])
        (when (and show-related? (not (empty? related-streams)))
-         [:div.pt-2
-          [:div.flex.justify-between
-           [:div.flex.items-center.text-sm.sm:text-base
-            [:i.fa-solid.fa-list.w-6]
-            [:h2.mx-4.text-lg "Suggested"]
-            [:i.fa-solid.fa-chevron-up.cursor-pointer.text-sm
-             {:class    (if (not show-related) "fa-chevron-up" "fa-chevron-down")
-              :on-click #(rf/dispatch [::events/toggle-stream-layout :show-related])}]]
-           [layout/primary-button "Enqueue"
-            #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])
-            "fa-solid fa-headphones"]]
-          (when (not show-related)
-            [items/related-streams related-streams nil])])]]]))
+         [layout/accordeon
+          {:label        "Suggested"
+           :on-open      #(rf/dispatch [::events/toggle-stream-layout :show-related])
+           :open?        (not show-related)
+           :left-icon    "fa-solid fa-list"
+           :right-button [layout/primary-button "Enqueue"
+                          #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])
+                          "fa-solid fa-headphones"]}
+          [items/related-streams related-streams nil]])]]]))
