@@ -69,7 +69,7 @@
         {:keys [current-theme]}                  @(rf/subscribe [:settings])
         id                                       (js/parseInt (or serviceId service-id))
         show-mobile-nav?                         @(rf/subscribe [:show-mobile-nav])
-        show-search-form? @(rf/subscribe [:show-search-form])
+        show-search-form?                        @(rf/subscribe [:show-search-form])
         {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
     [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-50.font-nunito
      {:style {:background service-color}}
@@ -79,18 +79,19 @@
         {:href (rfe/href ::routes/home)}
         [layout/logo]]]
       [navigation/search-form]
+      [:div {:class (when show-search-form? "hidden")}
+       [navigation/navigation-buttons service-color]]
       [:div.flex.flex-auto.justify-end.lg:justify-between
        {:class (when show-search-form? "hidden")}
        [:div.hidden.lg:flex
-        [navigation/navigation-buttons service-color]
         [services-dropdown services service-id service-color]
         [:ul.flex.items-center.px-4.text-white
-        (for [kiosk available-kiosks]
-          [:li.px-3 {:key kiosk}
-           [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
-                                                    :kioskId   kiosk})}
-            kiosk]])]]
-       [:div.flex.items-center.text-white.justify-end.mr-2
+         (for [kiosk available-kiosks]
+           [:li.px-3 {:key kiosk}
+            [:a {:href (rfe/href ::routes/kiosk nil {:serviceId service-id
+                                                     :kioskId   kiosk})}
+             kiosk]])]]
+       [:div.flex.items-center.text-white.justify-end
         (when-not show-search-form?
           [:button.mx-3
            {:on-click (fn []
