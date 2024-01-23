@@ -29,8 +29,8 @@
                 show-description]} @(rf/subscribe [:settings])
         service-color              @(rf/subscribe [:service-color])]
     [layout/content-container
-     [:h1.text-2xl.font-bold.py-6 "Settings"]
-     [:form.flex.flex-wrap
+     [layout/content-header "Settings"]
+     [:form.flex.flex-wrap.py-4
       [select-input "Theme" :current-theme current-theme themes]
       [boolean-input "Show description?" :show-description show-description]
       [boolean-input "Show comments?" :show-comments show-comments]
