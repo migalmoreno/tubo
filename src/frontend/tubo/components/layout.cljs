@@ -63,7 +63,7 @@
 
 (defn secondary-button
   [label on-click-cb left-icon right-icon]
-  [:button.dark:bg-transparent.bg-neutral-100.px-4.rounded-3xl.py-1.border.border-neutral-700.dark:border-stone-700.outline-none.focus:ring-transparent.whitespace-nowrap
+  [:button.dark:bg-transparent.bg-neutral-100.px-4.rounded-3xl.py-1.border.border-neutral-300.dark:border-stone-700.outline-none.focus:ring-transparent.whitespace-nowrap
    {:on-click on-click-cb}
    (when left-icon
      [:i.text-neutral-500.dark:text-white.text-sm
@@ -72,3 +72,18 @@
    (when right-icon
      [:i.text-neutral-500.dark:text-white.text-sm
       {:class right-icon}])])
+
+(defn accordeon
+  [{:keys [label on-open open? left-icon right-button]} & content]
+  [:div.py-4
+   [:div.flex.justify-between
+    [:div.flex.items-center.text-sm.sm:text-base
+     (when left-icon
+       [:i.w-6 {:class left-icon}])
+     [:h2.mx-4.text-lg.w-24 label]
+     [:i.fa-solid.fa-chevron-up.cursor-pointer.text-sm
+      {:class    (if open? "fa-chevron-up" "fa-chevron-down")
+       :on-click on-open}]]
+    right-button]
+   (when open?
+     (map-indexed #(with-meta %2 {:key %1}) content))])
