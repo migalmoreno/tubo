@@ -3,7 +3,7 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.items :as items]
-   [tubo.components.loading :as loading]
+   [tubo.components.layout :as layout]
    [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
@@ -31,17 +31,18 @@
 
 (defn queue
   []
-  (let [show-media-queue           @(rf/subscribe [:show-media-queue])
-        show-audio-player-loading? @(rf/subscribe [:show-audio-player-loading])
-        media-queue                @(rf/subscribe [:media-queue])
-        media-queue-pos            @(rf/subscribe [:media-queue-pos])
+  (let [show-media-queue       @(rf/subscribe [:show-media-queue])
+        loading?               @(rf/subscribe [:show-audio-player-loading])
+        paused?                @(rf/subscribe [:paused])
+        media-queue            @(rf/subscribe [:media-queue])
+        media-queue-pos        @(rf/subscribe [:media-queue-pos])
         {:keys [uploader-name uploader-url
                 name stream url service-color]
-         :as   current-stream}     @(rf/subscribe [:media-queue-stream])
-        !elapsed-time              @(rf/subscribe [:elapsed-time])
-        !player                    @(rf/subscribe [:player])
-        loop-playback              @(rf/subscribe [:loop-playback])
-        player-ready?              (and @!player (> (.-readyState @!player) 0))]
+         :as   current-stream} @(rf/subscribe [:media-queue-stream])
+        !elapsed-time          @(rf/subscribe [:elapsed-time])
+        !player                @(rf/subscribe [:player])
+        loop-playback          @(rf/subscribe [:loop-playback])
+        player-ready?          (and @!player (> (.-readyState @!player) 0))]
     (when (and show-media-queue media-queue)
       [:div.fixed.flex.flex-col.items-center.px-5.py-2.min-w-full.w-full.z-30
        {:style {:minHeight "calc(100dvh - 56px)" :height "calc(100dvh - 56px)"}
@@ -49,8 +50,8 @@
        [:div.flex.justify-between.pl-4.items-center.w-full.shrink-0
         {:class "lg:w-4/5 xl:w-3/5"}
         [:h1.text-2xl.font-bold.py-6 "Play Queue"]
-        [:div.mx-2
-         [:i.fa-solid.fa-close.cursor-pointer
+        [:button.mx-2
+         [:i.fa-solid.fa-close
           {:on-click #(rf/dispatch [::events/toggle-media-queue])}]]]
        [:div.flex.flex-col.sm:p-4.w-full.overflow-y-auto.flex-auto
         {:class "lg:w-4/5 xl:w-3/5"}
@@ -68,19 +69,7 @@
          [player/time-slider !player !elapsed-time service-color]
          [:span.ml-2 (if player-ready? (util/format-duration (.-duration @!player)) "00:00")]]
         [:div.flex.justify-center.items-center
-         [player/button
-          [:div.relative
-           [:i.fa-solid.fa-repeat
-            {:style {:color (when loop-playback service-color)}}]
-           (when (= loop-playback :stream)
-             [:span.absolute.font-bold
-              {:style {:color     (when loop-playback service-color)
-                       :font-size "6px"
-                       :right     "6px"
-                       :top       "6.5px"}}
-              "1"])]
-          #(rf/dispatch [::events/toggle-loop-playback])
-          :show-on-mobile? true]
+         [player/loop-button loop-playback service-color true]
          [player/button
           [:i.fa-solid.fa-backward-step]
           #(when (and media-queue (not= media-queue-pos 0))
@@ -95,14 +84,12 @@
           :extra-styles "text-xl"
           :show-on-mobile? true]
          [player/button
-          (if show-audio-player-loading?
-            [loading/loading-icon service-color "text-3xl"]
-            (if (.-paused @!player)
+          (if (or loading? (not @!player))
+            [layout/loading-icon service-color "text-2xl"]
+            (if paused?
               [:i.fa-solid.fa-play]
               [:i.fa-solid.fa-pause]))
-          #(if (.-paused @!player)
-             (.play @!player)
-             (.pause @!player))
+          #(rf/dispatch [::events/player-paused (not paused?)])
           :extra-styles "text-3xl"
           :show-on-mobile? true]
          [player/button

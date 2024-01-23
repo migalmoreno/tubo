@@ -45,19 +45,7 @@
         loop-playback   @(rf/subscribe [:loop-playback])]
     [:div.flex.flex-col.items-center.ml-auto
      [:div.flex.justify-end
-      [player/button
-       [:div.relative.flex.items-center
-        [:i.fa-solid.fa-repeat
-         {:style {:color (when loop-playback service-color)}}]
-        (when (= loop-playback :stream)
-          [:span.absolute.font-bold
-           {:style {:color     (when loop-playback service-color)
-                    :font-size "6px"
-                    :right     "6px"
-                    :top       "6.5px"}}
-           "1"])]
-       #(rf/dispatch [::events/toggle-loop-playback])
-       :extra-styles "text-sm"]
+      [player/loop-button loop-playback service-color]
       [player/button
        [:i.fa-solid.fa-backward-step]
        #(when (and media-queue (not= media-queue-pos 0))
