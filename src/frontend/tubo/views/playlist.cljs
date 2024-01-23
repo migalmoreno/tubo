@@ -18,16 +18,17 @@
     (when scrolled-to-bottom?
       (rf/dispatch [::events/playlist-pagination url next-page-url]))
     [layout/content-container
-     [:div.flex.flex-col.justify-center.my-4.mx-2
-      [:div.flex.justify-between.items-center.mb-4
-       [:h1.text-2xl.font-bold.line-clamp-1.pr-2 {:title name} name]
+     [:div.flex.flex-col.justify-center
+      [layout/content-header name
        [layout/primary-button "Enqueue"
-        #(rf/dispatch [::events/enqueue-related-streams related-streams service-color]) "fa-solid fa-headphones"]]
-      [:div.flex.items-center.justify-between
-       [:div.flex.items-center.my-4.mr-2
+        #(rf/dispatch [::events/enqueue-related-streams related-streams service-color])
+        "fa-solid fa-headphones"]]
+      [:div.flex.items-center.justify-between.my-4.gap-x-4
+       [:div.flex.items-center
         [layout/uploader-avatar uploader-avatar uploader-name uploader-url]
-        [:div
-         [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-          uploader-name]]]
-       [:span.ml-2.whitespace-nowrap (str stream-count " streams")]]]
+        [:a.line-clamp-1.ml-2
+         {:href  (rfe/href :tubo.routes/channel nil {:url uploader-url})
+          :title uploader-name}
+         uploader-name]]
+       [:span.whitespace-nowrap (str stream-count " streams")]]]
      [items/related-streams related-streams next-page-url]]))

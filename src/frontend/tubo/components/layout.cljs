@@ -26,6 +26,14 @@
        [:div.flex.flex-col.flex-auto.w-full {:class "lg:w-4/5 xl:w-3/5"}
         (map-indexed #(with-meta %2 {:key %1}) children)])]))
 
+(defn content-header
+  [heading & children]
+  [:div.flex.items-center.justify-between.mt-6
+   [:h1.text-3xl.font-nunito-semibold.line-clamp-1.mr-6
+    {:title heading}
+    heading]
+   (map-indexed #(with-meta %2 {:key %1}) children)])
+
 (defn uploader-avatar
   [source name & url]
   (let [image [:img.rounded-full.object-cover.max-w-full.min-h-full {:src source :alt name}]]

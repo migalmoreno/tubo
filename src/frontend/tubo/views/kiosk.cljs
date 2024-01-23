@@ -15,6 +15,5 @@
     (when scrolled-to-bottom?
       (rf/dispatch [::events/kiosk-pagination serviceId id next-page-url]))
     [layout/content-container
-     [:div.flex.items-center.mt-6.mx-2
-      [:h1.text-3xl.font-nunito-semibold id]]
+     [layout/content-header id]
      [items/related-streams related-streams next-page-url]]))
