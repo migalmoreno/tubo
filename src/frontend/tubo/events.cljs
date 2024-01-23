@@ -190,9 +190,9 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} _]
    (let [loop-state (case (:loop-playback db)
-                      :stream :playlist
-                      :playlist false
-                      :stream)]
+                      :stream false
+                      :playlist :stream
+                      :playlist)]
      {:db    (assoc db :loop-playback loop-state)
       :store (assoc store :loop-playback loop-state)})))
 
