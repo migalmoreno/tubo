@@ -55,6 +55,11 @@
    (set! (.. js/document.body -style -overflow) (if active "hidden" "auto"))))
 
 (rf/reg-fx
+ ::document-title!
+ (fn [title]
+   (set! (.-title js/document) (str title " - Tubo"))))
+
+(rf/reg-fx
  ::player-volume
  (fn [{:keys [player volume]}]
    (when (and @player (> (.-readyState @player) 0))
@@ -485,7 +490,8 @@
    (let [kiosk-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :kiosk kiosk-res
                  :show-page-loading false)
-      :fx [[:dispatch [::set-service-styles kiosk-res]]]})))
+      :fx [[:dispatch [::set-service-styles kiosk-res]]
+           [::document-title! (:id kiosk-res)]]})))
 
 (rf/reg-event-fx
  ::get-default-kiosk-page
@@ -562,10 +568,10 @@
    (let [stream-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :stream stream-res
                  :show-page-loading false)
-      :fx [[:dispatch [::change-stream-format nil]]
-           (when (and (-> db :settings :show-comments))
+      :fx [(when (and (-> db :settings :show-comments))
              [:dispatch [::get-comments (:url stream-res)]])
-           [:dispatch [::set-service-styles stream-res]]]})))
+           [:dispatch [::set-service-styles stream-res]]
+           [::document-title! (:name stream-res)]]})))
 
 (rf/reg-event-fx
  ::fetch-stream-page
@@ -605,7 +611,8 @@
    (let [channel-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :channel channel-res
                  :show-page-loading false)
-      :fx [[:dispatch [::set-service-styles channel-res]]]})))
+      :fx [[:dispatch [::set-service-styles channel-res]]
+           [::document-title! (:name channel-res)]]})))
 
 (rf/reg-event-fx
  ::get-channel-page
@@ -622,7 +629,8 @@
    (let [playlist-res (js->clj res :keywordize-keys true)]
      {:db (assoc db :playlist playlist-res
                  :show-page-loading false)
-      :fx [[:dispatch [::set-service-styles playlist-res]]]})))
+      :fx [[:dispatch [::set-service-styles playlist-res]]
+           [::document-title! (:name playlist-res)]]})))
 
 (rf/reg-event-fx
  ::get-playlist-page
@@ -648,7 +656,8 @@
                      [::load-search-results] [::bad-response]
                      {:q query})
     :db (assoc db :show-page-loading true
-               :show-search-form true))))
+               :show-search-form true)
+    :fx [[::document-title! (str "Search for \"" query "\"")]])))
 
 (rf/reg-event-fx
  ::change-setting
