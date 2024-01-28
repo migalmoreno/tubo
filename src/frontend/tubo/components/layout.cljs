@@ -1,5 +1,6 @@
 (ns tubo.components.layout
   (:require
+   [reagent.core :as r]
    [re-frame.core :as rf]))
 
 (defn logo []
@@ -87,3 +88,36 @@
     right-button]
    (when open?
      (map-indexed #(with-meta %2 {:key %1}) content))])
+
+(defn show-more-container
+  [open? text on-open]
+  (let [!text-container (atom nil)
+        !resize-observer (atom nil)
+        text-clamped? (r/atom nil)]
+    (r/create-class
+     {:display-name "ShowMoreContainer"
+      :component-did-mount
+      (fn [_]
+        (when @!text-container
+          (.observe
+           (reset! !resize-observer
+                   (js/ResizeObserver.
+                    #(let [target (.-target (first %))]
+                       (reset! text-clamped?
+                               (> (.-scrollHeight target)
+                                  (.-clientHeight target))))))
+           @!text-container)))
+      :component-will-unmount
+      #(when (and @!resize-observer @!text-container)
+         (.unobserve @!resize-observer @!text-container))
+      :reagent-render
+      (fn [open? text on-open]
+        [:div.py-3.flex.flex-wrap.min-w-full
+         [:div {:dangerouslySetInnerHTML {:__html text}
+                :class                   (when-not open? "line-clamp-2")
+                :ref                     #(reset! !text-container %)}]
+         (when (or @text-clamped? open?)
+           [:div.flex.justify-center.min-w-full.py-4
+            [secondary-button
+             (if (not open?) "Show More" "Show Less")
+             on-open]])])})))

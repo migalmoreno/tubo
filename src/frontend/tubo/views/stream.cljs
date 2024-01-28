@@ -99,22 +99,17 @@
             [:i.fa-solid.fa-calendar]
             [:span.ml-2 (util/format-date-string upload-date)]])]]
        (when (and show-description? (not (empty? description)))
-         [:div.py-3.flex.flex-wrap.min-w-full
-          [:div {:dangerouslySetInnerHTML {:__html description}
-                 :class                   (when (not show-description) "line-clamp-2")}]
-          [:div.flex.justify-center.font-bold.min-w-full.py-4.cursor-pointer
-           [layout/secondary-button
-            (if (not show-description) "Show More" "Show Less")
-            #(rf/dispatch [::events/toggle-stream-layout :show-description])]]])
+         [layout/show-more-container show-description description
+          #(rf/dispatch [::events/toggle-stream-layout :show-description])])
        (when (and comments-page (not (empty? (:comments comments-page))) show-comments?)
          [layout/accordeon
-          {:label "Comments"
-           :on-open #(if show-comments
-                       (rf/dispatch [::events/toggle-stream-layout :show-comments])
-                       (if comments-page
+          {:label     "Comments"
+           :on-open   #(if show-comments
                          (rf/dispatch [::events/toggle-stream-layout :show-comments])
-                         (rf/dispatch [::events/get-comments url])))
-           :open? show-comments
+                         (if comments-page
+                           (rf/dispatch [::events/toggle-stream-layout :show-comments])
+                           (rf/dispatch [::events/get-comments url])))
+           :open?     show-comments
            :left-icon "fa-solid fa-comments"}
           (if show-comments-loading
             [layout/loading-icon service-color "text-2xl"]
