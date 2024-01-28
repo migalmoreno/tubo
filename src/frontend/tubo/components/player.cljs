@@ -58,6 +58,6 @@
            :on-input #(rf/dispatch [::events/change-volume-level (.. % -target -value) player])
            :style    {:accentColor service-color
                       :left "-32.5px"
-                      :bottom "67.5px"}
+                      :bottom "63px"}
            :max      100
            :value    volume-level}])])))
