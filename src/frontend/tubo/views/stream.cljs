@@ -54,7 +54,7 @@
        [:div.flex.items-center.justify-between.pt-4
         [:div.flex-auto
          [:h1.text-lg.sm:text-2xl.font-extrabold.line-clamp-1 name]]
-        [:div.flex.flex-auto.justify-end.items-center.my-3.ml-3.gap-x-3.xs:gap-x-5
+        [:div.flex.flex-auto.justify-end.items-center.my-3.ml-4.gap-x-5
          [:button
           {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
           [:i.fa-solid.fa-headphones]]
