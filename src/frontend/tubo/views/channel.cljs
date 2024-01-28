@@ -21,12 +21,12 @@
         [layout/content-container
          (when banner
            [:div.flex.justify-center.h-24
-            [:img.min-w-full.min-h-full.object-cover {:src banner}]])
+            [:img.min-w-full.min-h-full.object-cover.rounded {:src banner}]])
          [:div.flex.items-center.justify-between
           [:div.flex.items-center.my-4.mx-2
            [layout/uploader-avatar avatar name]
            [:div.m-4
-            [:h1.text-xl name]
+            [:h1.text-2xl.font-nunito-semibold.line-clamp-1 name]
             (when subscriber-count
               [:div.flex.my-2.items-center
                [:i.fa-solid.fa-users.text-xs]
