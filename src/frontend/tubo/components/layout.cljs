@@ -45,7 +45,7 @@
   [source name & url]
   (let [image [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full {:src source :alt name}]]
     (when source
-      [:div.relative.w-16.h-16.flex-auto.flex.items-center
+      [:div.relative.w-12.xs:w-16.h-12.xs:h-16.flex-auto.flex.items-center.shrink-0
        (if url
          [:a.flex-auto.flex.min-h-full.min-w-full.max-h-full.max-w-full {:href url :title name} image]
          image)])))
