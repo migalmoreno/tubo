@@ -30,14 +30,16 @@
      (when name
        [:div.flex.items-center.my-2
         [:a {:href item-route :title name}
-         [:h1.line-clamp-2.my-1.break-words {:style {:wordBreak "break-word"}} name]]
+         [:h1.line-clamp-2.my-1 {:class "[overflow-wrap:anywhere]"} name]]
         (when (and verified? (not uploader-url))
           [:i.fa-solid.fa-circle-check.pl-2])])
      [:div.flex.justify-between
       [:div.flex.items-center.my-2
        (if uploader-url
          [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-          [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2.break-all uploader-name]]
+          [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2.break-all
+           {:class "[overflow-wrap:anywhere]"}
+           uploader-name]]
          [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
        (when (and uploader-url verified?)
          [:i.fa-solid.fa-circle-check])]

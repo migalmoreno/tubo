@@ -31,7 +31,7 @@
      (when uploader-verified?
        [:i.fa-solid.fa-circle-check.ml-2])]
     [:div.my-2
-     [:p.break-words {:dangerouslySetInnerHTML {:__html text}}]]
+     [:p {:dangerouslySetInnerHTML {:__html text} :class "[overflow-wrap:anywhere]"}]]
     [:div..flex.items-center.my-2
      [:div.mr-4
       [:p (util/format-date-ago upload-date)]]
