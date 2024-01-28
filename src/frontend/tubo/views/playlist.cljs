@@ -9,11 +9,12 @@
 (defn playlist
   [{{:keys [url]} :query-params}]
   (let [{:keys [id name playlist-type thumbnail-url banner-url
-                uploader-name uploader-url uploader-avatar stream-count
-                next-page related-streams]} @(rf/subscribe [:playlist])
-        next-page-url (:url next-page)
-        service-color @(rf/subscribe [:service-color])
-        scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
+                uploader-name uploader-url uploader-avatar
+                stream-count next-page
+                related-streams]} @(rf/subscribe [:playlist])
+        next-page-url             (:url next-page)
+        service-color             @(rf/subscribe [:service-color])
+        scrolled-to-bottom?       @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [::events/playlist-pagination url next-page-url]))
     [layout/content-container

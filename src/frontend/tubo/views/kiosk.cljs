@@ -7,12 +7,14 @@
 
 (defn kiosk
   [{{:keys [serviceId kioskId]} :query-params}]
-  (let [{:keys [id url related-streams next-page]} @(rf/subscribe [:kiosk])
-        next-page-url (:url next-page)
-        service-color @(rf/subscribe [:service-color])
+  (let [{:keys [id url related-streams
+                next-page]} @(rf/subscribe [:kiosk])
+        next-page-url       (:url next-page)
+        service-color       @(rf/subscribe [:service-color])
+        service-id          (or @(rf/subscribe [:service-id]) serviceId)
         scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
-      (rf/dispatch [::events/kiosk-pagination serviceId id next-page-url]))
+      (rf/dispatch [::events/kiosk-pagination service-id id next-page-url]))
     [layout/content-container
      [layout/content-header id]
      [items/related-streams related-streams next-page-url]]))

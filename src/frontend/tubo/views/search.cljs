@@ -8,12 +8,13 @@
 
 (defn search
   [{{:keys [q serviceId]} :query-params}]
-  (let [{:keys [items next-page] :as search-results} @(rf/subscribe [:search-results])
-        next-page-url (:url next-page)
-        services @(rf/subscribe [:services])
-        service-id @(rf/subscribe [:service-id])
-        scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
+  (let [{:keys [items next-page]
+         :as   search-results} @(rf/subscribe [:search-results])
+        next-page-url          (:url next-page)
+        services               @(rf/subscribe [:services])
+        service-id             (or @(rf/subscribe [:service-id]) serviceId)
+        scrolled-to-bottom?    @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
-      (rf/dispatch [::events/search-pagination q serviceId next-page-url]))
+      (rf/dispatch [::events/search-pagination q service-id next-page-url]))
     [layout/content-container
      [items/related-streams items next-page-url]]))

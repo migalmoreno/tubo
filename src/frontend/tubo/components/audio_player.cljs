@@ -84,13 +84,13 @@
          [uploader-name uploader-url thumbnail-url
           name stream url service-color] :as current-stream}
         @(rf/subscribe [:media-queue-stream])
-        show-audio-player?         @(rf/subscribe [:show-audio-player])
-        show-media-queue?          @(rf/subscribe [:show-media-queue])
-        volume-level               @(rf/subscribe [:volume-level])
-        muted?                     @(rf/subscribe [:muted])
-        !player                    @(rf/subscribe [:player])
-        {:keys [current-theme]}    @(rf/subscribe [:settings])
-        bg-color (str "rgba(" (if (= current-theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")]
+        show-audio-player? @(rf/subscribe [:show-audio-player])
+        show-media-queue?  @(rf/subscribe [:show-media-queue])
+        volume-level       @(rf/subscribe [:volume-level])
+        muted?             @(rf/subscribe [:muted])
+        !player            @(rf/subscribe [:player])
+        {:keys [theme]}    @(rf/subscribe [:settings])
+        bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")]
     (when show-audio-player?
       [:div.sticky.bottom-0.z-40.p-3.absolute.box-border.m-0
        {:style

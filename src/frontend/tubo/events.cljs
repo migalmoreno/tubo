@@ -324,11 +324,11 @@
 
 (rf/reg-event-fx
  ::add-to-media-queue
-  [(rf/inject-cofx :store)]
-  (fn [{:keys [db store]} [_ stream]]
-    (let [updated-db (update db :media-queue conj stream)]
-      {:db    updated-db
-       :store (assoc store :media-queue (:media-queue updated-db))})))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ stream]]
+   (let [updated-db (update db :media-queue conj stream)]
+     {:db    updated-db
+      :store (assoc store :media-queue (:media-queue updated-db))})))
 
 (rf/reg-event-fx
  ::change-media-queue-pos
@@ -607,8 +607,8 @@
 (rf/reg-event-fx
  ::fetch-stream-page
  (fn [{:keys [db]} [_ uri]]
-    (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
-                     [::load-stream-page] [::bad-response])))
+   (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+                    [::load-stream-page] [::bad-response])))
 
 (rf/reg-event-fx
  ::fetch-audio-player-stream
