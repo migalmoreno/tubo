@@ -97,11 +97,7 @@
          (when upload-date
            [:div.sm:text-base.text-sm.mt-1.whitespace-nowrap
             [:i.fa-solid.fa-calendar]
-            [:span.ml-2
-             (-> upload-date
-                 js/Date.parse
-                 js/Date.
-                 .toDateString)]])]]
+            [:span.ml-2 (util/format-date-string upload-date)]])]]
        (when (and show-description? (not (empty? description)))
          [:div.py-3.flex.flex-wrap.min-w-full
           [:div {:dangerouslySetInnerHTML {:__html description}

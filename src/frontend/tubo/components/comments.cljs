@@ -34,7 +34,7 @@
      [:p.break-words {:dangerouslySetInnerHTML {:__html text}}]]
     [:div..flex.items-center.my-2
      [:div.mr-4
-      [:p (util/format-date upload-date)]]
+      [:p (util/format-date-ago upload-date)]]
      (when (and like-count (> like-count 0))
        [:div.flex.items-center.my-2
         [:i.fa-solid.fa-thumbs-up.text-xs]

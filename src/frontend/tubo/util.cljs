@@ -2,7 +2,14 @@
   (:require
    ["timeago.js" :as timeago]))
 
-(defn format-date
+(defn format-date-string
+  [date]
+  (-> date
+      js/Date.parse
+      js/Date.
+      .toDateString))
+
+(defn format-date-ago
   [date]
   (if (-> date js/Date.parse js/isNaN)
     date

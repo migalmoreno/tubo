@@ -59,7 +59,7 @@
         [:i.fa-solid.fa-video.text-xs]
         [:p.mx-2 (util/format-quantity stream-count)]])
      [:div.flex.my-1.justify-between
-      [:p (util/format-date upload-date)]
+      [:p (util/format-date-ago upload-date)]
       (when view-count
         [:div.flex.items-center.h-full.pl-2
          [:i.fa-solid.fa-eye.text-xs]
