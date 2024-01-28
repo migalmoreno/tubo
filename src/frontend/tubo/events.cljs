@@ -656,3 +656,8 @@
  (fn [{:keys [db store]} [_ key val]]
    {:db    (assoc-in db [:settings key] val)
     :store (assoc store key val)}))
+
+(rf/reg-event-fx
+ ::get-playlists-page
+ (fn [_]
+   {::document-title! "Playlists"}))
