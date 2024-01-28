@@ -15,12 +15,13 @@
  ::initialize-db
  [(rf/inject-cofx :store)]
  (fn [{:keys [store]} _]
-   (let [{:keys [current-theme show-comments show-related show-description
+   (let [{:keys [theme show-comments show-related show-description
                  media-queue media-queue-pos show-audio-player
-                 loop-playback volume-level muted bookmarks]} store]
+                 loop-playback volume-level muted bookmarks
+                 default-service default-service-kiosk service-id]} store]
      {:db
       {:search-query      ""
-       :service-id        0
+       :service-id        (if (nil? service-id) 0 service-id)
        :stream            {}
        :search-results    []
        :services          []
@@ -33,11 +34,16 @@
        :current-match     nil
        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
        :settings
-       {:current-theme    (if (nil? current-theme) :light current-theme)
-        :themes           #{:light :dark}
+       {:theme            (if (nil? theme) :light theme)
         :show-comments    (if (nil? show-comments) true show-comments)
         :show-related     (if (nil? show-related) true show-related)
-        :show-description (if (nil? show-description) true show-description)}}})))
+        :show-description (if (nil? show-description) true show-description)
+        :default-service  (if (nil? default-service)
+                            {:service-id       0
+                             :id               "YouTube"
+                             :default-kiosk    "Trending"
+                             :available-kiosks ["Trending"]}
+                            default-service)}}})))
 
 (rf/reg-fx
  ::scroll-to-top
@@ -217,7 +223,9 @@
               (assoc :show-mobile-nav false)
               (assoc :show-pagination-loading false))
       ::scroll-to-top nil
-      ::body-overflow! false})))
+      ::body-overflow! false
+      :fx [[:dispatch [::get-services]]
+           [:dispatch [::get-kiosks (:service-id db)]]]})))
 
 (rf/reg-event-fx
  ::navigate
@@ -240,10 +248,12 @@
  (fn [db [_ res]]
    (assoc db :search-query res)))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::change-service-id
- (fn [db [_ service-id]]
-   (assoc db :service-id service-id)))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ service-id]]
+   {:db (assoc db :service-id service-id)
+    :store (assoc store :service-id service-id)}))
 
 (rf/reg-event-db
  ::load-paginated-channel-results
@@ -496,10 +506,15 @@
 (rf/reg-event-fx
  ::get-default-kiosk-page
  (fn [{:keys [db]} [_ service-id]]
-   (assoc
-    (api/get-request (str "/api/services/" service-id "/default-kiosk")
-                     [::load-kiosk] [::bad-response])
-    :db (assoc db :show-page-loading true))))
+   (let [default-kiosk-id (when (= (js/parseInt service-id)
+                                   (-> db :settings :default-service :service-id))
+                            (-> db :settings :default-service :default-kiosk))]
+     (if default-kiosk-id
+       {:fx [[:dispatch [::get-kiosk-page service-id default-kiosk-id]]]}
+       (assoc
+        (api/get-request (str "/api/services/" service-id "/default-kiosk")
+                         [::load-kiosk] [::bad-response])
+        :db (assoc db :show-page-loading true))))))
 
 (rf/reg-event-fx
  ::get-kiosk-page
@@ -543,6 +558,22 @@
        [::load-paginated-kiosk-results] [::bad-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
+
+(rf/reg-event-fx
+ ::load-homepage
+ (fn [{:keys [db]} [_ res]]
+   (let [updated-db (assoc db :services (js->clj res :keywordize-keys true))
+         service-id (:id (first
+                          (filter #(= (-> db :settings :default-service :id)
+                                      (-> % :info :name))
+                                  (:services updated-db))))]
+     {:fx [[:dispatch [::get-default-kiosk-page service-id]]
+           [:dispatch [::change-service-id service-id]]]})))
+
+(rf/reg-event-fx
+ ::get-homepage
+ (fn [{:keys [db]} _]
+   (api/get-request "/api/services" [::load-homepage] [::bad-response])))
 
 (rf/reg-event-fx
  ::load-audio-player-stream
@@ -665,6 +696,53 @@
  (fn [{:keys [db store]} [_ key val]]
    {:db    (assoc-in db [:settings key] val)
     :store (assoc store key val)}))
+
+(rf/reg-event-fx
+ ::load-settings-kiosks
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ service-name service-id res]]
+   (let [kiosks-res    (js->clj res :keywordize-keys true)
+         default-service-kiosk (-> db :settings :default-service :default-kiosk)
+         default-kiosk (if (some #(= % default-service-kiosk) (:available-kiosks kiosks-res))
+                         default-service-kiosk
+                         (:default-kiosk kiosks-res))]
+     {:db    (update-in db [:settings :default-service] assoc
+                        :id service-name
+                        :service-id service-id
+                        :available-kiosks (:available-kiosks kiosks-res)
+                        :default-kiosk default-kiosk)
+      :store (update-in store [:default-service] assoc
+                        :id service-name
+                        :service-id service-id
+                        :available-kiosks (:available-kiosks kiosks-res)
+                        :default-kiosk default-kiosk)})))
+
+(rf/reg-event-fx
+ ::change-service-setting
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ val]]
+   (let [service-id (-> (filter #(= val (-> % :info :name)) (:services db))
+                        first
+                        :id)]
+     (api/get-request (str "/api/services/" service-id "/kiosks")
+                      [::load-settings-kiosks val service-id] [::bad-response]))))
+
+(rf/reg-event-fx
+ ::change-kiosk-setting
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ val]]
+   {:db    (assoc-in db [:settings :default-service :default-kiosk] val)
+    :store (assoc-in store [:default-service :default-kiosk] val)}))
+
+(rf/reg-event-fx
+ ::get-settings-page
+ (fn [{:keys [db]} _]
+   (let [id (-> db :settings :default-service :id)
+         service-id (-> db :settings :default-service :service-id)]
+     (assoc
+      (api/get-request (str "/api/services/" service-id "/kiosks")
+                       [::load-settings-kiosks id service-id] [::bad-response])
+      ::document-title! "Settings"))))
 
 (rf/reg-event-fx
  ::get-playlists-page

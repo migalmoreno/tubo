@@ -16,8 +16,7 @@
   (ref/router
    [["/" {:view kiosk/kiosk
           :name ::home
-          :controllers [{:start (fn [_]
-                                  (rf/dispatch [::events/get-default-kiosk-page 0]))}]}]
+          :controllers [{:start #(rf/dispatch [::events/get-homepage])}]}]
     ["/search" {:view search/search
                 :name ::search
                 :controllers [{:parameters {:query [:q :serviceId]}
@@ -44,7 +43,8 @@
                               :start (fn [{{:keys [serviceId kioskId]} :query}]
                                        (rf/dispatch [::events/get-kiosk-page serviceId kioskId]))}]}]
     ["/settings" {:view settings/settings-page
-                  :name ::settings}]
+                  :name ::settings
+                  :controllers [{:start #(rf/dispatch [::events/get-settings-page])}]}]
     ["/playlists" {:view playlists/playlists-page
                    :name ::playlists
                    :controllers [{:start #(rf/dispatch [::events/get-playlists-page])}]}]]))
