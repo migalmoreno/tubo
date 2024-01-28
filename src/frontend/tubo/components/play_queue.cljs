@@ -89,7 +89,7 @@
             (if paused?
               [:i.fa-solid.fa-play]
               [:i.fa-solid.fa-pause]))
-          #(rf/dispatch [::events/player-paused (not paused?)])
+          #(rf/dispatch [::events/set-player-paused (not paused?)])
           :extra-styles "text-3xl"
           :show-on-mobile? true]
          [player/button

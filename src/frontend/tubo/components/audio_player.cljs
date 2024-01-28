@@ -31,7 +31,9 @@
             :loop           (= loop-playback :stream)
             :on-loaded-data #(rf/dispatch [::events/player-start])
             :muted          muted?
-            :on-time-update #(reset! !elapsed-time (.-currentTime @!player))}]))})))
+            :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
+            :on-pause       #(rf/dispatch [::events/change-player-paused true])
+            :on-play        #(rf/dispatch [::events/change-player-paused false])}]))})))
 
 (defn main-controls
   [service-color]
@@ -59,7 +61,7 @@
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause]))
-       #(rf/dispatch [::events/player-paused (not paused?)])
+       #(rf/dispatch [::events/set-player-paused (not paused?)])
        :show-on-mobile? true
        :extra-styles "lg:text-2xl"]
       [player/button [:i.fa-solid.fa-forward]

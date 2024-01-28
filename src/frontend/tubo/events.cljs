@@ -30,7 +30,6 @@
        :volume-level      (if (nil? volume-level) 100 volume-level)
        :bookmarks         (if (nil? bookmarks) [] bookmarks)
        :muted             (if (nil? muted) false muted)
-       :paused            true
        :current-match     nil
        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
        :settings
@@ -86,19 +85,24 @@
  (fn [{:keys [time player]}]
    (set! (.-currentTime @player) time)))
 
+(rf/reg-event-db
+ ::change-player-paused
+ (fn [db [_ val]]
+   (assoc db :paused val)))
+
 (rf/reg-event-fx
- ::player-paused
+ ::set-player-paused
  [(rf/inject-cofx ::inject/sub [:player])]
  (fn [{:keys [db player]} [_ paused?]]
-   {:db            (assoc db :paused paused?)
-    ::player-pause {:paused? (not paused?)
+   {::player-pause {:paused? (not paused?)
                     :player  player}}))
 
 (rf/reg-event-fx
  ::player-start
  [(rf/inject-cofx ::inject/sub [:player]) (rf/inject-cofx ::inject/sub [:elapsed-time])]
  (fn [{:keys [db player]} _]
-   {:fx [[:dispatch [::player-paused false]]
+   {:fx [[:dispatch [::change-player-paused true]]
+         [:dispatch [::set-player-paused false]]
          [::player-volume {:player player :volume (:volume-level db)}]]}))
 
 (rf/reg-event-fx
@@ -346,7 +350,7 @@
                (assoc :media-queue-pos 0)))]
      {:db    (remove-entries db)
       :store (remove-entries store)
-      :fx [[:dispatch [::player-paused true]]
+      :fx [[:dispatch [::set-player-paused true]]
            [:dispatch [::set-player-time 0]]]})))
 
 (rf/reg-event-fx
@@ -539,8 +543,7 @@
  [(rf/inject-cofx ::inject/sub [:player])]
  (fn [{:keys [db player]} [_ idx play? res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db :show-audio-player-loading false
-                 :paused false)
+     {:db (assoc db :show-audio-player-loading false)
       :fx (apply conj [[:dispatch [::change-media-queue-stream
                                    (-> stream-res :audio-streams first :content)
                                    idx]]]
