@@ -621,20 +621,10 @@
 (rf/reg-event-fx
  ::get-stream-page
  (fn [{:keys [db]} [_ uri]]
-   {:db (assoc db :show-page-loading true)
-    :fx [[:dispatch [::fetch-stream-page uri]]]}))
-
-(rf/reg-event-db
- ::change-stream-format
- (fn [{:keys [stream] :as db} [_ format-id]]
-   (let [{:keys [audio-streams video-streams]} stream]
-     (if format-id
-       (assoc db :stream-format
-              (first (filter #(= format-id (:id %))
-                             (apply conj audio-streams video-streams))))
-       (assoc db :stream-format (if (empty? video-streams)
-                                  (first audio-streams)
-                                  (last video-streams)))))))
+   (assoc
+    (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+                     [::load-stream-page] [::bad-response])
+    :db (assoc db :show-page-loading true))))
 
 (rf/reg-event-fx
  ::load-channel

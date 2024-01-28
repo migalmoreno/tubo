@@ -1,27 +1,39 @@
 (ns tubo.components.video-player
   (:require
+   [re-frame.core :as rf]
    [reagent.core :as r]
    [reagent.dom :as rdom]
-   ["video.js" :as videojs]))
+   ["video.js" :as videojs]
+   ["videojs-mobile-ui"]
+   ["@silvermine/videojs-quality-selector" :as VideojsQualitySelector]))
 
 (defn player
-  [options url]
-  (let [!player (atom nil)]
+  [options]
+  (let [!player         (atom nil)
+        service-color   @(rf/subscribe [:service-color])
+        {:keys [theme]} @(rf/subscribe [:settings])]
     (r/create-class
      {:display-name "VideoPlayer"
       :component-did-mount
-      (fn [this]
-        (reset! !player (videojs (rdom/dom-node this) (clj->js options))))
-      :component-did-update
-      (fn [this [_ prev-argv prev-more]]
-        (when (and @!player (not= prev-more (first (r/children this))))
-          (.src @!player (apply array (map #(js-obj "type" % "src" (first (r/children this)))
-                                           (map #(get % "type") (get options "sources")))))
-          (.ready @!player #(.play @!player))))
-      :component-will-unmount
-      (fn [_]
-        (when @!player
-          (.dispose @!player)))
+      (fn [^videojs/VideoJsPlayer this]
+        (let [set-bg-color! #(set! (.. (.$ (.getChild ^videojs/VideoJsPlayer @!player "ControlBar") %)
+                                       -style
+                                       -background)
+                                   service-color)]
+          (VideojsQualitySelector videojs)
+          (reset! !player (videojs (rdom/dom-node this) (clj->js options)))
+          (set-bg-color! ".vjs-play-progress")
+          (set-bg-color! ".vjs-volume-level")
+          (set-bg-color! ".vjs-slider-bar")
+          (.ready @!player #(.mobileUi ^videojs/VideoJsPlayer @!player))
+          (.on @!player "play" (fn []
+                                 (.audioPosterMode
+                                  @!player
+                                  (clojure.string/includes?
+                                   (:label (first (filter #(= (:src %) (.src @!player))
+                                                          (:sources options))))
+                                   "audio-only"))))))
+      :component-will-unmount #(when @!player (.dispose @!player))
       :reagent-render
-      (fn [options url]
-        [:video-js.vjs-default-skin.vjs-big-play-centered.bottom-0.object-cover.min-h-full.max-h-full.min-w-full.focus:ring-transparent])})))
+      (fn [options]
+        [:video-js.vjs-tubo.vjs-default-skin.vjs-big-play-centered.vjs-show-big-play-button-on-pause])})))

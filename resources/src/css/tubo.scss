@@ -8,11 +8,18 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "video.js/dist/video-js.css";
+@import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
 
-video[poster] {
+.vjs-tubo .vjs-poster img {
   object-fit: cover;
 }
-.vjs-poster {
-  background-size: cover !important;
-  background-position: inherit;
+
+.vjs-tubo .vjs-control-bar {
+  background: none;
+}
+
+.vjs-tubo .vjs-big-play-button, .vjs-tubo.vjs-paused .vjs-big-play-button {
+  background: none;
+  font-size: 120px;
+  border: none;
 }

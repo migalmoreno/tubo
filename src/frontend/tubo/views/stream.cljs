@@ -17,59 +17,57 @@
                 uploader-url upload-date related-streams
                 thumbnail-url show-comments-loading comments-page
                 show-comments show-related show-description service-id]
-         :as stream} @(rf/subscribe [:stream])
-        {show-comments? :show-comments show-related? :show-related
-         show-description? :show-description} @(rf/subscribe [:settings])
+         :as   stream}    @(rf/subscribe [:stream])
+        {show-comments?    :show-comments
+         show-related?     :show-related
+         show-description? :show-description}
+        @(rf/subscribe [:settings])
         available-streams (apply conj audio-streams video-streams)
-        {:keys [content id] :as stream-format} @(rf/subscribe [:stream-format])
-        page-loading? @(rf/subscribe [:show-page-loading])
-        service-color @(rf/subscribe [:service-color])
-        bookmarks @(rf/subscribe [:bookmarks])]
+        page-loading?     @(rf/subscribe [:show-page-loading])
+        service-color     @(rf/subscribe [:service-color])
+        bookmarks         @(rf/subscribe [:bookmarks])
+        sources           (reverse (map (fn [{:keys [content format resolution averageBitrate]}]
+                                          {:src   content
+                                           :type  "video/mp4"
+                                           :label (str (or resolution "audio-only") " "
+                                                       format
+                                                       (when-not resolution
+                                                         (str " " averageBitrate "kbit/s")))})
+                                        available-streams))
+        player-elements   ["playToggle" "progressControl"
+                           "volumePanel" "playbackRateMenuButton"
+                           "QualitySelector" "fullscreenToggle"]]
     [layout/content-container
      [:div.flex.justify-center.relative
       {:class "h-[300px] md:h-[450px] lg:h-[600px]"}
-      (when stream-format
-        [player/player {"sources"    [{"src" content "type" "video/mp4"}
-                                      {"src" content "type" "video/webm"}]
-                        "poster"     thumbnail-url
-                        "controls"   true
-                        "responsive" true
-                        "fill"       true}
-         content])]
-     [:div.overflow-x-hidden
-      [:div.flex.flex.w-full.my-4.justify-center
-       [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
-        {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
-        [:i.fa-solid.fa-headphones]
-        [:span.mx-3 "Background"]]
-       (if (some #(= (:url %) url) bookmarks)
-         [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
-          {:on-click #(rf/dispatch [::events/remove-from-bookmarks stream])}
-          [:i.fa-solid.fa-bookmark]
-          [:span.mx-3 "Bookmarked"]]
-         [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
-          {:on-click #(rf/dispatch [::events/add-to-bookmarks stream])}
-          [:i.fa-regular.fa-bookmark]
-          [:span.mx-3 "Bookmark"]])
-       [:button.sm:px-2.py-1.text-sm.sm:text-base.text-neutral-600.dark:text-neutral-300
-        [:a.block.sm:inline-block {:href url}
-         [:i.fa-solid.fa-external-link-alt]
-         [:span.mx-3 "Original"]]]
-       (when stream-format
-         [:div.relative.flex.flex-col.items-center.justify-center.text-neutral-600.dark:text-neutral-300
-          [:select.border-none.focus:ring-transparent.dark:bg-blend-color-dodge.pr-8.w-full.text-ellipsis.text-sm.sm:text-base
-           {:on-change #(rf/dispatch [::events/change-stream-format (.. % -target -value)])
-            :value     id
-            :style     {:background "transparent"}}
-           (when available-streams
-             (for [[i {:keys [id format resolution averageBitrate]}] (map-indexed vector available-streams)]
-               [:option.dark:bg-neutral-900.border-none {:value id :key i}
-                (str (or resolution "audio-only") " " format (when-not resolution (str " " averageBitrate "kbit/s")))]))]
-          [:div.flex.absolute.min-h-full.top-0.right-4.items-center.justify-end
-           [:i.fa-solid.fa-caret-down]]])]
+      [player/player
+       {:sources       sources
+        :poster        thumbnail-url
+        :controls      true
+        :controlBar    {:children player-elements}
+        :preload       "metadata"
+        :responsive    true
+        :fill          true
+        :playbackRates [0.5 1 1.5 2]}]]
+     [:div
       [:div.flex.flex-col
-       [:div.min-w-full.pb-3
-        [:h1.text-2xl.font-extrabold.line-clamp-1 name]]
+       [:div.flex.items-center.justify-between.pt-4
+        [:div.flex-auto
+         [:h1.text-lg.sm:text-2xl.font-extrabold.line-clamp-1 name]]
+        [:div.flex.flex-auto.justify-end.items-center.my-3.gap-x-5
+         [:button
+          {:on-click #(rf/dispatch [::events/switch-to-audio-player stream service-color])}
+          [:i.fa-solid.fa-headphones]]
+         [:button
+          [:a.block.sm:inline-block {:href url :target "__blank"}
+           [:i.fa-solid.fa-external-link-alt]]]
+         (if (some #(= (:url %) url) bookmarks)
+           [:button
+            {:on-click #(rf/dispatch [::events/remove-from-bookmarks stream])}
+            [:i.fa-solid.fa-bookmark {:style {:color service-color}}]]
+           [:button
+            {:on-click #(rf/dispatch [::events/add-to-bookmarks stream])}
+            [:i.fa-regular.fa-bookmark]])]]
        [:div.flex.justify-between.py-2.flex-nowrap
         [:div.flex.items-center
          [layout/uploader-avatar uploader-avatar uploader-name
