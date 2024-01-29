@@ -12,7 +12,8 @@
 
 (defn audio-source
   [!player]
-  (let [{:keys [stream]} @(rf/subscribe [:media-queue-stream])]
+  (let [{:keys [stream]} @(rf/subscribe [:media-queue-stream])
+        media-queue-pos  @(rf/subscribe [:media-queue-pos])]
     (r/create-class
      {:display-name "AudioPlayer"
       :component-did-mount
@@ -29,8 +30,9 @@
           [:audio
            {:ref            #(reset! !player %)
             :loop           (= loop-playback :stream)
-            :on-loaded-data #(rf/dispatch [::events/player-start])
             :muted          muted?
+            :on-loaded-data #(rf/dispatch [::events/player-start])
+            :on-ended       #(rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)])
             :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
             :on-pause       #(rf/dispatch [::events/change-player-paused true])
             :on-play        #(rf/dispatch [::events/change-player-paused false])}]))})))

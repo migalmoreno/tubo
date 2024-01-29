@@ -25,6 +25,7 @@
        :stream            {}
        :search-results    []
        :services          []
+       :paused            true
        :loop-playback     (if (nil? loop-playback) :playlist loop-playback)
        :media-queue       (if (nil? media-queue) [] media-queue)
        :media-queue-pos   (if (nil? media-queue-pos) 0 media-queue-pos)
