@@ -19,7 +19,8 @@
       :component-did-mount
       (fn [this]
         (when stream
-          (set! (.-src (rdom/dom-node this)) stream)))
+          (set! (.-src (rdom/dom-node this)) stream)
+          (set! (.-onended @!player) #(rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)]))))
       :reagent-render
       (fn [!player]
         (let [!elapsed-time @(rf/subscribe [:elapsed-time])
@@ -32,7 +33,6 @@
             :loop           (= loop-playback :stream)
             :muted          muted?
             :on-loaded-data #(rf/dispatch [::events/player-start])
-            :on-ended       #(rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)])
             :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
             :on-pause       #(rf/dispatch [::events/change-player-paused true])
             :on-play        #(rf/dispatch [::events/change-player-paused false])}]))})))
