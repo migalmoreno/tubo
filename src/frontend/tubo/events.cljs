@@ -736,6 +736,6 @@
       ::document-title! "Settings"))))
 
 (rf/reg-event-fx
- ::get-playlists-page
+ ::get-bookmarks-page
  (fn [_]
-   {::document-title! "Playlists"}))
+   {::document-title! "Bookmarks"}))

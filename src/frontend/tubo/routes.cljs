@@ -7,7 +7,7 @@
    [tubo.views.channel :as channel]
    [tubo.views.kiosk :as kiosk]
    [tubo.views.playlist :as playlist]
-   [tubo.views.playlists :as playlists]
+   [tubo.views.bookmarks :as bookmarks]
    [tubo.views.search :as search]
    [tubo.views.settings :as settings]
    [tubo.views.stream :as stream]))
@@ -45,9 +45,9 @@
     ["/settings" {:view settings/settings-page
                   :name ::settings
                   :controllers [{:start #(rf/dispatch [::events/get-settings-page])}]}]
-    ["/playlists" {:view playlists/playlists-page
+    ["/bookmarks" {:view bookmarks/bookmarks-page
                    :name ::playlists
-                   :controllers [{:start #(rf/dispatch [::events/get-playlists-page])}]}]]))
+                   :controllers [{:start #(rf/dispatch [::events/get-bookmarks-page])}]}]]))
 
 (defn on-navigate
   [new-match]
