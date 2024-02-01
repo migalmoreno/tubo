@@ -171,7 +171,8 @@
 (rf/reg-event-db
  ::toggle-search-form
  (fn [db _]
-   (assoc db :show-search-form (not (:show-search-form db)))))
+   (when-not (= (-> db :current-match :path) "search")
+     (assoc db :show-search-form (not (:show-search-form db))))))
 
 (rf/reg-event-fx
  ::toggle-mobile-nav
