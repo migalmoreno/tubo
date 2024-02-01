@@ -18,9 +18,10 @@
      {:display-name "AudioPlayer"
       :component-did-mount
       (fn [this]
+        (set! (.-onended (rdom/dom-node this))
+              #(rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)]))
         (when stream
-          (set! (.-src (rdom/dom-node this)) stream)
-          (set! (.-onended @!player) #(rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)]))))
+          (set! (.-src (rdom/dom-node this)) stream)))
       :reagent-render
       (fn [!player]
         (let [!elapsed-time @(rf/subscribe [:elapsed-time])
