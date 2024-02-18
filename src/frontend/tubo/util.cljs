@@ -2,6 +2,24 @@
   (:require
    ["timeago.js" :as timeago]))
 
+(defn get-service-color
+  [id]
+  (case id
+    0 "#cc0000"
+    1 "#ff7700"
+    2 "#333333"
+    3 "#F2690D"
+    4 "#629aa9"))
+
+(defn get-service-name
+  [id]
+  (case id
+    0 "YouTube"
+    1 "SoundCloud"
+    2 "media.ccc.de"
+    3 "PeerTube"
+    4 "Bandcamp"))
+
 (defn format-date-string
   [date]
   (-> date

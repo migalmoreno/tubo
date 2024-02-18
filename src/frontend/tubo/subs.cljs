@@ -1,7 +1,8 @@
 (ns tubo.subs
   (:require
    [reagent.core :as r]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.util :as util]))
 
 (defonce !is-window-visible
   (let [a (r/atom true)]
@@ -100,24 +101,14 @@
  (fn [_]
    (rf/subscribe [:service-id]))
  (fn [id _]
-   (case id
-     0 "#cc0000"
-     1 "#ff7700"
-     2 "#333333"
-     3 "#F2690D"
-     4 "#629aa9")))
+   (util/get-service-color id)))
 
 (rf/reg-sub
  :service-name
  (fn [_]
    (rf/subscribe [:service-id]))
  (fn [id _]
-   (case id
-     0 "YouTube"
-     1 "SoundCloud"
-     2 "media.ccc.de"
-     3 "PeerTube"
-     4 "Bandcamp")))
+   (util/get-service-name id)))
 
 (rf/reg-sub
  :services
