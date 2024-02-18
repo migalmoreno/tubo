@@ -398,8 +398,23 @@
                   [:dispatch [::fetch-audio-player-stream (:url (first streams))
                               (count (:media-queue db)) (= (count (:media-queue db)) 0)]]))}))
 
+(rf/reg-event-db
+ ::modal
+ (fn [db [_ data]]
+   (assoc db :modal data)))
+
 (rf/reg-event-fx
- ::add-to-bookmarks
+ ::close-modal
+ (fn [{:keys [db]} _]
+   {:db (assoc db :modal {:show? false :child nil})
+    ::body-overflow! false}))
+
+(rf/reg-event-fx
+ ::open-modal
+ (fn [_ [_ child]]
+   {:fx [[:dispatch [::modal {:show? true :child child}]]]
+    ::body-overflow! true}))
+
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark]]
    (when-not (some #(= (:url %) (:url bookmark)) (:bookmarks db))

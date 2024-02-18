@@ -66,6 +66,11 @@
    (:search-results db)))
 
 (rf/reg-sub
+ :modal
+ (fn [db _]
+   (:modal db)))
+
+(rf/reg-sub
  :stream
  (fn [db _]
    (:stream db)))
