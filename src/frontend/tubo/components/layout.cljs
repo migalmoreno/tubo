@@ -1,7 +1,24 @@
 (ns tubo.components.layout
   (:require
    [reagent.core :as r]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.util :as util]))
+
+(defn thumbnail
+  [thumbnail-url route name duration & {:keys [classes] :or {classes "h-44 xs:h-28"}}]
+  [:div.flex.py-2.box-border {:class classes}
+   [:div.relative.min-w-full
+    [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
+    (if thumbnail-url
+      [:img.rounded.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url}]
+      [:div.bg-gray-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
+       [:i.fa-solid.fa-image.text-3xl.text-white]])
+    (when duration
+      [:div.rounded.p-2.absolute {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
+       [:p.text-white {:style {:fontSize "14px"}}
+        (if (= duration 0)
+          "LIVE"
+          (util/format-duration duration))]])]])
 
 (defn logo []
   [:img.mb-1
