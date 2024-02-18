@@ -17,12 +17,12 @@
     :value     @elapsed-time}])
 
 (defn button
-  [icon on-click-cb & {:keys [disabled? show-on-mobile? extra-styles]}]
+  [icon on-click & {:keys [disabled? show-on-mobile? extra-classes]}]
   [:button.outline-none.focus:ring-transparent.px-2.pt-1
-   {:class    (let [styles (apply conj (when disabled? ["opacity-50" "cursor-auto"])
-                                  (when-not show-on-mobile? ["hidden" "lg:block"]))]
-                (apply str (if (> (count extra-styles) 1) (interpose " " (conj styles extra-styles)) (interpose " " styles))))
-    :on-click on-click-cb}
+   {:class    (let [classes (apply conj (when disabled? ["opacity-50" "cursor-auto"])
+                                   (when-not show-on-mobile? ["hidden" "lg:block"]))]
+                (apply str (if (> (count extra-classes) 1) (interpose " " (conj classes extra-classes)) (interpose " " classes))))
+    :on-click on-click}
    icon])
 
 (defn loop-button
@@ -39,7 +39,7 @@
                 :top       "-4px"}}
        "1"])]
    #(rf/dispatch [::events/toggle-loop-playback])
-   :extra-styles "text-sm"
+   :extra-classes "text-sm"
    :show-on-mobile? show-on-mobile?])
 
 (defn volume-slider [player volume-level muted? service-color]
