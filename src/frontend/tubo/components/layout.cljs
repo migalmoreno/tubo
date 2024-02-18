@@ -74,6 +74,38 @@
      [:i.text-neutral-500.dark:text-white.text-sm
       {:class right-icon}])])
 
+(defn generic-input [label & children]
+  [:div.w-full.flex.justify-between.items-center.py-2.gap-x-4
+   [:label label]
+   (map-indexed #(with-meta %2 {:key %1}) children)])
+
+(defn text-input
+  [label key value on-change placeholder]
+  [generic-input label
+   [:input.text-black
+    {:type          "text"
+     :default-value value
+     :on-change     on-change
+     :placeholder   placeholder}]])
+
+(defn boolean-input
+  [label key value on-change]
+  [generic-input label
+   [:input
+    {:type      "checkbox"
+     :checked   value
+     :value     value
+     :on-change on-change}]])
+
+(defn select-input
+  [label key value options on-change]
+  [generic-input label
+   [:select.focus:ring-transparent.bg-transparent.font-bold.font-nunito
+    {:value     value
+     :on-change on-change}
+    (for [[i option] (map-indexed vector options)]
+      ^{:key i} [:option.dark:bg-neutral-900.border-none {:value option :key i} option])]])
+
 (defn accordeon
   [{:keys [label on-open open? left-icon right-button]} & content]
   [:div.py-4

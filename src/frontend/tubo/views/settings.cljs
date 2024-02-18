@@ -6,23 +6,12 @@
 
 (defn boolean-input
   [label key value]
-  [:div.w-full.flex.justify-between.items-center.py-2
-   [:label label]
-   [:input
-    {:type      "checkbox"
-     :checked   value
-     :value     value
-     :on-change #(rf/dispatch [::events/change-setting key (not value)])}]])
+  [layout/boolean-input label key value #(rf/dispatch [::events/change-setting key (not value)])])
 
 (defn select-input
   [label key value options on-change]
-  [:div.w-full.flex.justify-between.items-center.py-2
-   [:label label]
-   [:select.focus:ring-transparent.bg-transparent.font-bold.font-nunito
-    {:value     value
-     :on-change (or on-change #(rf/dispatch [::events/change-setting key (.. % -target -value)]))}
-    (for [[i option] (map-indexed vector options)]
-      [:option.dark:bg-neutral-900.border-none {:value option :key i} option])]])
+  [layout/select-input label key value options
+   (or on-change #(rf/dispatch [::events/change-setting key (.. % -target -value)]))])
 
 (defn settings-page []
   (let [{:keys [theme themes show-comments show-related
