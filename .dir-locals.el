@@ -12,4 +12,5 @@
                      (require 'cider))
                    (make-variable-buffer-local 'cider-jack-in-nrepl-middlewares)
                    (add-to-list 'cider-jack-in-nrepl-middlewares "cider.nrepl/cider-middleware")
-                   (add-to-list 'cider-jack-in-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))))))
+                   (add-to-list 'cider-jack-in-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware")))
+         (eval . (setq-local compile-command "npm start")))))
