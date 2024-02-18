@@ -25,6 +25,7 @@
                 day8.re-frame/http-fx {:mvn/version "0.2.4"}
                 cljs-ajax/cljs-ajax {:mvn/version "0.8.4"}
                 akiroz.re-frame/storage {:mvn/version "0.1.4"}
-                re-frame-utils/re-frame-utils {:mvn/version "0.1.0"}}
+                re-frame-utils/re-frame-utils {:mvn/version "0.1.0"}
+                nano-id/nano-id {:mvn/version "1.1.0"}}
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :run {:main-opts ["-m" "tubo.core"]}}}

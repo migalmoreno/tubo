@@ -12,10 +12,10 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 -   [X] No ads
 -   [X] Audio player
 -   [X] Media queue
--   [ ] Playlists
--   [X] Local settings
--   [ ] Local subscriptions
--   [ ] User management
+-   [X] Playlists
+-   [X] Settings
+-   [ ] Subscriptions
+-   [ ] User login
 
 
 ## Instances
@@ -43,7 +43,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org7e7911e). See [installation](#org0916606) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org2c797ae). See [installation](#orgc5e387d) for ways to set up Tubo in your server.  
 
 
 ## Installation

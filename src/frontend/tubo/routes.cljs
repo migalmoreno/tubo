@@ -46,8 +46,13 @@
     ["/settings" {:view settings/settings-page
                   :name ::settings
                   :controllers [{:start #(rf/dispatch [::events/get-settings-page])}]}]
+    ["/bookmark" {:view bookmarks/bookmark-page
+                  :name ::bookmark
+                  :controllers [{:parameters {:query [:id]}
+                                 :start (fn [{{:keys [id]} :query}]
+                                          (rf/dispatch [::events/get-bookmark-page id]))}]}]
     ["/bookmarks" {:view bookmarks/bookmarks-page
-                   :name ::playlists
+                   :name ::bookmarks
                    :controllers [{:start #(rf/dispatch [::events/get-bookmarks-page])}]}]]))
 
 (defn on-navigate

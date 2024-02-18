@@ -3,10 +3,12 @@
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
    [day8.re-frame.http-fx]
    [goog.object :as gobj]
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
    [tubo.api :as api]
+   [tubo.components.modals.bookmarks :as bookmarks]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (reg-co-fx! :tubo {:fx :store :cofx :store})
@@ -30,7 +32,11 @@
        :media-queue       (if (nil? media-queue) [] media-queue)
        :media-queue-pos   (if (nil? media-queue-pos) 0 media-queue-pos)
        :volume-level      (if (nil? volume-level) 100 volume-level)
-       :bookmarks         (if (nil? bookmarks) [] bookmarks)
+       :bookmarks         (if (nil? bookmarks)
+                            [{:id    (nano-id)
+                              :name  "Liked Streams"
+                              :items []}]
+                              bookmarks)
        :muted             (if (nil? muted) false muted)
        :current-match     nil
        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
@@ -415,18 +421,77 @@
    {:fx [[:dispatch [::modal {:show? true :child child}]]]
     ::body-overflow! true}))
 
+(rf/reg-event-fx
+ ::add-bookmark-list-modal
+ (fn [_ [_ child]]
+   {:fx [[:dispatch [::open-modal child]]]}))
+
+(rf/reg-event-fx
+ ::add-bookmark-list
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark]]
-   (when-not (some #(= (:url %) (:url bookmark)) (:bookmarks db))
-     (let [updated-db (update db :bookmarks conj bookmark)]
+   (let [updated-db (update db :bookmarks conj (assoc bookmark :id (nano-id)))]
+     {:db    updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))
+      :fx [[:dispatch [::close-modal]]]})))
+
+(rf/reg-event-fx
+ ::back-to-bookmark-list-modal
+ (fn [_ [_ item]]
+   {:fx [[:dispatch [::open-modal [bookmarks/add-to-bookmark-list-modal item]]]]}))
+
+(rf/reg-event-fx
+ ::add-bookmark-list-and-back
+ (fn [_ [_ bookmark item]]
+   {:fx [[:dispatch [::add-bookmark-list bookmark]]
+         [:dispatch [::back-to-bookmark-list-modal item]]]}))
+
+(rf/reg-event-fx
+ ::remove-bookmark-list
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ id]]
+   (let [updated-db (update db :bookmarks #(into [] (remove (fn [bookmark] (= (:id bookmark) id)) %)))]
+     {:db    updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))})))
+
+(rf/reg-event-fx
+ ::add-to-likes
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ bookmark]]
+   (when-not (some #(= (:url %) (:url bookmark)) (-> db :bookmarks first :items))
+     (let [updated-db (update-in db [:bookmarks 0 :items] #(into [] (conj (into [] %1) %2))
+                                 (assoc bookmark :bookmark-id (-> db :bookmarks first :id)))]
        {:db    updated-db
         :store (assoc store :bookmarks (:bookmarks updated-db))}))))
 
 (rf/reg-event-fx
- ::remove-from-bookmarks
+ ::remove-from-likes
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark]]
-   (let [updated-db (update db :bookmarks #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
+   (let [updated-db (update-in db [:bookmarks 0 :items] #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
+     {:db updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))})))
+
+(rf/reg-event-fx
+ ::add-to-bookmark-list
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ bookmark item]]
+   (let [bookmark-list (first (filter #(= (:id %) (:id bookmark)) (:bookmarks db)))
+         pos           (.indexOf (:bookmarks db) bookmark-list)
+         updated-db    (if (some #(= (:url %) (:url item)) (:items bookmark-list))
+                         db
+                         (update-in db [:bookmarks pos :items] #(into [] (conj (into [] %1) %2))
+                                    (assoc item :bookmark-id (:id bookmark))))]
+     {:db    updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))
+      :fx    [[:dispatch [::close-modal]]]})))
+
+(rf/reg-event-fx
+ ::remove-from-bookmark-list
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ bookmark]]
+   (let [bookmark-list (.indexOf (:bookmarks db) (first (filter #(= (:id %) (:bookmark-id bookmark)) (:bookmarks db))))
+         updated-db (update-in db [:bookmarks bookmark-list :items] #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
      {:db updated-db
       :store (assoc store :bookmarks (:bookmarks updated-db))})))
 
@@ -755,3 +820,9 @@
  ::get-bookmarks-page
  (fn [_]
    {::document-title! "Bookmarks"}))
+
+(rf/reg-event-fx
+ ::get-bookmark-page
+ (fn [{:keys [db]} [_ playlist-id]]
+   (let [playlist (first (filter #(= (:id %) playlist-id) (:bookmarks db)))]
+     {::document-title! (:name playlist)})))

@@ -130,7 +130,7 @@
     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
      {:class "border-t-[1px]"}
      [:ul.flex.flex-col.font-roboto
-      [mobile-nav-item (rfe/href ::routes/playlists) "fa-solid fa-bookmark" "Bookmarks"]
+      [mobile-nav-item (rfe/href ::routes/bookmarks) "fa-solid fa-bookmark" "Bookmarks"]
       [mobile-nav-item (rfe/href ::routes/settings) "fa-solid fa-cog" "Settings"]
       [mobile-nav-item "https://github.com/migalmoreno/tubo"
        "fa-brands fa-github" "Source" :new-tab? true]]]]])

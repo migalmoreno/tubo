@@ -9,10 +9,10 @@ To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/Ne
 - [X] No ads
 - [X] Audio player
 - [X] Media queue
-- [ ] Playlists
-- [X] Local settings
-- [ ] Local subscriptions
-- [ ] User management
+- [X] Playlists
+- [X] Settings
+- [ ] Subscriptions
+- [ ] User login
 
 ** Instances
 | URL                                     | Country |
