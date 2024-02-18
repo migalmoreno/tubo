@@ -46,7 +46,7 @@
         {:class "lg:w-4/5 xl:w-3/5"}
         [:div.flex.justify-between.items-center.shrink-0
          [:h1.text-2xl.font-bold.py-6 "Play Queue"]
-         [:button.mx-2
+         [:button.p-2.text-xl
           [:i.fa-solid.fa-close
            {:on-click #(rf/dispatch [::events/toggle-media-queue])}]]]
         [:div.flex.flex-col.pr-2.overflow-y-auto.flex-auto
