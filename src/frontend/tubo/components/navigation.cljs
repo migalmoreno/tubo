@@ -111,7 +111,7 @@
   [show-mobile-nav? service-color services available-kiosks {:keys [service-id] :as kiosk-args}]
   [:<>
    [layout/focus-overlay #(rf/dispatch [::events/toggle-mobile-nav]) show-mobile-nav?]
-   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900
+   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
     {:class (str "transition-[right] " (if show-mobile-nav? "right-0" "right-[-245px]"))}
     [:div.flex.justify-center.py-8.items-center.text-white {:style {:background service-color}}
      [layout/logo]
@@ -145,7 +145,7 @@
         show-mobile-nav?                         @(rf/subscribe [:show-mobile-nav])
         show-search-form?                        @(rf/subscribe [:show-search-form])
         {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
-    [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-50.font-nunito
+    [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20.font-nunito
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
       [:div.ml-4
