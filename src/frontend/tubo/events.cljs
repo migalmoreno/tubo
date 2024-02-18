@@ -169,10 +169,10 @@
    {::history-go! idx}))
 
 (rf/reg-event-db
- ::toggle-search-form
- (fn [db _]
+ ::show-search-form
+ (fn [db [_ show?]]
    (when-not (= (-> db :current-match :path) "search")
-     (assoc db :show-search-form (not (:show-search-form db))))))
+     (assoc db :show-search-form show?))))
 
 (rf/reg-event-fx
  ::toggle-mobile-nav

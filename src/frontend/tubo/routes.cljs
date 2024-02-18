@@ -22,7 +22,7 @@
                 :controllers [{:parameters {:query [:q :serviceId]}
                                :start (fn [{{:keys [serviceId q]} :query}]
                                         (rf/dispatch [::events/get-search-page serviceId q]))
-                               :stop #(rf/dispatch [::events/toggle-search-form])}]}]
+                               :stop #(rf/dispatch [::events/show-search-form false])}]}]
     ["/stream" {:view stream/stream
                 :name ::stream
                 :controllers [{:parameters {:query [:url]}

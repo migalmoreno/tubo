@@ -35,7 +35,7 @@
                              :query  {:q search-query :serviceId service-id}}])))}
          [:div.flex
           [:button.mx-2
-           {:on-click #(rf/dispatch [::events/toggle-search-form])
+           {:on-click #(rf/dispatch [::events/show-search-form false])
             :type     "button"}
            [:i.fa-solid.fa-arrow-left]]
           [:input.bg-transparent.border-none.py-2.pr-6.mx-2.focus:ring-transparent.placeholder-white.sm:w-96.w-full
@@ -169,13 +169,13 @@
        [:div.flex.items-center.text-white.justify-end
         (when-not show-search-form?
           [:button.mx-3
-           {:on-click #(rf/dispatch [::events/toggle-search-form])}
+           {:on-click #(rf/dispatch [::events/show-search-form true])}
            [:i.fa-solid.fa-search]])
         [:a.mx-3.hidden.lg:block
          {:href (rfe/href ::routes/settings)}
          [:i.fa-solid.fa-cog]]
         [:a.mx-3.hidden.lg:block
-         {:href (rfe/href ::routes/playlists)}
+         {:href (rfe/href ::routes/bookmarks)}
          [:i.fa-solid.fa-bookmark]]
         [:a.mx-3.hidden.lg:block
          {:href "https://github.com/migalmoreno/tubo" :target "_blank"}
