@@ -132,8 +132,9 @@
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [::events/add-bookmark-list-modal
-                                         [bookmarks/add-to-bookmark-list-modal current-stream]])}]
+                                         [bookmarks/add-to-bookmark-list-modal current-stream]])}
+               {:label    "Close player"
+                :icon     [:i.fa-solid.fa-close]
+                :on-click #(rf/dispatch [::events/dispose-audio-player])}]
               :menu-styles {:bottom "0px" :top nil}
-              :extra-classes "pt-1 !pl-2 pr-2 "]
-             [player/button [:i.fa-solid.fa-close] #(rf/dispatch [::events/dispose-audio-player])
-              :show-on-mobile? true]]]])))))
+              :extra-classes "pt-1 !pl-2 pr-2 "]]]])))))
