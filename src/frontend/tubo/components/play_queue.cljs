@@ -47,8 +47,8 @@
         [:div.flex.justify-between.items-center.shrink-0
          [:h1.text-2xl.font-bold.py-6 "Play Queue"]
          [:button.p-2.text-xl
-          [:i.fa-solid.fa-close
-           {:on-click #(rf/dispatch [::events/toggle-media-queue])}]]]
+          {:on-click #(rf/dispatch [::events/toggle-media-queue])}
+          [:i.fa-solid.fa-close]]]
         [:div.flex.flex-col.pr-2.overflow-y-auto.flex-auto
          (for [[i item] (map-indexed vector media-queue)]
            ^{:key i} [play-queue-item item media-queue-pos i])]
