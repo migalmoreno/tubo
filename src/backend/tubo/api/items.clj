@@ -3,6 +3,7 @@
 (defn get-stream-item
   [stream]
   {:type :stream
+   :service-id (.getServiceId stream)
    :url (.getUrl stream)
    :name (.getName stream)
    :thumbnail-url (.getThumbnailUrl stream)
@@ -20,6 +21,7 @@
 (defn get-channel-item
   [channel]
   {:type :channel
+   :service-id (.getServiceId channel)
    :url (.getUrl channel)
    :name (.getName channel)
    :thumbnail-url (.getThumbnailUrl channel)
@@ -31,6 +33,7 @@
 (defn get-playlist-item
   [playlist]
   {:type :playlist
+   :service-id (.getServiceId playlist)
    :url (.getUrl playlist)
    :name (.getName playlist)
    :thumbnail-url (.getThumbnailUrl playlist)
