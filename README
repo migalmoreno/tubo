@@ -1,4 +1,4 @@
-# -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; after-save-hook: org-md-export-to-markdown; -*-
+# -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; after-save-hook: (lambda nil (org-export-to-file 'md (org-export-output-file-name ".md")) (org-export-to-file 'md (org-export-output-file-name ".md" nil ".github/"))); -*-
 #+OPTIONS: toc:nil num:nil
 * Tubo
 Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.

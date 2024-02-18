@@ -43,7 +43,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org2c797ae). See [installation](#orgc5e387d) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org38d0a10). See [installation](#org20cbb90) for ways to set up Tubo in your server.  
 
 
 ## Installation
