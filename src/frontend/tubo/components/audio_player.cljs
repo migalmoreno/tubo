@@ -6,6 +6,7 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.components.layout :as layout]
+   [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.components.player :as player]
    [tubo.events :as events]
    [tubo.util :as util]))
@@ -66,7 +67,7 @@
            [:i.fa-solid.fa-pause]))
        #(rf/dispatch [::events/set-player-paused (not paused?)])
        :show-on-mobile? true
-       :extra-styles "lg:text-2xl"]
+       :extra-classes "lg:text-2xl"]
       [player/button [:i.fa-solid.fa-forward]
        #(rf/dispatch [::events/set-player-time (+ @!elapsed-time 5)])]
       [player/button [:i.fa-solid.fa-forward-step]
@@ -83,39 +84,56 @@
 
 (defn player
   []
-  (let [{:keys
-         [uploader-name uploader-url thumbnail-url
-          name stream url service-color] :as current-stream}
-        @(rf/subscribe [:media-queue-stream])
-        show-audio-player? @(rf/subscribe [:show-audio-player])
-        show-media-queue?  @(rf/subscribe [:show-media-queue])
-        volume-level       @(rf/subscribe [:volume-level])
-        muted?             @(rf/subscribe [:muted])
-        !player            @(rf/subscribe [:player])
-        {:keys [theme]}    @(rf/subscribe [:settings])
-        bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")]
-    (when show-audio-player?
-      [:div.sticky.bottom-0.z-40.p-3.absolute.box-border.m-0
-       {:style
-        {:display            (when show-media-queue? "none")
-         :background-image   (str "linear-gradient(0deg, " bg-color "," bg-color "), url(\"" thumbnail-url "\")")
-         :backgroundSize     "cover"
-         :backgroundPosition "center"
-         :backgroundRepeat   "no-repeat"}}
-       [:div.flex.items-center.justify-between
-        [:div.flex.items-center.lg:flex-1
-         [:div {:style {:height "40px" :width "70px" :maxWidth "70px" :minWidth "70px"}}
-          [:img.min-h-full.max-h-full.object-cover.min-w-full.max-w-full.w-full {:src thumbnail-url}]]
-         [:div.flex.flex-col.px-2
-          [:a.text-xs.line-clamp-1
-           {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
-          [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
-           {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
-         [audio-source !player]]
-        [main-controls service-color]
-        [:div.flex.lg:justify-end.lg:flex-1
-         [player/volume-slider !player volume-level muted? service-color]
-         [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
-          :show-on-mobile? true]
-         [player/button [:i.fa-solid.fa-close] #(rf/dispatch [::events/dispose-audio-player])
-          :show-on-mobile? true]]]])))
+  (let [!menu-active? (r/atom nil)]
+    (fn []
+      (let [{:keys
+             [uploader-name uploader-url thumbnail-url
+              name stream url service-id] :as current-stream}
+            @(rf/subscribe [:media-queue-stream])
+            show-audio-player? @(rf/subscribe [:show-audio-player])
+            show-media-queue?  @(rf/subscribe [:show-media-queue])
+            volume-level       @(rf/subscribe [:volume-level])
+            muted?             @(rf/subscribe [:muted])
+            bookmarks          @(rf/subscribe [:bookmarks])
+            !player            @(rf/subscribe [:player])
+            {:keys [theme]}    @(rf/subscribe [:settings])
+            service-color      (and service-id (util/get-service-color service-id))
+            bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")
+            liked?             (some #(= (:url %) url) (-> bookmarks first :items))]
+        (when show-audio-player?
+          [:div.sticky.bottom-0.z-10.p-3.absolute.box-border.m-0
+           {:style
+            {:display            (when show-media-queue? "none")
+             :background-image   (str "linear-gradient(0deg, " bg-color "," bg-color "), url(\"" thumbnail-url "\")")
+             :backgroundSize     "cover"
+             :backgroundPosition "center"
+             :backgroundRepeat   "no-repeat"}}
+           [:div.flex.items-center.justify-between
+            [:div.flex.items-center.lg:flex-1
+             [:div {:style {:height "40px" :width "70px" :maxWidth "70px" :minWidth "70px"}}
+              [:img.min-h-full.max-h-full.object-cover.min-w-full.max-w-full.w-full {:src thumbnail-url}]]
+             [:div.flex.flex-col.px-2
+              [:a.text-xs.line-clamp-1
+               {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
+              [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
+               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
+             [audio-source !player]]
+            [main-controls service-color]
+            [:div.flex.lg:justify-end.lg:flex-1
+             [player/volume-slider !player volume-level muted? service-color]
+             [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
+              :show-on-mobile? true]
+             [layout/more-menu !menu-active?
+              [{:label    (if liked? "Remove favorite" "Favorite")
+                :icon     (if liked?
+                            [:i.fa-solid.fa-heart {:style {:color service-color}}]
+                            [:i.fa-regular.fa-heart])
+                :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) current-stream])}
+               {:label    "Add to playlist"
+                :icon     [:i.fa-solid.fa-plus]
+                :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                         [bookmarks/add-to-bookmark-list-modal current-stream]])}]
+              :menu-styles {:bottom "0px" :top nil}
+              :extra-classes "pt-1 !pl-2 pr-2 "]
+             [player/button [:i.fa-solid.fa-close] #(rf/dispatch [::events/dispose-audio-player])
+              :show-on-mobile? true]]]])))))
