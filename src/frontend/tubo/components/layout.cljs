@@ -106,6 +106,38 @@
     (for [[i option] (map-indexed vector options)]
       ^{:key i} [:option.dark:bg-neutral-900.border-none {:value option :key i} option])]])
 
+(defn menu-item
+  [{:keys [label icon on-click link]}]
+  (let [content [:<>
+                 [:span.text-xs icon]
+                 [:span.whitespace-nowrap label]]]
+    (if link
+      [:a.flex.gap-x-3.items-center.hover:bg-gray-100.dark:hover:bg-stone-800.py-2.px-3.rounded
+       {:href (:route link) :target (when (:external? link) "_blank")}
+       content]
+      [:li.flex.gap-x-3.items-center.hover:bg-gray-100.dark:hover:bg-stone-800.py-2.px-3.rounded
+       {:on-click on-click}
+       content])))
+
+(defn menu
+  [active? items & {:keys [right top bottom left] :or {right "15px" top "0px"}}]
+  (when-not (empty? (remove nil? items))
+    [:ul.absolute.bg-white.dark:bg-neutral-900.border.border-neutral-300.dark:border-stone-700.rounded-t.rounded-b.z-20.p-2.flex.flex-col
+     {:class (when-not active? "hidden")
+      :style {:right right :left left :top top :bottom bottom}}
+     (for [[i item] (map-indexed vector (remove nil? items))]
+       ^{:key i} [menu-item item])]))
+
+(defn more-menu
+  [!menu-active? items & {:keys [menu-styles extra-classes]}]
+  [:div.flex.items-center
+   [focus-overlay #(reset! !menu-active? false) @!menu-active? true]
+   [:button.focus:outline-none.relative.pl-4
+    {:on-click #(reset! !menu-active? (not @!menu-active?))
+     :class extra-classes}
+    [:i.fa-solid.fa-ellipsis-vertical]
+    [menu @!menu-active? items menu-styles]]])
+
 (defn accordeon
   [{:keys [label on-open open? left-icon right-button]} & content]
   [:div.py-4
