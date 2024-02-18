@@ -16,12 +16,12 @@
     {:class (apply str (if (> (count styles) 1) (interpose " " styles) styles))
      :style {:color service-color}}]])
 
-(defn focus-overlay [on-click-cb active?]
-  [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out
-   {:class    "bg-black/50"
+(defn focus-overlay [on-click active? transparent?]
+  [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out.z-20
+   {:class    (when-not transparent? "bg-black")
     :style    {:visibility (when-not active? "hidden")
-               :opacity    (if active? "1" "0")}
-    :on-click on-click-cb}])
+               :opacity    (if active? "0.5" "0")}
+    :on-click on-click}])
 
 (defn content-container
   [& children]
