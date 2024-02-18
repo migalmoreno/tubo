@@ -51,9 +51,9 @@
          image)])))
 
 (defn primary-button
-  [label on-click-cb left-icon right-icon]
+  [label on-click left-icon right-icon]
   [:button.dark:bg-white.bg-stone-800.px-4.rounded-3xl.py-1.outline-none.focus:ring-transparent.whitespace-nowrap
-   {:on-click on-click-cb}
+   {:on-click on-click}
    (when left-icon
      [:i.text-neutral-300.dark:text-neutral-800.text-sm
       {:class left-icon}])
@@ -63,9 +63,9 @@
       {:class right-icon}])])
 
 (defn secondary-button
-  [label on-click-cb left-icon right-icon]
+  [label on-click left-icon right-icon]
   [:button.dark:bg-transparent.bg-neutral-100.px-4.rounded-3xl.py-1.border.border-neutral-300.dark:border-stone-700.outline-none.focus:ring-transparent.whitespace-nowrap
-   {:on-click on-click-cb}
+   {:on-click on-click}
    (when left-icon
      [:i.text-neutral-500.dark:text-white.text-sm
       {:class left-icon}])
