@@ -122,7 +122,8 @@
             [:div.flex.lg:justify-end.lg:flex-1
              [player/volume-slider !player volume-level muted? service-color]
              [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
-              :show-on-mobile? true]
+              :show-on-mobile? true
+              :extra-classes "pl-4 pr-3"]
              [layout/more-menu !menu-active?
               [{:label    (if liked? "Remove favorite" "Favorite")
                 :icon     (if liked?
@@ -136,5 +137,5 @@
                {:label    "Close player"
                 :icon     [:i.fa-solid.fa-close]
                 :on-click #(rf/dispatch [::events/dispose-audio-player])}]
-              :menu-styles {:bottom "0px" :top nil}
-              :extra-classes "pt-1 !pl-2 pr-2 "]]]])))))
+              :menu-styles {:bottom "30px" :top nil :right "30px"}
+              :extra-classes "pt-1 !pl-3 pr-3"]]]])))))

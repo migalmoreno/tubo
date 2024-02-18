@@ -50,14 +50,15 @@
         :on-mouse-out #(reset! show-slider? false)}
        [button
         (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-        #(rf/dispatch [::events/toggle-mute player])]
+        #(rf/dispatch [::events/toggle-mute player])
+        :extra-classes "pl-3 pr-2"]
        (when @show-slider?
          [:input.rounded-lg.w-24.cursor-pointer.focus:outline-none.absolute
           {:class    "rotate-[270deg]"
            :type     "range"
            :on-input #(rf/dispatch [::events/change-volume-level (.. % -target -value) player])
            :style    {:accentColor service-color
-                      :left "-32.5px"
+                      :left "-29px"
                       :bottom "63px"}
            :max      100
            :value    volume-level}])])))
