@@ -13,7 +13,7 @@
   ([]
    (start-server! 3000))
   ([port]
-   (NewPipe/init (DownloaderImpl/init) (Localization. "en" "GB"))
+   (NewPipe/init (DownloaderImpl/init) (Localization. "en" "US"))
    (reset! server (run-server #'routes/app {:port port}))
    (println "Server running in port" port)))
 
