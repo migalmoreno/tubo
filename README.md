@@ -36,10 +36,10 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 <tbody>
 <tr>
 <td class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk_dark.jpg" alt="tubo_kiosk_dark.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_channel_dark.jpg" alt="tubo_channel_dark.jpg" /></td>
 <td class="org-left"><img src="https://files.migalmoreno.com/tubo_stream_dark.jpg" alt="tubo_stream_dark.jpg" /></td>
 <td class="org-left"><img src="https://files.migalmoreno.com/tubo_queue_dark.jpg" alt="tubo_queue_dark.jpg" /></td>
 <td class="org-left"><img src="https://files.migalmoreno.com/tubo_bookmarks_dark.jpg" alt="tubo_bookmarks_dark.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_mobile_dark.jpg" alt="tubo_mobile_dark.jpg" /></td>
 </tr>
 </tbody>
 </table>
@@ -81,7 +81,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org7b519c2). See [installation](#org817f9f5) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org4f2c30d). See [installation](#orgd3b8106) for ways to set up Tubo in your server.  
 
 
 ## Installation
