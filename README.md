@@ -7,6 +7,44 @@ Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.c
 To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
 
 
+## Screenshots
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk_light.jpg" alt="tubo_kiosk_light.jpg" /></th>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_channel_light.jpg" alt="tubo_channel_light.jpg" /></th>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_stream_light.jpg" alt="tubo_stream_light.jpg" /></th>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_queue_light.jpg" alt="tubo_queue_light.jpg" /></th>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_settings_light.jpg" alt="tubo_settings_light.jpg" /></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk_dark.jpg" alt="tubo_kiosk_dark.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_stream_dark.jpg" alt="tubo_stream_dark.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_queue_dark.jpg" alt="tubo_queue_dark.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_bookmarks_dark.jpg" alt="tubo_bookmarks_dark.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_mobile_dark.jpg" alt="tubo_mobile_dark.jpg" /></td>
+</tr>
+</tbody>
+</table>
+
+
 ## Features
 
 -   [X] No ads
@@ -43,7 +81,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org38d0a10). See [installation](#org20cbb90) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org7b519c2). See [installation](#org817f9f5) for ways to set up Tubo in your server.  
 
 
 ## Installation
@@ -114,36 +152,6 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
                 proxy_set_header HOST $http_host;
             }
         }
-
-
-## Screenshots
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">Kiosk</th>
-<th scope="col" class="org-left">Channel</th>
-<th scope="col" class="org-left">Stream</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk.jpg" alt="tubo_kiosk.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_channel.jpg" alt="tubo_channel.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_stream.jpg" alt="tubo_stream.jpg" /></td>
-</tr>
-</tbody>
-</table>
 
 
 ## Contributing
