@@ -32,7 +32,7 @@
                                      :bookmark-id (:id %)) bookmarks)]
       [layout/content-container
        [layout/content-header "Bookmarks"
-        [layout/more-menu !menu-active?
+        [layout/popover-menu !menu-active?
          [{:label    "Create playlist"
            :icon     [:i.fa-solid.fa-plus]
            :on-click #(rf/dispatch [::events/open-modal [add-bookmark-modal]])}]]]
@@ -49,7 +49,7 @@
         [layout/content-container
          [layout/content-header name
           (when-not (empty? items)
-            [layout/more-menu !menu-active?
+            [layout/popover-menu !menu-active?
              [{:label    "Add to queue"
                :icon     [:i.fa-solid.fa-headphones]
                :on-click #(rf/dispatch [::events/enqueue-related-streams items])}]])]

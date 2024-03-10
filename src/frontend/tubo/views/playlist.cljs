@@ -23,7 +23,7 @@
          [:div.flex.flex-col.justify-center
           [layout/content-header name
            (when related-streams
-             [layout/more-menu !menu-active?
+             [layout/popover-menu !menu-active?
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
                 :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}]])]

@@ -57,7 +57,7 @@
            (when (and uploader-url verified?)
              [:i.fa-solid.fa-circle-check])]
           (when-not (empty? (remove nil? items))
-            [layout/more-menu !menu-active? items])]
+            [layout/popover-menu !menu-active? items])]
          (when (and subscriber-count (not stream?))
            [:div.flex.items-center
             [:i.fa-solid.fa-users.text-xs]

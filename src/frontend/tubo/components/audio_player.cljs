@@ -124,7 +124,7 @@
              [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
               :show-on-mobile? true
               :extra-classes "pl-4 pr-3"]
-             [layout/more-menu !menu-active?
+             [layout/popover-menu !menu-active?
               [{:label    (if liked? "Remove favorite" "Favorite")
                 :icon     (if liked?
                             [:i.fa-solid.fa-heart {:style {:color service-color}}]

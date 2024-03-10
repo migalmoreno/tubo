@@ -145,7 +145,7 @@
      (for [[i item] (map-indexed vector (remove nil? items))]
        ^{:key i} [menu-item item])]))
 
-(defn more-menu
+(defn popover-menu
   [!menu-active? items & {:keys [menu-styles extra-classes]}]
   [:div.flex.items-center
    [focus-overlay #(reset! !menu-active? false) @!menu-active? true]

@@ -61,7 +61,7 @@
             [:div.flex-auto
              [:h1.text-lg.sm:text-2xl.font-nunito-bold.line-clamp-1 name]]
             [:div.flex.flex-auto.justify-end.items-center
-             [layout/more-menu !stream-menu-active?
+             [layout/popover-menu !stream-menu-active?
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
                 :on-click #(rf/dispatch [::events/switch-to-audio-player stream])}
@@ -130,7 +130,7 @@
                :on-open      #(rf/dispatch [::events/toggle-stream-layout :show-related])
                :open?        (not show-related)
                :left-icon    "fa-solid fa-list"
-               :right-button [layout/more-menu !suggested-menu-active?
+               :right-button [layout/popover-menu !suggested-menu-active?
                               [{:label    "Add to queue"
                                 :icon     [:i.fa-solid.fa-headphones]
                                 :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}]]}
