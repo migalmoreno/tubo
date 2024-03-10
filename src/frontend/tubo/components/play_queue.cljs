@@ -15,7 +15,7 @@
    {:class    (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
     :on-click #(rf/dispatch [::events/change-media-queue-pos i])}
    [:div.w-56
-    [layout/thumbnail thumbnail-url url name duration {:classes "h-24"}]]
+    [layout/thumbnail thumbnail-url nil name duration {:classes "h-24"}]]
    [:div.flex.flex-col.px-4.py-2.w-full
     [:h1.line-clamp-1 name]
     [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex.flex-col.xs:flex-row
