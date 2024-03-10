@@ -14,8 +14,12 @@
   object-fit: cover;
 }
 
-.vjs-tubo .vjs-control-bar {
+.vjs-tubo .vjs-control-bar, .vjs-tubo .vjs-volume-control {
   background: none;
+}
+
+.vjs-tubo .vjs-current-time, .vjs-tubo .vjs-time-divider, .vjs-tubo .vjs-duration {
+  display: block;
 }
 
 .vjs-tubo .vjs-big-play-button, .vjs-tubo.vjs-paused .vjs-big-play-button {
