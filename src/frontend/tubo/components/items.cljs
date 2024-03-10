@@ -25,7 +25,7 @@
                      {:label    (if liked? "Remove favorite" "Favorite")
                       :icon     (if liked?
                                   [:i.fa-solid.fa-heart {:style {:color (util/get-service-color service-id)}}]
-                                  [:i.fa-regular.fa-heart])
+                                  [:i.fa-solid.fa-heart])
                       :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) item])}
                      (if (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
                        {:label    "Remove from playlist"

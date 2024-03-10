@@ -128,7 +128,7 @@
               [{:label    (if liked? "Remove favorite" "Favorite")
                 :icon     (if liked?
                             [:i.fa-solid.fa-heart {:style {:color service-color}}]
-                            [:i.fa-regular.fa-heart])
+                            [:i.fa-solid.fa-heart])
                 :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) current-stream])}
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
