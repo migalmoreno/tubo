@@ -22,7 +22,8 @@ To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/Ne
 ** Instances
 | URL                                     | Country |
 |-----------------------------------------+---------|
-| https://tubo.migalmoreno.com (Official) | 🇪🇸      |
+| https://tubo.migalmoreno.com (Official) | 🇪🇸    |
+| [[https://tubo.reallyaweso.me][https://tubo.reallyaweso.me]]             | 🇩🇪    |
 
 If you consider self-hosting Tubo let me know about your instance via the [[*Contributing][contribution methods]]. See [[*Installation][installation]] for ways to set up Tubo in your server.
 
@@ -103,6 +104,83 @@ server {
         proxy_set_header HOST $http_host;
     }
 }
+#+end_src
+
+** Browser Extension Support
+*** [[https://github.com/einaregilsson/Redirector][Redirector]]
+You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you can get a basic idea of how to write manual Redirector rules. Note the =serviceId= of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4). Replace https://tubo.migalmoreno.com/ in the redirect rule to the instance of your choice.
+
+#+begin_src
+Description: YouTube video to Tubo stream
+Example URL: https://www.youtube.com/watch?v=YE7VzlLtp-4
+Include pattern: ^((?:https?://)(?:www.)?youtube.com/(watch\?v.*|shorts/.*))
+Redirect to: https://tubo.migalmoreno.com/stream?url=$1
+Example result:
+https://tubo.migalmoreno.com/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
+Pattern type: Regular Expression
+Apply to: Main window (address bar)
+#+end_src
+
+#+begin_src
+Description: SoundCloud stream to Tubo stream
+Example URL: https://soundcloud.com/unfa/stop-the-panic
+Include pattern: ^((?:https?://)(?:www.)?soundcloud.com/.*/.*)
+Redirect to: https://tubo.migalmoreno.com/stream?url=$1
+Example result:
+https://tubo.migalmoreno.com/stream?url=https://soundcloud.com/unfa/stop-the-panic
+Pattern type: Regular Expression
+Apply to: Main window (address bar)
+#+end_src
+
+#+begin_src
+Description: Bandcamp album to Tubo playlist
+Example URL: https://unfa.bandcamp.com/album/suppressed
+Include pattern: ^((?:https?://)(.*\.)?bandcamp.com/album/.*)
+Redirect to: https://tubo.migalmoreno.com/playlist?url=$1
+Example result: https://tubo.migalmoreno.com/playlist?url=https://unfa.bandcamp.com/album/suppressed
+Pattern type: Regular Expression
+Apply to: Main window (address bar)
+#+end_src
+
+#+begin_src
+Description: PeerTube (Framatube) channel to Tubo channel
+Example URL: https://framatube.org/accounts/framasoft@framatube.org
+Include pattern: ^((?:https?://)(?:www.)?framatube.org/accounts/.*)
+Redirect to: https://tubo.migalmoreno.com/channel?url=$1
+Example result:
+https://tubo.migalmoreno.com/channel?url=https://framatube.org/accounts/framasoft@framatube.org
+Pattern type: Regular Expression
+Apply to: Main window (address bar)
+#+end_src
+
+#+begin_src
+Description: media.ccc.de search query to Tubo search query
+Example URL: https://media.ccc.de/search/?q=37c3
+Include pattern: ^(?:https?://)media.ccc.de/search/\?q=(.*)
+Redirect to: https://tubo.migalmoreno.com/search?query=$1&serviceId=2
+Example result: https://tubo.migalmoreno.com/search?query=37c3&serviceId=2
+Pattern type: Regular Expression
+Apply to: Main window (address bar)
+#+end_src
+
+*** [[https://github.com/libredirect/browser_extension][LibRedirect]]
+Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud, so no need to do anything for these. The rest of services are pending as per [[https://github.com/libredirect/browser_extension/issues/884][#884]].
+
+*** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
+A userscript that redirects popular social media platforms to their privacy respecting front-ends.
+
+*** [[https://github.com/migalmoreno/nx-router][nx-router]]
+Similar to Redirector but for the [[https://nyxt.atlas.engineer/][Nyxt]] browser, you can manually add any redirect rule based on regex patterns with this extension, which allows you to define all redirection rules in a single "router". A sample configuration for YouTube would look like this:
+
+#+begin_src lisp
+(make-instance 'router:redirector
+               :name 'youtube-to-tubo
+               :route (match-domain "youtube.com")
+               :redirect
+               '(("https://tubo.migalmoreno.com/stream?url=\\&" . (".*/watch\\?v.*" ".*/shorts/.*"))
+                 ("https://tubo.migalmoreno.com/playlist?list=\\&" . ".*/playlist/.*")
+                 ("https://tubo.migalmoreno.com/channel?url=\\&" . ".*/channel/.*")
+                 ("https://tubo.migalmoreno.com/search?q=\\1&serviceId=0" . ".*/search\\?q=(.*)")))
 #+end_src
 
 ** Contributing
