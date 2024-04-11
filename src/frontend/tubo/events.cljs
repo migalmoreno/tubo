@@ -280,7 +280,7 @@
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/api/channels/" (js/encodeURIComponent uri) )
+       (str "/channels/" (js/encodeURIComponent uri) )
        [::load-paginated-channel-results] [::bad-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
@@ -302,7 +302,7 @@
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/api/playlists/" (js/encodeURIComponent uri))
+       (str "/playlists/" (js/encodeURIComponent uri))
        [::load-paginated-playlist-results] [::bad-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
@@ -324,7 +324,7 @@
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/api/services/" id "/search")
+       (str "/services/" id "/search")
        [::load-paginated-search-results] [::bad-response]
        {:q query
         :nextPage (js/encodeURIComponent next-page-url)})
@@ -506,7 +506,7 @@
 (rf/reg-event-fx
  ::get-services
  (fn [{:keys [db]} _]
-   (api/get-request "/api/services" [::load-services] [::bad-response])))
+   (api/get-request "/services" [::load-services] [::bad-response])))
 
 (rf/reg-event-db
  ::load-comments
@@ -519,7 +519,7 @@
  ::get-comments
  (fn [{:keys [db]} [_ url]]
    (assoc
-    (api/get-request (str "/api/comments/" (js/encodeURIComponent url))
+    (api/get-request (str "/comments/" (js/encodeURIComponent url))
                      [::load-comments] [::bad-response])
     :db (-> db
             (assoc-in [:stream :show-comments-loading] true)
@@ -556,7 +556,7 @@
    (if (empty? next-page-url)
      {:db (assoc db :show-pagination-loading false)}
      (assoc
-      (api/get-request (str "/api/comments/" (js/encodeURIComponent url))
+      (api/get-request (str "/comments/" (js/encodeURIComponent url))
                        [::load-paginated-comments] [::bad-response]
                        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))
@@ -569,7 +569,7 @@
 (rf/reg-event-fx
  ::get-kiosks
  (fn [{:keys [db]} [_ id]]
-   (api/get-request (str "/api/services/" id "/kiosks")
+   (api/get-request (str "/services/" id "/kiosks")
                     [::load-kiosks] [::bad-response])))
 
 (rf/reg-event-fx
@@ -590,7 +590,7 @@
      (if default-kiosk-id
        {:fx [[:dispatch [::get-kiosk-page service-id default-kiosk-id]]]}
        (assoc
-        (api/get-request (str "/api/services/" service-id "/default-kiosk")
+        (api/get-request (str "/services/" service-id "/default-kiosk")
                          [::load-kiosk] [::bad-response])
         :db (assoc db :show-page-loading true))))))
 
@@ -599,7 +599,7 @@
  (fn [{:keys [db]} [_ service-id kiosk-id]]
    (if kiosk-id
      (assoc
-      (api/get-request (str "/api/services/" service-id "/kiosks/"
+      (api/get-request (str "/services/" service-id "/kiosks/"
                             (js/encodeURIComponent kiosk-id))
                        [::load-kiosk] [::bad-response])
       :db (assoc db :show-page-loading true))
@@ -631,7 +631,7 @@
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/api/services/" service-id "/kiosks/"
+       (str "/services/" service-id "/kiosks/"
             (js/encodeURIComponent kiosk-id))
        [::load-paginated-kiosk-results] [::bad-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
@@ -651,7 +651,7 @@
 (rf/reg-event-fx
  ::get-homepage
  (fn [{:keys [db]} _]
-   (api/get-request "/api/services" [::load-homepage] [::bad-response])))
+   (api/get-request "/services" [::load-homepage] [::bad-response])))
 
 (rf/reg-event-fx
  ::load-audio-player-stream
@@ -685,14 +685,14 @@
 (rf/reg-event-fx
  ::fetch-stream-page
  (fn [{:keys [db]} [_ uri]]
-   (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+   (api/get-request (str "/streams/" (js/encodeURIComponent uri))
                     [::load-stream-page] [::bad-response])))
 
 (rf/reg-event-fx
  ::fetch-audio-player-stream
  (fn [{:keys [db]} [_ uri idx play?]]
    (assoc
-    (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+    (api/get-request (str "/streams/" (js/encodeURIComponent uri))
                      [::load-audio-player-stream idx play?] [::bad-response])
     :db (assoc db :show-audio-player-loading true))))
 
@@ -700,7 +700,7 @@
  ::get-stream-page
  (fn [{:keys [db]} [_ uri]]
    (assoc
-    (api/get-request (str "/api/streams/" (js/encodeURIComponent uri))
+    (api/get-request (str "/streams/" (js/encodeURIComponent uri))
                      [::load-stream-page] [::bad-response])
     :db (assoc db :show-page-loading true))))
 
@@ -718,7 +718,7 @@
  (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request
-     (str "/api/channels/" (js/encodeURIComponent uri))
+     (str "/channels/" (js/encodeURIComponent uri))
      [::load-channel] [::bad-response])
     :db (assoc db :show-page-loading true))))
 
@@ -735,7 +735,7 @@
  ::get-playlist-page
  (fn [{:keys [db]} [_ uri]]
    (assoc
-    (api/get-request (str "/api/playlists/" (js/encodeURIComponent uri))
+    (api/get-request (str "/playlists/" (js/encodeURIComponent uri))
                      [::load-playlist] [::bad-response])
     :db (assoc db :show-page-loading true))))
 
@@ -751,7 +751,7 @@
  ::get-search-page
  (fn [{:keys [db]} [_ service-id query]]
    (assoc
-    (api/get-request (str "/api/services/" service-id "/search")
+    (api/get-request (str "/services/" service-id "/search")
                      [::load-search-results] [::bad-response]
                      {:q query})
     :db (assoc db :show-page-loading true
@@ -792,7 +792,7 @@
    (let [service-id (-> (filter #(= val (-> % :info :name)) (:services db))
                         first
                         :id)]
-     (api/get-request (str "/api/services/" service-id "/kiosks")
+     (api/get-request (str "/services/" service-id "/kiosks")
                       [::load-settings-kiosks val service-id] [::bad-response]))))
 
 (rf/reg-event-fx
@@ -808,7 +808,7 @@
    (let [id (-> db :settings :default-service :id)
          service-id (-> db :settings :default-service :service-id)]
      (assoc
-      (api/get-request (str "/api/services/" service-id "/kiosks")
+      (api/get-request (str "/services/" service-id "/kiosks")
                        [::load-settings-kiosks id service-id] [::bad-response])
       ::document-title! "Settings"))))
 

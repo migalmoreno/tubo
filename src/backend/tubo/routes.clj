@@ -22,7 +22,7 @@
     ["/settings" handler/index]
     ["/bookmark" handler/index]
     ["/bookmarks" handler/index]
-    ["/api"
+    ["/api/v1"
      ["/services"
       ["" {:get handler/services}]
       ["/:service-id/search"

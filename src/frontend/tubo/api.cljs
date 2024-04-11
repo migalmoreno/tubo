@@ -7,7 +7,7 @@
    (get-request uri on-success on-failure {}))
   ([uri on-success on-failure params]
    {:http-xhrio {:method :get
-                 :uri uri
+                 :uri (str "/api/v1" uri)
                  :params params
                  :format (ajax/json-request-format)
                  :response-format (ajax/json-response-format {:keywords? true})
