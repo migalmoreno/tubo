@@ -4,7 +4,7 @@
    [reitit.frontend.easy :as rfe]
    [tubo.components.layout :as layout]
    [tubo.events :as events]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn comment-item
   [{:keys [id text uploader-name uploader-avatar uploader-url stream-position
@@ -27,14 +27,14 @@
          [:h1.text-neutral-800.dark:text-gray-300.font-bold.line-clamp-1 uploader-name]]
         (when stream-position
           [:div.text-neutral-600.dark:text-neutral-300
-           [:span.mx-2.text-xs.whitespace-nowrap (util/format-duration stream-position)]])])
+           [:span.mx-2.text-xs.whitespace-nowrap (utils/format-duration stream-position)]])])
      (when uploader-verified?
        [:i.fa-solid.fa-circle-check.ml-2])]
     [:div.my-2
      [:p {:dangerouslySetInnerHTML {:__html text} :class "[overflow-wrap:anywhere]"}]]
     [:div..flex.items-center.my-2
      [:div.mr-4
-      [:p (util/format-date-ago upload-date)]]
+      [:p (utils/format-date-ago upload-date)]]
      (when (and like-count (> like-count 0))
        [:div.flex.items-center.my-2
         [:i.fa-solid.fa-thumbs-up.text-xs]

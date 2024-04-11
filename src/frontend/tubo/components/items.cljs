@@ -7,7 +7,7 @@
    [tubo.components.modal :as modal]
    [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.events :as events]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn item-content
   [{:keys [audio-streams video-streams type service-id bookmark-id url] :as item} item-route bookmarks]
@@ -24,7 +24,7 @@
                       :on-click #(rf/dispatch [::events/switch-to-audio-player item])}
                      {:label    (if liked? "Remove favorite" "Favorite")
                       :icon     (if liked?
-                                  [:i.fa-solid.fa-heart {:style {:color (util/get-service-color service-id)}}]
+                                  [:i.fa-solid.fa-heart {:style {:color (utils/get-service-color service-id)}}]
                                   [:i.fa-solid.fa-heart])
                       :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) item])}
                      (if (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
@@ -61,17 +61,17 @@
          (when (and subscriber-count (not stream?))
            [:div.flex.items-center
             [:i.fa-solid.fa-users.text-xs]
-            [:p.mx-2 (util/format-quantity subscriber-count)]])
+            [:p.mx-2 (utils/format-quantity subscriber-count)]])
          (when stream-count
            [:div.flex.items-center
             [:i.fa-solid.fa-video.text-xs]
-            [:p.mx-2 (util/format-quantity stream-count)]])
+            [:p.mx-2 (utils/format-quantity stream-count)]])
          [:div.flex.my-1.justify-between
-          [:p (util/format-date-ago upload-date)]
+          [:p (utils/format-date-ago upload-date)]
           (when view-count
             [:div.flex.items-center.h-full.pl-2
              [:i.fa-solid.fa-eye.text-xs]
-             [:p.pl-1.5 (util/format-quantity view-count)]])]]))))
+             [:p.pl-1.5 (utils/format-quantity view-count)]])]]))))
 
 (defn generic-item
   [{:keys [url name thumbnail-url duration] :as item} bookmarks]

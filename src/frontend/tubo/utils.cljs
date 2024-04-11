@@ -1,4 +1,4 @@
-(ns tubo.util
+(ns tubo.utils
   (:require
    ["timeago.js" :as timeago]))
 

@@ -9,7 +9,7 @@
    [tubo.components.comments :as comments]
    [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.components.video-player :as player]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn stream
   [match]
@@ -68,7 +68,7 @@
                 :on-click #(rf/dispatch [::events/switch-to-audio-player stream])}
                {:label    (if liked? "Remove favorite" "Favorite")
                 :icon     (if liked?
-                            [:i.fa-solid.fa-heart {:style {:color (util/get-service-color service-id)}}]
+                            [:i.fa-solid.fa-heart {:style {:color (utils/get-service-color service-id)}}]
                             [:i.fa-solid.fa-heart])
                 :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) stream])}
                {:label "Original"
@@ -89,7 +89,7 @@
               (when subscriber-count
                 [:div.flex.my-2.items-center
                  [:i.fa-solid.fa-users.text-xs]
-                 [:p.mx-2 (util/format-quantity subscriber-count)]])]]
+                 [:p.mx-2 (utils/format-quantity subscriber-count)]])]]
             [:div.flex.flex-col.items-end.flex-auto.justify-center
              (when view-count
                [:div.sm:text-base.text-sm.mb-1
@@ -107,7 +107,7 @@
              (when upload-date
                [:div.sm:text-base.text-sm.mt-1.whitespace-nowrap
                 [:i.fa-solid.fa-calendar]
-                [:span.ml-2 (util/format-date-string upload-date)]])]]
+                [:span.ml-2 (utils/format-date-string upload-date)]])]]
            (when (and show-description? (not (empty? description)))
              [layout/show-more-container show-description description
               #(rf/dispatch [::events/toggle-stream-layout :show-description])])

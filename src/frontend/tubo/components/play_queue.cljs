@@ -6,7 +6,7 @@
    [tubo.components.layout :as layout]
    [tubo.components.player :as player]
    [tubo.events :as events]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn play-queue-item
   [{:keys [service-id uploader-name uploader-url name duration
@@ -21,7 +21,7 @@
     [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex.flex-col.xs:flex-row
      [:span.line-clamp-1 uploader-name]
      [:span.px-2.hidden.xs:inline-block {:dangerouslySetInnerHTML {:__html "&bull;"}}]
-     [:span (util/get-service-name service-id)]]]])
+     [:span (utils/get-service-name service-id)]]]])
 
 (defn queue
   []
@@ -32,7 +32,7 @@
         media-queue-pos        @(rf/subscribe [:media-queue-pos])
         {:keys [uploader-name uploader-url name stream url service-id]
          :as   current-stream} @(rf/subscribe [:media-queue-stream])
-        service-color          (and service-id (util/get-service-color service-id))
+        service-color          (and service-id (utils/get-service-color service-id))
         !elapsed-time          @(rf/subscribe [:elapsed-time])
         !player                @(rf/subscribe [:player])
         loop-playback          @(rf/subscribe [:loop-playback])
@@ -59,9 +59,9 @@
           [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
            {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
          [:div.flex.flex-auto.py-2.w-full.items-center
-          [:span.mr-2 (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
+          [:span.mr-2 (if @!elapsed-time (utils/format-duration @!elapsed-time) "00:00")]
           [player/time-slider !player !elapsed-time service-color]
-          [:span.ml-2 (if player-ready? (util/format-duration (.-duration @!player)) "00:00")]]
+          [:span.ml-2 (if player-ready? (utils/format-duration (.-duration @!player)) "00:00")]]
          [:div.flex.justify-center.items-center
           [player/loop-button loop-playback service-color true]
           [player/button

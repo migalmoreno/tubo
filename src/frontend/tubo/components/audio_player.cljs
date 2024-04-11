@@ -9,7 +9,7 @@
    [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.components.player :as player]
    [tubo.events :as events]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn audio-source
   [!player]
@@ -76,11 +76,11 @@
        :disabled? (not (and media-queue (< (+ media-queue-pos 1) (count media-queue))))]]
      [:div.hidden.lg:flex.items-center
       [:span.mx-2.text-sm
-       (if @!elapsed-time (util/format-duration @!elapsed-time) "00:00")]
+       (if @!elapsed-time (utils/format-duration @!elapsed-time) "00:00")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [player/time-slider !player !elapsed-time service-color]]
       [:span.mx-2.text-sm
-       (if player-ready? (util/format-duration (.-duration @!player)) "00:00")]]]))
+       (if player-ready? (utils/format-duration (.-duration @!player)) "00:00")]]]))
 
 (defn player
   []
@@ -97,7 +97,7 @@
             bookmarks          @(rf/subscribe [:bookmarks])
             !player            @(rf/subscribe [:player])
             {:keys [theme]}    @(rf/subscribe [:settings])
-            service-color      (and service-id (util/get-service-color service-id))
+            service-color      (and service-id (utils/get-service-color service-id))
             bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")
             liked?             (some #(= (:url %) url) (-> bookmarks first :items))]
         (when show-audio-player?

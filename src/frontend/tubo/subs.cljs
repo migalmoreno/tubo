@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defonce !is-window-visible
   (let [a (r/atom true)]
@@ -101,14 +101,14 @@
  (fn [_]
    (rf/subscribe [:service-id]))
  (fn [id _]
-   (util/get-service-color id)))
+   (utils/get-service-color id)))
 
 (rf/reg-sub
  :service-name
  (fn [_]
    (rf/subscribe [:service-id]))
  (fn [id _]
-   (util/get-service-name id)))
+   (utils/get-service-name id)))
 
 (rf/reg-sub
  :services

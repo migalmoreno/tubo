@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.util :as util]))
+   [tubo.utils :as utils]))
 
 (defn thumbnail
   [thumbnail-url route name duration & {:keys [classes] :or {classes "h-44 xs:h-28"}}]
@@ -18,7 +18,7 @@
        [:p.text-white {:style {:fontSize "14px"}}
         (if (= duration 0)
           "LIVE"
-          (util/format-duration duration))]])]])
+          (utils/format-duration duration))]])]])
 
 (defn logo []
   [:img.mb-1
