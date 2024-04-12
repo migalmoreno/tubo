@@ -36,4 +36,4 @@
       :component-will-unmount #(when @!player (.dispose @!player))
       :reagent-render
       (fn [options]
-        [:video-js.vjs-tubo.vjs-default-skin.vjs-big-play-centered.vjs-show-big-play-button-on-pause])})))
+        [:video-js.vjs-tubo.vjs-default-skin])})))
