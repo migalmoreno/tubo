@@ -82,12 +82,12 @@
        (for [[i item] (map-indexed vector media-queue)]
          ^{:key i} [play-queue-item item media-queue-pos i bookmarks])]
       [:div.flex.flex-col.py-4.shrink-0.px-5
-       [:div.flex.flex-col.w-full.py-2
-        [:a.text-md.line-clamp-1
+       [:div.flex.flex-col.py-2
+        [:a.text-md.line-clamp-1.w-fit
          {:href  (rfe/href :tubo.routes/stream nil {:url url})
           :title name}
          name]
-        [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
+        [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit
          {:href  (rfe/href :tubo.routes/channel nil {:url uploader-url})
           :title uploader-name}
          uploader-name]]
