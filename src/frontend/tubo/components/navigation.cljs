@@ -7,15 +7,6 @@
    [tubo.events :as events]
    [tubo.routes :as routes]))
 
-(defn navigation-buttons [service-color]
-  [:div.flex.items-center.text-white.ml-4
-   [:button.mx-2.outline-none.focus:ring-transparent
-    {:on-click #(rf/dispatch [::events/history-go -1])}
-    [:i.fa-solid.fa-arrow-left]]
-   [:button.mx-2.outline-none.focus:ring-transparent
-    {:on-click #(rf/dispatch [::events/history-go 1])}
-    [:i.fa-solid.fa-arrow-right]]])
-
 (defn search-form []
   (let [!query (r/atom "")
         !input (r/atom nil)]
@@ -153,8 +144,6 @@
         {:href (rfe/href ::routes/home)}
         [layout/logo]]]
       [search-form]
-      [:div {:class (when show-search-form? "hidden")}
-       [navigation-buttons service-color]]
       [:div.flex.flex-auto.justify-end.lg:justify-between
        {:class (when show-search-form? "hidden")}
        [:div.hidden.lg:flex
