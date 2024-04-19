@@ -42,6 +42,7 @@
 
 (defn format-duration
   [num]
-  (let [duration (js/Date. (* num 1000))
-        slice #(.slice % (if (>= (.getUTCHours duration) 1) 11 14) 19)]
-    (-> duration (.toISOString) slice)))
+  (let [duration (and (not (js/isNaN num)) (js/Date. (* num 1000)))
+        slice    (and duration #(.slice % (if (>= (.getUTCHours duration) 1) 11 14) 19))]
+    (when slice
+      (-> duration (.toISOString) slice))))
