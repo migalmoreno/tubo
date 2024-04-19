@@ -12,10 +12,10 @@
   (let [current-match   @(rf/subscribe [:current-match])
         {:keys [theme]} @(rf/subscribe [:settings])]
     [:div {:class (when (= theme "dark") "dark")}
-     [:div.min-h-screen.flex.flex-col.h-full.dark:text-white.dark:bg-neutral-900.relative
+     [:div.min-h-screen.flex.flex-col.h-full.dark:text-white.dark:bg-neutral-900.relative.font-nunito-sans
       [navigation/navbar current-match]
-      [:div.flex.flex-col.flex-auto.justify-between.relative.font-nunito
       [notification/notifications-panel]
+      [:div.flex.flex-col.flex-auto.justify-between.relative
        (when-let [view (-> current-match :data :view)]
          [view current-match])
        [queue/queue]

@@ -60,7 +60,7 @@
           [:div.flex.flex-col
            [:div.flex.items-center.justify-between.pt-4.my-3
             [:div.flex-auto
-             [:h1.text-lg.sm:text-2xl.font-nunito-bold.line-clamp-1 name]]
+             [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]]
             [:div.flex.flex-auto.justify-end.items-center
              [layout/popover-menu !stream-menu-active?
               [{:label    "Add to queue"
@@ -86,8 +86,9 @@
              [layout/uploader-avatar uploader-avatar uploader-name
               (rfe/href :tubo.routes/channel nil {:url uploader-url})]
              [:div.mx-3
-              [:a.line-clamp-1.font-nunito-semibold
-               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})}
+              [:a.line-clamp-1.font-semibold
+               {:href  (rfe/href :tubo.routes/channel nil {:url uploader-url})
+                :title uploader-name}
                uploader-name]
               (when subscriber-count
                 [:div.flex.my-2.items-center

@@ -51,7 +51,7 @@
           [:div.flex.items-center.my-2
            (if uploader-url
              [:a {:href (rfe/href :tubo.routes/channel nil {:url uploader-url}) :title uploader-name}
-              [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2.break-all
+              [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.break-all
                {:class "[overflow-wrap:anywhere]"}
                uploader-name]]
              [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])

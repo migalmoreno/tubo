@@ -27,7 +27,7 @@
               [:div.flex.items-center.my-4.mx-2
                [layout/uploader-avatar avatar name]
                [:div.m-4
-                [:h1.text-2xl.font-nunito-semibold.line-clamp-1 name]
+                [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
                 (when subscriber-count
                   [:div.flex.my-2.items-center
                    [:i.fa-solid.fa-users.text-xs]

@@ -15,6 +15,7 @@
     "videojs-mobile-ui": "^1.1.1"
   },
   "devDependencies": {
+    "@fontsource/nunito-sans": "^5.0.12",
     "@tailwindcss/forms": "^0.5.4",
     "autoprefixer": "^10.4.15",
     "copy-webpack-plugin": "^11.0.0",

@@ -56,7 +56,7 @@
   [:div.relative.flex.flex-col.items-center-justify-center.text-white.px-2
    {:style {:background service-color}}
    [:div.w-full.box-border.z-10.lg:z-0
-    [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.font-nunito.w-full
+    [:select.border-none.focus:ring-transparent.bg-blend-color-dodge.font-bold.w-full
      {:on-change #(rf/dispatch [::events/change-service-kiosk (js/parseInt (.. % -target -value))])
       :value     service-id
       :style     {:background "transparent"}}
@@ -104,12 +104,12 @@
    [layout/focus-overlay #(rf/dispatch [::events/toggle-mobile-nav]) show-mobile-nav?]
    [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
     {:class (str "transition-[right] " (if show-mobile-nav? "right-0" "right-[-245px]"))}
-     [:h3.text-3xl.font-bold.px-4.font-roboto "Tubo"]]
     [:div.flex.justify-center.py-4.items-center.text-white {:style {:background service-color}}
      [layout/logo :height 75 :width 75]
+     [:h3.text-3xl.font-bold "Tubo"]]
     [services-dropdown services service-id service-color]
     [:div.relative.py-4
-     [:ul.flex.font-roboto.flex-col
+     [:ul.flex.flex-col
       (for [kiosk available-kiosks]
         ^{:key kiosk}
         [mobile-nav-item
@@ -120,7 +120,7 @@
          :active? (kiosk-active? (assoc kiosk-args :kiosk kiosk))])]]
     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
      {:class "border-t-[1px]"}
-     [:ul.flex.flex-col.font-roboto
+     [:ul.flex.flex-col
       [mobile-nav-item (rfe/href ::routes/bookmarks) "fa-solid fa-bookmark" "Bookmarks"]
       [mobile-nav-item (rfe/href ::routes/settings) "fa-solid fa-cog" "Settings"]
       [mobile-nav-item "https://github.com/migalmoreno/tubo"
@@ -136,7 +136,7 @@
         show-mobile-nav?                         @(rf/subscribe [:show-mobile-nav])
         show-search-form?                        @(rf/subscribe [:show-search-form])
         {:keys [available-kiosks default-kiosk]} @(rf/subscribe [:kiosks])]
-    [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20.font-nunito
+    [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
       [:div.ml-2

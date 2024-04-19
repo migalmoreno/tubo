@@ -7,7 +7,7 @@
   [title body & extra-buttons]
   [:div.bg-white.max-h-full.dark:bg-neutral-900.z-20.p-5.rounded.flex.gap-y-5.flex-col.border.border-neutral-300.dark:border-stone-700.flex-auto.shrink-0
    [:div.flex.justify-between.shrink-0
-    [:h1.text-xl.font-nunito-semibold title]
+    [:h1.text-xl.font-semibold title]
     [:button {:on-click #(rf/dispatch [:tubo.events/close-modal])}
      [:i.fa-solid.fa-close]]]
    [:div.flex-auto.overflow-y-auto body]

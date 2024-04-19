@@ -54,7 +54,7 @@
 (defn content-header
   [heading & children]
   [:div.flex.items-center.justify-between.mt-6
-   [:h1.text-3xl.font-nunito-semibold.line-clamp-1.mr-6
+   [:h1.text-3xl.line-clamp-1.mr-6.font-semibold
     {:title heading}
     heading]
    (map-indexed #(with-meta %2 {:key %1}) children)])
@@ -118,7 +118,7 @@
 (defn select-input
   [label key value options on-change]
   [generic-input label
-   [:select.focus:ring-transparent.bg-transparent.font-bold.font-nunito
+   [:select.focus:ring-transparent.bg-transparent.font-bold
     {:value     value
      :on-change on-change}
     (for [[i option] (map-indexed vector options)]
