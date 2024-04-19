@@ -94,7 +94,7 @@
  ::player-src
  (fn [{:keys [player src current-pos]}]
    (set! (.-src @player) src)
-   (set! (.-onended @player) #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))))
+   (set! (.-onended @player) #(rf/dispatch [::change-media-queue-pos (inc current-pos)]))))
 
 (rf/reg-fx
  ::player-pause
@@ -154,9 +154,9 @@
        (.setActionHandler js/navigator.mediaSession "play" #(.play @player))
        (.setActionHandler js/navigator.mediaSession "pause" #(.pause @player))
        (.setActionHandler js/navigator.mediaSession "previoustrack"
-                          #(rf/dispatch [::change-media-queue-pos (- current-pos 1)]))
+                          #(rf/dispatch [::change-media-queue-pos (dec current-pos)]))
        (.setActionHandler js/navigator.mediaSession "nexttrack"
-                          #(rf/dispatch [::change-media-queue-pos (+ current-pos 1)]))
+                          #(rf/dispatch [::change-media-queue-pos (inc current-pos)]))
        (.setActionHandler js/navigator.mediaSession "seekbackward"
                           (fn [^js/navigator.MediaSessionActionDetails details]
                             (set! (.-currentTime @player)
@@ -377,7 +377,7 @@
                    (assoc :media-queue-pos idx)
                    (assoc-in [:media-queue idx :stream] ""))
         :store (assoc store :media-queue-pos idx)
-        :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx true]]]}))))
+        :fx    [[:dispatch [::fetch-audio-player-stream stream idx true]]]}))))
 
 (rf/reg-event-fx
  ::change-media-queue-stream
@@ -414,7 +414,7 @@
       :store (-> store
                  (assoc :show-audio-player true)
                  (assoc :media-queue (:media-queue updated-db)))
-      :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx (= (count (:media-queue db)) 0)]]]})))
+      :fx    [[:dispatch [::fetch-audio-player-stream stream idx (= (count (:media-queue db)) 0)]]]})))
 
 (rf/reg-event-fx
  ::start-stream-radio
