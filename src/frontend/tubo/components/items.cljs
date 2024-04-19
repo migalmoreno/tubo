@@ -22,10 +22,11 @@
                     [{:label    "Add to queue"
                       :icon     [:i.fa-solid.fa-headphones]
                       :on-click #(rf/dispatch [::events/switch-to-audio-player item])}
+                     {:label    "Play radio"
+                      :icon     [:i.fa-solid.fa-tower-cell]
+                      :on-click #(rf/dispatch [::events/start-stream-radio item])}
                      {:label    (if liked? "Remove favorite" "Favorite")
-                      :icon     (if liked?
-                                  [:i.fa-solid.fa-heart {:style {:color (utils/get-service-color service-id)}}]
-                                  [:i.fa-solid.fa-heart])
+                      :icon     [:i.fa-solid.fa-heart (when liked? {:style {:color (utils/get-service-color service-id)}})]
                       :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) item])}
                      (if (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
                        {:label    "Remove from playlist"

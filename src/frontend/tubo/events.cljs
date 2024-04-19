@@ -393,15 +393,25 @@
       :fx    [[:dispatch [::fetch-audio-player-stream (:url stream) idx (= (count (:media-queue db)) 0)]]]})))
 
 (rf/reg-event-fx
+ ::start-stream-radio
+ (fn [{:keys [db]} [_ stream]]
+   {:fx [[:dispatch [::switch-to-audio-player stream]]
+         (when (not= (count (:media-queue db)) 0)
+           [:dispatch [::change-media-queue-pos (count (:media-queue db))]])
+         [:dispatch [::fetch-audio-player-related-streams (:url stream)]]]}))
+
+(rf/reg-event-fx
  ::enqueue-related-streams
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ streams]]
    {:db (assoc db :show-audio-player true)
     :store (assoc store :show-audio-player true)
     :fx (into [] (conj
-                  (map #(identity [:dispatch [::add-to-media-queue %]]) streams)
-                  [:dispatch [::fetch-audio-player-stream (:url (first streams))
-                              (count (:media-queue db)) (= (count (:media-queue db)) 0)]]))}))
+                  (map #(when (= (:type %) "stream")
+                          (identity [:dispatch [::add-to-media-queue %]])) streams)
+                  (when (= (:type (first streams)) "stream")
+                    [:dispatch [::fetch-audio-player-stream (first streams)
+                                (count (:media-queue db)) (= (count (:media-queue db)) 0)]])))}))
 
 (rf/reg-event-db
  ::modal
@@ -657,6 +667,12 @@
    (api/get-request "/services" [::load-homepage] [::bad-response])))
 
 (rf/reg-event-fx
+ ::load-audio-player-related-streams
+ (fn [{:keys [db]} [_ res]]
+   (let [stream-res (js->clj res :keywordize-keys true)]
+     {:fx [[:dispatch [::enqueue-related-streams (:related-streams stream-res)]]]})))
+
+(rf/reg-event-fx
  ::load-audio-player-stream
  [(rf/inject-cofx ::inject/sub [:player])]
  (fn [{:keys [db player]} [_ idx play? res]]
@@ -692,11 +708,32 @@
                     [::load-stream-page] [::bad-response])))
 
 (rf/reg-event-fx
- ::fetch-audio-player-stream
- (fn [{:keys [db]} [_ uri idx play?]]
+ ::audio-player-stream-failure
+ (fn [{:keys [db]} [_ play? res]]
+   {:db (assoc db
+               :show-audio-player-loading false
+               :player-ready true)
+    :fx [[:dispatch [::bad-response res]]
+         (when play?
+           (if (> (-> db :media-queue count) 1)
+             [:dispatch [::change-media-queue-pos (-> db :media-queue-pos inc)]]
+             [:dispatch [::dispose-audio-player]]))]}))
+
+(rf/reg-event-fx
+ ::fetch-audio-player-related-streams
+ (fn [{:keys [db]} [_ uri]]
    (assoc
     (api/get-request (str "/streams/" (js/encodeURIComponent uri))
-                     [::load-audio-player-stream idx play?] [::bad-response])
+                     [::load-audio-player-related-streams] [::bad-response])
+    :db (assoc db :show-audio-player-loading true))))
+
+(rf/reg-event-fx
+ ::fetch-audio-player-stream
+ (fn [{:keys [db]} [_ stream idx play?]]
+   (assoc
+    (api/get-request (str "/streams/" (js/encodeURIComponent (:url stream)))
+                     [::load-audio-player-stream idx play?]
+                     [::audio-player-stream-failure play?])
     :db (assoc db :show-audio-player-loading true))))
 
 (rf/reg-event-fx

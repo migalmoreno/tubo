@@ -125,10 +125,11 @@
               :extra-classes "pl-4 pr-3"]
              [layout/popover-menu !menu-active?
               [{:label    (if liked? "Remove favorite" "Favorite")
-                :icon     (if liked?
-                            [:i.fa-solid.fa-heart {:style {:color service-color}}]
-                            [:i.fa-solid.fa-heart])
+                :icon     [:i.fa-solid.fa-heart (when liked? {:style {:color service-color}})]
                 :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) current-stream])}
+               {:label    "Play radio"
+                :icon     [:i.fa-solid.fa-tower-cell]
+                :on-click #(rf/dispatch [::events/start-stream-radio current-stream])}
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [::events/add-bookmark-list-modal
