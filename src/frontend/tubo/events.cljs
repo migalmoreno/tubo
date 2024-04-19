@@ -351,6 +351,19 @@
       :store (assoc store :media-queue (:media-queue updated-db))})))
 
 (rf/reg-event-fx
+ ::remove-from-media-queue
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ pos]]
+   (let [updated-db (update db :media-queue #(into (subvec % 0 pos) (subvec % (inc pos))))]
+     {:db    updated-db
+      :store (assoc store :media-queue (:media-queue updated-db))
+      :fx    (if (and (= pos (:media-queue-pos db)) (not (= (count (:media-queue updated-db)) 0)))
+               [[:dispatch [::change-media-queue-pos pos]]]
+               (if (= (count (:media-queue updated-db)) 0)
+                 [[:dispatch [::dispose-audio-player]]
+                  [:dispatch [::show-media-queue false]]]))})))
+
+(rf/reg-event-fx
  ::change-media-queue-pos
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ i]]
