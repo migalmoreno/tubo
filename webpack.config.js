@@ -19,8 +19,8 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "resources/src/images"),
-          to: "images"
+          from: path.resolve(__dirname, "resources/src/icons"),
+          to: "icons"
         }
       ]
     })

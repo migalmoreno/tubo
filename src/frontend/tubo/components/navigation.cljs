@@ -104,9 +104,9 @@
    [layout/focus-overlay #(rf/dispatch [::events/toggle-mobile-nav]) show-mobile-nav?]
    [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
     {:class (str "transition-[right] " (if show-mobile-nav? "right-0" "right-[-245px]"))}
-    [:div.flex.justify-center.py-8.items-center.text-white {:style {:background service-color}}
-     [layout/logo]
      [:h3.text-3xl.font-bold.px-4.font-roboto "Tubo"]]
+    [:div.flex.justify-center.py-4.items-center.text-white {:style {:background service-color}}
+     [layout/logo :height 75 :width 75]
     [services-dropdown services service-id service-color]
     [:div.relative.py-4
      [:ul.flex.font-roboto.flex-col
@@ -139,10 +139,10 @@
     [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20.font-nunito
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
-      [:div.ml-4
+      [:div.ml-2
        [:a.font-bold
         {:href (rfe/href ::routes/home)}
-        [layout/logo]]]
+        [layout/logo :height 35 :width 35]]]
       [search-form]
       [:div.flex.flex-auto.justify-end.lg:justify-between
        {:class (when show-search-form? "hidden")}

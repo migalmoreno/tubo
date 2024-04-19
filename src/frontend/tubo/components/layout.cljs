@@ -2,7 +2,8 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [svgreq.core :as svgreq]))
 
 (defn thumbnail
   [thumbnail-url route name duration & {:keys [classes rounded?] :or {classes "h-44 xs:h-28" rounded? true}}]
@@ -20,11 +21,11 @@
           "LIVE"
           (utils/format-duration duration))]])]])
 
-(defn logo []
-  [:img.mb-1
-   {:src   "/images/tubo.png"
-    :style {:maxHeight "25px" :maxWidth "40px"}
-    :title "Tubo"}])
+(defn logo
+  [& {:keys [height width]}]
+  (r/create-element
+   (svgreq/embed "resources/public/icons" "tubo" nil)
+   (js-obj "height" width "width" height)))
 
 (defn loading-icon
   [service-color & styles]
