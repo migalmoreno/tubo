@@ -14,7 +14,7 @@
     [layout/thumbnail (-> items first :thumbnail-url) nil name nil
      :classes "h-24"]]
    [:div.flex.flex-col.py-4.px-4
-    [:h1.line-clamp-1.font-bold name]
+    [:h1.line-clamp-1.font-bold {:title name} name]
     [:span.text-sm (str (count items) " streams")]]])
 
 (defn add-bookmark-modal

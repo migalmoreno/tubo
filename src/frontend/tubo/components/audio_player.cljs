@@ -115,9 +115,13 @@
               [:img.min-h-full.max-h-full.object-cover.min-w-full.max-w-full.w-full {:src thumbnail-url}]]
              [:div.flex.flex-col.px-2
               [:a.text-xs.line-clamp-1
-               {:href (rfe/href :tubo.routes/stream nil {:url url})} name]
+               {:href (rfe/href :tubo.routes/stream nil {:url url})
+                :title name}
+               name]
               [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
-               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})} uploader-name]]
+               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})
+                :title uploader-name}
+               uploader-name]]
              [audio-source !player]]
             [main-controls service-color]
             [:div.flex.lg:justify-end.lg:flex-1

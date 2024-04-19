@@ -54,7 +54,9 @@
               [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.break-all
                {:class "[overflow-wrap:anywhere]"}
                uploader-name]]
-             [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2 uploader-name])
+             [:h1.line-clamp-1.text-neutral-800.dark:text-gray-300.font-bold.pr-2
+              {:title uploader-name}
+              uploader-name])
            (when (and uploader-url verified?)
              [:i.fa-solid.fa-circle-check])]
           (when-not (empty? (remove nil? items))
