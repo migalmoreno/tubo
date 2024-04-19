@@ -354,12 +354,16 @@
 (rf/reg-event-db
  ::load-paginated-search-results
  (fn [db [_ res]]
-   (-> db
-       (update-in [:search-results :items] #(apply conj %1 %2)
-                  (:items (js->clj res :keywordize-keys true)))
-       (assoc-in [:search-results :next-page]
-                 (:next-page (js->clj res :keywordize-keys true)))
-       (assoc :show-pagination-loading false))))
+   (let [search-res (js->clj res :keywordize-keys true)]
+     (if (empty? (:items search-res))
+       (-> db
+           (assoc-in [:search-results :next-page] nil)
+           (assoc :show-pagination-loading false))
+       (-> db
+           (update-in [:search-results :items] #(apply conj %1 %2)
+                      (:items search-res))
+           (assoc-in [:search-results :next-page] (:next-page search-res))
+           (assoc :show-pagination-loading false))))))
 
 (rf/reg-event-fx
  ::search-pagination
