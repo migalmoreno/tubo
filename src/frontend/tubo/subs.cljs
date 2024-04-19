@@ -72,6 +72,11 @@
    (:search-results db)))
 
 (rf/reg-sub
+ :notifications
+ (fn [db _]
+   (:notifications db)))
+
+(rf/reg-sub
  :modal
  (fn [db _]
    (:modal db)))

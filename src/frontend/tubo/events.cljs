@@ -4,6 +4,7 @@
    [day8.re-frame.http-fx]
    [goog.object :as gobj]
    [nano-id.core :refer [nano-id]]
+   [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
@@ -257,11 +258,42 @@
  (fn [{:keys [name params query]}]
    (rfe/push-state name params query)))
 
+(defonce timeouts! (r/atom {}))
+
+(rf/reg-fx
+ ::timeout!
+ (fn [{:keys [id event time]}]
+   (when-some [existing (get @timeouts! id)]
+     (js/clearTimeout existing)
+     (swap! timeouts! dissoc id))
+   (when (some? event)
+     (swap! timeouts! assoc id
+            (js/setTimeout #(rf/dispatch event) time)))))
+
+(rf/reg-event-fx
+ ::add-notification
+ (fn [{:keys [db]} [_ data time]]
+   (let [updated-db (update db :notifications #(into [] (conj %1 %2)) data)]
+     {:db updated-db
+      :fx (when time
+            [[::timeout! {:id (-> updated-db :notifications count dec)
+                          :event [::pop-notification]
+                          :time time}]])})))
+
+(rf/reg-event-fx
+ ::pop-notification
+ (fn [{:keys [db]} _]
+   {:fx [[:dispatch [::remove-notification (dec (count (:notifications db)))]]]}))
+
 (rf/reg-event-db
+ ::remove-notification
+ (fn [db [_ pos]]
+   (update db :notifications #(into (subvec % 0 pos) (subvec % (inc pos))))))
+
+(rf/reg-event-fx
  ::bad-response
- (fn [db [_ res]]
-   (.log js/console (clj->js res))
-   (assoc db :http-response (get-in res [:response :error]))))
+ (fn [{:keys [db]} [_ res]]
+   {:fx [[:dispatch [::add-notification res 2000]]]}))
 
 (rf/reg-event-db
  ::change-search-query
@@ -466,7 +498,9 @@
    (let [updated-db (update db :bookmarks conj (assoc bookmark :id (nano-id)))]
      {:db    updated-db
       :store (assoc store :bookmarks (:bookmarks updated-db))
-      :fx [[:dispatch [::close-modal]]]})))
+      :fx [[:dispatch [::close-modal]]
+           [:dispatch [::add-notification {:status-text (str "Added playlist \"" (:name bookmark) "\"")
+                                           :failure     :success} 2000]]]})))
 
 (rf/reg-event-fx
  ::back-to-bookmark-list-modal
@@ -483,9 +517,12 @@
  ::remove-bookmark-list
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ id]]
-   (let [updated-db (update db :bookmarks #(into [] (remove (fn [bookmark] (= (:id bookmark) id)) %)))]
+   (let [bookmark (first (filter #(= (:id %) id) (:bookmarks db)))
+         updated-db (update db :bookmarks #(into [] (remove (fn [bookmark] (= (:id bookmark) id)) %)))]
      {:db    updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))})))
+      :store (assoc store :bookmarks (:bookmarks updated-db))
+      :fx [[:dispatch [::add-notification {:status-text (str "Removed playlist \"" (:name bookmark) "\"")
+                                           :failure     :success} 2000]]]})))
 
 (rf/reg-event-fx
  ::add-to-likes
@@ -495,7 +532,8 @@
      (let [updated-db (update-in db [:bookmarks 0 :items] #(into [] (conj (into [] %1) %2))
                                  (assoc bookmark :bookmark-id (-> db :bookmarks first :id)))]
        {:db    updated-db
-        :store (assoc store :bookmarks (:bookmarks updated-db))}))))
+        :store (assoc store :bookmarks (:bookmarks updated-db))
+        :fx    [[:dispatch [::add-notification {:status-text "Added to favorites" :failure :success} 2000]]]}))))
 
 (rf/reg-event-fx
  ::remove-from-likes
@@ -503,7 +541,8 @@
  (fn [{:keys [db store]} [_ bookmark]]
    (let [updated-db (update-in db [:bookmarks 0 :items] #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
      {:db updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))})))
+      :store (assoc store :bookmarks (:bookmarks updated-db))
+      :fx [[:dispatch [::add-notification {:status-text "Removed from favorites" :failure :success} 2000]]]})))
 
 (rf/reg-event-fx
  ::add-to-bookmark-list
@@ -517,16 +556,21 @@
                                     (assoc item :bookmark-id (:id bookmark))))]
      {:db    updated-db
       :store (assoc store :bookmarks (:bookmarks updated-db))
-      :fx    [[:dispatch [::close-modal]]]})))
+      :fx    [[:dispatch [::close-modal]]
+              [:dispatch [::add-notification {:status-text (str "Added to playlist \"" (:name bookmark-list) "\"")
+                                              :failure     :success} 2000]]]})))
 
 (rf/reg-event-fx
  ::remove-from-bookmark-list
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark]]
-   (let [bookmark-list (.indexOf (:bookmarks db) (first (filter #(= (:id %) (:bookmark-id bookmark)) (:bookmarks db))))
-         updated-db (update-in db [:bookmarks bookmark-list :items] #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
-     {:db updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))})))
+   (let [bookmark-list (first (filter #(= (:id %) (:bookmark-id bookmark)) (:bookmarks db)))
+         pos           (.indexOf (:bookmarks db) bookmark-list)
+         updated-db    (update-in db [:bookmarks pos :items] #(remove (fn [item] (= (:url item) (:url bookmark))) %))]
+     {:db    updated-db
+      :store (assoc store :bookmarks (:bookmarks updated-db))
+      :fx    [[:dispatch [::add-notification {:status-text (str "Removed from playlist \"" (:name bookmark-list) "\"")
+                                              :failure     :success} 2000]]]})))
 
 (rf/reg-event-db
  ::load-services

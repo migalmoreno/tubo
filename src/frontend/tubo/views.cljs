@@ -3,6 +3,7 @@
    [re-frame.core :as rf]
    [tubo.components.audio-player :as player]
    [tubo.components.navigation :as navigation]
+   [tubo.components.notification :as notification]
    [tubo.components.play-queue :as queue]
    [tubo.events :as events]))
 
@@ -14,6 +15,7 @@
      [:div.min-h-screen.flex.flex-col.h-full.dark:text-white.dark:bg-neutral-900.relative
       [navigation/navbar current-match]
       [:div.flex.flex-col.flex-auto.justify-between.relative.font-nunito
+      [notification/notifications-panel]
        (when-let [view (-> current-match :data :view)]
          [view current-match])
        [queue/queue]
