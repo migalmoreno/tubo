@@ -95,14 +95,16 @@
             muted?             @(rf/subscribe [:muted])
             bookmarks          @(rf/subscribe [:bookmarks])
             !player            @(rf/subscribe [:player])
+            media-queue-pos    @(rf/subscribe [:media-queue-pos])
             {:keys [theme]}    @(rf/subscribe [:settings])
             service-color      (and service-id (utils/get-service-color service-id))
             bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")
             liked?             (some #(= (:url %) url) (-> bookmarks first :items))]
         (when show-audio-player?
-          [:div.sticky.bottom-0.z-10.p-3.absolute.box-border.m-0
+          [:div.sticky.bottom-0.z-10.p-3.absolute.box-border.m-0.transition-all.ease-in.delay-0
            {:style
-            {:display            (when show-media-queue? "none")
+            {:visibility         (when show-media-queue? "hidden")
+             :opacity            (if show-media-queue? 0 1)
              :background-image   (str "linear-gradient(0deg, " bg-color "," bg-color "), url(\"" thumbnail-url "\")")
              :backgroundSize     "cover"
              :backgroundPosition "center"
@@ -120,7 +122,7 @@
             [main-controls service-color]
             [:div.flex.lg:justify-end.lg:flex-1
              [player/volume-slider !player volume-level muted? service-color]
-             [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/toggle-media-queue])
+             [player/button [:i.fa-solid.fa-list] #(rf/dispatch [::events/show-media-queue true])
               :show-on-mobile? true
               :extra-classes "pl-4 pr-3"]
              [layout/popover-menu !menu-active?
@@ -134,6 +136,9 @@
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [::events/add-bookmark-list-modal
                                          [bookmarks/add-to-bookmark-list-modal current-stream]])}
+               {:label    "Remove from queue"
+                :icon     [:i.fa-solid.fa-trash]
+                :on-click #(rf/dispatch [::events/remove-from-media-queue media-queue-pos])}
                {:label    "Close player"
                 :icon     [:i.fa-solid.fa-close]
                 :on-click #(rf/dispatch [::events/dispose-audio-player])}]

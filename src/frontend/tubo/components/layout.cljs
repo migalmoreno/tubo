@@ -5,12 +5,12 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [thumbnail-url route name duration & {:keys [classes] :or {classes "h-44 xs:h-28"}}]
+  [thumbnail-url route name duration & {:keys [classes rounded?] :or {classes "h-44 xs:h-28" rounded? true}}]
   [:div.flex.py-2.box-border {:class classes}
    [:div.relative.min-w-full
     [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
     (if thumbnail-url
-      [:img.rounded.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url}]
+      [:img.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url :class (when rounded? "rounded")}]
       [:div.bg-gray-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration

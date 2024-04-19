@@ -194,10 +194,10 @@
     ::body-overflow! (not (:show-mobile-nav db))}))
 
 (rf/reg-event-fx
- ::toggle-media-queue
- (fn [{:keys [db]} _]
-   {:db (assoc db :show-media-queue (not (:show-media-queue db)))
-    ::body-overflow! (not (:show-media-queue db))}))
+ ::show-media-queue
+ (fn [{:keys [db]} [_ show?]]
+   {:db (assoc db :show-media-queue show?)
+    ::body-overflow! show?}))
 
 (rf/reg-event-fx
  ::scroll-into-view
@@ -239,12 +239,12 @@
          match (assoc new-match :controllers controllers)]
      {:db (-> db
               (assoc :current-match match)
-              (assoc :show-media-queue false)
               (assoc :show-mobile-nav false)
               (assoc :show-pagination-loading false))
       ::scroll-to-top nil
       ::body-overflow! false
-      :fx [[:dispatch [::get-services]]
+      :fx [[:dispatch [::show-media-queue false]]
+           [:dispatch [::get-services]]
            [:dispatch [::get-kiosks (:service-id db)]]]})))
 
 (rf/reg-event-fx
