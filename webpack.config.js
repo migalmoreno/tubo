@@ -6,7 +6,7 @@ const CopyPlugin = require("copy-webpack-plugin")
 module.exports = {
   mode: process.env.NODE_ENV,
   entry: {
-    tubo: path.resolve(__dirname, "resources/src/css/tubo.scss")
+    tubo: path.resolve(__dirname, "resources/src/styles/tubo.scss")
   },
   output: {
     path: path.resolve(__dirname, "resources/public")
@@ -14,7 +14,7 @@ module.exports = {
   plugins: [
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
-      filename: "css/[name].css",
+      filename: "styles/[name].css",
     }),
     new CopyPlugin({
       patterns: [
