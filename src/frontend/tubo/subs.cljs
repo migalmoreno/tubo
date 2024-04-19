@@ -42,6 +42,11 @@
    !player))
 
 (rf/reg-sub
+ :player-ready
+ (fn [db _]
+   (:player-ready db)))
+
+(rf/reg-sub
  :paused
  (fn [db _]
    (:paused db)))

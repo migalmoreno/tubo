@@ -121,7 +121,8 @@
  (fn [{:keys [db player]} _]
    {:fx [[:dispatch [::change-player-paused true]]
          [:dispatch [::set-player-paused false]]
-         [::player-volume {:player player :volume (:volume-level db)}]]}))
+         [::player-volume {:player player :volume (:volume-level db)}]]
+    :db (assoc db :player-ready (and @player (> (.-readyState @player) 0)))}))
 
 (rf/reg-event-fx
  ::set-player-time
@@ -348,6 +349,7 @@
          stream (get (:media-queue db) idx)]
      (when stream
        {:db    (-> db
+                   (assoc :player-ready false)
                    (assoc :media-queue-pos idx)
                    (assoc-in [:media-queue idx :stream] ""))
         :store (assoc store :media-queue-pos idx)
@@ -369,6 +371,7 @@
          (fn [elem]
            (-> elem
                (assoc :show-audio-player (not (:show-audio-player elem)))
+               (assoc :player-ready false)
                (assoc :media-queue [])
                (assoc :media-queue-pos 0)))]
      {:db    (remove-entries db)

@@ -26,7 +26,6 @@
       :reagent-render
       (fn [!player]
         (let [!elapsed-time @(rf/subscribe [:elapsed-time])
-              player-ready? (and @!player (> (.-readyState @!player) 0))
               muted?        @(rf/subscribe [:muted])
               volume-level  @(rf/subscribe [:volume-level])
               loop-playback @(rf/subscribe [:loop-playback])]
@@ -47,7 +46,7 @@
         !elapsed-time   @(rf/subscribe [:elapsed-time])
         !player         @(rf/subscribe [:player])
         paused?         @(rf/subscribe [:paused])
-        player-ready?   (and @!player (> (.-readyState @!player) 0))
+        player-ready?   @(rf/subscribe [:player-ready])
         loop-playback   @(rf/subscribe [:loop-playback])]
     [:div.flex.flex-col.items-center.ml-auto
      [:div.flex.justify-end
@@ -60,7 +59,7 @@
       [player/button [:i.fa-solid.fa-backward]
        #(rf/dispatch [::events/set-player-time (- @!elapsed-time 5)])]
       [player/button
-       (if (or loading? (not @!player))
+       (if (or loading? (not player-ready?))
          [layout/loading-icon service-color "lg:text-2xl"]
          (if paused?
            [:i.fa-solid.fa-play]
@@ -74,13 +73,13 @@
        #(when (and media-queue (< (+ media-queue-pos 1) (count media-queue)))
           (rf/dispatch [::events/change-media-queue-pos (+ media-queue-pos 1)]))
        :disabled? (not (and media-queue (< (+ media-queue-pos 1) (count media-queue))))]]
-     [:div.hidden.lg:flex.items-center
-      [:span.mx-2.text-sm
-       (if @!elapsed-time (utils/format-duration @!elapsed-time) "00:00")]
+     [:div.hidden.lg:flex.items-center.text-sm
+      [:span.mx-2
+       (if (and @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "00:00")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [player/time-slider !player !elapsed-time service-color]]
-      [:span.mx-2.text-sm
-       (if player-ready? (utils/format-duration (.-duration @!player)) "00:00")]]]))
+      [:span.mx-2
+       (if (and @!player player-ready?) (utils/format-duration (.-duration @!player)) "00:00")]]]))
 
 (defn player
   []
