@@ -68,6 +68,12 @@
    (set! (.. js/document.body -style -overflow) (if active "hidden" "auto"))))
 
 (rf/reg-fx
+ ::scroll-into-view!
+ (fn [element]
+   (when element
+     (.scrollIntoView element (js-obj "behavior" "smooth")))))
+
+(rf/reg-fx
  ::document-title!
  (fn [title]
    (set! (.-title js/document) (str title " - Tubo"))))
@@ -192,6 +198,11 @@
  (fn [{:keys [db]} _]
    {:db (assoc db :show-media-queue (not (:show-media-queue db)))
     ::body-overflow! (not (:show-media-queue db))}))
+
+(rf/reg-event-fx
+ ::scroll-into-view
+ (fn [{:keys [db]} [_ element]]
+   {::scroll-into-view! element}))
 
 (rf/reg-event-fx
  ::change-volume-level
