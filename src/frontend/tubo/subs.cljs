@@ -160,7 +160,7 @@
  (fn [_]
    [(rf/subscribe [:media-queue]) (rf/subscribe [:media-queue-pos])])
  (fn [[queue pos] _]
-   (and (not-empty queue) (nth queue pos))))
+   (and (not-empty queue) (< pos (count queue)) (nth queue pos))))
 
 (rf/reg-sub
  :bookmarks

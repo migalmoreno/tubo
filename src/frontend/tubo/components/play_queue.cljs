@@ -20,7 +20,7 @@
             media-queue-pos @(rf/subscribe [:media-queue-pos])
             media-queue     @(rf/subscribe [:media-queue])]
         [:div.relative.w-full
-         {:ref #(when (and (> (count media-queue) 0) (= media-queue-pos i))
+         {:ref #(when (= media-queue-pos i)
                   (rf/dispatch [::events/scroll-into-view %]))}
          [:div.flex.cursor-pointer.py-2
           {:class    (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
