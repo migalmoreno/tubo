@@ -36,6 +36,11 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 }
 
 .vjs-tubo .vjs-big-play-button, .vjs-tubo.vjs-paused .vjs-big-play-button, .vjs-tubo:hover .vjs-big-play-button {
-  background: none;
+  content: '';
+  background-size: 60%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-color: transparent;
   border: none;
 }
