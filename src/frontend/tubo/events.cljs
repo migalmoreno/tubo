@@ -478,11 +478,9 @@
    {:db (assoc db :show-audio-player true)
     :store (assoc store :show-audio-player true)
     :fx (into [] (conj
-                  (map #(when (= (:type %) "stream")
-                          (identity [:dispatch [::add-to-media-queue %]])) streams)
-                  (when (= (:type (first streams)) "stream")
-                    [:dispatch [::fetch-audio-player-stream (first streams)
-                                (count (:media-queue db)) (= (count (:media-queue db)) 0)]])))}))
+                  (map #(identity [:dispatch [::add-to-media-queue %]]) streams)
+                  [:dispatch [::fetch-audio-player-stream (first streams)
+                              (count (:media-queue db)) (= (count (:media-queue db)) 0)]]))}))
 
 (rf/reg-event-db
  ::modal
