@@ -20,7 +20,7 @@
        :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
      [:title "Tubo"]
      [:link {:rel "icon" :type "image/png" :href "/icons/tubo.svg"}]
-     (hiccup/include-css "/styles/tubo.css")]
+     (hiccup/include-css "/styles/index.css")]
     [:body
      [:div#app]
      (hiccup/include-js "/js/main.js")

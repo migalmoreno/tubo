@@ -40,9 +40,9 @@
                                                            (when-not resolution
                                                              (str " " averageBitrate "kbit/s")))})
                                             available-streams))
-            player-elements   ["playToggle" "CurrentTimeDisplay" "progressControl"
-                               "DurationDisplay" "volumePanel" "playbackRateMenuButton"
-                               "QualitySelector" "fullscreenToggle"]]
+            player-elements   ["PlayToggle" "ProgressControl" "VolumePanel" "CurrentTimeDisplay"
+                               "TimeDivider" "DurationDisplay" "Spacer" "PlaybackRateMenuButton"
+                               "QualitySelector" "FullscreenToggle"]]
         [layout/content-container
          [:div.flex.justify-center.relative
           {:class "h-[300px] md:h-[450px] lg:h-[600px]"}
@@ -50,8 +50,7 @@
            {:sources       sources
             :poster        thumbnail-url
             :controls      true
-            :controlBar    {:volumePanel {:inline false}
-                            :children player-elements}
+            :controlBar    {:children player-elements}
             :preload       "metadata"
             :responsive    true
             :fill          true

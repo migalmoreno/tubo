@@ -6,7 +6,7 @@ const CopyPlugin = require("copy-webpack-plugin")
 module.exports = {
   mode: process.env.NODE_ENV,
   entry: {
-    tubo: path.resolve(__dirname, "resources/src/styles/tubo.scss")
+    index: path.resolve(__dirname, "resources/src/styles/index.scss")
   },
   output: {
     path: path.resolve(__dirname, "resources/public")

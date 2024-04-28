@@ -1,0 +1,15 @@
+@use "./videojs";
+@use "@fontsource/nunito-sans/scss/mixins" as NunitoSans;
+$fontsourceDir: "~@fontsource";
+@include NunitoSans.faces($weights: (200, 300, 400, 500, 600, 700, 800, 900));
+$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+@import "@fortawesome/fontawesome-free/scss/brands";
+@import "@fortawesome/fontawesome-free/scss/regular";
+@import "@fortawesome/fontawesome-free/scss/solid";
+@import "@fortawesome/fontawesome-free/scss/fontawesome";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "video.js/dist/video-js.css";
+@import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
+@import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
