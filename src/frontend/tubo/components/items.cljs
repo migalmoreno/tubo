@@ -26,16 +26,16 @@
                       :icon     [:i.fa-solid.fa-tower-cell]
                       :on-click #(rf/dispatch [::events/start-stream-radio item])}
                      {:label    (if liked? "Remove favorite" "Favorite")
-                      :icon     [:i.fa-solid.fa-heart (when liked? {:style {:color (utils/get-service-color service-id)}})]
-                      :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) item])}
-                     (if (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
+                      :icon     [:i.fa-solid.fa-heart (when (and liked? service-id) {:style {:color (utils/get-service-color service-id)}})]
+                      :on-click #(rf/dispatch [(if liked? ::events/remove-from-likes ::events/add-to-likes) item true])}
+                     {:label    "Add to playlist"
+                      :icon     [:i.fa-solid.fa-plus]
+                      :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                               [bookmarks/add-to-bookmark-list-modal item]])}
+                     (when (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
                        {:label    "Remove from playlist"
                         :icon     [:i.fa-solid.fa-trash]
-                        :on-click #(rf/dispatch [::events/remove-from-bookmark-list item])}
-                       {:label    "Add to playlist"
-                        :icon     [:i.fa-solid.fa-plus]
-                        :on-click #(rf/dispatch [::events/add-bookmark-list-modal
-                                                 [bookmarks/add-to-bookmark-list-modal item]])})]
+                        :on-click #(rf/dispatch [::events/remove-from-bookmark-list item])})]
                     [(when (and bookmarks (some #(= (:id %) bookmark-id) (rest bookmarks)))
                        {:label    "Remove playlist"
                         :icon     [:i.fa-solid.fa-trash]
