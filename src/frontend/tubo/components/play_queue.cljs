@@ -111,11 +111,11 @@
          :extra-classes "text-xl"
          :show-on-mobile? true]
         [player/button
-         (if (or loading? (not player-ready?))
-           [layout/loading-icon service-color "text-3xl"]
+         (if (or (not loading?) player-ready?)
            (if paused?
              [:i.fa-solid.fa-play]
-             [:i.fa-solid.fa-pause]))
+             [:i.fa-solid.fa-pause])
+           [layout/loading-icon service-color "text-3xl"])
          #(rf/dispatch [::events/set-player-paused (not paused?)])
          :extra-classes "text-3xl"
          :show-on-mobile? true]

@@ -59,11 +59,11 @@
       [player/button [:i.fa-solid.fa-backward]
        #(rf/dispatch [::events/set-player-time (- @!elapsed-time 5)])]
       [player/button
-       (if (or loading? (not player-ready?))
-         [layout/loading-icon service-color "lg:text-2xl"]
+       (if (or (not loading?) player-ready?)
          (if paused?
            [:i.fa-solid.fa-play]
-           [:i.fa-solid.fa-pause]))
+           [:i.fa-solid.fa-pause])
+         [layout/loading-icon service-color "lg:text-2xl"])
        #(rf/dispatch [::events/set-player-paused (not paused?)])
        :show-on-mobile? true
        :extra-classes "lg:text-2xl"]
