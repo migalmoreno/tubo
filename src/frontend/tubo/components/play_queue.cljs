@@ -31,10 +31,10 @@
           [:div.w-36
            [layout/thumbnail thumbnail-url nil name duration :classes "h-16 !p-0" :rounded? false]]
           [:div.flex.flex-col.pl-4.pr-12.w-full
-           [:h1.line-clamp-1 {:title name} name]
-           [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex.flex-col.xs:flex-row
+           [:h1.line-clamp-1.w-fit {:title name} name]
+           [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex
             [:span.line-clamp-1 {:title uploader-name} uploader-name]
-            [:span.px-2.hidden.xs:inline-block {:dangerouslySetInnerHTML {:__html "&bull;"}}]
+            [:span.px-2 {:dangerouslySetInnerHTML {:__html "&bull;"}}]
             [:span (utils/get-service-name service-id)]]]]
          [:div.absolute.right-0.top-0.min-h-full.flex.items-center
           [layout/popover-menu !menu-active?
