@@ -23,7 +23,7 @@
          {:ref #(when (= media-queue-pos i)
                   (rf/dispatch [::events/scroll-into-view %]))}
          [:div.flex.cursor-pointer.py-2
-          {:class    (when (= i media-queue-pos) "bg-[#f0f0f0] dark:bg-stone-800")
+          {:class    (when (= i media-queue-pos) "bg-neutral-200 dark:bg-stone-800")
            :on-click #(rf/dispatch [::events/change-media-queue-pos i])}
           [:div.flex.items-center.justify-center.min-w-20.w-20.xs:min-w-28.xs:w-28
            [:span.font-bold.text-neutral-400.text-sm
@@ -74,7 +74,7 @@
               :height     "calc(100dvh - 56px)"
               :visibility (when-not show-media-queue "hidden")
               :opacity    (if show-media-queue 1 0)}
-      :class "dark:bg-neutral-900/90 bg-white/90 backdrop-blur"}
+      :class "dark:bg-neutral-900/90 bg-neutral-100/90 backdrop-blur"}
      [layout/focus-overlay #(rf/dispatch [::events/show-media-queue false]) show-media-queue true]
      [:div.z-20.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
       {:class "lg:w-4/5 xl:w-3/5"}
