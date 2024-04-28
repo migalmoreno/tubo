@@ -44,7 +44,7 @@
        :current-match     nil
        :show-audio-player (if (nil? show-audio-player) false show-audio-player)
        :settings
-       {:theme            (if (nil? theme) :light theme)
+       {:theme            (if (nil? theme) :auto theme)
         :show-comments    (if (nil? show-comments) true show-comments)
         :show-related     (if (nil? show-related) true show-related)
         :show-description (if (nil? show-description) true show-description)

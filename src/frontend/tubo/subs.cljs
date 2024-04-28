@@ -18,6 +18,14 @@
     (.addEventListener js/window "touchmove" compute-scroll-distance)
     a))
 
+(defonce !auto-theme
+  (let [theme (r/atom (when (and (.-matchMedia js/window)
+                                 (.-matches (.matchMedia js/window "(prefers-color-scheme: dark)")))
+                        :dark))]
+    (.addEventListener (.matchMedia js/window "(prefers-color-scheme: dark)") "change"
+                       #(reset! theme (if (.-matches %) :dark :light)))
+    theme))
+
 (defonce !elapsed-time (r/atom 0))
 (defonce !player (atom nil))
 
@@ -40,6 +48,11 @@
  :player
  (fn [db _]
    !player))
+
+(rf/reg-sub
+ :auto-theme
+ (fn [db _]
+   @!auto-theme))
 
 (rf/reg-sub
  :player-ready

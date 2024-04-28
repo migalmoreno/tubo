@@ -21,7 +21,7 @@
     [layout/content-container
      [layout/content-header "Settings"]
      [:form.flex.flex-wrap.py-4
-      [select-input "Theme" :theme theme #{:light :dark}]
+      [select-input "Theme" :theme theme #{:auto :light :dark}]
       [select-input "Default service" :default-service (:id default-service)
        (map #(-> % :info :name) services)
        #(rf/dispatch [::events/change-service-setting (..  % -target -value)])]

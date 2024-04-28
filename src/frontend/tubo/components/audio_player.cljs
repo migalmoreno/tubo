@@ -98,8 +98,10 @@
             !player            @(rf/subscribe [:player])
             media-queue-pos    @(rf/subscribe [:media-queue-pos])
             {:keys [theme]}    @(rf/subscribe [:settings])
+            auto-theme         @(rf/subscribe [:auto-theme])
             service-color      (and service-id (utils/get-service-color service-id))
-            bg-color           (str "rgba(" (if (= theme "dark") "23, 23, 23" "255, 255, 255") ", 0.95)")
+            bg-color           (str "rgba(" (if (or (and (= theme "auto") (= auto-theme :dark)) (= theme "dark"))
+                                              "23, 23, 23" "255, 255, 255") ", 0.95)")
             liked?             (some #(= (:url %) url) (-> bookmarks first :items))]
         (when show-audio-player?
           [:div.sticky.bottom-0.z-10.p-3.absolute.box-border.m-0.transition-all.ease-in.delay-0
