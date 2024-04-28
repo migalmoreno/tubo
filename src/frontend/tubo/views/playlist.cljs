@@ -5,6 +5,7 @@
    [reitit.frontend.easy :as rfe]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
+   [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.events :as events]))
 
 (defn playlist
@@ -26,7 +27,11 @@
              [layout/popover-menu !menu-active?
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
-                :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}]])]
+                :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}
+               {:label    "Add to playlist"
+                :icon     [:i.fa-solid.fa-plus]
+                :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                         [bookmarks/add-to-bookmark-list-modal related-streams]])}]])]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
            [:div.flex.items-center
             [layout/uploader-avatar uploader-avatar uploader-name uploader-url]

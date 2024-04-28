@@ -71,5 +71,9 @@
             [layout/popover-menu !menu-active?
              [{:label    "Add to queue"
                :icon     [:i.fa-solid.fa-headphones]
-               :on-click #(rf/dispatch [::events/enqueue-related-streams items])}]])]
+               :on-click #(rf/dispatch [::events/enqueue-related-streams items])}
+              {:label    "Add to playlist"
+               :icon     [:i.fa-solid.fa-plus]
+               :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                        [bookmarks/add-to-bookmark-list-modal items]])}]])]
          [items/related-streams (map #(assoc % :type "stream" :bookmark-id id) items)]]))))

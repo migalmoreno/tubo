@@ -89,6 +89,7 @@
              [uploader-name uploader-url thumbnail-url
               name stream url service-id] :as current-stream}
             @(rf/subscribe [:media-queue-stream])
+            media-queue        @(rf/subscribe [:media-queue])
             show-audio-player? @(rf/subscribe [:show-audio-player])
             show-media-queue?  @(rf/subscribe [:show-media-queue])
             volume-level       @(rf/subscribe [:volume-level])
@@ -115,11 +116,11 @@
               [:img.min-h-full.max-h-full.object-cover.min-w-full.max-w-full.w-full {:src thumbnail-url}]]
              [:div.flex.flex-col.px-2
               [:a.text-xs.line-clamp-1
-               {:href (rfe/href :tubo.routes/stream nil {:url url})
+               {:href  (rfe/href :tubo.routes/stream nil {:url url})
                 :title name}
                name]
               [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
-               {:href (rfe/href :tubo.routes/channel nil {:url uploader-url})
+               {:href  (rfe/href :tubo.routes/channel nil {:url uploader-url})
                 :title uploader-name}
                uploader-name]]
              [audio-source !player]]
@@ -136,10 +137,14 @@
                {:label    "Play radio"
                 :icon     [:i.fa-solid.fa-tower-cell]
                 :on-click #(rf/dispatch [::events/start-stream-radio current-stream])}
-               {:label    "Add to playlist"
+               {:label    "Add current to playlist"
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [::events/add-bookmark-list-modal
                                          [bookmarks/add-to-bookmark-list-modal current-stream]])}
+               {:label    "Add queue to playlist"
+                :icon     [:i.fa-solid.fa-list]
+                :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                         [bookmarks/add-to-bookmark-list-modal media-queue]])}
                {:label    "Remove from queue"
                 :icon     [:i.fa-solid.fa-trash]
                 :on-click #(rf/dispatch [::events/remove-from-media-queue media-queue-pos])}

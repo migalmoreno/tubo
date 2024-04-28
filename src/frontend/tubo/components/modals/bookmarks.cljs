@@ -9,7 +9,9 @@
 (defn bookmark-list-item
   [{:keys [items id name] :as bookmark} item]
   [:div.flex.w-full.h-24.rounded.cursor-pointer.hover:bg-gray-100.dark:hover:bg-stone-800.px-2
-   {:on-click #(rf/dispatch [:tubo.events/add-to-bookmark-list bookmark item])}
+   {:on-click #(rf/dispatch (if (vector? item)
+                              [:tubo.events/add-related-streams-to-bookmark-list bookmark item]
+                              [:tubo.events/add-to-bookmark-list bookmark item true]))}
    [:div.w-24
     [layout/thumbnail (-> items first :thumbnail-url) nil name nil
      :classes "h-24"]]

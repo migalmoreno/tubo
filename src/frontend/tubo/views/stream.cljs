@@ -138,5 +138,9 @@
                :right-button [layout/popover-menu !suggested-menu-active?
                               [{:label    "Add to queue"
                                 :icon     [:i.fa-solid.fa-headphones]
-                                :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}]]}
+                                :on-click #(rf/dispatch [::events/enqueue-related-streams related-streams])}
+                               {:label    "Add to playlist"
+                                :icon     [:i.fa-solid.fa-plus]
+                                :on-click #(rf/dispatch [::events/add-bookmark-list-modal
+                                                         [bookmarks/add-to-bookmark-list-modal related-streams]])}]]}
               [items/related-streams related-streams nil]])]]]))))

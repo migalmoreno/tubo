@@ -661,6 +661,16 @@
             [])})))
 
 (rf/reg-event-fx
+ ::add-related-streams-to-bookmark-list
+ (fn [_ [_ bookmark related-streams]]
+   {:fx (conj (map (fn [s] [:dispatch [::add-to-bookmark-list bookmark s]]) related-streams)
+              [:dispatch [::add-notification
+                          {:status-text (str "Added " (count related-streams)
+                                             " items to playlist \""
+                                             (:name bookmark) "\"")
+                           :failure     :success}]])}))
+
+(rf/reg-event-fx
  ::add-to-bookmark-list
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark item notify?]]

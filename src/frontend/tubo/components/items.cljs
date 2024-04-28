@@ -39,7 +39,7 @@
                     [(when (and bookmarks (some #(= (:id %) bookmark-id) (rest bookmarks)))
                        {:label    "Remove playlist"
                         :icon     [:i.fa-solid.fa-trash]
-                        :on-click #(rf/dispatch [::events/remove-bookmark-list bookmark-id])})])]
+                        :on-click #(rf/dispatch [::events/remove-bookmark-list bookmark-id true])})])]
         [:<>
          (when name
            [:div.flex.items-center.my-2
