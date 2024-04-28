@@ -27,6 +27,8 @@
                 akiroz.re-frame/storage {:mvn/version "0.1.4"}
                 re-frame-utils/re-frame-utils {:mvn/version "0.1.0"}
                 nano-id/nano-id {:mvn/version "1.1.0"}
-                com.github.scopews/svgreq {:mvn/version "1.1.0"}}
+                com.github.scopews/svgreq {:mvn/version "1.1.0"}
+                funcool/promesa {:mvn/version "11.0.678"}
+                re-promise/re-promise {:mvn/version "0.1.1"}}
    :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :run {:main-opts ["-m" "tubo.core"]}}}

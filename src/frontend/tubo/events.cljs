@@ -4,8 +4,10 @@
    [day8.re-frame.http-fx]
    [goog.object :as gobj]
    [nano-id.core :refer [nano-id]]
+   [promesa.core :as p]
    [reagent.core :as r]
    [re-frame.core :as rf]
+   [re-promise.core]
    [reitit.frontend.easy :as rfe]
    [reitit.frontend.controllers :as rfc]
    [tubo.api :as api]
@@ -506,6 +508,86 @@
  (fn [_ [_ child]]
    {:fx [[:dispatch [::open-modal child]]]}))
 
+(rf/reg-fx
+ ::download-file!
+ (fn [{:keys [data name mime-type]}]
+   (let [file (.createObjectURL js/URL (js/Blob. (array data) {:type mime-type}))
+         !link (.createElement js/document "a")]
+     (set! (.-href !link) file)
+     (set! (.-download !link) name)
+     (.click !link)
+     (.remove !link))))
+
+(rf/reg-event-fx
+ ::add-imported-bookmark-list
+ (fn [{:keys [db]} [_ index bookmark]]
+   {:fx (if (= index 0)
+          (map (fn [s] [:dispatch [::add-to-likes s]])
+               (:items bookmark))
+          [[:dispatch [::add-bookmark-list bookmark]]])}))
+
+(rf/reg-event-fx
+ ::add-streams-to-imported-bookmark-lists
+ (fn [{:keys [db]} [_ bookmarks]]
+   {:fx (conj (map-indexed (fn [i b] [:dispatch [::add-imported-bookmark-list i b]]) bookmarks)
+              [:dispatch [::add-notification
+                          {:status-text "Imported playlists successfully"
+                           :failure :success}]])}))
+
+(defn fetch-imported-playlists-streams
+  [bookmarks]
+  (-> #(-> (p/all (map (fn [stream]
+                         (p/then (js/fetch
+                                  (str "/api/v1/streams/" (js/encodeURIComponent stream)))
+                                 (fn [res] (.json res))))
+                       (:items %)))
+           (p/then (fn [results]
+                     (assoc % :items results))))
+      (map bookmarks)
+      p/all))
+
+(rf/reg-event-fx
+ ::add-imported-bookmark-lists
+ (fn [{:keys [db]} [_ bookmarks]]
+   {:promise {:call #(-> (fetch-imported-playlists-streams bookmarks)
+                         (p/then (fn [res] (js->clj res :keywordize-keys true))))
+              :on-success-n [[::clear-notifications]
+                             [::add-streams-to-imported-bookmark-lists]]}
+    :fx [[:dispatch [::add-notification {:status-text "Importing playlists..." :failure :success} false]]]}))
+
+(rf/reg-fx
+ ::import-bookmark-list
+ (fn [file]
+   (-> (.text file)
+       (p/then
+        #(let [res (js->clj (.parse js/JSON %) :keywordize-keys true)]
+           (if (= (:format res) "Tubo")
+             (rf/dispatch [::add-imported-bookmark-lists (:playlists res)])
+             (throw (js/Error. "Format not supported")))))
+       (p/catch js/Error
+           (fn [error]
+             (rf/dispatch [::add-notification {:status-text (.-message error) :failure :error}]))))))
+
+(rf/reg-event-fx
+ ::import-bookmark-lists
+ (fn [{:keys [db]} [_ files]]
+   {:fx (map (fn [file] [::import-bookmark-list file]) files)}))
+
+(rf/reg-event-fx
+ ::export-bookmark-lists
+ (fn [{:keys [db]} [_]]
+   {::download-file!
+    {:name "playlists.json"
+     :mime-type "application/json"
+     :data (.stringify js/JSON (clj->js {:format "Tubo"
+                                         :version 1
+                                         :playlists
+                                         (map (fn [bookmark]
+                                                {:name  (:name bookmark)
+                                                 :items (map :url (:items bookmark))})
+                                              (:bookmarks db))}))}
+    :fx [[:dispatch [::add-notification {:status-text "Exported playlists" :failure :success}]]]}))
+
 (rf/reg-event-fx
  ::add-bookmark-list
  [(rf/inject-cofx :store)]
@@ -543,6 +625,17 @@
                          {:status-text (str "Removed playlist \"" (:name bookmark) "\"")
                           :failure     :success}]]]
             [])})))
+
+(rf/reg-event-fx
+ ::clear-bookmark-lists
+ (fn [{:keys [db]} _]
+   {:fx (apply merge
+               (map (fn [b] [:dispatch [::remove-bookmark-list (:id b)]]) (rest (:bookmarks db)))
+               (conj
+                (map (fn [s] [:dispatch [::remove-from-likes s]]) (:items (first (:bookmarks db))))
+                [:dispatch [::add-notification
+                            {:status-text "Cleared all playlists"
+                             :failure     :success}]]))}))
 
 (rf/reg-event-fx
  ::add-to-likes

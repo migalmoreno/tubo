@@ -6,6 +6,7 @@
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
    [tubo.components.modal :as modal]
+   [tubo.components.modals.bookmarks :as bookmarks]
    [tubo.events :as events]))
 
 (defn add-bookmark-modal
@@ -18,25 +19,43 @@
        [layout/secondary-button "Cancel"
         #(rf/dispatch [::events/close-modal])]
        [layout/primary-button "Create Playlist"
-        #(rf/dispatch [::events/add-bookmark-list {:name @!bookmark-name}])]])))
+        #(rf/dispatch [::events/add-bookmark-list {:name @!bookmark-name} true])]])))
 
 (defn bookmarks-page
   []
   (let [!menu-active? (r/atom nil)]
-    (let [service-color @(rf/subscribe [:service-color])
-          bookmarks     @(rf/subscribe [:bookmarks])
-          items         (map #(assoc %
-                                     :url (rfe/href :tubo.routes/bookmark nil {:id (:id %)})
-                                     :thumbnail-url (-> % :items first :thumbnail-url)
-                                     :stream-count (count (:items %))
-                                     :bookmark-id (:id %)) bookmarks)]
-      [layout/content-container
-       [layout/content-header "Bookmarks"
-        [layout/popover-menu !menu-active?
-         [{:label    "Create playlist"
-           :icon     [:i.fa-solid.fa-plus]
-           :on-click #(rf/dispatch [::events/open-modal [add-bookmark-modal]])}]]]
-       [items/related-streams items]])))
+    (fn []
+      (let [service-color @(rf/subscribe [:service-color])
+            bookmarks     @(rf/subscribe [:bookmarks])
+            items         (map #(assoc %
+                                       :url (rfe/href :tubo.routes/bookmark nil {:id (:id %)})
+                                       :thumbnail-url (-> % :items first :thumbnail-url)
+                                       :stream-count (count (:items %))
+                                       :bookmark-id (:id %)) bookmarks)]
+        [layout/content-container
+         [layout/content-header "Bookmarks"
+          [layout/popover-menu !menu-active?
+           [{:label    "Add New"
+             :icon     [:i.fa-solid.fa-plus]
+             :on-click #(rf/dispatch [::events/open-modal [add-bookmark-modal]])}
+            [:<>
+             [:input.hidden
+              {:id        "file-selector"
+               :type      "file"
+               :multiple  "multiple"
+               :on-click  #(reset! !menu-active? true)
+               :on-change #(rf/dispatch [::events/import-bookmark-lists (.. % -target -files)])}]
+             [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
+              {:for "file-selector"}]
+             [:span.text-xs.w-10.min-w-4.w-4.flex.items-center [:i.fa-solid.fa-file-import]]
+             [:span "Import"]]
+            {:label    "Export"
+             :icon     [:i.fa-solid.fa-file-export]
+             :on-click #(rf/dispatch [::events/export-bookmark-lists])}
+            {:label    "Clear All"
+             :icon     [:i.fa-solid.fa-trash]
+             :on-click #(rf/dispatch [::events/clear-bookmark-lists])}]]]
+         [items/related-streams items]]))))
 
 (defn bookmark-page
   []
