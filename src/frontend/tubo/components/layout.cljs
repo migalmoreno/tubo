@@ -125,22 +125,24 @@
       ^{:key i} [:option.dark:bg-neutral-900.border-none {:value option :key i} option])]])
 
 (defn menu-item
-  [{:keys [label icon on-click link]}]
+  [{:keys [label icon on-click link] :as item}]
   (let [content [:<>
-                 [:span.text-xs icon]
-                 [:span.whitespace-nowrap label]]]
+                 [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center icon]
+                 [:span.whitespace-nowrap label]]
+        classes ["relative ""flex" "items-center" "gap-x-3" "hover:bg-neutral-200"
+                 "dark:hover:bg-stone-800" "py-2" "px-3" "rounded"]]
     (if link
-      [:a.flex.gap-x-3.items-center.hover:bg-gray-100.dark:hover:bg-stone-800.py-2.px-3.rounded
-       {:href (:route link) :target (when (:external? link) "_blank")}
+      [:a {:href  (:route link) :target (when (:external? link) "_blank")
+           :class (clojure.string/join " " classes)}
        content]
-      [:li.flex.gap-x-3.items-center.hover:bg-gray-100.dark:hover:bg-stone-800.py-2.px-3.rounded
-       {:on-click on-click}
-       content])))
+      [:li {:on-click on-click
+            :class    (clojure.string/join " " classes)}
+       (if (vector? item) item content)])))
 
 (defn menu
   [active? items & {:keys [right top bottom left] :or {right "15px" top "0px"}}]
   (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-white.dark:bg-neutral-900.border.border-neutral-300.dark:border-stone-700.rounded-t.rounded-b.z-20.p-2.flex.flex-col
+    [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.border.border-neutral-300.dark:border-stone-700.rounded-t.rounded-b.z-20.p-2.flex.flex-col
      {:class (when-not active? "hidden")
       :style {:right right :left left :top top :bottom bottom}}
      (for [[i item] (map-indexed vector (remove nil? items))]
