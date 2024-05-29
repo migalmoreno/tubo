@@ -87,9 +87,11 @@
         queue-pos     @(rf/subscribe [:queue-pos])]
     [:<>
      [:div.flex.flex-auto.py-2.w-full.items-center.text-sm
-      [:span.mr-4 (if @!elapsed-time (utils/format-duration @!elapsed-time) "--:--")]
+      [:span.mr-4.whitespace-nowrap
+       (if (and @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "--:--")]
       [player/time-slider !player !elapsed-time service-color]
-      [:span.ml-4 (if player-ready? (utils/format-duration (.-duration @!player)) "--:--")]]
+      [:span.ml-4.whitespace-nowrap
+       (if (and @!player player-ready?) (utils/format-duration (.-duration @!player)) "--:--")]]
      [:div.flex.justify-center.items-center
       [player/loop-button loop-playback service-color true]
       [player/button

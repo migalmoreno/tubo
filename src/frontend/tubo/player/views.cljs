@@ -91,11 +91,11 @@
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]]
      [:div.hidden.lg:flex.items-center.text-sm
       [:span.mx-2
-       (if @!elapsed-time (utils/format-duration @!elapsed-time) "--:--")]
+       (if (and @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "--:--")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [player/time-slider !player !elapsed-time color]]
       [:span.mx-2
-       (if player-ready? (utils/format-duration (.-duration @!player)) "--:--")]]]))
+       (if (and @!player player-ready?) (utils/format-duration (.-duration @!player)) "--:--")]]]))
 
 (defn extra-controls
   [!player {:keys [url uploader-url] :as stream} color]
