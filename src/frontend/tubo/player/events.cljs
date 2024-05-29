@@ -88,11 +88,15 @@
      (set! (.. (.$ (.getChild ^videojs/VideoJsPlayer @player "ControlBar") class) -style -background) color))))
 
 (rf/reg-event-fx
+ :player/set-slider-color
+ (fn [_ [_ !player service-id]]
+   {:slider-color {:player !player :color (utils/get-service-color service-id)}}))
+
+(rf/reg-event-fx
  :player/start-in-main
  [(rf/inject-cofx ::inject/sub [:elapsed-time])]
  (fn [{:keys [db]} [_ !player options service-id]]
-   {:fx [[:audio-poster-mode {:player !player :options options}]
-         [:slider-color {:player !player :color (utils/get-service-color service-id)}]]}))
+   {:fx [[:audio-poster-mode {:player !player :options options}]]}))
 
 (rf/reg-fx
  :media-session-metadata

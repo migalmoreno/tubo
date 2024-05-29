@@ -176,7 +176,9 @@
       (fn [^videojs/VideoJsPlayer this]
         (VideojsQualitySelector videojs)
         (reset! !player (videojs (rdom/dom-node this) (clj->js options)))
-        (.on @!player "ready" #(.mobileUi ^videojs/VideoJsPlayer @!player))
-        (.on @!player "play" #(rf/dispatch [:player/start-in-main !player options service-id])))
+        (.on @!player "ready" (fn []
+                                (.mobileUi ^videojs/VideoJsPlayer @!player)
+                                (rf/dispatch [:player/set-slider-color !player service-id])))
+        (.on @!player "play" #(rf/dispatch [:player/start-in-main !player options])))
       :component-will-unmount #(when @!player (.dispose @!player))
       :reagent-render         (fn [options] [:video-js.vjs-tubo])})))
