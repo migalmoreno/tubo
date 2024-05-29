@@ -2,17 +2,43 @@
 
 # Tubo
 
-Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
+Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.  
 
-To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
+To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
+
+
+## Screenshots
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_stream.jpg" alt="tubo_stream.jpg" /></th>
+<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_channel.jpg" alt="tubo_channel.jpg" /></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_queue.jpg" alt="tubo_queue.jpg" /></td>
+<td class="org-left"><img src="https://files.migalmoreno.com/tubo_search.jpg" alt="tubo_search.jpg" /></td>
+</tr>
+</tbody>
+</table>
 
 
 ## Features
 
 -   [X] No ads
--   [X] Audio player
--   [X] Media queue
--   [X] Playlists
+-   [X] Background player
+-   [X] Playback queue
+-   [X] Bookmarked Playlists
 -   [X] Settings
 -   [ ] Subscriptions
 -   [ ] User login
@@ -41,9 +67,6 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 <td class="org-left">🇪🇸</td>
 </tr>
 
-<tr>
-<td class="org-left"><a href="https://tubo.reallyaweso.me">https://tubo.reallyaweso.me</a></td>
-<td class="org-left">🇩🇪</td>
 
 <tr>
 <td class="org-left"><a href="https://tubo.reallyaweso.me">https://tubo.reallyaweso.me</a></td>
@@ -52,7 +75,7 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 
 <tr>
-<td class="org-left"><a href="https://tubo.reallyaweso.me">https://tubo.reallyaweso.me</a></td>
+<td class="org-left"><a href="https://tubo.ducks.party">https://tubo.ducks.party</a></td>
 <td class="org-left">🇩🇪</td>
 </tr>
 </tbody>
@@ -66,52 +89,52 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 -   Uberjar
 
-    To bundle the whole project into a self-contained uber-jar you need to follow these build steps:
-
+    To bundle the whole project into a self-contained uber-jar you need to follow these build steps:  
+    
         npm i
         npm run build
         clojure -T:frontend:build uberjar
-
-    After the last command is completed, you'll get a path to the uber-jar, which you can run like this:
-
+    
+    After the last command is completed, you'll get a path to the uber-jar, which you can run like this:  
+    
         java -jar target/tubo-<VERSION>.jar
 
 -   Docker
 
-    Alternatively, you can use Docker to set up Tubo. Simply invoke this:
-
+    Alternatively, you can use Docker to set up Tubo. Simply invoke this:  
+    
         docker-compose up -d
 
 -   Manual
 
-    You can also set up Tubo manually via the [GNU Guix](https://guix.gnu.org/) package manager. First, download the necessary tooling:
-
+    You can also set up Tubo manually via the [GNU Guix](https://guix.gnu.org/) package manager. First, download the necessary tooling:  
+    
         cd /path/to/tubo
         guix shell
-
-    Then, compile the downloader ahead-of-time:
-
+    
+    Then, compile the downloader ahead-of-time:  
+    
         clojure -M -e "(compile 'tubo.downloader-impl)"
-
-    Fetch the front-end dependencies and build the front-end assets.
-
+    
+    Fetch the front-end dependencies and build the front-end assets.  
+    
         npm i
         npm run build
-
-    Finally, compile the front-end.
-
+    
+    Finally, compile the front-end.  
+    
         clojure -M:frontend release tubo
-
-    You can now start a local server that listens on port 3000 by running this:
-
+    
+    You can now start a local server that listens on port 3000 by running this:  
+    
         clojure -M:run
-
-    Access the front-end in your browser at `http://localhost:3000`.
+    
+    Access the front-end in your browser at `http://localhost:3000`.  
 
 
 ### Reverse Proxy
 
-If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.
+If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.  
 
 -   Nginx
 
@@ -120,7 +143,7 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
             server_name tubo.<YOUR_DOMAIN>;
             ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
             ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
-
+        
             location / {
                 proxy_pass http://localhost:3000;
                 proxy_set_header X-Forwarded-For $remote_addr;
@@ -134,7 +157,7 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 
 ### [Redirector](https://github.com/einaregilsson/Redirector)
 
-You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you can get a basic idea of how to write manual Redirector rules. Note the `serviceId` of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4). Replace <https://tubo.migalmoreno.com/> in the redirect rule to the instance of your choice.
+You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you can get a basic idea of how to write manual Redirector rules. Note the `serviceId` of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4). Replace <https://tubo.migalmoreno.com/> in the redirect rule to the instance of your choice.  
 
     Description: YouTube video to Tubo stream
     Example URL: https://www.youtube.com/watch?v=YE7VzlLtp-4
@@ -182,23 +205,10 @@ You can manually add any redirect rule based on regex patterns with this extensi
 
 ### [LibRedirect](https://github.com/libredirect/browser_extension)
 
-Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud, so no need to do anything for these. The rest of services are pending as per [#884](https://github.com/libredirect/browser_extension/issues/884).
+Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud, so no need to do anything for these. The rest of services are pending as per [#884](https://github.com/libredirect/browser_extension/issues/884).  
 
 
 ### [Privacy Redirector](https://github.com/dybdeskarphet/privacy-redirector)
 
-A userscript that redirects popular social media platforms to their privacy respecting front-ends.
+A userscript that redirects popular social media platforms to their privacy respecting front-ends.  
 
-
-### [nx-router](https://github.com/migalmoreno/nx-router)
-
-Similar to Redirector but for the [Nyxt](https://nyxt.atlas.engineer/) browser, you can manually add any redirect rule based on regex patterns with this extension, which allows you to define all redirection rules in a single "router". A sample configuration for YouTube would look like this:
-
-    (make-instance 'router:redirector
-                   :name 'youtube-to-tubo
-                   :route (match-domain "youtube.com")
-                   :redirect
-                   '(("https://tubo.migalmoreno.com/stream?url=\\&" . (".*/watch\\?v.*" ".*/shorts/.*"))
-                     ("https://tubo.migalmoreno.com/playlist?list=\\&" . ".*/playlist/.*")
-                     ("https://tubo.migalmoreno.com/channel?url=\\&" . ".*/channel/.*")
-                     ("https://tubo.migalmoreno.com/search?q=\\1&serviceId=0" . ".*/search\\?q=(.*)")))
