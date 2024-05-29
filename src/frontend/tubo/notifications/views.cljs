@@ -5,7 +5,7 @@
 (defn notification-content
   [{:keys [failure parse-error status status-text] :as notification}]
   (when notification
-    [:div.flex.flex-col.justify-center.pl-4.pr-8.py-4.rounded.backdrop-blur.shadow.shadow-neutral-700
+    [:div.relative.flex.flex-col.justify-center.pl-4.pr-8.py-4.rounded.backdrop-blur.shadow.shadow-neutral-700
      {:class (case failure
                :success ["bg-green-600/90" "text-white"]
                :error   ["bg-red-600/90" "text-white"]
