@@ -84,10 +84,16 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 <td class="org-left"><a href="https://tubo.reallyaweso.me">https://tubo.reallyaweso.me</a></td>
 <td class="org-left">🇩🇪</td>
 </tr>
+
+
+<tr>
+<td class="org-left"><a href="https://tubo.ducks.party">https://tubo.ducks.party</a></td>
+<td class="org-left">🇩🇪</td>
+</tr>
 </tbody>
 </table>
 
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org3459bb2). See [installation](#org3fdd525) for ways to set up Tubo in your server.  
+If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#orgc211af1). See [installation](#orgff80e82) for ways to set up Tubo in your server.  
 
 
 ## Installation
