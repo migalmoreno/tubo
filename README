@@ -1,4 +1,4 @@
-# -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; after-save-hook: (lambda nil (org-export-to-file 'md (org-export-output-file-name ".md")) (org-export-to-file 'md (org-export-output-file-name ".md" nil ".github/"))); -*-
+# -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; after-save-hook: 'org-md-export-to-markdown; -*-
 #+OPTIONS: toc:nil num:nil
 * Tubo
 Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamNewPipe/NewPipe][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
@@ -6,15 +6,14 @@ Tubo is a streaming front-end focused on bringing the [[https://github.com/TeamN
 To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/NewPipeExtractor][NewPipe Extractor]] library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
 ** Screenshots
-| https://files.migalmoreno.com/tubo_kiosk_light.jpg | https://files.migalmoreno.com/tubo_channel_light.jpg | [[https://files.migalmoreno.com/tubo_stream_playing_light.jpg]] | https://files.migalmoreno.com/tubo_queue_light.jpg    | https://files.migalmoreno.com/tubo_settings_light.jpg |
-|----------------------------------------------------+------------------------------------------------------+-----------------------------------------------------+-------------------------------------------------------+-------------------------------------------------------|
-| https://files.migalmoreno.com/tubo_kiosk_dark.jpg  | https://files.migalmoreno.com/tubo_channel_dark.jpg  | https://files.migalmoreno.com/tubo_stream_dark.jpg  | https://files.migalmoreno.com/tubo_queue_dark.jpg     | https://files.migalmoreno.com/tubo_bookmarks_dark.jpg |
-
+| https://files.migalmoreno.com/tubo_stream.jpg | https://files.migalmoreno.com/tubo_channel.jpg |
+|-----------------------------------------------+------------------------------------------------|
+| https://files.migalmoreno.com/tubo_queue.jpg  | https://files.migalmoreno.com/tubo_search.jpg  |
 ** Features
 - [X] No ads
-- [X] Audio player
-- [X] Media queue
-- [X] Playlists
+- [X] Background player
+- [X] Playback queue
+- [X] Bookmarked Playlists
 - [X] Settings
 - [ ] Subscriptions
 - [ ] User login
@@ -25,8 +24,6 @@ To retrieve the data, it wraps the excellent [[https://github.com/TeamNewPipe/Ne
 | https://tubo.migalmoreno.com (Official) | 🇪🇸    |
 | [[https://tubo.reallyaweso.me][https://tubo.reallyaweso.me]]             | 🇩🇪    |
 | [[https://tubo.ducks.party][https://tubo.ducks.party]]                | 🇩🇪    |
-
-If you consider self-hosting Tubo let me know about your instance via the [[*Contributing][contribution methods]]. See [[*Installation][installation]] for ways to set up Tubo in your server.
 
 ** Installation
 *** Packaging
@@ -169,20 +166,3 @@ Redirects many popular services to their alternative front-ends. Has a ton of fe
 
 *** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
 A userscript that redirects popular social media platforms to their privacy respecting front-ends.
-
-*** [[https://github.com/migalmoreno/nx-router][nx-router]]
-Similar to Redirector but for the [[https://nyxt.atlas.engineer/][Nyxt]] browser, you can manually add any redirect rule based on regex patterns with this extension, which allows you to define all redirection rules in a single "router". A sample configuration for YouTube would look like this:
-
-#+begin_src lisp
-(make-instance 'router:redirector
-               :name 'youtube-to-tubo
-               :route (match-domain "youtube.com")
-               :redirect
-               '(("https://tubo.migalmoreno.com/stream?url=\\&" . (".*/watch\\?v.*" ".*/shorts/.*"))
-                 ("https://tubo.migalmoreno.com/playlist?list=\\&" . ".*/playlist/.*")
-                 ("https://tubo.migalmoreno.com/channel?url=\\&" . ".*/channel/.*")
-                 ("https://tubo.migalmoreno.com/search?q=\\1&serviceId=0" . ".*/search\\?q=(.*)")))
-#+end_src
-
-** Contributing
-Feel free to open an issue with bug reports or feature requests. PRs are more than welcome too.

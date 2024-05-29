@@ -7,44 +7,6 @@ Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.c
 To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.
 
 
-## Screenshots
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk_light.jpg" alt="tubo_kiosk_light.jpg" /></th>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_channel_light.jpg" alt="tubo_channel_light.jpg" /></th>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_stream_playing_light.jpg" alt="tubo_stream_playing_light.jpg" /></th>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_queue_light.jpg" alt="tubo_queue_light.jpg" /></th>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_settings_light.jpg" alt="tubo_settings_light.jpg" /></th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_kiosk_dark.jpg" alt="tubo_kiosk_dark.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_channel_dark.jpg" alt="tubo_channel_dark.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_stream_dark.jpg" alt="tubo_stream_dark.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_queue_dark.jpg" alt="tubo_queue_dark.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_bookmarks_dark.jpg" alt="tubo_bookmarks_dark.jpg" /></td>
-</tr>
-</tbody>
-</table>
-
-
 ## Features
 
 -   [X] No ads
@@ -95,8 +57,6 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 </tr>
 </tbody>
 </table>
-
-If you consider self-hosting Tubo let me know about your instance via the [contribution methods](#org26cd4a5). See [installation](#org5693e96) for ways to set up Tubo in your server.
 
 
 ## Installation
@@ -242,8 +202,3 @@ Similar to Redirector but for the [Nyxt](https://nyxt.atlas.engineer/) browser, 
                      ("https://tubo.migalmoreno.com/playlist?list=\\&" . ".*/playlist/.*")
                      ("https://tubo.migalmoreno.com/channel?url=\\&" . ".*/channel/.*")
                      ("https://tubo.migalmoreno.com/search?q=\\1&serviceId=0" . ".*/search\\?q=(.*)")))
-
-
-## Contributing
-
-Feel free to open an issue with bug reports or feature requests. PRs are more than welcome too.
