@@ -32,7 +32,7 @@
      {:db
       {:paused                 true
        :muted                  (:muted store)
-       :queue                  (:queue store)
+       :queue                  (if-nil (:queue store) [])
        :service-id             (if-nil (:service-id store) 0)
        :loop-playback          (if-nil (:loop-playback store) :playlist)
        :queue-pos              (if-nil (:queue-pos store) 0)
