@@ -54,11 +54,11 @@
       :extra-classes [:px-7 :py-2]]]))
 
 (defn queue-item
-  [item queue-pos i bookmarks]
+  [item queue queue-pos i bookmarks]
   (let [!menu-active? (r/atom false)]
-    (fn [item queue-pos i bookmarks]
+    (fn [item queue queue-pos i bookmarks]
       [:div.relative.w-full
-       {:ref #(when (= queue-pos i) (rf/dispatch [:scroll-into-view %]))}
+       {:ref #(when (and queue (= queue-pos i)) (rf/dispatch [:scroll-into-view %]))}
        [item-metadata item queue-pos i]
        [popover item i !menu-active? bookmarks]])))
 
@@ -141,14 +141,14 @@
     [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.z-10.backdrop-blur
      {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
               "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
-              (when-not show-queue "hidden")
+              (when-not show-queue "invisible")
               (if show-queue "opacity-1" "opacity-0")]}
      [layout/focus-overlay #(rf/dispatch [:queue/show false]) show-queue true]
      [:div.z-20.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
       {:class ["lg:w-4/5" "xl:w-3/5"]}
       [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1
        (for [[i item] (map-indexed vector queue)]
-         ^{:key i} [queue-item item queue-pos i bookmarks])]
+         ^{:key i} [queue-item item queue queue-pos i bookmarks])]
       [:div.flex.flex-col.py-4.shrink-0.px-5
        [queue-metadata stream]
        [main-controls stream queue queue-pos]]]]))
