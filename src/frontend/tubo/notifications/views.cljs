@@ -1,19 +1,18 @@
-(ns tubo.components.notification
+(ns tubo.notifications.views
   (:require
-   [re-frame.core :as rf]
-   [tubo.events :as events]))
+   [re-frame.core :as rf]))
 
 (defn notification-content
   [{:keys [failure parse-error status status-text] :as notification}]
   (when notification
-    [:div.py-4.pl-4.pr-8.rounded.backdrop-blur.flex.flex-col.justify-center.shadow.shadow-neutral-700
-     {:class (clojure.string/join
-              "" (case failure
-                   :success ["bg-green-600/90 text-white"]
-                   :error   ["bg-red-600/90 text-white"]
-                   ["bg-neutral-300"]))}
+    [:div.flex.flex-col.justify-center.pl-4.pr-8.py-4.rounded.backdrop-blur.shadow.shadow-neutral-700
+     {:class (case failure
+               :success ["bg-green-600/90" "text-white"]
+               :error   ["bg-red-600/90" "text-white"]
+               ["bg-neutral-300"])}
      [:button.text-lg.absolute.top-1.right-2
-      {:on-click #(rf/dispatch [::events/remove-notification (:id notification)])}
+      {:on-click
+       #(rf/dispatch [:notifications/remove (:id notification)])}
       [:i.fa-solid.fa-close]]
      [:span.font-bold (str (when status (str status ": ")) status-text)]
      (when parse-error

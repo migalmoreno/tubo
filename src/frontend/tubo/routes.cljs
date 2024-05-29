@@ -3,62 +3,61 @@
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
-   [tubo.events :as events]
-   [tubo.views.channel :as channel]
-   [tubo.views.kiosk :as kiosk]
-   [tubo.views.playlist :as playlist]
-   [tubo.views.bookmarks :as bookmarks]
-   [tubo.views.search :as search]
-   [tubo.views.settings :as settings]
-   [tubo.views.stream :as stream]))
+   [tubo.channel.views :as channel]
+   [tubo.kiosks.views :as kiosk]
+   [tubo.playlist.views :as playlist]
+   [tubo.bookmarks.views :as bookmarks]
+   [tubo.search.views :as search]
+   [tubo.settings.views :as settings]
+   [tubo.stream.views :as stream]))
 
 (def router
   (ref/router
-   [["/" {:view kiosk/kiosk
-          :name ::home
-          :controllers [{:start #(rf/dispatch [::events/get-homepage])}]}]
-    ["/search" {:view search/search
-                :name ::search
+   [["/" {:view        kiosk/kiosk
+          :name        :homepage
+          :controllers [{:start #(rf/dispatch [:fetch-homepage])}]}]
+    ["/search" {:view        search/search
+                :name        :search-page
                 :controllers [{:parameters {:query [:q :serviceId]}
-                               :start (fn [{{:keys [serviceId q]} :query}]
-                                        (rf/dispatch [::events/get-search-page serviceId q]))
-                               :stop #(rf/dispatch [::events/show-search-form false])}]}]
-    ["/stream" {:view stream/stream
-                :name ::stream
+                               :start      (fn [{{:keys [serviceId q]} :query}]
+                                             (rf/dispatch [:search/fetch-page serviceId q]))
+                               :stop       #(rf/dispatch [:search/show-form false])}]}]
+    ["/stream" {:view        stream/stream
+                :name        :stream-page
                 :controllers [{:parameters {:query [:url]}
-                               :start (fn [{{:keys [url]} :query}]
-                                        (rf/dispatch [::events/get-stream-page url]))}]}]
-    ["/channel" {:view channel/channel
-                 :name ::channel
+                               :start      (fn [{{:keys [url]} :query}]
+                                             (rf/dispatch [:stream/fetch-page url]))}]}]
+    ["/channel" {:view        channel/channel
+                 :name        :channel-page
                  :controllers [{:parameters {:query [:url]}
-                                :start (fn [{{:keys [url]} :query}]
-                                         (rf/dispatch [::events/get-channel-page url]))}]}]
-    ["/playlist" {:view playlist/playlist
-                  :name ::playlist
+                                :start      (fn [{{:keys [url]} :query}]
+                                              (rf/dispatch [:channel/fetch-page url]))}]}]
+    ["/playlist" {:view        playlist/playlist
+                  :name        :playlist-page
                   :controllers [{:parameters {:query [:url]}
-                                 :start (fn [{{:keys [url]} :query}]
-                                          (rf/dispatch [::events/get-playlist-page url]))}]}]
-    ["/kiosk" {:view kiosk/kiosk
-               :name ::kiosk
+                                 :start      (fn [{{:keys [url]} :query}]
+                                               (rf/dispatch [:playlist/fetch-page url]))}]}]
+    ["/kiosk" {:view        kiosk/kiosk
+               :name        :kiosk-page
                :controllers [{:parameters {:query [:kioskId :serviceId]}
-                              :start (fn [{{:keys [serviceId kioskId]} :query}]
-                                       (rf/dispatch [::events/get-kiosk-page serviceId kioskId]))}]}]
-    ["/settings" {:view settings/settings-page
-                  :name ::settings
-                  :controllers [{:start #(rf/dispatch [::events/get-settings-page])}]}]
-    ["/bookmark" {:view bookmarks/bookmark-page
-                  :name ::bookmark
+                              :start      (fn [{{:keys [serviceId kioskId]} :query}]
+                                            (rf/dispatch [:kiosks/fetch-page serviceId kioskId]))}]}]
+    ["/settings" {:view        settings/settings
+                  :name        :settings-page
+                  :controllers [{:start #(rf/dispatch [:settings/fetch-page])}]}]
+    ["/bookmark" {:view        bookmarks/bookmark
+                  :name        :bookmark-page
                   :controllers [{:parameters {:query [:id]}
-                                 :start (fn [{{:keys [id]} :query}]
-                                          (rf/dispatch [::events/get-bookmark-page id]))}]}]
-    ["/bookmarks" {:view bookmarks/bookmarks-page
-                   :name ::bookmarks
-                   :controllers [{:start #(rf/dispatch [::events/get-bookmarks-page])}]}]]))
+                                 :start      (fn [{{:keys [id]} :query}]
+                                               (rf/dispatch [:bookmark/fetch-page id]))}]}]
+    ["/bookmarks" {:view        bookmarks/bookmarks
+                   :name        :bookmarks-page
+                   :controllers [{:start #(rf/dispatch [:bookmarks/fetch-page])}]}]]))
 
 (defn on-navigate
   [new-match]
   (when new-match
-    (rf/dispatch [::events/navigated new-match])))
+    (rf/dispatch [:navigated new-match])))
 
 (defn start-routes!
   []

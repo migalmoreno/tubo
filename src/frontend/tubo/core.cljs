@@ -3,7 +3,7 @@
    ["react-dom/client" :as rdom]
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.events :as events]
+   [tubo.events]
    [tubo.routes :as routes]
    [tubo.subs]
    [tubo.views :as views]))
@@ -18,5 +18,5 @@
 
 (defn ^:export init
   []
-  (rf/dispatch-sync [::events/initialize-db])
+  (rf/dispatch-sync [:initialize-db])
   (mount-root))
