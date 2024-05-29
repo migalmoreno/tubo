@@ -182,7 +182,11 @@
                  (assoc :show-background-player true)
                  (assoc :queue (:queue updated-db)))
       :fx    [[:dispatch [:player/fetch-stream
-                          (:url stream) idx (= (count (:queue db)) 0)]]]})))
+                          (:url stream) idx (= (count (:queue db)) 0)]]
+              (when-not (= (count (:queue db)) 0)
+                [:dispatch [:notifications/add
+                            {:status-text (str "Added stream to queue")
+                             :failure     :success}]])]})))
 
 (rf/reg-event-fx
  :player/load-related-streams

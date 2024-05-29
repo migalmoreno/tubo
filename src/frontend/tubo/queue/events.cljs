@@ -11,20 +11,30 @@
 (rf/reg-event-fx
  :queue/add
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream]]
+ (fn [{:keys [db store]} [_ stream notify?]]
    (let [updated-db (update db :queue conj stream)]
      {:db    updated-db
-      :store (assoc store :queue (:queue updated-db))})))
+      :store (assoc store :queue (:queue updated-db))
+      :fx    (if notify?
+               [[:dispatch [:notifications/add
+                            {:status-text "Added stream to queue"
+                             :failure     :success}]]]
+               [])})))
 
 (rf/reg-event-fx
  :queue/add-n
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ streams]]
+ (fn [{:keys [db store]} [_ streams notify?]]
    {:db    (assoc db :show-background-player true)
     :store (assoc store :show-background-player true)
-    :fx    (conj (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
-              [:dispatch [:player/fetch-stream (-> streams first :url)
-                          (count (:queue db)) (= (count (:queue db)) 0)]])}))
+    :fx    (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
+                 [[:dispatch [:player/fetch-stream (-> streams first :url)
+                              (count (:queue db)) (= (count (:queue db)) 0)]]
+                  (when notify?
+                    [:dispatch [:notifications/add
+                                {:status-text (str "Added " (count streams)
+                                                   " streams to queue")
+                                 :failure     :success}]])])}))
 
 (rf/reg-event-fx
  :queue/remove
