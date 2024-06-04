@@ -63,8 +63,7 @@
  [(rf/inject-cofx ::inject/sub [:player])]
  (fn [{:keys [db player]} [_ paused?]]
    {:pause! {:paused? paused?
-             :player  player}
-    :db (assoc db :paused paused?)}))
+             :player  player}}))
 
 (rf/reg-event-fx
  :main-player/pause
@@ -79,7 +78,8 @@
  [(rf/inject-cofx ::inject/sub [:elapsed-time])
   (rf/inject-cofx ::inject/sub [:main-player])]
  (fn [{:keys [db elapsed-time main-player]}]
-   {:fx [[:dispatch [:background-player/seek @elapsed-time]]
+   {:fx [[:dispatch [:background-player/set-paused false]]
+         [:dispatch [:background-player/seek @elapsed-time]]
          (when (and (:main-player/ready db) @main-player)
            [:dispatch [:main-player/pause true]])]}))
 
@@ -102,7 +102,8 @@
  [(rf/inject-cofx ::inject/sub [:player])
   (rf/inject-cofx ::inject/sub [:elapsed-time])]
  (fn [{:keys [db player elapsed-time]} _]
-   {:fx [[:dispatch [:background-player/pause false]]
+   {:fx [[:dispatch [:background-player/set-paused true]]
+         [:dispatch [:background-player/pause false]]
          [:dispatch [:player/change-volume (:volume-level db) player]]]}))
 
 (rf/reg-event-fx
