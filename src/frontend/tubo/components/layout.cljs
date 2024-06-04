@@ -197,15 +197,13 @@
          (.unobserve @!resize-observer @!text-container))
       :reagent-render
       (fn [open? text on-open]
-        [:div.py-3.flex.flex-wrap.min-w-full
-         [:div {:dangerouslySetInnerHTML {:__html text}
-                :class                   (when-not open? "line-clamp-2")
-                :ref                     #(reset! !text-container %)}]
+        [:div.py-3.min-w-full
+         [:span.text-clip.pr-2
+          {:dangerouslySetInnerHTML {:__html text}
+           :class (when-not open? "line-clamp-2")
+           :ref   #(reset! !text-container %)}]
          (when (or @text-clamped? open?)
-           [:div.flex.justify-center.min-w-full.py-4
-            [secondary-button
-             (if (not open?) "Show More" "Show Less")
-             on-open]])])})))
+           [:button.font-bold {:on-click on-open} (str "show " (if open? "less" "more"))])])})))
 
 (defn error [{:keys [failure parse-error status status-text]} cb]
   [:div.flex.flex-auto.h-full.items-center.justify-center
