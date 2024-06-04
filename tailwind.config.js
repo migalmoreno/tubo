@@ -13,6 +13,7 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/forms")
+    require("@tailwindcss/forms"),
+    require("@vidstack/react/tailwind.cjs")
   ],
 }

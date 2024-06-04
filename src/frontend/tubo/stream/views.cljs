@@ -3,47 +3,13 @@
    [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
+   [tubo.components.player :refer [get-player-sources]]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]
-   [tubo.player.views :as player]
+   [tubo.components.player :as player]
    [tubo.utils :as utils]))
-
-(def player-elements
-  ["PlayToggle" "ProgressControl" "VolumePanel" "CurrentTimeDisplay"
-   "TimeDivider" "DurationDisplay" "Spacer" "QualitySelector"
-   "PlaybackRateMenuButton" "FullscreenToggle"])
-
-(defn get-player-sources
-  [available-streams]
-  (reverse (map (fn [{:keys [content format resolution averageBitrate]}]
-                  {:src   content
-                   :type  "video/mp4"
-                   :label (str (or resolution "audio-only") " "
-                               format
-                               (when-not resolution
-                                 (str " " averageBitrate "kbit/s")))})
-                available-streams)))
-
-(defn player
-  [{:keys [thumbnail-url audio-streams video-streams service-id]}]
-  (let [page-loading? @(rf/subscribe [:show-page-loading])]
-    (when-not page-loading?
-      [:div.flex.flex-col.flex-auto.items-center.xl:py-6.!pb-0
-       [:div.flex.flex-col.flex-auto.w-full {:class ["xl:w-3/5"]}
-        [:div.flex.justify-center.relative
-         {:class "h-[300px] md:h-[450px] lg:h-[600px]"}
-         [player/main-player
-          {:sources       (get-player-sources (into audio-streams video-streams))
-           :poster        thumbnail-url
-           :controls      true
-           :controlBar    {:children player-elements}
-           :preload       "metadata"
-           :responsive    true
-           :fill          true
-           :playbackRates [0.5 1 1.5 2]}
-          service-id]]]])))
 
 (defn metadata-popover
   [_]
@@ -54,7 +20,7 @@
         [layout/popover-menu !menu-active?
          [{:label    "Add to queue"
            :icon     [:i.fa-solid.fa-headphones]
-           :on-click #(rf/dispatch [:player/switch-to-background stream])}
+           :on-click #(rf/dispatch [:player/switch-to-background stream true])}
           {:label    "Play radio"
            :icon     [:i.fa-solid.fa-tower-cell]
            :on-click #(rf/dispatch [:player/start-radio stream])}
@@ -121,7 +87,10 @@
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (not (empty? description)))
       [layout/show-more-container show-description description
-       #(rf/dispatch [:stream/toggle-layout :show-description])])))
+       #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
+                        :main-player/toggle-layout
+                        :stream/toggle-layout)
+                      :show-description])])))
 
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading url] :as stream}]
@@ -150,7 +119,9 @@
         (when (and show? (not (empty? related-streams)))
           [layout/accordeon
            {:label        "Suggested"
-            :on-open      #(rf/dispatch [:stream/toggle-layout :show-related])
+            :on-open      #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
+                                           :main-player/toggle-layout
+                                           :stream/toggle-layout) :show-related])
             :open?        (not show-related)
             :left-icon    "fa-solid fa-list"
             :right-button [layout/popover-menu !menu-active?
@@ -164,9 +135,13 @@
 
 (defn stream
   []
-  (let [stream @(rf/subscribe [:stream])]
+  (let [{:keys [audio-streams video-streams name thumbnail-url] :as stream} @(rf/subscribe [:stream])
+        !player @(rf/subscribe [:main-player])
+        page-loading? @(rf/subscribe [:show-page-loading])]
     [:<>
-     [player stream]
+     (when-not page-loading?
+       [:div.flex.flex-col.justify-center.items-center.lg:pt-4
+        [player/video-player stream !player]])
      [layout/content-container
       [metadata stream]
       [description stream]

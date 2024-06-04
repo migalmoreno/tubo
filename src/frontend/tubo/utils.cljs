@@ -46,5 +46,4 @@
   [num]
   (let [duration (and (not (js/isNaN num)) (js/Date. (* num 1000)))
         slice    (and duration #(.slice % (if (>= (.getUTCHours duration) 1) 11 14) 19))]
-    (when slice
-      (-> duration (.toISOString) slice))))
+    (if slice (-> duration (.toISOString) slice) "--:--")))

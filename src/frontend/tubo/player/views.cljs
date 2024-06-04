@@ -2,41 +2,14 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [reagent.dom :as rdom]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.components.layout :as layout]
    [tubo.components.player :as player]
+   [tubo.queue.views :as queue]
+   [tubo.stream.views :as stream]
    [tubo.utils :as utils]
-   ["video.js" :as videojs]
-   ["videojs-mobile-ui"]
-   ["@silvermine/videojs-quality-selector" :as VideojsQualitySelector]))
-
-(defn audio
-  [!player]
-  (let [{:keys [stream]} @(rf/subscribe [:queue-stream])
-        queue-pos        @(rf/subscribe [:queue-pos])]
-    (r/create-class
-     {:component-did-mount
-      (fn [this]
-        (set! (.-onended (rdom/dom-node this))
-              #(rf/dispatch [:queue/change-pos (inc queue-pos)]))
-        (when stream
-          (set! (.-src (rdom/dom-node this)) stream)))
-      :reagent-render
-      (fn [!player]
-        (let [!elapsed-time @(rf/subscribe [:elapsed-time])
-              muted?        @(rf/subscribe [:muted])
-              volume-level  @(rf/subscribe [:volume-level])
-              loop-playback @(rf/subscribe [:loop-playback])]
-          [:audio
-           {:ref            #(reset! !player %)
-            :loop           (= loop-playback :stream)
-            :muted          muted?
-            :on-loaded-data #(rf/dispatch [:player/start-in-background])
-            :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
-            :on-pause       #(rf/dispatch [:player/set-paused true])
-            :on-play        #(rf/dispatch [:player/set-paused false])}]))})))
+   ["@vidstack/react" :refer (useStore MediaPlayerInstance)]))
 
 (defn stream-metadata
   [{:keys [thumbnail-url url name uploader-url uploader-name]}]
@@ -56,13 +29,15 @@
 
 (defn main-controls
   [!player color]
-  (let [queue          @(rf/subscribe [:queue])
-        queue-pos      @(rf/subscribe [:queue-pos])
-        loading?       @(rf/subscribe [:show-background-player-loading])
-        !elapsed-time  @(rf/subscribe [:elapsed-time])
-        loop-playback  @(rf/subscribe [:loop-playback])
-        paused?        @(rf/subscribe [:paused])
-        player-ready?  @(rf/subscribe [:player-ready])]
+  (let [queue              @(rf/subscribe [:queue])
+        queue-pos          @(rf/subscribe [:queue-pos])
+        loading?           @(rf/subscribe [:background-player/loading])
+        loop-playback      @(rf/subscribe [:loop-playback])
+        !main-player       @(rf/subscribe [:main-player])
+        bg-player-ready?   @(rf/subscribe [:background-player/ready])
+        main-player-ready? @(rf/subscribe [:main-player/ready])
+        paused?            @(rf/subscribe [:paused])
+        !elapsed-time      @(rf/subscribe [:elapsed-time])]
     [:div.flex.flex-col.items-center.ml-auto
      [:div.flex.justify-end
       [player/loop-button loop-playback color]
@@ -72,35 +47,35 @@
        :disabled? (not (and queue (not= queue-pos 0)))]
       [player/button
        :icon [:i.fa-solid.fa-backward]
-       :on-click #(rf/dispatch [:player/seek (- @!elapsed-time 5)])]
+       :on-click #(rf/dispatch [:background-player/seek (- @!elapsed-time 5)])]
       [player/button
-       :icon (if (or (not loading?) player-ready?)
+       :icon (if (and (not loading?) @!player)
                (if paused?
                  [:i.fa-solid.fa-play]
                  [:i.fa-solid.fa-pause])
                [layout/loading-icon color "lg:text-2xl"])
-       :on-click #(rf/dispatch [:player/pause (not paused?)])
+       :on-click #(rf/dispatch [:background-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes ["lg:text-2xl"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
-       :on-click #(rf/dispatch [:player/seek (+ @!elapsed-time 5)])]
+       :on-click #(rf/dispatch [:background-player/seek (+ @!elapsed-time 5)])]
       [player/button
        :icon [:i.fa-solid.fa-forward-step]
        :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]]
      [:div.hidden.lg:flex.items-center.text-sm
       [:span.mx-2
-       (if (and @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "--:--")]
+       (if (and bg-player-ready? @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "--:--")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [player/time-slider !player !elapsed-time color]]
       [:span.mx-2
-       (if (and @!player player-ready?) (utils/format-duration (.-duration @!player)) "--:--")]]]))
+       (if (and bg-player-ready? @!player) (utils/format-duration (.-duration @!player)) "--:--")]]]))
 
 (defn extra-controls
   [!player {:keys [url uploader-url] :as stream} color]
   (let [!menu-active? (r/atom nil)]
-    (fn []
+    (fn [!player {:keys [url uploader-url] :as stream} color]
       (let [muted?    @(rf/subscribe [:muted])
             volume    @(rf/subscribe [:volume-level])
             queue     @(rf/subscribe [:queue])
@@ -131,6 +106,9 @@
            {:label    "Remove from queue"
             :icon     [:i.fa-solid.fa-trash]
             :on-click #(rf/dispatch [:queue/remove queue-pos])}
+           {:label    "Switch to main"
+            :icon     [:i.fa-solid.fa-display]
+            :on-click #(rf/dispatch [:player/switch-to-main])}
            {:label    "Show channel details"
             :icon     [:i.fa-solid.fa-user]
             :on-click #(rf/dispatch [:navigate
@@ -139,46 +117,72 @@
                                       :query  {:url uploader-url}}])}
            {:label    "Close player"
             :icon     [:i.fa-solid.fa-close]
-            :on-click #(rf/dispatch [:player/dispose])}]
+            :on-click #(rf/dispatch [:background-player/dispose])}]
           :menu-styles {:bottom "30px" :top nil :right "10px"}
           :extra-classes [:pt-1 :!pl-4 :px-3]]]))))
 
 (defn background-player
   []
-  (let [!player      @(rf/subscribe [:player])
-        stream       @(rf/subscribe [:queue-stream])
-        show-player? @(rf/subscribe [:show-background-player])
-        show-queue?  @(rf/subscribe [:show-queue])
-        dark-theme?  @(rf/subscribe [:dark-theme])
-        color        (-> stream :service-id utils/get-service-color)
-        bg-color     (str "rgba(" (if dark-theme? "23,23,23" "255,255,255") ",0.95)")
-        bg-image     (str "linear-gradient(" bg-color "," bg-color "),url(" (:thumbnail-url stream) ")")]
-    (when show-player?
-      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in
-       {:style
-        {:visibility          (when show-queue? "hidden")
-         :opacity             (if show-queue? 0 1)
-         :background-image    bg-image
-         :background-size     "cover"
-         :background-position "center"
-         :background-repeat   "no-repeat"}}
-       [:div.flex.items-center.justify-between
-        [audio !player]
-        [stream-metadata stream]
-        [main-controls !player color]
-        [extra-controls !player stream color]]])))
+  (let [!show-tooltip? (r/atom nil)]
+    (fn []
+      (let [!player       @(rf/subscribe [:player])
+            stream        @(rf/subscribe [:queue-stream])
+            show-queue?   @(rf/subscribe [:show-queue])
+            show-player?  @(rf/subscribe [:background-player/show])
+            dark-theme?   @(rf/subscribe [:dark-theme])
+            muted?        @(rf/subscribe [:muted])
+            loop-playback @(rf/subscribe [:loop-playback])
+            color         (-> stream :service-id utils/get-service-color)
+            bg-color      (str "rgba(" (if dark-theme? "23,23,23" "255,255,255") ",0.95)")
+            bg-image      (str "linear-gradient(" bg-color "," bg-color "),url(" (:thumbnail-url stream) ")")]
+        (when show-player?
+          [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
+           {:on-mouse-over #(reset! !show-tooltip? true)
+            :on-mouse-out #(reset! !show-tooltip? false)
+            :style
+            {:visibility          (when show-queue? "hidden")
+             :opacity             (if show-queue? 0 1)
+             :background-image    bg-image
+             :background-size     "cover"
+             :background-position "center"
+             :background-repeat   "no-repeat"}}
+           [:div.absolute.flex.items-center.justify-center.w-full.transition.ease-in-out.h-fit.bottom-full.left-0.py-1
+            {:class [(when-not @!show-tooltip? :invisible) (if @!show-tooltip? :opacity-1 :opacity-0)]}
+            [:button.px-5.rounded.rounded-lg.border.border.border-neutral-300.dark:border-stone-700
+             {:on-click #(do (rf/dispatch [:player/switch-to-main stream]) (reset! !show-tooltip? false))
+              :style {:background bg-color}}
+             [:i.fa-solid.fa-caret-up]]]
+           [:div.flex.items-center
+            [player/audio-player stream !player]
+            [stream-metadata stream]
+            [main-controls !player color]
+            [extra-controls !player stream color]]])))))
 
-(defn main-player
-  [options service-id]
-  (let [!player (atom nil)]
-    (r/create-class
-     {:component-did-mount
-      (fn [^videojs/VideoJsPlayer this]
-        (VideojsQualitySelector videojs)
-        (reset! !player (videojs (rdom/dom-node this) (clj->js options)))
-        (.on @!player "ready" (fn []
-                                (.mobileUi ^videojs/VideoJsPlayer @!player)
-                                (rf/dispatch [:player/set-slider-color !player service-id])))
-        (.on @!player "play" #(rf/dispatch [:player/start-in-main !player options])))
-      :component-will-unmount #(when @!player (.dispose @!player))
-      :reagent-render         (fn [options] [:video-js.vjs-tubo])})))
+(defn main-player []
+  (let [queue @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue-pos])
+        bookmarks @(rf/subscribe [:bookmarks])
+        !player @(rf/subscribe [:main-player])
+        {:keys [service-id] :as stream} @(rf/subscribe [:queue-stream])
+        show-player? @(rf/subscribe [:main-player/show])]
+    [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out.shadow-lg.shadow-neutral-900.dark:shadow-neutral-300
+     {:class ["rounded-t-[50px]" "h-[calc(100%-56px)]" (if show-player? "translate-y-0" "translate-y-full")]}
+     [:div.sticky.z-10.right-0.top-0
+      [:button.absolute.text-white.m-8.text-2xl.z-10.right-0
+       {:on-click #(rf/dispatch [:player/switch-from-main nil])}
+       [:i.fa-solid.fa-close
+        {:class "drop-shadow-[0_0_1px_#000]"}]]]
+     (when (and show-player? stream)
+       [:div
+        [:div.flex.flex-col.items-center.w-full.xl:py-6
+         [player/video-player stream !player]]
+        [:div.flex.items-center.justify-center
+         [:div.flex.flex-col.gap-y-1.w-full.h-64.overflow-y-auto
+          {:class ["lg:w-4/5" "xl:w-3/5"]}
+          (for [[i item] (map-indexed vector queue)]
+            ^{:key i} [queue/queue-item item queue queue-pos i bookmarks])]]
+        [layout/content-container
+         [stream/metadata stream]
+         [stream/description stream]
+         [stream/comments stream]
+         [stream/suggested stream]]])]))

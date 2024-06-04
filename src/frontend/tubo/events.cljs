@@ -37,7 +37,7 @@
        :loop-playback          (if-nil (:loop-playback store) :playlist)
        :queue-pos              (if-nil (:queue-pos store) 0)
        :volume-level           (if-nil (:volume-level store) 100)
-       :show-background-player (:show-background-player store)
+       :background-player/show (:background-player/show store)
        :bookmarks
        (if-nil (:bookmarks store) [{:id (nano-id) :name "Liked Streams"}])
        :settings
@@ -115,7 +115,9 @@
                          (assoc :show-pagination-loading false))
       :scroll-to-top nil
       :body-overflow false
-      :fx            [[:dispatch [:queue/show false]]
+      :fx            [(when (:main-player/show db)
+                        [:dispatch [:player/switch-from-main]])
+                      [:dispatch [:queue/show false]]
                       [:dispatch [:services/fetch-all
                                   [:services/load] [:bad-response]]]
                       [:dispatch [:kiosks/fetch-all (:service-id db)
@@ -163,3 +165,8 @@
  :fetch-homepage
  (fn [{:keys [db]} _]
    {:fx [[:dispatch [:services/fetch-all [:load-homepage] [:bad-response]]]]}))
+
+(rf/reg-event-fx
+ :change-view
+ (fn [{:keys [db]} [_ view]]
+   {:db (assoc-in db [:current-match :data :view] view)}))

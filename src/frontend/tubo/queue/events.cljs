@@ -18,15 +18,15 @@
       :fx    (if notify?
                [[:dispatch [:notifications/add
                             {:status-text "Added stream to queue"
-                             :failure     :success}]]]
+                             :failure     :info}]]]
                [])})))
 
 (rf/reg-event-fx
  :queue/add-n
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ streams notify?]]
-   {:db    (assoc db :show-background-player true)
-    :store (assoc store :show-background-player true)
+   {:db    (assoc db :background-player/show (not (:main-player/show db)))
+    :store (assoc store :background-player/show (not (:main-player/show db)))
     :fx    (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
                  [[:dispatch [:player/fetch-stream (-> streams first :url)
                               (count (:queue db)) (= (count (:queue db)) 0)]]
@@ -34,7 +34,7 @@
                     [:dispatch [:notifications/add
                                 {:status-text (str "Added " (count streams)
                                                    " streams to queue")
-                                 :failure     :success}]])])}))
+                                 :failure     :info}]])])}))
 
 (rf/reg-event-fx
  :queue/remove

@@ -4,6 +4,7 @@
    [reagent.core :as r]))
 
 (defonce !player (atom nil))
+(defonce !main-player (atom nil))
 (defonce !elapsed-time (r/atom 0))
 
 (rf/reg-sub
@@ -12,19 +13,29 @@
    !player))
 
 (rf/reg-sub
- :player-ready
+ :main-player
  (fn [db _]
-   (:player-ready db)))
+   !main-player))
 
 (rf/reg-sub
- :show-background-player
+ :background-player/ready
  (fn [db _]
-   (:show-background-player db)))
+   (:background-player/ready db)))
 
 (rf/reg-sub
- :show-background-player-loading
+ :main-player/ready
  (fn [db _]
-   (:show-background-player-loading db)))
+   (:main-player/ready db)))
+
+(rf/reg-sub
+ :background-player/show
+ (fn [db _]
+   (:background-player/show db)))
+
+(rf/reg-sub
+ :background-player/loading
+ (fn [db _]
+   (:background-player/loading db)))
 
 (rf/reg-sub
  :loop-playback
@@ -50,3 +61,8 @@
  :elapsed-time
  (fn [db _]
    !elapsed-time))
+
+(rf/reg-sub
+ :main-player/show
+ (fn [db _]
+   (:main-player/show db)))

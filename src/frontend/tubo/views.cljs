@@ -18,4 +18,5 @@
        (when-let [view (-> current-match :data :view)]
          [view current-match])
        [queue/queue]
+       [player/main-player]
        [player/background-player]]]]))

@@ -1,7 +1,89 @@
 (ns tubo.components.player
   (:require
    [reagent.core :as r]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [reagent.core :as r]
+   [reagent.dom :as rdom]
+   ["@vidstack/react" :refer (MediaPlayer MediaProvider Poster)]
+   ["@vidstack/react/player/layouts/default" :refer (defaultLayoutIcons DefaultVideoLayout DefaultAudioLayout)]))
+
+(defn get-player-sources
+  [available-streams]
+  (map (fn [{:keys [content]}] {:src content :type "video/mp4"}) available-streams))
+
+(defn video-player
+  [stream !player]
+  (let [!elapsed-time @(rf/subscribe [:elapsed-time])
+        !main-player-first? (r/atom true)]
+    (r/create-class
+     {:component-will-unmount #(rf/dispatch [:main-player/ready false])
+      :reagent-render
+      (fn [{:keys [name video-streams audio-streams thumbnail-url]} !player]
+        (let [show-main-player? @(rf/subscribe [:main-player/show])]
+          [:> MediaPlayer
+           {:title          name
+            :src            (get-player-sources (into video-streams audio-streams))
+            :poster         thumbnail-url
+            :class          "h-[500px] lg:h-[600px] w-full xl:w-3/5 overflow-x-hidden"
+            :ref            #(reset! !player %)
+            :loop           (when show-main-player? (= @(rf/subscribe [:loop-playback]) :stream))
+            :onSeeked       (when show-main-player?
+                              #(reset! !elapsed-time (.-currentTime @!player)))
+            :onTimeUpdate   (when show-main-player?
+                              #(reset! !elapsed-time (.-currentTime @!player)))
+            :onEnded        #(when show-main-player?
+                               (rf/dispatch [:queue/change-pos (inc @(rf/subscribe [:queue-pos]))])
+                               (reset! !elapsed-time 0))
+            :onLoadedData   (fn []
+                              (when show-main-player?
+                                (rf/dispatch [:main-player/start]))
+                              (when (and @!main-player-first? show-main-player?)
+                                (reset! !main-player-first? false)))
+            :onPlay         #(rf/dispatch [:main-player/play])
+            :onCanPlay      #(rf/dispatch [:main-player/ready true])
+            :onSourceChange #(when-not @!main-player-first?
+                               (reset! !elapsed-time 0))}
+           [:> MediaProvider
+            [:> Poster {:src   thumbnail-url
+                        :alt   name
+                        :class :vds-poster}]]
+           [:> DefaultVideoLayout {:icons defaultLayoutIcons}]]))})))
+
+(defn audio-player
+  [stream !player]
+  (let [!elapsed-time     @(rf/subscribe [:elapsed-time])
+        !bg-player-first? (r/atom nil)]
+    (r/create-class
+     {:component-will-unmount #(rf/dispatch [:background-player/ready false])
+      :reagent-render
+      (fn [{:keys [name video-streams audio-streams thumbnail-url]} !player]
+        [:> MediaPlayer
+         {:title          name
+          :class          "invisible fixed"
+          :controls       []
+          :src            (get-player-sources audio-streams)
+          :viewType       "audio"
+          :ref            #(reset! !player %)
+          :loop           (= @(rf/subscribe [:loop-playback]) :stream)
+          :onCanPlay      #(rf/dispatch [:background-player/ready true])
+          :onSeeked       #(reset! !elapsed-time (.-currentTime @!player))
+          :onTimeUpdate   #(reset! !elapsed-time (.-currentTime @!player))
+          :onEnded        (fn []
+                            (rf/dispatch [:queue/change-pos (inc @(rf/subscribe [:queue-pos]))])
+                            (reset! !elapsed-time 0))
+          :onPlay         #(rf/dispatch [:background-player/play])
+          :onReplay       (fn []
+                            (rf/dispatch [:background-player/set-paused false])
+                            (reset! !elapsed-time 0))
+          :onPause        #(rf/dispatch [:background-player/set-paused true])
+          :onLoadedData   (fn []
+                            (rf/dispatch [:background-player/start])
+                            (when-not @!bg-player-first?
+                              (reset! !bg-player-first? true)))
+          :onSourceChange #(when @!bg-player-first?
+                             (reset! !elapsed-time 0))}
+         [:> MediaProvider]
+         [:> DefaultAudioLayout {:icons defaultLayoutIcons}]])})))
 
 (defonce base-slider-classes
   ["h-2" "cursor-pointer" "appearance-none" "bg-neutral-300" "dark:bg-neutral-600"
@@ -41,14 +123,14 @@
 (defn time-slider [!player !elapsed-time service-color]
   (let [styles (concat base-slider-classes
                        (get-slider-bg-classes service-color)
-                       (get-slider-shadow-classes service-color))]
+                       (get-slider-shadow-classes service-color))
+        bg-player-ready? @(rf/subscribe [:background-player/ready])]
     [:input.w-full
      {:class     styles
       :type      "range"
       :on-input  #(reset! !elapsed-time (.. % -target -value))
-      :on-change #(and @!player (> (.-readyState @!player) 0)
-                       (set! (.-currentTime @!player) @!elapsed-time))
-      :max       (if (and @!player (> (.-readyState @!player) 0))
+      :on-change #(when (and bg-player-ready? @!player) (set! (.-currentTime @!player) @!elapsed-time))
+      :max       (if (and bg-player-ready? @!player (not (js/isNaN (.-duration @!player))))
                    (.floor js/Math (.-duration @!player))
                    100)
       :value     @!elapsed-time}]))
@@ -90,7 +172,7 @@
           :on-mouse-out  #(reset! show-slider? false)}
          [button
           :icon (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-          :on-click #(rf/dispatch [:player/mute (not muted?) player])
+          :on-click #(rf/dispatch [:background-player/mute (not muted?) player])
           :extra-classes [:pl-3 :pr-2]]
          (when @show-slider?
            [:input.absolute.w-24.ml-2.m-1.bottom-16
