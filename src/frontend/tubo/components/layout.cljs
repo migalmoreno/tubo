@@ -25,7 +25,7 @@
 (defn logo
   [& {:keys [height width]}]
   (r/create-element
-   (svgreq/embed "resources/public/icons" "tubo" nil)
+   (svgreq/embed "./resources/public/icons" "tubo" nil)
    (js-obj "height" width "width" height)))
 
 (defn loading-icon
