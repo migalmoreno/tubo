@@ -140,7 +140,7 @@
         page-loading? @(rf/subscribe [:show-page-loading])]
     [:<>
      (when-not page-loading?
-       [:div.flex.flex-col.justify-center.items-center.lg:pt-4
+       [:div.flex.flex-col.justify-center.items-center.xl:pt-4
         [player/video-player stream !player]])
      [layout/content-container
       [metadata stream]
