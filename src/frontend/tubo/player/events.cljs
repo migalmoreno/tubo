@@ -163,6 +163,13 @@
     :mute  {:player player :muted? value}}))
 
 (rf/reg-event-fx
+ :background-player/hide
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} _]
+   {:db (assoc db :background-player/show false)
+    :store (assoc store :background-player/show false)}))
+
+(rf/reg-event-fx
  :player/loop
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} _]
@@ -180,13 +187,13 @@
    (let [remove-entries
          (fn [elem]
            (-> elem
-               (assoc :background-player/show false)
                (assoc :queue [])
                (assoc :queue-pos 0)))]
      {:db    (remove-entries db)
       :store (remove-entries store)
       :fx    [[:dispatch [:background-player/pause true]]
-              [:dispatch [:background-player/seek 0]]]})))
+              [:dispatch [:background-player/seek 0]]
+              [:dispatch [:background-player/hide]]]})))
 
 (rf/reg-event-db
  :background-player/ready
@@ -251,9 +258,9 @@
  (fn [{:keys [db store player]} [_ idx play? res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
      {:db (assoc db
-                 :background-player/show (not (:main-player-show db))
+                 :background-player/show (not (:main-player/show db))
                  :background-player/loading false)
-      :store (assoc store :background-player/show (not (:main-player-show db)))
+      :store (assoc store :background-player/show (not (:main-player/show db)))
       :fx (apply conj [(when play? [:dispatch [:queue/change-stream stream-res idx]])]
                  (when (and (:background-player/ready db) play?)
                    [[:media-session-metadata
