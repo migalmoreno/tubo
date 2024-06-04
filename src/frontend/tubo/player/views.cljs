@@ -155,8 +155,8 @@
         !player                         @(rf/subscribe [:main-player])
         {:keys [service-id] :as stream} @(rf/subscribe [:queue-stream])
         show-player?                    @(rf/subscribe [:main-player/show])]
-    [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out.shadow-lg.shadow-neutral-900.dark:shadow-neutral-300
-     {:class ["rounded-t-[50px]" "h-[calc(100%-56px)]" (if show-player? "translate-y-0" "translate-y-full")]}
+    [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out
+     {:class ["h-[calc(100%-56px)]" (if show-player? "translate-y-0" "translate-y-full")]}
      [:div.sticky.z-10.right-0.top-0
       [:button.absolute.text-white.m-8.text-2xl.z-10.right-0
        {:on-click #(rf/dispatch [:player/switch-from-main nil])}
@@ -167,7 +167,7 @@
         [:div.flex.flex-col.items-center.w-full.xl:py-6
          [player/video-player stream !player]]
         [:div.flex.items-center.justify-center
-         [:div.flex.flex-col.gap-y-1.w-full.h-64.overflow-y-auto
+         [:div.flex.flex-col.gap-y-1.w-full.h-fit.max-h-64.overflow-y-auto
           {:class ["lg:w-4/5" "xl:w-3/5"]}
           (for [[i item] (map-indexed vector queue)]
             ^{:key i} [queue/queue-item item queue queue-pos i bookmarks])]]
