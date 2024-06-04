@@ -20,8 +20,8 @@
   [show-mobile-nav? service-color services available-kiosks & {:keys [service-id] :as kiosk-args}]
   [:<>
    [layout/focus-overlay #(rf/dispatch [:toggle-mobile-nav]) show-mobile-nav?]
-   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
-    {:class ["transition-[right]" (if show-mobile-nav? "right-0" "right-[-245px]")]}
+   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.transition-all.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
+    {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
     [:div.flex.justify-center.py-4.items-center.text-white {:style {:background service-color}}
      [layout/logo :height 75 :width 75]
      [:h3.text-3xl.font-bold "Tubo"]]
@@ -51,9 +51,12 @@
     [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
-      [:div.ml-2
+      [:button.ml-2.hidden.lg:block
        [:a.font-bold {:href (rfe/href :homepage)}
         [layout/logo :height 35 :width 35]]]
+      [:button.text-white.mx-3.lg:hidden
+       {:on-click #(rf/dispatch [:toggle-mobile-nav])}
+       [:i.fa-solid.fa-bars]]
       [search/search-form]
       [:div.flex.flex-auto.justify-end.lg:justify-between
        {:class (when show-search-form? :hidden)}
@@ -76,10 +79,7 @@
          [:i.fa-solid.fa-cog]]
         [:a.mx-3.hidden.lg:block
          {:href (rfe/href :bookmarks-page)}
-         [:i.fa-solid.fa-bookmark]]
-        [:button.mx-3.lg:hidden
-         {:on-click #(rf/dispatch [:toggle-mobile-nav])}
-         [:i.fa-solid.fa-bars]]]
+         [:i.fa-solid.fa-bookmark]]]
        [mobile-nav show-mobile-nav? service-color services available-kiosks
         :kiosk-id kioskId
         :service-id service-id
