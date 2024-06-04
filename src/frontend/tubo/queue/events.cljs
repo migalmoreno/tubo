@@ -69,17 +69,12 @@
                   (when (= (:loop-playback db) :playlist) 0))
          stream (get (:queue db) idx)]
      (when stream
-       {:db    (-> db
-                   (assoc :player-ready false)
-                   (assoc :queue-pos idx)
-                   (assoc-in [:queue idx :stream] ""))
-        :store (assoc store :queue-pos idx)
-        :fx    [[:dispatch [:player/fetch-stream (:url stream) idx true]]]}))))
+       {:fx [[:dispatch [:player/fetch-stream (:url stream) idx true]]]}))))
 
 (rf/reg-event-fx
- :queue/change-stream-source
+ :queue/change-stream
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ src idx]]
-   (let [update-entry #(assoc-in % [:queue idx :stream] src)]
-     {:db    (update-entry db)
-      :store (update-entry store)})))
+ (fn [{:keys [db store]} [_ stream idx]]
+   (let [update-entry (fn [x] (update-in x [:queue idx] #(merge % stream)))]
+     {:db    (assoc (update-entry db) :queue-pos idx)
+      :store (assoc (update-entry store) :queue-pos idx)})))
