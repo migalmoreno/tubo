@@ -25,9 +25,7 @@
  :queue/add-n
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ streams notify?]]
-   {:db    (assoc db :background-player/show (not (:main-player/show db)))
-    :store (assoc store :background-player/show (not (:main-player/show db)))
-    :fx    (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
+   {:fx    (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
                  [[:dispatch [:player/fetch-stream (-> streams first :url)
                               (count (:queue db)) (= (count (:queue db)) 0)]]
                   (when notify?

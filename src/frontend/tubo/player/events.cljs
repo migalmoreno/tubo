@@ -124,7 +124,7 @@
  :media-session-handlers
  (fn [{:keys [current-pos player stream]}]
    (when (gobj/containsKey js/navigator "mediaSession")
-     (let [current-time (.-currentTime @player)
+     (let [current-time (and @player (.-currentTime @player))
            update-position
            #(.setPositionState js/navigator.mediaSession
                                {:duration     (.-duration @player)
@@ -204,10 +204,8 @@
  (fn [{:keys [db store]} [_ stream notify?]]
    (let [updated-db (update db :queue conj stream)
          idx        (.indexOf (:queue updated-db) stream)]
-     {:db    (assoc updated-db :background-player/show (not (:main-player/show db)))
-      :store (-> store
-                 (assoc :background-player/show (not (:main-player/show db)))
-                 (assoc :queue (:queue updated-db)))
+     {:db    updated-db
+      :store (assoc store :queue (:queue updated-db))
       :fx    [[:dispatch [:player/fetch-stream
                           (:url stream) idx (= (count (:queue db)) 0)]]
               (when (and notify? (not (= (count (:queue db)) 0)))
@@ -248,10 +246,14 @@
 
 (rf/reg-event-fx
  :player/load-stream
- [(rf/inject-cofx ::inject/sub [:player])]
- (fn [{:keys [db player]} [_ idx play? res]]
+ [(rf/inject-cofx :store)
+  (rf/inject-cofx ::inject/sub [:player])]
+ (fn [{:keys [db store player]} [_ idx play? res]]
    (let [stream-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db :background-player/loading false)
+     {:db (assoc db
+                 :background-player/show (not (:main-player-show db))
+                 :background-player/loading false)
+      :store (assoc store :background-player/show (not (:main-player-show db)))
       :fx (apply conj [(when play? [:dispatch [:queue/change-stream stream-res idx]])]
                  (when (and (:background-player/ready db) play?)
                    [[:media-session-metadata
@@ -259,7 +261,7 @@
                       :artist  (:uploader-name stream-res)
                       :artwork [{:src (:thumbnail-url stream-res)}]}]
                     [:media-session-handlers
-                     {:current-pos (:queue-pos db)
+                     {:current-pos idx
                       :player      player}]]))})))
 
 (rf/reg-event-fx
