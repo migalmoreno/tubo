@@ -123,48 +123,38 @@
 
 (defn background-player
   []
-  (let [!show-tooltip? (r/atom nil)]
-    (fn []
-      (let [!player       @(rf/subscribe [:player])
-            stream        @(rf/subscribe [:queue-stream])
-            show-queue?   @(rf/subscribe [:show-queue])
-            show-player?  @(rf/subscribe [:background-player/show])
-            dark-theme?   @(rf/subscribe [:dark-theme])
-            muted?        @(rf/subscribe [:muted])
-            loop-playback @(rf/subscribe [:loop-playback])
-            color         (-> stream :service-id utils/get-service-color)
-            bg-color      (str "rgba(" (if dark-theme? "23,23,23" "255,255,255") ",0.95)")
-            bg-image      (str "linear-gradient(" bg-color "," bg-color "),url(" (:thumbnail-url stream) ")")]
-        (when show-player?
-          [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
-           {:on-mouse-over #(reset! !show-tooltip? true)
-            :on-mouse-out #(reset! !show-tooltip? false)
-            :style
-            {:visibility          (when show-queue? "hidden")
-             :opacity             (if show-queue? 0 1)
-             :background-image    bg-image
-             :background-size     "cover"
-             :background-position "center"
-             :background-repeat   "no-repeat"}}
-           [:div.absolute.flex.items-center.justify-center.w-full.transition.ease-in-out.h-fit.bottom-full.left-0.py-1
-            {:class [(when-not @!show-tooltip? :invisible) (if @!show-tooltip? :opacity-1 :opacity-0)]}
-            [:button.px-5.rounded.rounded-lg.border.border.border-neutral-300.dark:border-stone-700
-             {:on-click #(do (rf/dispatch [:player/switch-to-main stream]) (reset! !show-tooltip? false))
-              :style {:background bg-color}}
-             [:i.fa-solid.fa-caret-up]]]
-           [:div.flex.items-center
-            [player/audio-player stream !player]
-            [stream-metadata stream]
-            [main-controls !player color]
-            [extra-controls !player stream color]]])))))
+  (let [!player       @(rf/subscribe [:player])
+        stream        @(rf/subscribe [:queue-stream])
+        show-queue?   @(rf/subscribe [:show-queue])
+        show-player?  @(rf/subscribe [:background-player/show])
+        dark-theme?   @(rf/subscribe [:dark-theme])
+        muted?        @(rf/subscribe [:muted])
+        loop-playback @(rf/subscribe [:loop-playback])
+        color         (-> stream :service-id utils/get-service-color)
+        bg-color      (str "rgba(" (if dark-theme? "23,23,23" "255,255,255") ",0.95)")
+        bg-image      (str "linear-gradient(" bg-color "," bg-color "),url(" (:thumbnail-url stream) ")")]
+    (when show-player?
+      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
+       {:style
+        {:visibility          (when show-queue? "hidden")
+         :opacity             (if show-queue? 0 1)
+         :background-image    bg-image
+         :background-size     "cover"
+         :background-position "center"
+         :background-repeat   "no-repeat"}}
+       [:div.flex.items-center
+        [player/audio-player stream !player]
+        [stream-metadata stream]
+        [main-controls !player color]
+        [extra-controls !player stream color]]])))
 
 (defn main-player []
-  (let [queue @(rf/subscribe [:queue])
-        queue-pos @(rf/subscribe [:queue-pos])
-        bookmarks @(rf/subscribe [:bookmarks])
-        !player @(rf/subscribe [:main-player])
+  (let [queue                           @(rf/subscribe [:queue])
+        queue-pos                       @(rf/subscribe [:queue-pos])
+        bookmarks                       @(rf/subscribe [:bookmarks])
+        !player                         @(rf/subscribe [:main-player])
         {:keys [service-id] :as stream} @(rf/subscribe [:queue-stream])
-        show-player? @(rf/subscribe [:main-player/show])]
+        show-player?                    @(rf/subscribe [:main-player/show])]
     [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out.shadow-lg.shadow-neutral-900.dark:shadow-neutral-300
      {:class ["rounded-t-[50px]" "h-[calc(100%-56px)]" (if show-player? "translate-y-0" "translate-y-full")]}
      [:div.sticky.z-10.right-0.top-0
