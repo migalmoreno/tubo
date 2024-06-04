@@ -17,7 +17,7 @@
             service-color             @(rf/subscribe [:service-color])
             scrolled-to-bottom?       @(rf/subscribe [:scrolled-to-bottom])
             page-loading?             @(rf/subscribe [:show-page-loading])]
-        (when scrolled-to-bottom?
+        (when (and next-page-url scrolled-to-bottom?)
           (rf/dispatch [:channel/fetch-paginated url next-page-url]))
         [:<>
          (when-not page-loading?
@@ -42,6 +42,7 @@
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark related-streams]])}]])]
-          [layout/show-more-container @!show-description? description
-           #(reset! !show-description? (not @!show-description?))]
+          (when-not (empty? description)
+            [layout/show-more-container @!show-description? description
+             #(reset! !show-description? (not @!show-description?))])
           [items/related-streams related-streams next-page-url]]]))))

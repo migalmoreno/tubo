@@ -49,6 +49,7 @@
  :comments/fetch-paginated
  (fn [{:keys [db]} [_ url next-page-url]]
    (if (empty? next-page-url)
+     {:db (assoc db :show-pagination-loading false)}
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch [:comments/fetch url
                        [:comments/load-paginated] [:bad-response]

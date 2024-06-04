@@ -73,9 +73,9 @@
               ^{:key i} [comment-item (assoc reply :author-name uploader-name :author-avatar uploader-avatar)])])])]
      (when (:url next-page)
        (if pagination-loading?
-         (layout/loading-icon service-color)
+         [layout/loading-icon service-color]
          [:div.flex.justify-center
-          [layout/secondary-button
+          [layout/primary-button
            "Show more comments"
            #(rf/dispatch [:comments/fetch-paginated url (:url next-page)])
            [:i.fa-solid.fa-plus]]]))]))

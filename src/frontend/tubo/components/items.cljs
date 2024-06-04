@@ -109,5 +109,5 @@
         {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
         (for [[i item] (map-indexed vector related-streams)]
           ^{:key i} [generic-item item bookmarks])])
-     (when-not (empty? next-page-url)
-       [layout/loading-icon service-color [:text-2xl (when-not pagination-loading? :invisible)]])]))
+     (when (and pagination-loading? (not (empty? next-page-url)))
+       [layout/loading-icon service-color :text-md])]))
