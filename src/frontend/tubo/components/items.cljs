@@ -16,7 +16,7 @@
             items (if (or (= type "stream") audio-streams video-streams)
                     [{:label    "Add to queue"
                       :icon     [:i.fa-solid.fa-headphones]
-                      :on-click #(rf/dispatch [:player/switch-to-background item])}
+                      :on-click #(rf/dispatch [:player/switch-to-background item true])}
                      {:label    "Play radio"
                       :icon     [:i.fa-solid.fa-tower-cell]
                       :on-click #(rf/dispatch [:player/start-radio item])}
