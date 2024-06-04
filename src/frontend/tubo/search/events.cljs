@@ -1,7 +1,8 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [tubo.api :as api]
+   [tubo.components.layout :as layout]))
 
 (rf/reg-event-fx
  :search/fetch
@@ -18,13 +19,20 @@
       :fx [[:dispatch [:services/fetch search-res]]]})))
 
 (rf/reg-event-fx
+ :search/bad-page-response
+ (fn [{:keys [db]} [_ service-id query res]]
+   {:fx [[:dispatch [:change-view #(layout/error res [:search/fetch-page service-id query])]]]
+    :db (assoc db :show-page-loading false)}))
+
+(rf/reg-event-fx
  :search/fetch-page
  (fn [{:keys [db]} [_ service-id query]]
    {:db (assoc db
                :show-page-loading true
-               :show-search-form true)
+               :show-search-form true
+               :search-results nil)
     :fx [[:dispatch [:search/fetch service-id
-                     [:search/load-page] [:bad-response] {:q query}]]
+                     [:search/load-page] [:search/bad-page-response service-id query] {:q query}]]
          [:document-title (str "Search for \"" query "\"")]]}))
 
 (rf/reg-event-db

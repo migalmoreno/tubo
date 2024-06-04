@@ -1,7 +1,8 @@
 (ns tubo.kiosks.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [tubo.api :as api]
+   [tubo.components.layout :as layout]))
 
 (rf/reg-event-db
  :kiosks/load
@@ -37,12 +38,24 @@
            [:document-title (:id kiosk-res)]]})))
 
 (rf/reg-event-fx
+ :kiosks/bad-page-response
+ (fn [{:keys [db]} [_ service-id kiosk-id res]]
+   {:fx [[:dispatch [:change-view
+                     #(layout/error
+                       res (if kiosk-id
+                             [:kiosks/fetch-page service-id kiosk-id]
+                             [:kiosks/fetch-default-page service-id]))]]]
+    :db (assoc db :show-page-loading false)}))
+
+(rf/reg-event-fx
  :kiosks/fetch-page
  (fn [{:keys [db]} [_ service-id kiosk-id]]
-   {:db (assoc db :show-page-loading true)
+   {:db (assoc db
+               :show-page-loading true
+               :kiosk nil)
     :fx [[:dispatch (if kiosk-id
                       [:kiosks/fetch service-id kiosk-id
-                       [:kiosks/load-page] [:bad-response]]
+                       [:kiosks/load-page] [:kiosks/bad-page-response service-id kiosk-id]]
                       [:kiosks/fetch-default-page service-id])]]}))
 
 (rf/reg-event-fx
@@ -55,7 +68,7 @@
      {:fx [[:dispatch (if default-kiosk-id
                         [:kiosks/fetch-page service-id default-kiosk-id]
                         [:kiosks/fetch-default service-id
-                         [:kiosks/load-page] [:bad-response]])]]})))
+                         [:kiosks/load-page] [:kiosks/bad-page-response service-id nil]])]]})))
 
 (rf/reg-event-fx
  :kiosks/change-page

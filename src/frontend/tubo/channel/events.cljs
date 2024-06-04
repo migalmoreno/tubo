@@ -1,7 +1,9 @@
 (ns tubo.channel.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [tubo.api :as api]
+   [tubo.channel.views :as channel]
+   [tubo.components.layout :as layout]))
 
 (rf/reg-event-fx
  :channel/fetch
@@ -20,9 +22,17 @@
            [:document-title (:name channel-res)]]})))
 
 (rf/reg-event-fx
+ :channel/bad-page-response
+ (fn [{:keys [db]} [_ uri res]]
+   {:fx [[:dispatch [:change-view #(layout/error res [:channel/fetch-page uri])]]]
+    :db (assoc db :show-page-loading false)}))
+
+(rf/reg-event-fx
  :channel/fetch-page
  (fn [{:keys [db]} [_ uri]]
-   {:fx [[:dispatch [:channel/fetch uri [:channel/load-page] [:bad-response]]]]
+   {:fx [[:dispatch [:change-view channel/channel]]
+         [:dispatch [:channel/fetch uri [:channel/load-page]
+                     [:channel/bad-page-response uri]]]]
     :db (assoc db :show-page-loading true)}))
 
 (rf/reg-event-db
@@ -40,6 +50,12 @@
            (assoc :show-pagination-loading false))))))
 
 (rf/reg-event-fx
+ :channel/bad-paginated-response
+ (fn [{:keys [db]} [_ res]]
+   {:fx [[:dispatch [:bad-response res]]]
+    :db (assoc db :show-pagination-loading false)}))
+
+(rf/reg-event-fx
  :channel/fetch-paginated
  (fn [{:keys [db]} [_ uri next-page-url]]
    (if (empty? next-page-url)
@@ -47,6 +63,6 @@
      (assoc
       (api/get-request
        (str "/channels/" (js/encodeURIComponent uri) )
-       [:channel/load-paginated] [:bad-response]
+       [:channel/load-paginated] [:channel/bad-paginated-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db (assoc db :show-pagination-loading true)))))

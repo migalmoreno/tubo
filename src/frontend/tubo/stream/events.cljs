@@ -1,7 +1,8 @@
 (ns tubo.stream.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [tubo.api :as api]
+   [tubo.components.layout :as layout]))
 
 (rf/reg-event-fx
  :stream/fetch
@@ -21,10 +22,19 @@
            [:document-title (:name stream-res)]]})))
 
 (rf/reg-event-fx
+ :stream/bad-page-response
+ (fn [{:keys [db]} [_ url res]]
+   {:fx [[:dispatch [:change-view #(layout/error res [:stream/fetch-page url])]]]
+    :db (assoc db :show-page-loading false)}))
+
+(rf/reg-event-fx
  :stream/fetch-page
  (fn [{:keys [db]} [_ url]]
-   {:fx [[:dispatch [:stream/fetch url [:stream/load-page] [:bad-response]]]]
-    :db (assoc db :show-page-loading true)}))
+   {:fx [[:dispatch [:stream/fetch url
+                     [:stream/load-page] [:stream/bad-page-response url]]]]
+    :db (assoc db
+               :show-page-loading true
+               :stream nil)}))
 
 (rf/reg-event-db
  :stream/toggle-layout

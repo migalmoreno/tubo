@@ -206,3 +206,15 @@
             [secondary-button
              (if (not open?) "Show More" "Show Less")
              on-open]])])})))
+
+(defn error [{:keys [failure parse-error status status-text]} cb]
+  [:div.flex.flex-auto.h-full.items-center.justify-center
+   [:div.flex.flex-col.gap-y-6.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-800.p-5
+    [:div.flex.items-center.gap-2.text-xl
+     [:i.fa-solid.fa-circle-exclamation]
+     [:h3.font-bold (str (when status (str status ": ")) status-text)]]
+    (when parse-error
+      [:span (:status-text parse-error)])
+    [:div.flex.justify-center.gap-x-3
+     [primary-button "Go Back" #(rf/dispatch [:history-go -1])]
+     [secondary-button "Retry" #(rf/dispatch cb)]]]])
