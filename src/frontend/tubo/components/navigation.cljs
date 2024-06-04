@@ -51,7 +51,7 @@
     [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
-      [:button.ml-2.hidden.lg:block
+      [:button.ml-2.invisible.absolute.lg:visible.lg:relative
        [:a.font-bold {:href (rfe/href :homepage)}
         [layout/logo :height 35 :width 35]]]
       [:button.text-white.mx-3.lg:hidden
