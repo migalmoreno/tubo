@@ -7,9 +7,20 @@
    ["@vidstack/react" :refer (MediaPlayer MediaProvider Poster)]
    ["@vidstack/react/player/layouts/default" :refer (defaultLayoutIcons DefaultVideoLayout DefaultAudioLayout)]))
 
-(defn get-player-sources
-  [available-streams]
-  (map (fn [{:keys [content]}] {:src content :type "video/mp4"}) (reverse available-streams)))
+(defn get-video-player-sources
+  [available-streams service-id]
+  (if available-streams
+    (if (= service-id 3)
+      (map (fn [{:keys [content]}] {:src content :type "video/mp4"}) (reverse available-streams))
+      (->> available-streams
+           (filter #(and (not= (:format %) "WEBMA_OPUS") (not= (:format %) "OPUS") (not= (:format %) "M4A")))
+           (sort-by :bitrate)
+           (#(if (empty? (filter (fn [x] (= (:format x) "MP3")) %))
+               (reverse %)
+               %))
+           (map (fn [{:keys [content]}] {:src content :type "video/mp4"}))
+           first))
+    []))
 
 (defn video-player
   [stream !player]
@@ -18,11 +29,11 @@
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:main-player/ready false])
       :reagent-render
-      (fn [{:keys [name video-streams audio-streams thumbnail-url]} !player]
+      (fn [{:keys [name video-streams audio-streams thumbnail-url service-id]} !player]
         (let [show-main-player? @(rf/subscribe [:main-player/show])]
           [:> MediaPlayer
            {:title          name
-            :src            (get-player-sources (into video-streams audio-streams))
+            :src            (get-video-player-sources (into video-streams audio-streams) service-id)
             :poster         thumbnail-url
             :class          "w-full xl:w-3/5 overflow-hidden"
             :playsInline    true
@@ -50,6 +61,15 @@
                         :class :vds-poster}]]
            [:> DefaultVideoLayout {:icons defaultLayoutIcons}]]))})))
 
+(defn get-audio-player-sources
+  [available-streams]
+  (if available-streams
+    (->> available-streams
+         (filter #(not= (:format %) "OPUS"))
+         (map (fn [{:keys [content]}] {:src content :type "video/mp4"}))
+         (sort-by :bitrate))
+    []))
+
 (defn audio-player
   [stream !player]
   (let [!elapsed-time     @(rf/subscribe [:elapsed-time])
@@ -62,7 +82,7 @@
          {:title          name
           :class          "invisible fixed"
           :controls       []
-          :src            (get-player-sources audio-streams)
+          :src            (get-audio-player-sources audio-streams)
           :viewType       "audio"
           :ref            #(reset! !player %)
           :loop           (= @(rf/subscribe [:loop-playback]) :stream)

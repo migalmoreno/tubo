@@ -3,7 +3,6 @@
    [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.components.player :refer [get-player-sources]]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
    [tubo.components.items :as items]

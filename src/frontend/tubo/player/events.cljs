@@ -1,6 +1,5 @@
 (ns tubo.player.events
   (:require
-   [tubo.components.player :as player :refer [get-player-sources]]
    [tubo.stream.views :as stream]
    [tubo.utils :as utils]
    [goog.object :as gobj]
