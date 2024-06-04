@@ -9,7 +9,7 @@
 
 (defn get-player-sources
   [available-streams]
-  (map (fn [{:keys [content]}] {:src content :type "video/mp4"}) available-streams))
+  (map (fn [{:keys [content]}] {:src content :type "video/mp4"}) (reverse available-streams)))
 
 (defn video-player
   [stream !player]
@@ -24,7 +24,8 @@
            {:title          name
             :src            (get-player-sources (into video-streams audio-streams))
             :poster         thumbnail-url
-            :class          "h-[500px] lg:h-[600px] w-full xl:w-3/5 overflow-x-hidden"
+            :class          "w-full xl:w-3/5 overflow-hidden"
+            :playsInline    true
             :ref            #(reset! !player %)
             :loop           (when show-main-player? (= @(rf/subscribe [:loop-playback]) :stream))
             :onSeeked       (when show-main-player?
@@ -56,7 +57,7 @@
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:background-player/ready false])
       :reagent-render
-      (fn [{:keys [name video-streams audio-streams thumbnail-url]} !player]
+      (fn [{:keys [name audio-streams thumbnail-url]} !player]
         [:> MediaPlayer
          {:title          name
           :class          "invisible fixed"
