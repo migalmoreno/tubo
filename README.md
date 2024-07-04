@@ -2,84 +2,7 @@
 
 # Tubo
 
-Tubo is a streaming front-end focused on bringing the [NewPipe](https://github.com/TeamNewPipe/NewPipe) experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.  
-
-To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.com/TeamNewPipe/NewPipeExtractor) library and it exposes the extracted data over a REST API that is consumed by a local re-frame SPA.  
-
-
-## Screenshots
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_stream.jpg" alt="tubo_stream.jpg" /></th>
-<th scope="col" class="org-left"><img src="https://files.migalmoreno.com/tubo_channel.jpg" alt="tubo_channel.jpg" /></th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_queue.jpg" alt="tubo_queue.jpg" /></td>
-<td class="org-left"><img src="https://files.migalmoreno.com/tubo_search.jpg" alt="tubo_search.jpg" /></td>
-</tr>
-</tbody>
-</table>
-
-
-## Features
-
--   [X] No ads
--   [X] Background player
--   [X] Playback queue
--   [X] Bookmarked Playlists
--   [X] Settings
--   [ ] Subscriptions
--   [ ] User login
-
-
-## Instances
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">URL</th>
-<th scope="col" class="org-left">Country</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-left"><a href="https://tubo.migalmoreno.com">https://tubo.migalmoreno.com</a> (Official)</td>
-<td class="org-left">🇪🇸</td>
-</tr>
-
-
-<tr>
-<td class="org-left"><a href="https://tubo.reallyaweso.me">https://tubo.reallyaweso.me</a></td>
-<td class="org-left">🇩🇪</td>
-</tr>
-
-
-<tr>
-<td class="org-left"><a href="https://tubo.ducks.party">https://tubo.ducks.party</a></td>
-<td class="org-left">🇩🇪</td>
-</tr>
-</tbody>
-</table>
+Tubo is a streaming front-end focused on bringing the [NewPipe](https://newpipe.net/) experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.  
 
 
 ## Installation
@@ -101,13 +24,13 @@ To retrieve the data, it wraps the excellent [NewPipe Extractor](https://github.
 
 -   Docker
 
-    Alternatively, you can use Docker to set up Tubo. Simply invoke this:  
+    You can use Docker Compose to set up Tubo.  
     
         docker-compose up -d
 
 -   Manual
 
-    You can also set up Tubo manually via the [GNU Guix](https://guix.gnu.org/) package manager. First, download the necessary tooling:  
+    You set up Tubo manually via the [GNU Guix](https://guix.gnu.org/) package manager. First, download the necessary tooling:  
     
         cd /path/to/tubo
         guix shell
@@ -140,9 +63,9 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 
         server {
             listen 443 ssl http2;
-            server_name tubo.<YOUR_DOMAIN>;
-            ssl_certificate /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/tubo.<YOUR_DOMAIN>/privkey.pem;
+            server_name <TUBO_HOST>;
+            ssl_certificate /etc/letsencrypt/live/<TUBO_HOST>/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/<TUBO_HOST>/privkey.pem;
         
             location / {
                 proxy_pass http://localhost:3000;
@@ -155,60 +78,50 @@ If you want to self-host Tubo and make it publicly accessible you'll need to set
 ## Browser Extension Support
 
 
-### [Redirector](https://github.com/einaregilsson/Redirector)
+### [Redirector](https://einaregilsson.com/redirector/)
 
-You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you can get a basic idea of how to write manual Redirector rules. Note the `serviceId` of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4). Replace <https://tubo.migalmoreno.com/> in the redirect rule to the instance of your choice.  
+You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you get a basic idea of how to write manual Redirector rules. Note the `serviceId` of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4).  
 
     Description: YouTube video to Tubo stream
     Example URL: https://www.youtube.com/watch?v=YE7VzlLtp-4
     Include pattern: ^((?:https?://)(?:www.)?youtube.com/(watch\?v.*|shorts/.*))
-    Redirect to: https://tubo.migalmoreno.com/stream?url=$1
+    Redirect to: https://<TUBO_HOST>/stream?url=$1
     Example result:
-    https://tubo.migalmoreno.com/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
+    https://<TUBO_HOST>/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
     Pattern type: Regular Expression
     Apply to: Main window (address bar)
 
     Description: SoundCloud stream to Tubo stream
     Example URL: https://soundcloud.com/unfa/stop-the-panic
     Include pattern: ^((?:https?://)(?:www.)?soundcloud.com/.*/.*)
-    Redirect to: https://tubo.migalmoreno.com/stream?url=$1
+    Redirect to: https://<TUBO_HOST>/stream?url=$1
     Example result:
-    https://tubo.migalmoreno.com/stream?url=https://soundcloud.com/unfa/stop-the-panic
+    https://<TUBO_HOST>/stream?url=https://soundcloud.com/unfa/stop-the-panic
     Pattern type: Regular Expression
     Apply to: Main window (address bar)
 
     Description: Bandcamp album to Tubo playlist
     Example URL: https://unfa.bandcamp.com/album/suppressed
     Include pattern: ^((?:https?://)(.*\.)?bandcamp.com/album/.*)
-    Redirect to: https://tubo.migalmoreno.com/playlist?url=$1
-    Example result: https://tubo.migalmoreno.com/playlist?url=https://unfa.bandcamp.com/album/suppressed
+    Redirect to: https://<TUBO_HOST>/playlist?url=$1
+    Example result: https://<TUBO_HOST>/playlist?url=https://unfa.bandcamp.com/album/suppressed
     Pattern type: Regular Expression
     Apply to: Main window (address bar)
 
     Description: PeerTube (Framatube) channel to Tubo channel
     Example URL: https://framatube.org/accounts/framasoft@framatube.org
     Include pattern: ^((?:https?://)(?:www.)?framatube.org/accounts/.*)
-    Redirect to: https://tubo.migalmoreno.com/channel?url=$1
+    Redirect to: https://<TUBO_HOST>/channel?url=$1
     Example result:
-    https://tubo.migalmoreno.com/channel?url=https://framatube.org/accounts/framasoft@framatube.org
+    https://<TUBO_HOST>/channel?url=https://framatube.org/accounts/framasoft@framatube.org
     Pattern type: Regular Expression
     Apply to: Main window (address bar)
 
     Description: media.ccc.de search query to Tubo search query
     Example URL: https://media.ccc.de/search/?q=37c3
     Include pattern: ^(?:https?://)media.ccc.de/search/\?q=(.*)
-    Redirect to: https://tubo.migalmoreno.com/search?query=$1&serviceId=2
-    Example result: https://tubo.migalmoreno.com/search?query=37c3&serviceId=2
+    Redirect to: https://<TUBO_HOST>/search?query=$1&serviceId=2
+    Example result: https://<TUBO_HOST>/search?query=37c3&serviceId=2
     Pattern type: Regular Expression
     Apply to: Main window (address bar)
-
-
-### [LibRedirect](https://github.com/libredirect/browser_extension)
-
-Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud, so no need to do anything for these. The rest of services are pending as per [#884](https://github.com/libredirect/browser_extension/issues/884).  
-
-
-### [Privacy Redirector](https://github.com/dybdeskarphet/privacy-redirector)
-
-A userscript that redirects popular social media platforms to their privacy respecting front-ends.  
 
