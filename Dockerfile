@@ -1,9 +1,9 @@
-FROM clojure:tools-deps-alpine as build
+FROM clojure:tools-deps as build
 
 RUN mkdir /app
 WORKDIR /app
 
-RUN apk add npm
+RUN apt-get update && apt-get install -y npm
 
 COPY package* /app/
 RUN npm install
@@ -12,7 +12,7 @@ COPY . /app
 RUN npm run build
 RUN clojure -M:frontend release tubo
 
-FROM clojure:tools-deps-alpine
+FROM clojure:tools-deps
 RUN mkdir /app
 WORKDIR /app
 COPY deps.edn /app
