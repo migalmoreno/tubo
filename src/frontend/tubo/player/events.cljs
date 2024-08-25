@@ -228,21 +228,18 @@
 
 (rf/reg-event-fx
  :player/switch-from-main
- [(rf/inject-cofx :store)
-  (rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db store elapsed-time]} [_ stream]]
+ [(rf/inject-cofx ::inject/sub [:elapsed-time])]
+ (fn [{:keys [db elapsed-time]} [_ stream]]
    {:db (assoc db :background-player/show true)
-    :store (assoc store :background-player/show true)
     :fx [[:dispatch [:player/show-main-player false]]
          [:dispatch [:main-player/pause true]]]}))
 
 (rf/reg-event-fx
  :player/switch-to-main
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream]]
+ (fn [{:keys [db]} [_ stream]]
    {:fx [[:dispatch [:player/show-main-player true]]]
     :db (assoc db :background-player/show false)
-    :store (assoc store :background-player/show false)
     :scroll-to-top nil}))
 
 (rf/reg-event-fx
