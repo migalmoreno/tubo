@@ -2,6 +2,10 @@ name: Publish Docker image
 
 on:
   push:
+    branches:
+      - master
+    paths-ignore:
+      - "**/README"
 
 jobs:
   docker-publish:
