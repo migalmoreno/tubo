@@ -21,49 +21,21 @@ java -jar target/tubo-<VERSION>.jar
 #+end_src
 
 **** Docker
-You can use Docker Compose to set up Tubo.
+For Docker, there's an image available in Docker Hub you can use:
 
 #+begin_src sh
-docker-compose up -d
+docker pull migalmoreno/tubo
+docker run --publish 3000:3000 -d --name tubo migalmoreno/tubo:latest
 #+end_src
 
-**** Manual
-You set up Tubo manually via the [[https://guix.gnu.org/][GNU Guix]] package manager. First, download the necessary tooling:
+There's also a Docker Compose file available which you can run like this:
 
 #+begin_src sh
-cd /path/to/tubo
-guix shell
+docker compose up -d
 #+end_src
-
-Then, compile the downloader ahead-of-time:
-
-#+begin_src sh
-clojure -M -e "(compile 'tubo.downloader-impl)"
-#+end_src
-
-Fetch the front-end dependencies and build the front-end assets.
-
-#+begin_src sh
-npm i
-npm run build
-#+end_src
-
-Finally, compile the front-end.
-
-#+begin_src sh
-clojure -M:frontend release tubo
-#+end_src
-
-You can now start a local server that listens on port 3000 by running this:
-
-#+begin_src sh
-clojure -M:run
-#+end_src
-
-Access the front-end in your browser at =http://localhost:3000=.
 
 *** Reverse Proxy
-If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy.
+If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy. The following shows some example configurations for various web servers:
 
 **** Nginx
 
