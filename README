@@ -3,6 +3,13 @@
 * Tubo
 Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
 
+** Features
+- No ads
+- Background player
+- Playback queue
+- User playlists
+- System/Light/Dark themes
+
 ** Installation
 *** Packaging
 **** Uberjar
@@ -53,6 +60,13 @@ server {
     }
 }
 #+end_src
+
+** Public Instances
+| URL                           | Country |
+|-------------------------------+---------|
+| https://tubo.media (Official) | 🇪🇸    |
+| https://tubo.reallyaweso.me   | 🇩🇪    |
+| https://tubo.ducks.party      | 🇩🇪    |
 
 ** Browser Extension Support
 *** [[https://einaregilsson.com/redirector/][Redirector]]
@@ -110,3 +124,12 @@ Example result: https://<TUBO_HOST>/search?query=37c3&serviceId=2
 Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
+
+*** [[https://libredirect.github.io/][LibRedirect]]
+Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud.
+
+*** [[https://github.com/libreom/predirect][Predirect]]
+Serves the same purpose as LibRedirect but is Manifest V3 compatible. Tubo is supported by default for SoundCloud.
+
+*** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
+A user-script that redirects popular social media platforms to their privacy respecting front-ends. Tubo is supported by default for YouTube and SoundCloud.
