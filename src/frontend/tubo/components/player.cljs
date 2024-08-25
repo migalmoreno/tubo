@@ -66,8 +66,8 @@
   (if available-streams
     (->> available-streams
          (filter #(not= (:format %) "OPUS"))
-         (map (fn [{:keys [content]}] {:src content :type "video/mp4"}))
-         (sort-by :bitrate))
+         (sort-by :bitrate)
+         (map (fn [{:keys [content]}] {:src content :type "video/mp4"})))
     []))
 
 (defn audio-player
