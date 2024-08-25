@@ -210,7 +210,7 @@
    [:div.flex.flex-col.gap-y-6.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-300.dark:bg-neutral-800.p-5
     [:div.flex.items-center.gap-2.text-xl
      [:i.fa-solid.fa-circle-exclamation]
-     [:h3.font-bold (str (when status (str status ": ")) status-text)]]
+     [:h3.font-bold (str status (when (and status status-text) ": ") status-text)]]
     (when parse-error
       [:span (:status-text parse-error)])
     [:div.flex.justify-center.gap-x-3

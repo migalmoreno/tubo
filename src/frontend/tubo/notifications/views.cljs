@@ -20,7 +20,7 @@
         {:on-click
          #(rf/dispatch [:notifications/remove (:id notification)])}
         [:i.fa-solid.fa-close]]
-       [:span.font-bold (str (when status (str status ": ")) status-text)]
+       [:span.font-bold (str status (when (and status status-text) ": ") status-text)]
        (when parse-error
          [:span.line-clamp-1 (:status-text parse-error)])]]]))
 
