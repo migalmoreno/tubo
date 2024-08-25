@@ -23,7 +23,7 @@
 
 (defn comment-bottom-metadata
   [{:keys [upload-date like-count hearted-by-uploader? author-avatar author-name]}]
-  [:div..flex.items-center.my-2
+  [:div.flex.items-center.my-2
    [:div.mr-4
     [:p (utils/format-date-ago upload-date)]]
    (when (and like-count (> like-count 0))
