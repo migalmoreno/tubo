@@ -1,18 +1,18 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil num:nil
-* Tubo
+#+TITLE: tubo
 Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
 
-** Features
+* Features
 - No ads
 - Background player
 - Playback queue
 - User playlists
 - System/Light/Dark themes
 
-** Installation
-*** Packaging
-**** Uberjar
+* Installation
+** Packaging
+*** Uberjar
 To bundle the whole project into a self-contained uber-jar you need to follow these build steps:
 
 #+begin_src sh
@@ -27,7 +27,7 @@ After the last command is completed, you'll get a path to the uber-jar, which yo
 java -jar target/tubo-<VERSION>.jar
 #+end_src
 
-**** Docker
+*** Docker
 For Docker, there's an image available in Docker Hub you can use:
 
 #+begin_src sh
@@ -41,10 +41,10 @@ There's also a Docker Compose file available which you can run like this:
 docker compose up -d
 #+end_src
 
-*** Reverse Proxy
+** Reverse Proxy
 If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy. The following shows some example configurations for various web servers:
 
-**** Nginx
+*** Nginx
 
 #+begin_src nginx
 server {
@@ -61,15 +61,15 @@ server {
 }
 #+end_src
 
-** Public Instances
+* Public Instances
 | URL                           | Country |
 |-------------------------------+---------|
 | https://tubo.media (Official) | 🇪🇸    |
 | https://tubo.reallyaweso.me   | 🇩🇪    |
 | https://tubo.ducks.party      | 🇩🇪    |
 
-** Browser Extension Support
-*** [[https://einaregilsson.com/redirector/][Redirector]]
+* Browser Extension Support
+** [[https://einaregilsson.com/redirector/][Redirector]]
 You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you get a basic idea of how to write manual Redirector rules. Note the =serviceId= of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4).
 
 #+begin_src
@@ -125,11 +125,11 @@ Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
 
-*** [[https://libredirect.github.io/][LibRedirect]]
+** [[https://libredirect.github.io/][LibRedirect]]
 Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud.
 
-*** [[https://github.com/libreom/predirect][Predirect]]
+** [[https://github.com/libreom/predirect][Predirect]]
 Serves the same purpose as LibRedirect but is Manifest V3 compatible. Tubo is supported by default for SoundCloud.
 
-*** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
+** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
 A user-script that redirects popular social media platforms to their privacy respecting front-ends. Tubo is supported by default for YouTube and SoundCloud.
