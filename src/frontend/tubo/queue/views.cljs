@@ -4,7 +4,6 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
-   [tubo.components.items :as items]
    [tubo.components.layout :as layout]
    [tubo.components.player :as player]
    [tubo.utils :as utils]))
@@ -29,11 +28,16 @@
 
 (defn popover
   [{:keys [url service-id uploader-url] :as item} i menu-active? bookmarks]
-  (let [liked? (some #(= (:url %) url) (-> bookmarks first :items))]
+  (let [liked? (some #(= (:url %) url)
+                     (-> bookmarks
+                         first
+                         :items))]
     [:div.absolute.right-0.top-0.min-h-full.flex.items-center
      [layout/popover-menu menu-active?
       [{:label    (if liked? "Remove favorite" "Favorite")
-        :icon     [:i.fa-solid.fa-heart (when liked? {:style {:color (utils/get-service-color service-id)}})]
+        :icon     [:i.fa-solid.fa-heart
+                   (when liked?
+                     {:style {:color (utils/get-service-color service-id)}})]
         :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) item])}
        {:label    "Play radio"
         :icon     [:i.fa-solid.fa-tower-cell]
@@ -54,12 +58,13 @@
       :extra-classes [:px-7 :py-2]]]))
 
 (defn queue-item
-  [item queue queue-pos i bookmarks]
-  (let [!menu-active? (r/atom false)
+  [_item _queue _queue-pos _i _bookmarks]
+  (let [!menu-active?     (r/atom false)
         show-main-player? @(rf/subscribe [:main-player/show])]
     (fn [item queue queue-pos i bookmarks]
       [:div.relative.w-full
-       {:ref #(when (and queue (= queue-pos i) (not show-main-player?)) (rf/dispatch [:scroll-into-view %]))}
+       {:ref #(when (and queue (= queue-pos i) (not show-main-player?))
+                (rf/dispatch [:scroll-into-view %]))}
        [item-metadata item queue-pos i]
        [popover item i !menu-active? bookmarks]])))
 
@@ -76,24 +81,26 @@
     uploader-name]])
 
 (defn main-controls
-  [{:keys [service-id]} queue queue-pos color]
-  (let [loop-playback      @(rf/subscribe [:loop-playback])
-        !player            @(rf/subscribe [:player])
-        !main-player       @(rf/subscribe [:main-player])
-        loading?           @(rf/subscribe [:background-player/loading])
-        bg-player-ready?   @(rf/subscribe [:background-player/ready])
-        main-player-ready? @(rf/subscribe [:main-player/ready])
-        paused?            @(rf/subscribe [:paused])
-        !elapsed-time      @(rf/subscribe [:elapsed-time])
-        queue              @(rf/subscribe [:queue])
-        queue-pos          @(rf/subscribe [:queue-pos])]
+  [color]
+  (let [loop-playback    @(rf/subscribe [:loop-playback])
+        !player          @(rf/subscribe [:player])
+        loading?         @(rf/subscribe [:bg-player/loading])
+        bg-player-ready? @(rf/subscribe [:bg-player/ready])
+        paused?          @(rf/subscribe [:paused])
+        !elapsed-time    @(rf/subscribe [:elapsed-time])
+        queue            @(rf/subscribe [:queue])
+        queue-pos        @(rf/subscribe [:queue-pos])]
     [:<>
      [:div.flex.flex-auto.py-2.w-full.items-center.text-sm
       [:span.mr-4.whitespace-nowrap
-       (if (and bg-player-ready? @!player @!elapsed-time) (utils/format-duration @!elapsed-time) "--:--")]
+       (if (and bg-player-ready? @!player @!elapsed-time)
+         (utils/format-duration @!elapsed-time)
+         "--:--")]
       [player/time-slider !player !elapsed-time color]
       [:span.ml-4.whitespace-nowrap
-       (if (and bg-player-ready? @!player) (utils/format-duration (.-duration @!player)) "--:--")]]
+       (if (and bg-player-ready? @!player)
+         (utils/format-duration (.-duration @!player))
+         "--:--")]]
      [:div.flex.justify-center.items-center
       [player/loop-button loop-playback color true]
       [player/button
@@ -104,21 +111,23 @@
        :show-on-mobile? true]
       [player/button
        :icon [:i.fa-solid.fa-backward]
-       :on-click #(rf/dispatch [:background-player/seek (- @!elapsed-time 5)])
+       :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])
        :extra-classes [:text-xl]
        :show-on-mobile? true]
       [player/button
-       :icon (if (and (not loading?) @!player)
-               (if paused?
-                 [:i.fa-solid.fa-play]
-                 [:i.fa-solid.fa-pause])
-               [layout/loading-icon color :text-3xl])
-       :on-click #(rf/dispatch [:background-player/pause (not (.-paused @!player))])
+       :icon
+       (if (and (not loading?) @!player)
+         (if paused?
+           [:i.fa-solid.fa-play]
+           [:i.fa-solid.fa-pause])
+         [layout/loading-icon color :text-3xl])
+       :on-click
+       #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes [:text-3xl]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
-       :on-click #(rf/dispatch [:background-player/seek (+ @!elapsed-time 5)])
+       :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
        :extra-classes [:text-xl]
        :show-on-mobile? true]
       [player/button
@@ -140,7 +149,9 @@
         bookmarks  @(rf/subscribe [:bookmarks])
         queue-pos  @(rf/subscribe [:queue-pos])
         queue      @(rf/subscribe [:queue])
-        color      (-> stream :service-id utils/get-service-color)]
+        color      (-> stream
+                       :service-id
+                       utils/get-service-color)]
     [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.z-10.backdrop-blur
      {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
               "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
@@ -154,4 +165,4 @@
          ^{:key i} [queue-item item queue queue-pos i bookmarks])]
       [:div.flex.flex-col.py-4.shrink-0.px-5
        [queue-metadata stream]
-       [main-controls stream queue queue-pos color]]]]))
+       [main-controls color]]]]))

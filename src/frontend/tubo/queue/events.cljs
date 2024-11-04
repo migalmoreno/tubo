@@ -16,29 +16,38 @@
      {:db    updated-db
       :store (assoc store :queue (:queue updated-db))
       :fx    (if notify?
-               [[:dispatch [:notifications/add
-                            {:status-text "Added stream to queue"
-                             :failure     :info}]]]
+               [[:dispatch
+                 [:notifications/add
+                  {:status-text "Added stream to queue"
+                   :failure     :info}]]]
                [])})))
 
 (rf/reg-event-fx
  :queue/add-n
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ streams notify?]]
-   {:fx    (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
-                 [[:dispatch [:player/fetch-stream (-> streams first :url)
-                              (count (:queue db)) (= (count (:queue db)) 0)]]
-                  (when notify?
-                    [:dispatch [:notifications/add
-                                {:status-text (str "Added " (count streams)
-                                                   " streams to queue")
-                                 :failure     :info}]])])}))
+ (fn [{:keys [db]} [_ streams notify?]]
+   {:fx (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
+              [[:dispatch
+                [:player/fetch-stream
+                 (-> streams
+                     first
+                     :url)
+                 (count (:queue db)) (= (count (:queue db)) 0)]]
+               (when notify?
+                 [:dispatch
+                  [:notifications/add
+                   {:status-text (str "Added "
+                                      (count streams)
+                                      " streams to queue")
+                    :failure     :info}]])])}))
 
 (rf/reg-event-fx
  :queue/remove
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ pos]]
-   (let [updated-db   (update db :queue #(into (subvec % 0 pos) (subvec % (inc pos))))
+   (let [updated-db   (update db
+                              :queue
+                              #(into (subvec % 0 pos) (subvec % (inc pos))))
          queue-pos    (:queue-pos db)
          queue-length (count (:queue updated-db))]
      {:db    updated-db
@@ -48,11 +57,12 @@
                     (or (< pos queue-pos)
                         (= pos queue-pos)
                         (= queue-pos queue-length)))
-               [[:dispatch [:queue/change-pos
-                            (cond
-                              (= pos queue-length) 0
-                              (= pos queue-pos)    pos
-                              :else                (dec queue-pos))]]]
+               [[:dispatch
+                 [:queue/change-pos
+                  (cond
+                    (= pos queue-length) 0
+                    (= pos queue-pos)    pos
+                    :else                (dec queue-pos))]]]
                (= (count (:queue updated-db)) 0)
                [[:dispatch [:player/dispose]]
                 [:dispatch [:queue/show false]]]
@@ -61,7 +71,7 @@
 (rf/reg-event-fx
  :queue/change-pos
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ i]]
+ (fn [{:keys [db]} [_ i]]
    (let [idx    (if (< i (count (:queue db)))
                   i
                   (when (= (:loop-playback db) :playlist) 0))

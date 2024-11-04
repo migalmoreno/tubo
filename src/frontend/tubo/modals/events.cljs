@@ -16,21 +16,28 @@
 (rf/reg-event-fx
  :modals/hide
  (fn [{:keys [db]} _]
-   {:db (update db :modals
-                #(map-indexed (fn [i modal]
-                                (if (= i (- (count %) 1))
-                                  (assoc modal :show? false :child nil)))
-                              %))
+   {:db            (update db
+                           :modals
+                           #(map-indexed
+                             (fn [i modal]
+                               (when (= i (- (count %) 1))
+                                 (assoc modal :show? false :child nil)))
+                             %))
     :body-overflow false}))
 
 (rf/reg-event-fx
  :modals/close
  (fn [{:keys [db]} _]
-   {:fx [[:dispatch [:modals/delete (-> (:modals db) last :id)]]]
+   {:fx            [[:dispatch
+                     [:modals/delete
+                      (-> (:modals db)
+                          last
+                          :id)]]]
     :body-overflow false}))
 
 (rf/reg-event-fx
  :modals/open
  (fn [_ [_ child]]
-   {:fx            [[:dispatch [:modals/add {:show? true :child child :id (nano-id)}]]]
+   {:fx            [[:dispatch
+                     [:modals/add {:show? true :child child :id (nano-id)}]]]
     :body-overflow true}))

@@ -9,7 +9,8 @@
      {:class (case failure
                :success ["bg-green-600/90" :text-white]
                :error   ["bg-red-600/90" :text-white]
-               ["dark:bg-stone-800" "dark:text-white" :bg-neutral-300 :text-neutral-800])}
+               ["dark:bg-stone-800" "dark:text-white" :bg-neutral-300
+                :text-neutral-800])}
      [:div.flex.items-center.gap-x-4
       (case failure
         :success [:i.fa-solid.fa-circle-check]
@@ -20,7 +21,8 @@
         {:on-click
          #(rf/dispatch [:notifications/remove (:id notification)])}
         [:i.fa-solid.fa-close]]
-       [:span.font-bold (str status (when (and status status-text) ": ") status-text)]
+       [:span.font-bold
+        (str status (when (and status status-text) ": ") status-text)]
        (when parse-error
          [:span.line-clamp-1 (:status-text parse-error)])]]]))
 

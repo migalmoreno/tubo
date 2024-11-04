@@ -31,7 +31,9 @@
 
 (defn format-date-ago
   [date]
-  (if (-> date js/Date.parse js/isNaN)
+  (if (-> date
+          js/Date.parse
+          js/isNaN)
     date
     (timeago/format date)))
 
@@ -39,11 +41,17 @@
   [num]
   (.format
    (js/Intl.NumberFormat
-    "en-US" #js {"notation" "compact" "maximumFractionDigits" 1})
+    "en-US"
+    #js {"notation" "compact" "maximumFractionDigits" 1})
    num))
 
 (defn format-duration
   [num]
   (let [duration (and (not (js/isNaN num)) (js/Date. (* num 1000)))
-        slice    (and duration #(.slice % (if (>= (.getUTCHours duration) 1) 11 14) 19))]
-    (if slice (-> duration (.toISOString) slice) "--:--")))
+        slice    (and duration
+                      #(.slice % (if (>= (.getUTCHours duration) 1) 11 14) 19))]
+    (if slice
+      (-> duration
+          (.toISOString)
+          slice)
+      "--:--")))

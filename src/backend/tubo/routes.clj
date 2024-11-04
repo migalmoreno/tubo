@@ -1,14 +1,11 @@
 (ns tubo.routes
   (:require
-   [malli.experimental.lite :as l]
    [reitit.ring :as ring]
-   [reitit.coercion :as coercion]
    [reitit.ring.coercion :as rrc]
    [reitit.coercion.malli]
    [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.json :refer [wrap-json-response]]
-   [ring.middleware.cors :refer [wrap-cors]]
    [tubo.handler :as handler]))
 
 (def router
@@ -26,21 +23,24 @@
      ["/services"
       ["" {:get handler/services}]
       ["/:service-id/search"
-       {:get {:coercion reitit.coercion.malli/coercion
-              :parameters {:path {:service-id int?}
+       {:get {:coercion   reitit.coercion.malli/coercion
+              :parameters {:path  {:service-id int?}
                            :query {:q string?}}
-              :handler handler/search}}]
+              :handler    handler/search}}]
       ["/:service-id"
-       ["/default-kiosk" {:get {:coercion reitit.coercion.malli/coercion
-                                :parameters {:path {:service-id int?}}
-                                :handler handler/kiosk}}]
+       ["/default-kiosk"
+        {:get {:coercion   reitit.coercion.malli/coercion
+               :parameters {:path {:service-id int?}}
+               :handler    handler/kiosk}}]
        ["/kiosks"
-        ["" {:get {:coercion reitit.coercion.malli/coercion
-                   :parameters {:path {:service-id int?}}
-                   :handler handler/kiosks}}]
-        ["/:kiosk-id" {:get {:coercion reitit.coercion.malli/coercion
-                             :parameters {:path {:service-id int? :kiosk-id string?}}
-                             :handler handler/kiosk}}]]]]
+        [""
+         {:get {:coercion   reitit.coercion.malli/coercion
+                :parameters {:path {:service-id int?}}
+                :handler    handler/kiosks}}]
+        ["/:kiosk-id"
+         {:get {:coercion   reitit.coercion.malli/coercion
+                :parameters {:path {:service-id int? :kiosk-id string?}}
+                :handler    handler/kiosk}}]]]]
      ["/streams/:url" {:get handler/stream}]
      ["/channels/:url" {:get handler/channel}]
      ["/playlists/:url" {:get handler/playlist}]
@@ -55,7 +55,7 @@
    (ring/routes
     (ring/create-resource-handler {:path "/"})
     (ring/create-default-handler
-     {:not-found (constantly {:status 404, :body "Not found"})}))
+     {:not-found (constantly {:status 404 :body "Not found"})}))
    {:middleware [wrap-params
                  [wrap-json-response {:pretty true}]
                  wrap-reload]}))

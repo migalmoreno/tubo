@@ -2,11 +2,11 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [reitit.frontend.easy :as rfe]
    [tubo.components.items :as items]
    [tubo.components.layout :as layout]))
 
-(defn search-form []
+(defn search-form
+  []
   (let [!query (r/atom "")
         !input (r/atom nil)]
     (fn []
@@ -14,7 +14,7 @@
             show-search-form? @(rf/subscribe [:show-search-form])
             service-id        @(rf/subscribe [:service-id])]
         [:form.relative.flex.items-center.text-white.ml-4
-         {:class (when-not show-search-form? "hidden")
+         {:class     (when-not show-search-form? "hidden")
           :on-submit #(do (.preventDefault %)
                           (when-not (empty? @!query)
                             (rf/dispatch [:navigate
@@ -49,12 +49,10 @@
 
 (defn search
   [{{:keys [q serviceId]} :query-params}]
-  (let [{:keys [items next-page]
-         :as   search-results} @(rf/subscribe [:search-results])
-        next-page-url          (:url next-page)
-        services               @(rf/subscribe [:services])
-        service-id             (or @(rf/subscribe [:service-id]) serviceId)
-        scrolled-to-bottom?    @(rf/subscribe [:scrolled-to-bottom])]
+  (let [{:keys [items next-page]} @(rf/subscribe [:search-results])
+        next-page-url             (:url next-page)
+        service-id                (or @(rf/subscribe [:service-id]) serviceId)
+        scrolled-to-bottom?       @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [:search/fetch-paginated q service-id next-page-url]))
     [layout/content-container

@@ -15,27 +15,38 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ service-name service-id res]]
    (let [kiosks-res            (js->clj res :keywordize-keys true)
-         default-service-kiosk (-> db :settings :default-service :default-kiosk)
+         default-service-kiosk (-> db
+                                   :settings
+                                   :default-service
+                                   :default-kiosk)
          default-kiosk         (if (some #(= % default-service-kiosk)
                                          (:available-kiosks kiosks-res))
                                  default-service-kiosk
                                  (:default-kiosk kiosks-res))]
-     {:db    (update-in db [:settings :default-service] assoc
-                        :id service-name
-                        :service-id service-id
+     {:db    (update-in db
+                        [:settings :default-service]
+                        assoc
+                        :id               service-name
+                        :service-id       service-id
                         :available-kiosks (:available-kiosks kiosks-res)
-                        :default-kiosk default-kiosk)
-      :store (update-in store [:default-service] assoc
-                        :id service-name
-                        :service-id service-id
+                        :default-kiosk    default-kiosk)
+      :store (update-in store
+                        [:default-service]
+                        assoc
+                        :id               service-name
+                        :service-id       service-id
                         :available-kiosks (:available-kiosks kiosks-res)
-                        :default-kiosk default-kiosk)})))
+                        :default-kiosk    default-kiosk)})))
 
 (rf/reg-event-fx
  :settings/change-service
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ val]]
-   (let [service-id (-> (filter #(= val (-> % :info :name)) (:services db))
+ (fn [{:keys [db]} [_ val]]
+   (let [service-id (-> (filter #(= val
+                                    (-> %
+                                        :info
+                                        :name))
+                                (:services db))
                         first
                         :id)]
      (api/get-request (str "/services/" service-id "/kiosks")
@@ -52,9 +63,17 @@
 (rf/reg-event-fx
  :settings/fetch-page
  (fn [{:keys [db]} _]
-   (let [id         (-> db :settings :default-service :id)
-         service-id (-> db :settings :default-service :service-id)]
+   (let [id         (-> db
+                        :settings
+                        :default-service
+                        :id)
+         service-id (-> db
+                        :settings
+                        :default-service
+                        :service-id)]
      (assoc
       (api/get-request (str "/services/" service-id "/kiosks")
-                       [:settings/load-kiosks id service-id] [:bad-response])
-      :document-title "Settings"))))
+                       [:settings/load-kiosks id service-id]
+                       [:bad-response])
+      :document-title
+      "Settings"))))

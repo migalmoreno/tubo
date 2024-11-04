@@ -2,7 +2,6 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.utils :as utils]
    [tubo.bookmarks.subs]
    [tubo.channel.subs]
    [tubo.kiosks.subs]
@@ -41,7 +40,6 @@
                        "change"
                        #(reset! theme (if (.-matches %) "dark" "light")))
     theme))
-
 
 (rf/reg-sub
  :is-window-visible

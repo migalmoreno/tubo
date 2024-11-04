@@ -7,16 +7,16 @@
    [tubo.components.layout :as layout]))
 
 (defn channel
-  [query-params]
-  (let [!menu-active? (r/atom nil)
+  [_]
+  (let [!menu-active?      (r/atom nil)
         !show-description? (r/atom false)]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banner avatar name description subscriber-count next-page
-                    related-streams]} @(rf/subscribe [:channel])
-            next-page-url             (:url next-page)
-            service-color             @(rf/subscribe [:service-color])
-            scrolled-to-bottom?       @(rf/subscribe [:scrolled-to-bottom])
-            page-loading?             @(rf/subscribe [:show-page-loading])]
+                    related-streams]}
+            @(rf/subscribe [:channel])
+            next-page-url (:url next-page)
+            scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])
+            page-loading? @(rf/subscribe [:show-page-loading])]
         (when (and next-page-url scrolled-to-bottom?)
           (rf/dispatch [:channel/fetch-paginated url next-page-url]))
         [:<>
@@ -27,7 +27,8 @@
          [layout/content-container
           [:div.flex.items-center.justify-between
            [:div.flex.items-center.my-4.mx-2
-            [layout/uploader-avatar {:uploader-avatar avatar :uploader-name name}]
+            [layout/uploader-avatar
+             {:uploader-avatar avatar :uploader-name name}]
             [:div.m-4
              [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
              (when subscriber-count
@@ -41,7 +42,9 @@
                 :on-click #(rf/dispatch [:queue/add-n related-streams true])}
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
-                :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark related-streams]])}]])]
+                :on-click #(rf/dispatch [:modals/open
+                                         [modals/add-to-bookmark
+                                          related-streams]])}]])]
           (when-not (empty? description)
             [layout/show-more-container @!show-description? description
              #(reset! !show-description? (not @!show-description?))])

@@ -9,18 +9,18 @@
 
 (rf/reg-sub
  :player
- (fn [db _]
+ (fn [_ _]
    !player))
 
 (rf/reg-sub
  :main-player
- (fn [db _]
+ (fn [_ _]
    !main-player))
 
 (rf/reg-sub
- :background-player/ready
+ :bg-player/ready
  (fn [db _]
-   (:background-player/ready db)))
+   (:bg-player/ready db)))
 
 (rf/reg-sub
  :main-player/ready
@@ -28,14 +28,14 @@
    (:main-player/ready db)))
 
 (rf/reg-sub
- :background-player/show
+ :bg-player/show
  (fn [db _]
-   (:background-player/show db)))
+   (:bg-player/show db)))
 
 (rf/reg-sub
- :background-player/loading
+ :bg-player/loading
  (fn [db _]
-   (:background-player/loading db)))
+   (:bg-player/loading db)))
 
 (rf/reg-sub
  :loop-playback
@@ -59,7 +59,7 @@
 
 (rf/reg-sub
  :elapsed-time
- (fn [db _]
+ (fn [_ _]
    !elapsed-time))
 
 (rf/reg-sub

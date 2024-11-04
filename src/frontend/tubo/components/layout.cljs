@@ -1,5 +1,6 @@
 (ns tubo.components.layout
   (:require
+   [clojure.string :as str]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reagent.core :as r]
@@ -12,11 +13,13 @@
    [:div.relative.min-w-full
     [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
     (if thumbnail-url
-      [:img.object-cover.min-h-full.max-h-full.min-w-full {:src thumbnail-url :class (when rounded? :rounded)}]
+      [:img.object-cover.min-h-full.max-h-full.min-w-full
+       {:src thumbnail-url :class (when rounded? :rounded)}]
       [:div.bg-gray-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
-      [:div.rounded.p-2.absolute {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
+      [:div.rounded.p-2.absolute
+       {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
        [:p.text-white.text-md
         (if (= duration 0)
           "LIVE"
@@ -66,14 +69,15 @@
      (conj
       (when uploader-url
         [:a.flex-auto.flex.min-h-full.min-w-full.max-h-full.max-w-full
-         {:href (rfe/href :channel-page nil {:url uploader-url})
+         {:href  (rfe/href :channel-page nil {:url uploader-url})
           :title uploader-name
-          :key uploader-url}])
+          :key   uploader-url}])
       [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full
        {:src uploader-avatar :alt uploader-name :key uploader-name}])]))
 
 (defn button
-  [label on-click left-icon right-icon & {:keys [button-classes label-classes icon-classes]}]
+  [label on-click left-icon right-icon &
+   {:keys [button-classes label-classes icon-classes]}]
   [:button.px-4.rounded-3xl.py-1.outline-none.focus:ring-transparent.whitespace-nowrap
    {:on-click on-click :class button-classes}
    (when left-icon
@@ -86,21 +90,24 @@
   [label on-click left-icon right-icon]
   [button label on-click left-icon right-icon
    :button-classes ["bg-stone-800" "dark:bg-white"]
-   :label-classes  ["text-neutral-300" "dark:text-neutral-900"]])
+   :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
 (defn secondary-button
   [label on-click left-icon right-icon]
   [button label on-click left-icon right-icon
-   :button-classes ["bg-neutral-100" "dark:bg-transparent" "border" "border-neutral-300" "dark:border-stone-700"]
+   :button-classes
+   ["bg-neutral-100" "dark:bg-transparent" "border" "border-neutral-300"
+    "dark:border-stone-700"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
 
-(defn generic-input [label & children]
+(defn generic-input
+  [label & children]
   [:div.w-full.flex.justify-between.items-center.py-2.gap-x-4
    [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn text-input
-  [label key value on-change placeholder]
+  [label _key value on-change placeholder]
   [generic-input label
    [:input.text-black
     {:type          "text"
@@ -109,7 +116,7 @@
      :placeholder   placeholder}]])
 
 (defn boolean-input
-  [label key value on-change]
+  [label _key value on-change]
   [generic-input label
    [:input
     {:type      "checkbox"
@@ -118,27 +125,34 @@
      :on-change on-change}]])
 
 (defn select-input
-  [label key value options on-change]
+  [label _key value options on-change]
   [generic-input label
    [:select.focus:ring-transparent.bg-transparent.font-bold
     {:value     value
      :on-change on-change}
     (for [[i option] (map-indexed vector options)]
-      ^{:key i} [:option.dark:bg-neutral-900.border-none {:value option :key i} option])]])
+      ^{:key i}
+      [:option.dark:bg-neutral-900.border-none {:value option :key i}
+       option])]])
 
 (defn menu-item
   [{:keys [label icon on-click link] :as item}]
   (let [content [:<>
-                 [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center icon]
+                 [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
+                  icon]
                  [:span.whitespace-nowrap label]]
-        classes ["relative" "flex" "items-center" "gap-x-3" "hover:bg-neutral-200"
+        classes ["relative" "flex" "items-center" "gap-x-3"
+                 "hover:bg-neutral-200"
                  "dark:hover:bg-stone-800" "py-2" "px-3" "rounded"]]
     (if link
-      [:a {:href  (:route link) :target (when (:external? link) "_blank")
-           :class (clojure.string/join " " classes)}
+      [:a
+       {:href   (:route link)
+        :target (when (:external? link) "_blank")
+        :class  (str/join " " classes)}
        content]
-      [:li {:on-click on-click
-            :class    (clojure.string/join " " classes)}
+      [:li
+       {:on-click on-click
+        :class    (str/join " " classes)}
        (if (vector? item) item content)])))
 
 (defn menu
@@ -176,7 +190,7 @@
      (map-indexed #(with-meta %2 {:key %1}) content))])
 
 (defn show-more-container
-  [open? text on-open]
+  [_open? _text _on-open]
   (let [!text-container  (atom nil)
         !resize-observer (atom nil)
         text-clamped?    (r/atom nil)]
@@ -186,11 +200,11 @@
         (when @!text-container
           (.observe
            (reset! !resize-observer
-                   (js/ResizeObserver.
-                    #(let [target (.-target (first %))]
-                       (reset! text-clamped?
-                               (> (.-scrollHeight target)
-                                  (.-clientHeight target))))))
+             (js/ResizeObserver.
+              #(let [target (.-target (first %))]
+                 (reset! text-clamped?
+                   (> (.-scrollHeight target)
+                      (.-clientHeight target))))))
            @!text-container)))
       :component-will-unmount
       #(when (and @!resize-observer @!text-container)
@@ -200,17 +214,20 @@
         [:div.py-3.min-w-full
          [:span.text-clip.pr-2
           {:dangerouslySetInnerHTML {:__html text}
-           :class (when-not open? "line-clamp-2")
-           :ref   #(reset! !text-container %)}]
+           :class                   (when-not open? "line-clamp-2")
+           :ref                     #(reset! !text-container %)}]
          (when (or @text-clamped? open?)
-           [:button.font-bold {:on-click on-open} (str "show " (if open? "less" "more"))])])})))
+           [:button.font-bold {:on-click on-open}
+            (str "show " (if open? "less" "more"))])])})))
 
-(defn error [{:keys [failure parse-error status status-text]} cb]
+(defn error
+  [{:keys [_failure parse-error status status-text]} cb]
   [:div.flex.flex-auto.h-full.items-center.justify-center.p-5
    [:div.flex.flex-col.gap-y-6.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-300.dark:bg-neutral-800.p-5
     [:div.flex.items-center.gap-2.text-xl
      [:i.fa-solid.fa-circle-exclamation]
-     [:h3.font-bold (str status (when (and status status-text) ": ") status-text)]]
+     [:h3.font-bold
+      (str status (when (and status status-text) ": ") status-text)]]
     (when parse-error
       [:span (:status-text parse-error)])
     [:div.flex.justify-center.gap-x-3

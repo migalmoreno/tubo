@@ -5,9 +5,12 @@
 
 (rf/reg-event-fx
  :comments/fetch
- (fn [{:keys [db]} [_ url on-success on-error params]]
-   (api/get-request (str "/comments/" (js/encodeURIComponent url))
-                    on-success on-error params)))
+ (fn [_ [_ url on-success on-error params]]
+   (api/get-request (str "/comments/"
+                         (js/encodeURIComponent url))
+                    on-success
+                    on-error
+                    params)))
 
 (rf/reg-event-db
  :comments/load-page
@@ -19,8 +22,9 @@
 (rf/reg-event-fx
  :comments/fetch-page
  (fn [{:keys [db]} [_ url]]
-   {:fx [[:dispatch [:comments/fetch url
-                     [:comments/load-page] [:bad-response]]]]
+   {:fx [[:dispatch
+          [:comments/fetch url
+           [:comments/load-page] [:bad-response]]]]
     :db (-> db
             (assoc-in [:stream :show-comments-loading] true)
             (assoc-in [:stream :show-comments] true))}))
@@ -28,7 +32,8 @@
 (rf/reg-event-db
  :comments/toggle-replies
  (fn [db [_ comment-id]]
-   (update-in db [:stream :comments-page :comments]
+   (update-in db
+              [:stream :comments-page :comments]
               (fn [comments]
                 (map #(if (= (:id %) comment-id)
                         (assoc % :show-replies (not (:show-replies %)))
@@ -39,7 +44,8 @@
  :comments/load-paginated
  (fn [db [_ res]]
    (-> db
-       (update-in [:stream :comments-page :comments] #(apply conj %1 %2)
+       (update-in [:stream :comments-page :comments]
+                  #(apply conj %1 %2)
                   (:comments (js->clj res :keywordize-keys true)))
        (assoc-in [:stream :comments-page :next-page]
                  (:next-page (js->clj res :keywordize-keys true)))
@@ -51,6 +57,7 @@
    (if (empty? next-page-url)
      {:db (assoc db :show-pagination-loading false)}
      {:db (assoc db :show-pagination-loading true)
-      :fx [[:dispatch [:comments/fetch url
-                       [:comments/load-paginated] [:bad-response]
-                       {:nextPage (js/encodeURIComponent next-page-url)}]]]})))
+      :fx [[:dispatch
+            [:comments/fetch url
+             [:comments/load-paginated] [:bad-response]
+             {:nextPage (js/encodeURIComponent next-page-url)}]]]})))

@@ -11,11 +11,11 @@
   [{{:keys [url]} :query-params}]
   (let [!menu-active? (r/atom nil)]
     (fn []
-      (let [{:keys [id name playlist-type thumbnail-url banner-url next-page
-                    uploader-name uploader-url related-streams
-                    stream-count]} @(rf/subscribe [:playlist])
-            next-page-url          (:url next-page)
-            scrolled-to-bottom?    @(rf/subscribe [:scrolled-to-bottom])]
+      (let [{:keys [name next-page uploader-name uploader-url related-streams
+                    stream-count]}
+            @(rf/subscribe [:playlist])
+            next-page-url (:url next-page)
+            scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
         (when scrolled-to-bottom?
           (rf/dispatch [:playlist/fetch-paginated url next-page-url]))
         [layout/content-container
@@ -28,7 +28,9 @@
                 :on-click #(rf/dispatch [:queue/add-n related-streams true])}
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
-                :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark related-streams]])}]])]
+                :on-click #(rf/dispatch [:modals/open
+                                         [modals/add-to-bookmark
+                                          related-streams]])}]])]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
            [:div.flex.items-center
             [layout/uploader-avatar playlist]

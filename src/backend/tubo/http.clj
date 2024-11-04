@@ -10,15 +10,10 @@
 (defonce server (atom nil))
 
 (defn start-server!
-  ([]
-   (start-server! 3000))
+  ([] (start-server! 3000))
   ([port]
    (NewPipe/init (DownloaderImpl/init) (Localization. "en" "US"))
    (reset! server (run-server #'routes/app {:port port}))
    (println "Server running in port" port)))
 
-(defn stop-server!
-  []
-  (when @server
-    (@server :timeout 100)
-    (reset! server nil)))
+(defn stop-server! [] (when @server (@server :timeout 100) (reset! server nil)))

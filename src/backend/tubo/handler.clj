@@ -3,11 +3,7 @@
    [clojure.string :as str]
    [hiccup.page :as hiccup]
    [ring.util.response :refer [response]]
-   [tubo.api.streams :as streams]
-   [tubo.api.channels :as channels]
-   [tubo.api.playlists :as playlists]
-   [tubo.api.comments :as comments]
-   [tubo.api.services :as services]))
+   [tubo.api :as api]))
 
 (defn index
   [_]
@@ -17,9 +13,10 @@
      [:meta {:charset "UTF-8"}]
      [:meta
       {:name "viewport"
-       :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
+       :content
+       "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
      [:title "Tubo"]
-     [:link {:rel "icon" :type "image/png" :href "/icons/tubo.svg"}]
+     [:link {:rel "icon" :type "image/svg+xml" :href "/icons/tubo.svg"}]
      (hiccup/include-css "/styles/index.css")]
     [:body
      [:div#app]
@@ -28,46 +25,54 @@
 
 (defn search
   [{:keys [parameters] :as req}]
-  (let [{:keys [service-id]} (:path parameters)
-        {:keys [q]} (:query parameters)
+  (let [{:keys [service-id]}                         (:path parameters)
+        {:keys [q]}                                  (:query parameters)
         {:strs [contentFilters sortFilter nextPage]} (:query-params req)
-        content-filters (and contentFilters (str/split contentFilters #","))]
+        content-filters                              (and contentFilters
+                                                          (str/split
+                                                           contentFilters
+                                                           #","))]
     (response (if nextPage
-                (services/search service-id q contentFilters sortFilter nextPage)
-                (services/search service-id q contentFilters sortFilter)))))
+                (api/get-search service-id q contentFilters sortFilter nextPage)
+                (api/get-search service-id q contentFilters sortFilter)))))
 
 (defn channel
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (channels/get-channel url nextPage)
-              (channels/get-channel url))))
+              (api/get-channel url nextPage)
+              (api/get-channel url))))
 
 (defn playlist
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (playlists/get-playlist url nextPage)
-              (playlists/get-playlist url))))
+              (api/get-playlist url nextPage)
+              (api/get-playlist url))))
 
 (defn comments
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (if nextPage
-              (comments/get-comments url nextPage)
-              (comments/get-comments url))))
+              (api/get-comments url nextPage)
+              (api/get-comments url))))
 
 (defn services
   [_]
-  (response (services/get-services)))
+  (response (api/get-services)))
 
 (defn kiosks
   [{{{:keys [service-id]} :path} :parameters}]
-  (response (services/get-kiosks service-id)))
+  (response (api/get-kiosks service-id)))
 
 (defn kiosk
-  [{{{:keys [kiosk-id service-id]} :path} :parameters {:strs [nextPage]} :query-params}]
+  [{{{:keys [kiosk-id service-id]} :path} :parameters
+    {:strs [nextPage]}                    :query-params}]
   (response (cond
-              (and kiosk-id service-id nextPage) (services/get-kiosk kiosk-id service-id nextPage)
-              (and kiosk-id service-id) (services/get-kiosk kiosk-id service-id)
-              :else (services/get-kiosk service-id))))
+              (and kiosk-id service-id nextPage) (api/get-kiosk kiosk-id
+                                                                service-id
+                                                                nextPage)
+              (and kiosk-id service-id)          (api/get-kiosk kiosk-id
+                                                                service-id)
+              :else                              (api/get-kiosk service-id))))
 
-(defn stream [{{:keys [url]} :path-params}]
-  (response (streams/get-stream url)))
+(defn stream
+  [{{:keys [url]} :path-params}]
+  (response (api/get-stream url)))

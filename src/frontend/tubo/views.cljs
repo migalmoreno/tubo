@@ -15,7 +15,9 @@
       [navigation/navbar current-match]
       [notifications/notifications-panel]
       [:div.flex.flex-col.flex-auto.justify-between.relative
-       (when-let [view (-> current-match :data :view)]
+       (when-let [view (-> current-match
+                           :data
+                           :view)]
          [view current-match])
        [queue/queue]
        [player/main-player]

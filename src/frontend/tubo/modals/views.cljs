@@ -28,7 +28,7 @@
 (defn modal
   []
   (fn []
-    (let [modals @(rf/subscribe [:modals])
+    (let [modals        @(rf/subscribe [:modals])
           visible-modal (last (filter :show? modals))]
       (when visible-modal
         [modal-panel visible-modal]))))

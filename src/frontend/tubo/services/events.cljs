@@ -8,8 +8,9 @@
  (fn [{:keys [db]} [_ {:keys [service-id]}]]
    {:db db
     :fx [[:dispatch [:services/change-id service-id]]
-         [:dispatch [:kiosks/fetch-all service-id
-                     [:kiosks/load] [:bad-response]]]]}))
+         [:dispatch
+          [:kiosks/fetch-all service-id
+           [:kiosks/load] [:bad-response]]]]}))
 
 (rf/reg-event-fx
  :services/change-id
@@ -20,7 +21,7 @@
 
 (rf/reg-event-fx
  :services/fetch-all
- (fn [{:keys [db]} [_ on-success on-error]]
+ (fn [_ [_ on-success on-error]]
    (api/get-request "/services" on-success on-error)))
 
 (rf/reg-event-db

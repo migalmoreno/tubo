@@ -11,41 +11,58 @@
 (defn item-popover
   [_ _]
   (let [!menu-active? (r/atom nil)]
-    (fn [{:keys [service-id audio-streams video-streams type url bookmark-id uploader-url] :as item} bookmarks]
-      (let [liked?  (some #(= (:url %) url) (-> bookmarks first :items))
-            items (if (or (= type "stream") audio-streams video-streams)
-                    [{:label    "Add to queue"
-                      :icon     [:i.fa-solid.fa-headphones]
-                      :on-click #(rf/dispatch [:player/switch-to-background item true])}
-                     {:label    "Play radio"
-                      :icon     [:i.fa-solid.fa-tower-cell]
-                      :on-click #(rf/dispatch [:player/start-radio item])}
-                     {:label    (if liked? "Remove favorite" "Favorite")
-                      :icon     [:i.fa-solid.fa-heart (when (and liked? service-id)
-                                                        {:style {:color (utils/get-service-color service-id)}})]
-                      :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) item true])}
-                     {:label    "Add to playlist"
-                      :icon     [:i.fa-solid.fa-plus]
-                      :on-click #(rf/dispatch [:modals/open [bookmarks/add-to-bookmark item]])}
-                     (when (some #(= (:url %) url) (:items (first (filter #(= (:id %) bookmark-id) bookmarks))))
-                       {:label    "Remove from playlist"
-                        :icon     [:i.fa-solid.fa-trash]
-                        :on-click #(rf/dispatch [:bookmark/remove item])})
-                     {:label    "Show channel details"
-                      :icon     [:i.fa-solid.fa-user]
-                      :on-click #(rf/dispatch [:navigate
-                                               {:name   :channel-page
-                                                :params {}
-                                                :query  {:url uploader-url}}])}]
-                    [(when (and bookmarks (some #(= (:id %) bookmark-id) (rest bookmarks)))
-                       {:label    "Remove playlist"
-                        :icon     [:i.fa-solid.fa-trash]
-                        :on-click #(rf/dispatch [:bookmarks/remove bookmark-id true])})])]
+    (fn [{:keys [service-id audio-streams video-streams type url bookmark-id
+                 uploader-url]
+          :as   item} bookmarks]
+      (let [liked? (some #(= (:url %) url)
+                         (-> bookmarks
+                             first
+                             :items))
+            items
+            (if (or (= type "stream") audio-streams video-streams)
+              [{:label    "Add to queue"
+                :icon     [:i.fa-solid.fa-headphones]
+                :on-click #(rf/dispatch [:player/switch-to-background item
+                                         true])}
+               {:label    "Play radio"
+                :icon     [:i.fa-solid.fa-tower-cell]
+                :on-click #(rf/dispatch [:player/start-radio item])}
+               {:label    (if liked? "Remove favorite" "Favorite")
+                :icon     [:i.fa-solid.fa-heart
+                           (when (and liked? service-id)
+                             {:style {:color (utils/get-service-color
+                                              service-id)}})]
+                :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add)
+                                         item true])}
+               {:label    "Add to playlist"
+                :icon     [:i.fa-solid.fa-plus]
+                :on-click #(rf/dispatch [:modals/open
+                                         [bookmarks/add-to-bookmark item]])}
+               (when (some #(= (:url %) url)
+                           (:items (first (filter #(= (:id %) bookmark-id)
+                                                  bookmarks))))
+                 {:label    "Remove from playlist"
+                  :icon     [:i.fa-solid.fa-trash]
+                  :on-click #(rf/dispatch [:bookmark/remove item])})
+               {:label    "Show channel details"
+                :icon     [:i.fa-solid.fa-user]
+                :on-click #(rf/dispatch [:navigate
+                                         {:name   :channel-page
+                                          :params {}
+                                          :query  {:url uploader-url}}])}]
+              [(when (and bookmarks
+                          (some #(= (:id %) bookmark-id) (rest bookmarks)))
+                 {:label    "Remove playlist"
+                  :icon     [:i.fa-solid.fa-trash]
+                  :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
+                                           true])})])]
         (when (not-empty (remove nil? items))
           [layout/popover-menu !menu-active? items])))))
 
 (defn item-content
-  [{:keys [url name uploader-url uploader-name subscriber-count view-count stream-count verified?] :as item} route bookmarks]
+  [{:keys [url name uploader-url uploader-name subscriber-count view-count
+           stream-count verified?]
+    :as   item} route bookmarks]
   [:div
    (when name
      [:div.flex.items-center.my-2
@@ -57,9 +74,10 @@
     [:div.flex.items-center.my-2
      (conj
       (when uploader-url
-        [:a {:href  (rfe/href :channel-page nil {:url uploader-url})
-             :title uploader-name
-             :key url}])
+        [:a
+         {:href  (rfe/href :channel-page nil {:url uploader-url})
+          :title uploader-name
+          :key   url}])
       [:h1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.line-clamp-1.break-all
        {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
        uploader-name])
@@ -109,5 +127,5 @@
         {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
         (for [[i item] (map-indexed vector related-streams)]
           ^{:key i} [generic-item item bookmarks])])
-     (when (and pagination-loading? (not (empty? next-page-url)))
+     (when (and pagination-loading? (seq next-page-url))
        [layout/loading-icon service-color :text-md])]))

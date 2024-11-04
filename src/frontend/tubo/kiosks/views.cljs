@@ -7,7 +7,7 @@
 
 (defn kiosk-active?
   [& {:keys [kiosk kiosk-id service-id default-service default-kiosk path]}]
-  (or (and (= kiosk-id kiosk))
+  (or (= kiosk-id kiosk)
       (and (= path "/kiosk")
            (not kiosk-id)
            (not= (js/parseInt service-id)
@@ -22,19 +22,21 @@
   [:ul.flex.items-center.px-4.text-white
    (for [kiosk kiosks]
      [:li.px-3 {:key kiosk}
-      [:a {:href  (rfe/href :kiosk-page nil {:serviceId service-id
-                                             :kioskId   kiosk})
-           :class (when (kiosk-active? (assoc kiosk-args :kiosk kiosk))
-                    :font-bold)}
+      [:a
+       {:href  (rfe/href :kiosk-page
+                         nil
+                         {:serviceId service-id
+                          :kioskId   kiosk})
+        :class (when (kiosk-active? (assoc kiosk-args :kiosk kiosk))
+                 :font-bold)}
        kiosk]])])
 
 (defn kiosk
-  [{{:keys [serviceId kioskId]} :query-params}]
-  (let [{:keys [id url related-streams
-                next-page]} @(rf/subscribe [:kiosk])
-        next-page-url       (:url next-page)
-        service-color       @(rf/subscribe [:service-color])
-        service-id          (or @(rf/subscribe [:service-id]) serviceId)
+  [{{:keys [serviceId]} :query-params}]
+  (let [{:keys [id related-streams next-page]}
+        @(rf/subscribe [:kiosk])
+        next-page-url (:url next-page)
+        service-id (or @(rf/subscribe [:service-id]) serviceId)
         scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
     (when scrolled-to-bottom?
       (rf/dispatch [:kiosks/fetch-paginated service-id id next-page-url]))

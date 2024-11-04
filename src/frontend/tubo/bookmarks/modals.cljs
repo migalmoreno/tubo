@@ -2,16 +2,19 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [reitit.frontend.easy :as rfe]
    [tubo.components.layout :as layout]
    [tubo.modals.views :as modals]))
 
 (defn bookmark-item
-  [{:keys [items id name] :as bookmark} item]
+  [{:keys [items name] :as bookmark} item]
   [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-gray-100.dark:hover:bg-stone-800
-   {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add) bookmark item])}
+   {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add)
+                             bookmark item])}
    [:div.w-24
-    [layout/thumbnail (-> items first :thumbnail-url) nil name nil
+    [layout/thumbnail
+     (-> items
+         first
+         :thumbnail-url) nil name nil
      :classes [:h-24 :py-2] :rounded? true]]
    [:div.flex.flex-col.py-4.px-4
     [:h1.line-clamp-1.font-bold {:title name} name]
