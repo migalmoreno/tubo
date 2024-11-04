@@ -1,0 +1,18 @@
+{:style
+ [:community
+  :no-comma
+  :custom-justify
+  :sort-require
+  :how-to-ns
+  :respect-nl
+  :respect-bl]
+ :fn-map
+ {"reg-event-fx" :arg1-pair
+  "reg-fx"       :arg1-pair
+  "reg-sub"      :arg1-pair}
+ :style-map
+ {:no-comma {:map {:comma? false}}
+  :custom-justify
+  {:map     {:justify? true :justify {:max-variance 1000}}
+   :binding {:justify? true :justify {:max-variance 1000}}
+   :pair    {:justify? true :justify {:max-variance 1000}}}}}
