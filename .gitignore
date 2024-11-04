@@ -1,7 +1,11 @@
 node_modules
 public
 target
+result
 *.jar
 .cpcache
 .nrepl-port
 .shadow-cljs
+.clj-kondo
+.lsp
+.dir-locals.el
