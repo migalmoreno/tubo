@@ -12,7 +12,8 @@
   (let [!menu-active? (r/atom nil)]
     (fn []
       (let [{:keys [name next-page uploader-name uploader-url related-streams
-                    stream-count]}
+                    stream-count]
+             :as   playlist}
             @(rf/subscribe [:playlist])
             next-page-url (:url next-page)
             scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
