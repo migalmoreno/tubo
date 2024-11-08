@@ -72,29 +72,27 @@ server {
 ** [[https://einaregilsson.com/redirector/][Redirector]]
 You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you get a basic idea of how to write manual Redirector rules. Note the =serviceId= of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4).
 
-#+begin_src
+#+begin_src conf-colon
 Description: YouTube video to Tubo stream
 Example URL: https://www.youtube.com/watch?v=YE7VzlLtp-4
 Include pattern: ^((?:https?://)(?:www.)?youtube.com/(watch\?v.*|shorts/.*))
 Redirect to: https://<TUBO_HOST>/stream?url=$1
-Example result:
-https://<TUBO_HOST>/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
+Example result: https://<TUBO_HOST>/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
 Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
 
-#+begin_src
+#+begin_src conf-colon
 Description: SoundCloud stream to Tubo stream
 Example URL: https://soundcloud.com/unfa/stop-the-panic
 Include pattern: ^((?:https?://)(?:www.)?soundcloud.com/.*/.*)
 Redirect to: https://<TUBO_HOST>/stream?url=$1
-Example result:
-https://<TUBO_HOST>/stream?url=https://soundcloud.com/unfa/stop-the-panic
+Example result: https://<TUBO_HOST>/stream?url=https://soundcloud.com/unfa/stop-the-panic
 Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
 
-#+begin_src
+#+begin_src conf-colon
 Description: Bandcamp album to Tubo playlist
 Example URL: https://unfa.bandcamp.com/album/suppressed
 Include pattern: ^((?:https?://)(.*\.)?bandcamp.com/album/.*)
@@ -104,18 +102,17 @@ Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
 
-#+begin_src
+#+begin_src conf-colon
 Description: PeerTube (Framatube) channel to Tubo channel
 Example URL: https://framatube.org/accounts/framasoft@framatube.org
 Include pattern: ^((?:https?://)(?:www.)?framatube.org/accounts/.*)
 Redirect to: https://<TUBO_HOST>/channel?url=$1
-Example result:
-https://<TUBO_HOST>/channel?url=https://framatube.org/accounts/framasoft@framatube.org
+Example result: https://<TUBO_HOST>/channel?url=https://framatube.org/accounts/framasoft@framatube.org
 Pattern type: Regular Expression
 Apply to: Main window (address bar)
 #+end_src
 
-#+begin_src
+#+begin_src conf-colon
 Description: media.ccc.de search query to Tubo search query
 Example URL: https://media.ccc.de/search/?q=37c3
 Include pattern: ^(?:https?://)media.ccc.de/search/\?q=(.*)
