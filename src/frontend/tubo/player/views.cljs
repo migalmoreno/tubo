@@ -177,11 +177,6 @@
     [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out
      {:class ["h-[calc(100%-56px)]"
               (if show-player? "translate-y-0" "translate-y-full")]}
-     [:div.sticky.z-10.right-0.top-0
-      [:button.absolute.text-white.m-8.text-2xl.z-10.right-0
-       {:on-click #(rf/dispatch [:player/switch-from-main nil])}
-       [:i.fa-solid.fa-close
-        {:class "drop-shadow-[0_0_1px_#000]"}]]]
      (when (and show-player? stream)
        [:div
         [:div.flex.flex-col.items-center.w-full.xl:py-6

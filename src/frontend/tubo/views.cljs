@@ -1,7 +1,7 @@
 (ns tubo.views
   (:require
    [re-frame.core :as rf]
-   [tubo.components.navigation :as navigation]
+   [tubo.navigation.views :as navigation]
    [tubo.notifications.views :as notifications]
    [tubo.player.views :as player]
    [tubo.queue.views :as queue]))
