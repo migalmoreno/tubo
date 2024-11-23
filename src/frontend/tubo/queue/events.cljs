@@ -5,7 +5,9 @@
 (rf/reg-event-fx
  :queue/show
  (fn [{:keys [db]} [_ show?]]
-   {:db            (assoc db :show-queue show?)
+   {:db            (apply assoc
+                          (assoc db :show-queue show?)
+                          (when show? [:show-search-form false]))
     :body-overflow show?}))
 
 (rf/reg-event-fx

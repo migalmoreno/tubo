@@ -228,7 +228,9 @@
 (rf/reg-event-fx
  :player/show-main-player
  (fn [{:keys [db]} [_ val]]
-   {:db            (assoc db :main-player/show val)
+   {:db            (apply assoc
+                          (assoc db :main-player/show val)
+                          (when val [:show-search-form false]))
     :body-overflow val}))
 
 (rf/reg-event-fx
