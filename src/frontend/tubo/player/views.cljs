@@ -151,20 +151,19 @@
                           "),url("
                           (:thumbnail-url stream)
                           ")")]
-    (when show-player?
-      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
-       {:style
-        {:visibility          (when show-queue? "hidden")
-         :opacity             (if show-queue? 0 1)
-         :background-image    bg-image
-         :background-size     "cover"
-         :background-position "center"
-         :background-repeat   "no-repeat"}}
-       [:div.flex.items-center
-        [player/audio-player stream !player]
-        [stream-metadata stream]
-        [main-controls !player color]
-        [extra-controls !player stream color]]])))
+    [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
+     {:style
+      {:visibility          (when (or (not show-player?) show-queue?) "hidden")
+       :opacity             (if (or (not show-player?) show-queue?) 0 1)
+       :background-image    bg-image
+       :background-size     "cover"
+       :background-position "center"
+       :background-repeat   "no-repeat"}}
+     [:div.flex.items-center
+      [player/audio-player stream !player]
+      [stream-metadata stream]
+      [main-controls !player color]
+      [extra-controls !player stream color]]]))
 
 (defn main-player
   []
