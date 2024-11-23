@@ -8,6 +8,11 @@
    (:queue db)))
 
 (rf/reg-sub
+ :queue/unshuffled
+ (fn [db _]
+   (:queue/unshuffled db)))
+
+(rf/reg-sub
  :queue-pos
  (fn [db _]
    (:queue-pos db)))

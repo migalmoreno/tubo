@@ -32,6 +32,7 @@
         queue-pos        @(rf/subscribe [:queue-pos])
         loading?         @(rf/subscribe [:bg-player/loading])
         loop-playback    @(rf/subscribe [:loop-playback])
+        shuffle?         @(rf/subscribe [:shuffle])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
         paused?          @(rf/subscribe [:paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])]
@@ -62,7 +63,8 @@
       [player/button
        :icon [:i.fa-solid.fa-forward-step]
        :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
-       :disabled? (not (and queue (< (inc queue-pos) (count queue))))]]
+       :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
+      [player/shuffle-button shuffle? color]]
      [:div.hidden.lg:flex.items-center.text-sm
       [:span.mx-2
        (if (and bg-player-ready? @!player @!elapsed-time)

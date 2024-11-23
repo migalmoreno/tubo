@@ -209,6 +209,15 @@
    :extra-classes [:text-sm]
    :show-on-mobile? show-on-mobile?])
 
+(defn shuffle-button
+  [shuffle? color show-on-mobile?]
+  [button
+   :icon
+   [:i.fa-solid.fa-shuffle {:style {:color (when shuffle? color)}}]
+   :on-click #(rf/dispatch [:queue/shuffle (not shuffle?)])
+   :extra-classes [:text-sm]
+   :show-on-mobile? show-on-mobile?])
+
 (defn volume-slider
   [_player _volume-level _muted? _service-color]
   (let [show-slider? (r/atom nil)]

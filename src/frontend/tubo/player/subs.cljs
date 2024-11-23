@@ -43,6 +43,11 @@
    (:loop-playback db)))
 
 (rf/reg-sub
+ :shuffle
+ (fn [db _]
+   (:shuffle db)))
+
+(rf/reg-sub
  :paused
  (fn [db _]
    (:paused db)))

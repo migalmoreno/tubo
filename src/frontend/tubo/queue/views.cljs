@@ -83,6 +83,7 @@
 (defn main-controls
   [color]
   (let [loop-playback    @(rf/subscribe [:loop-playback])
+        shuffle?         @(rf/subscribe [:shuffle])
         !player          @(rf/subscribe [:player])
         loading?         @(rf/subscribe [:bg-player/loading])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
@@ -136,11 +137,7 @@
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))
        :extra-classes [:text-xl]
        :show-on-mobile? true]
-      [player/button
-       :icon [:i.fa-solid.fa-list]
-       :on-click #(rf/dispatch [:queue/show false])
-       :show-on-mobile? true
-       :extra-classes [:pl-4 :pr-3]]]]))
+      [player/shuffle-button shuffle? color true]]]))
 
 (defn queue
   []

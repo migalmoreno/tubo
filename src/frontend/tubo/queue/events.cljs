@@ -9,6 +9,25 @@
     :body-overflow show?}))
 
 (rf/reg-event-fx
+ :queue/shuffle
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ val]]
+   (let [queue             (:queue db)
+         queue-pos         (+ 1 (:queue-pos db))
+         queue-to-end      (subvec queue queue-pos)
+         shuffled-to-end   (shuffle queue-to-end)
+         unshuffled-to-end (into (subvec queue 0 queue-pos) queue-to-end)
+         shuffled-queue    (into (subvec queue 0 queue-pos) shuffled-to-end)
+         unshuffled-queue  (or (:queue/unshuffled db)
+                               (into (subvec queue 0 (- queue-pos 1))
+                                     unshuffled-to-end))
+         updated-db        (assoc db
+                                  :queue
+                                  (if val shuffled-queue unshuffled-queue))]
+     {:db    (assoc updated-db :shuffle val :queue/unshuffled unshuffled-queue)
+      :store (assoc store :queue (:queue updated-db) :shuffle val)})))
+
+(rf/reg-event-fx
  :queue/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream notify?]]
