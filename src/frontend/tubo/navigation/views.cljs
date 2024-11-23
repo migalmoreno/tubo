@@ -3,11 +3,9 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
-   [tubo.bookmarks.modals :as modals]
    [tubo.components.layout :as layout]
    [tubo.kiosks.views :as kiosks]
    [tubo.services.views :as services]
-   [tubo.utils :as utils]
    [tubo.stream.views :as stream]
    [tubo.channel.views :as channel]))
 
@@ -99,12 +97,12 @@
         [:a.font-bold {:href (rfe/href :homepage)}
          [layout/logo :height 35 :width 35]]])
      (when (and show-queue? (not show-search-form?))
-       [:button.mx-2
+       [:button.text-white.mx-2
         {:on-click #(rf/dispatch [:queue/show
                                   false])}
         [:i.fa-solid.fa-arrow-left]])
      (when (and show-main-player? (not show-search-form?))
-       [:button.mx-2
+       [:button.text-white.mx-2
         {:on-click #(rf/dispatch [:player/switch-from-main nil])}
         [:i.fa-solid.fa-arrow-left]])
      (when-not (or show-queue? show-main-player? show-search-form?)
@@ -113,12 +111,13 @@
                      [:toggle-mobile-nav])}
         [:i.fa-solid.fa-bars]])
      (when-not (or show-queue? show-main-player? show-search-form?)
-       [:h1.text-lg.sm:text-xl.font-bold.line-clamp-1.lg:hidden title])
+       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1.lg:hidden
+        title])
      (when (and show-queue? (not show-search-form?))
-       [:h1.text-lg.sm:text-xl.font-bold.line-clamp-1
+       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
         "Play Queue"])
      (when (and show-main-player? (not show-search-form?))
-       [:h1.text-lg.sm:text-xl.font-bold.line-clamp-1
+       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
         "Main Player"])]))
 
 (defn nav-right-content
