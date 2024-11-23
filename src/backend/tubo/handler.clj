@@ -57,9 +57,13 @@
   [{{{:keys [kiosk-id service-id]} :path} :parameters
     {:strs [nextPage]}                    :query-params}]
   (response (apply api/get-kiosk
-                   kiosk-id
-                   (into (if service-id [service-id] [])
-                         (if nextPage [nextPage] [])))))
+                   (if kiosk-id
+                     (into
+                      [kiosk-id]
+                      (into
+                       (if service-id [service-id] [])
+                       (if nextPage [nextPage] [])))
+                     [service-id]))))
 
 (defn stream
   [{{:keys [url]} :path-params}]
