@@ -81,7 +81,8 @@
   [:<>
    [:div.flex.items-center.justify-between.my-3
     [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]
-    [metadata-popover stream]]
+    [:div.hidden.lg:block
+     [metadata-popover stream]]]
    [:div.flex.justify-between.py-2.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
