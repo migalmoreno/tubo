@@ -24,35 +24,26 @@
      [:script "tubo.core.init();"]])))
 
 (defn search
-  [{:keys [parameters] :as req}]
-  (let [{:keys [service-id]}                         (:path parameters)
-        {:keys [q]}                                  (:query parameters)
-        {:strs [contentFilters sortFilter nextPage]} (:query-params req)
-        content-filters                              (and contentFilters
-                                                          (str/split
-                                                           contentFilters
-                                                           #","))]
-    (response (if nextPage
-                (api/get-search service-id q contentFilters sortFilter nextPage)
-                (api/get-search service-id q contentFilters sortFilter)))))
+  [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters
+    {:strs [contentFilters sortFilter nextPage]}    :query-params}]
+  (response (apply api/get-search
+                   service-id
+                   q
+                   (and contentFilters (str/split contentFilters #","))
+                   sortFilter
+                   (if nextPage [nextPage] []))))
 
 (defn channel
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
-  (response (if nextPage
-              (api/get-channel url nextPage)
-              (api/get-channel url))))
+  (response (apply api/get-channel url (if nextPage [nextPage] []))))
 
 (defn playlist
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
-  (response (if nextPage
-              (api/get-playlist url nextPage)
-              (api/get-playlist url))))
+  (response (apply api/get-playlist url (if nextPage [nextPage] []))))
 
 (defn comments
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
-  (response (if nextPage
-              (api/get-comments url nextPage)
-              (api/get-comments url))))
+  (response (apply api/get-comments url (if nextPage [nextPage] []))))
 
 (defn services
   [_]
@@ -65,13 +56,10 @@
 (defn kiosk
   [{{{:keys [kiosk-id service-id]} :path} :parameters
     {:strs [nextPage]}                    :query-params}]
-  (response (cond
-              (and kiosk-id service-id nextPage) (api/get-kiosk kiosk-id
-                                                                service-id
-                                                                nextPage)
-              (and kiosk-id service-id)          (api/get-kiosk kiosk-id
-                                                                service-id)
-              :else                              (api/get-kiosk service-id))))
+  (response (apply api/get-kiosk
+                   kiosk-id
+                   (into (if service-id [service-id] [])
+                         (if nextPage [nextPage] [])))))
 
 (defn stream
   [{{:keys [url]} :path-params}]
