@@ -9,3 +9,4 @@ result
 .clj-kondo
 .lsp
 .dir-locals.el
+.direnv
