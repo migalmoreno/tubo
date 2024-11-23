@@ -165,10 +165,12 @@
        ^{:key i} [menu-item item])]))
 
 (defn popover-menu
-  [!menu-active? items & {:keys [menu-styles extra-classes]}]
+  [!menu-active? items &
+   {:keys [menu-styles extra-classes]
+    :or   {menu-styles {:right "25px"} extra-classes [:p-3]}}]
   [:div.flex.items-center
    [focus-overlay #(reset! !menu-active? false) @!menu-active? true]
-   [:button.focus:outline-none.relative.pl-4
+   [:button.focus:outline-none.relative
     {:on-click #(reset! !menu-active? (not @!menu-active?))
      :class    extra-classes}
     [:i.fa-solid.fa-ellipsis-vertical]

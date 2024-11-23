@@ -57,7 +57,8 @@
                   :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
                                            true])})])]
         (when (not-empty (remove nil? items))
-          [layout/popover-menu !menu-active? items])))))
+          [layout/popover-menu !menu-active? items :extra-classes
+           [:pr-0 :pl-4] :menu-styles {:right "15px"}])))))
 
 (defn item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
