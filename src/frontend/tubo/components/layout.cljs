@@ -151,7 +151,7 @@
         :target (when (:external? link) "_blank")
         :class  (str/join " " classes)}
        content]
-      [:li
+      [:li.font-semibold
        {:on-click on-click
         :class    (str/join " " classes)}
        (if (vector? item) item content)])))
