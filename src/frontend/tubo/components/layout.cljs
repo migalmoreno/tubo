@@ -138,8 +138,9 @@
 (defn menu-item
   [{:keys [label icon on-click link] :as item}]
   (let [content [:<>
-                 [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
-                  icon]
+                 (when icon
+                   [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
+                    icon])
                  [:span.whitespace-nowrap label]]
         classes ["relative" "flex" "items-center" "gap-x-3"
                  "hover:bg-neutral-200"
