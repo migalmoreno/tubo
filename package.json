@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.2",
-    "@vidstack/react": "^1.11.21",
+    "@vidstack/react": "^1.11.24",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "timeago.js": "^4.0.2"
