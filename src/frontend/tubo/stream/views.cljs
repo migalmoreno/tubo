@@ -100,7 +100,7 @@
        [:div.flex.gap-2.py-2
         (for [[i tag] (map-indexed vector tags)]
           ^{:key i}
-          [:span.bg-neutral-300.dark:bg-neutral-800.rounded-md.p-2.text-sm
+          [:span.bg-neutral-300.dark:bg-neutral-800.rounded-md.p-2.text-sm.line-clamp-1
            (str "#" tag)])]])))
 
 (defn comments
@@ -159,14 +159,15 @@
           [description stream]
           [:div.mt-10
            [layout/tabs
-            [{:id       :comments
-              :label    "Comments"
-              :label-fn (fn [label]
-                          [:div.flex.gap-3.items-center.justify-center
-                           [:i.fa-solid.fa-comments]
-                           [:span label]
-                           [:span.dark:bg-neutral-800.rounded.px-2
-                            comments-length]])}
+            [{:id :comments
+              :label "Comments"
+              :label-fn
+              (fn [label]
+                [:div.flex.gap-3.items-center.justify-center
+                 [:i.fa-solid.fa-comments]
+                 [:span label]
+                 [:span.bg-neutral-200.dark:bg-neutral-800.rounded.px-2
+                  comments-length]])}
              {:id       :related-items
               :label    "Related Items"
               :label-fn (fn [label]

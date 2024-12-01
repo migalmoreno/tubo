@@ -5,7 +5,7 @@
 
 (defn modal-content
   [title body & extra-buttons]
-  [:div.bg-white.dark:bg-neutral-900.max-h-full.flex.flex-col.flex-auto.shrink-0.gap-y-5.border.border-neutral-300.dark:border-stone-700.rounded.p-5.z-20
+  [:div.bg-white.dark:bg-neutral-900.max-h-full.flex.flex-col.flex-auto.shrink-0.gap-y-5.border.border-neutral-300.dark:border-neutral-700.rounded.p-5.z-20
    [:div.flex.justify-between.shrink-0
     [:h1.text-xl.font-semibold title]
     [:button {:on-click #(rf/dispatch [:modals/close])}

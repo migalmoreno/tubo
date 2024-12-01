@@ -15,12 +15,12 @@
     (if thumbnail-url
       [:img.object-cover.min-h-full.max-h-full.min-w-full
        {:src thumbnail-url :class (when rounded? :rounded)}]
-      [:div.bg-gray-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
+      [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
       [:div.rounded.p-2.absolute
        {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
-       [:p.text-white.text-md
+       [:p.text-white.text-xs.xs:text-base
         (if (= duration 0)
           "LIVE"
           (utils/format-duration duration))]])]])
@@ -90,15 +90,13 @@
 (defn primary-button
   [label on-click left-icon right-icon]
   [button label on-click left-icon right-icon
-   :button-classes ["bg-stone-800" "dark:bg-white"]
+   :button-classes ["bg-neutral-800" "dark:bg-neutral-200"]
    :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
 (defn secondary-button
   [label on-click left-icon right-icon]
   [button label on-click left-icon right-icon
-   :button-classes
-   ["bg-neutral-100" "dark:bg-transparent" "border" "border-neutral-300"
-    "dark:border-stone-700"]
+   :button-classes ["bg-neutral-100" "dark:bg-neutral-800"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
 
 (defn generic-input
@@ -145,7 +143,7 @@
                  [:span.whitespace-nowrap label]]
         classes ["relative" "flex" "items-center" "gap-x-3"
                  "hover:bg-neutral-200"
-                 "dark:hover:bg-neutral-700" "py-2" "px-3"
+                 "dark:hover:bg-neutral-700" "py-2" "px-4"
                  "first:rounded-t" "last:rounded-b"]]
     (if link
       [:a
@@ -153,7 +151,7 @@
         :target (when (:external? link) "_blank")
         :class  (str/join " " classes)}
        content]
-      [:li.font-semibold
+      [:li
        {:on-click on-click
         :class    (str/join " " classes)}
        (if (vector? item) item content)])))
@@ -161,7 +159,7 @@
 (defn menu
   [active? items & {:keys [right top bottom left] :or {right "15px" top "0px"}}]
   (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white
+    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900
      {:class (when-not active? "hidden")
       :style {:right right :left left :top top :bottom bottom}}
      (for [[i item] (map-indexed vector (remove nil? items))]
@@ -228,7 +226,7 @@
 (defn error
   [{:keys [_failure parse-error status status-text]} cb]
   [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
-   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-300.dark:bg-neutral-800.p-8
+   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.bg-neutral-300.dark:bg-neutral-800.p-8
     [:div.flex.items-center.gap-2.text-xl
      [:i.fa-solid.fa-circle-exclamation]
      [:h3.font-bold
@@ -249,8 +247,11 @@
         (for [[i tab] (map-indexed vector tabs)]
           (let [selected? (= (:id tab) (:id @!current))]
             (when tab
-              [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2.border-transparent
-               {:class (if selected? :border-white :border-transparent) :key i}
+              [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
+               {:class (if selected?
+                         "border-neutral-700 dark:border-neutral-100"
+                         "!border-transparent")
+                :key   i}
                [:button.flex-auto.py-4
                 {:on-click (when (not selected?)
                              (fn []

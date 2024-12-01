@@ -7,7 +7,7 @@
 
 (defn bookmark-item
   [{:keys [items name] :as bookmark} item]
-  [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-gray-100.dark:hover:bg-stone-800
+  [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
    {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add)
                              bookmark item])}
    [:div.w-24

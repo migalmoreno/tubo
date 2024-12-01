@@ -11,16 +11,17 @@
 (defn item-metadata
   [{:keys [uploader-name name service-id duration thumbnail-url]} queue-pos i]
   [:div.flex.cursor-pointer.py-2
-   {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-stone-800"])
+   {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-neutral-800"])
     :on-click #(rf/dispatch [:queue/change-pos i])}
-   [:div.flex.items-center.justify-center.min-w-20.w-20.xs:min-w-28.xs:w-28
+   [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-28.xs:w-28
     [:span.font-bold.text-neutral-400.text-sm
      (if (= i queue-pos) [:i.fa-solid.fa-play] (inc i))]]
-   [:div.w-36
-    [layout/thumbnail thumbnail-url nil name duration :classes "h-16"]]
+   [:div.w-32.flex.items-center
+    [layout/thumbnail thumbnail-url nil name duration :classes
+     ["h-12" "xs:h-16"]]]
    [:div.flex.flex-col.pl-4.pr-12.w-full
-    [:h1.line-clamp-1.w-fit {:title name} name]
-    [:div.text-neutral-600.dark:text-neutral-300.text-sm.flex.flex-col.xs:flex-row
+    [:h1.line-clamp-1.w-fit.text-sm.xs:text-lg {:title name} name]
+    [:div.text-neutral-600.dark:text-neutral-400.text-xs.xs:text-sm.flex.flex-col.xs:flex-row
      [:span.line-clamp-1 {:title uploader-name} uploader-name]
      [:span.px-2.hidden.xs:inline-block
       {:dangerouslySetInnerHTML {:__html "&bull;"}}]

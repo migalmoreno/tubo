@@ -42,7 +42,7 @@
                                 (rf/dispatch [:search/change-query input]))
                               (reset! !query input))
             :placeholder   "Search"}]
-          [:button.mx-4 {:type "submit"} [:i.fa-solid.fa-search]]
+          [:button.mx-3 {:type "submit"} [:i.fa-solid.fa-search]]
           [:button.mx-4.text-xs.absolute.right-8.top-3
            {:on-click #(when @!input
                          (set! (.-value @!input) "")
