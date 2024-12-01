@@ -14,22 +14,26 @@
 
 (defn get-stream-item
   [stream]
-  {:type :stream
-   :service-id (.getServiceId stream)
-   :url (.getUrl stream)
-   :name (.getName stream)
-   :thumbnail-url (.getThumbnailUrl stream)
-   :uploader-name (.getUploaderName stream)
-   :uploader-url (.getUploaderUrl stream)
-   :uploader-avatar (.getUploaderAvatarUrl stream)
-   :upload-date (.getTextualUploadDate stream)
+  {:type              :stream
+   :service-id        (.getServiceId stream)
+   :url               (.getUrl stream)
+   :name              (.getName stream)
+   :thumbnail-url     (.getThumbnailUrl stream)
+   :uploader-name     (.getUploaderName stream)
+   :uploader-url      (.getUploaderUrl stream)
+   :uploader-avatar   (.getUploaderAvatarUrl stream)
+   :upload-date       (.getTextualUploadDate stream)
    :short-description (.getShortDescription stream)
-   :duration (.getDuration stream)
-   :view-count (when-not (= (.getViewCount stream) -1) (.getViewCount stream))
-   :uploaded
-   (when (.getUploadDate stream)
-     (.. stream (getUploadDate) (offsetDateTime) (toInstant) (toEpochMilli)))
-   :verified? (.isUploaderVerified stream)})
+   :duration          (.getDuration stream)
+   :view-count        (when-not (= (.getViewCount stream) -1)
+                        (.getViewCount stream))
+   :uploaded          (when (.getUploadDate stream)
+                        (.. stream
+                            (getUploadDate)
+                            (offsetDateTime)
+                            (toInstant)
+                            (toEpochMilli)))
+   :verified?         (.isUploaderVerified stream)})
 
 (defn get-channel-item
   [channel]
@@ -118,7 +122,13 @@
             :audio-streams      (j/from-java (.getAudioStreams info))
             :video-streams      (j/from-java (.getVideoStreams info))
             :hls-url            (.getHlsUrl info)
-            :dash-mpd-url       (.getDashMpdUrl info)})))
+            :dash-mpd-url       (.getDashMpdUrl info)
+            :preview-frames     (.getPreviewFrames info)
+            :stream-segments    (.getStreamSegments info)
+            :support-info       (.getSupportInfo info)
+            :short?             (.isShortFormContent info)
+            :license            (.getLicence info)
+            :subtitles          (.getSubtitles info)})))
 
 (defn get-playlist
   ([url]
