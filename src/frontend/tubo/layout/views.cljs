@@ -18,8 +18,8 @@
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
-      [:div.rounded.p-2.absolute
-       {:style {:bottom 5 :right 5 :background "rgba(0,0,0,.7)" :zIndex "0"}}
+      [:div.rounded.p-1.xs:p-2.absolute.bottom-1.right-1.z-0
+       {:class "bg-[rgba(0,0,0,.7)]"}
        [:p.text-white.text-xs.xs:text-base
         (if (= duration 0)
           "LIVE"
@@ -143,7 +143,7 @@
                  [:span.whitespace-nowrap label]]
         classes ["relative" "flex" "items-center" "gap-x-3"
                  "hover:bg-neutral-200"
-                 "dark:hover:bg-neutral-700" "py-2" "px-4"
+                 "dark:hover:bg-neutral-700" "py-2.5" "px-4"
                  "first:rounded-t" "last:rounded-b"]]
     (if link
       [:a

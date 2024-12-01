@@ -16,9 +16,9 @@
    [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-28.xs:w-28
     [:span.font-bold.text-neutral-400.text-sm
      (if (= i queue-pos) [:i.fa-solid.fa-play] (inc i))]]
-   [:div.w-32.flex.items-center
+   [:div.flex.items-center.shrink-0.grow-0
     [layout/thumbnail thumbnail-url nil name duration :classes
-     ["h-12" "xs:h-16"]]]
+     ["h-12" "xs:h-16" "w-16" "xs:w-24" "md:w-32"]]]
    [:div.flex.flex-col.pl-4.pr-12.w-full
     [:h1.line-clamp-1.w-fit.text-sm.xs:text-lg {:title name} name]
     [:div.text-neutral-600.dark:text-neutral-400.text-xs.xs:text-sm.flex.flex-col.xs:flex-row

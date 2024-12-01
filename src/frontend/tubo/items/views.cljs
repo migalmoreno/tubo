@@ -111,7 +111,7 @@
    [:div.flex.gap-x-3.xs:gap-x-5
     [layout/thumbnail thumbnail-url route name duration
      :classes
-     [:py-2 :h-28 "xs:h-36" "min-w-[150px]" "max-w-[150px]" "sm:min-w-[250px]"
+     [:py-2 :h-28 "sm:h-36" "min-w-[130px]" "max-w-[130px]" "sm:min-w-[250px]"
       "sm:max-w-[250px]"] :rounded?
      true]
     [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
