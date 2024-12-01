@@ -63,9 +63,10 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn uploader-avatar
-  [{:keys [uploader-avatar uploader-name uploader-url]}]
+  [{:keys [uploader-avatar uploader-name uploader-url]}
+   & {:keys [classes] :or {classes ["w-12" "xs:w-16" "h-12" "xs:h-16"]}}]
   (when uploader-avatar
-    [:div.relative.w-12.xs:w-16.h-12.xs:h-16.flex-auto.flex.items-center.shrink-0
+    [:div.relative.flex-auto.flex.items-center.shrink-0.grow-0 {:class classes}
      (conj
       (when uploader-url
         [:a.flex-auto.flex.min-h-full.min-w-full.max-h-full.max-w-full
