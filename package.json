@@ -25,7 +25,7 @@
     "postcss-loader": "^7.3.3",
     "sass": "^1.65.1",
     "sass-loader": "^13.3.2",
-    "shadow-cljs": "^2.28.8",
+    "shadow-cljs": "^2.28.20",
     "tailwindcss": "^3.3.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
