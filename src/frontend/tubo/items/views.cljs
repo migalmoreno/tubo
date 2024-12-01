@@ -5,7 +5,6 @@
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as bookmarks]
    [tubo.layout.views :as layout]
-   [tubo.modals.views :as modals]
    [tubo.utils :as utils]))
 
 (defn item-popover
