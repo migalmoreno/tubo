@@ -4,7 +4,8 @@
    [re-frame.core :as rf]
    [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
-   [tubo.layout.views :as layout]))
+   [tubo.layout.views :as layout]
+   [tubo.utils :as utils]))
 
 (defn metadata-popover
   [_]
@@ -30,9 +31,9 @@
     [:div.m-4
      [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
      (when subscriber-count
-       [:div.flex.my-2.items-center
-        [:i.fa-solid.fa-users.text-xs]
-        [:span.mx-2 (.toLocaleString subscriber-count)]])]]
+       [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
+        [:span
+         (str (utils/format-quantity subscriber-count) " subscribers")]])]]
    [:div.hidden.lg:block
     [metadata-popover channel]]])
 

@@ -36,7 +36,10 @@
           (rf/dispatch [:playlist/fetch-paginated url next-page-url]))
         [layout/content-container
          [:div.flex.flex-col.justify-center
-          [layout/content-header name
+          [layout/content-header
+           [:div.flex.flex-col.gap-y-2.mb-2 name
+            [:span.text-sm.whitespace-nowrap.text-neutral-600.dark:text-neutral-400
+             (str stream-count " streams")]]
            [:div.hidden.lg:block
             [metadata-popover playlist]]]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
@@ -45,7 +48,6 @@
             [:a.line-clamp-1.ml-2
              {:href  (rfe/href :channel-page nil {:url uploader-url})
               :title uploader-name}
-             uploader-name]]
-           [:span.text-sm.whitespace-nowrap (str stream-count " streams")]]]
+             uploader-name]]]]
          [items/layout-switcher !layout]
          [items/related-streams related-streams next-page-url !layout]]))))
