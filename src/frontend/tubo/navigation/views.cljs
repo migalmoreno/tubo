@@ -7,7 +7,8 @@
    [tubo.kiosks.views :as kiosks]
    [tubo.layout.views :as layout]
    [tubo.services.views :as services]
-   [tubo.stream.views :as stream]))
+   [tubo.stream.views :as stream]
+   [tubo.playlist.views :as playlist]))
 
 (defn search-form
   []
@@ -26,28 +27,30 @@
                                            :params {}
                                            :query  {:q         search-query
                                                     :serviceId service-id}}])))}
-         [:button.mx-2
-          {:on-click #(rf/dispatch [:search/show-form false])}
-          [:i.fa-solid.fa-arrow-left]]
-         [:input.w-full.lg:w-96.bg-transparent.py-2.pl-0.pr-6.mx-2.border-none.focus:ring-transparent.placeholder-white
-          {:type          "text"
-           :ref           #(do (reset! !input %)
-                               (when %
-                                 (.focus %)))
-           :default-value @!query
-           :on-change     #(let [input (.. % -target -value)]
-                             (when-not (empty? input)
-                               (rf/dispatch [:search/change-query input]))
-                             (reset! !query input))
-           :placeholder   "Search"}]
-         [:button.mx-4 {:type "submit"} [:i.fa-solid.fa-search]]
-         [:button.mx-4.text-xs.absolute.right-8.top-3
-          {:on-click #(when @!input
-                        (set! (.-value @!input) "")
-                        (reset! !query "")
-                        (.focus @!input))
-           :class    (when (empty? @!query) :invisible)}
-          [:i.fa-solid.fa-circle-xmark]]]))))
+         [:div.flex.relative.flex-auto.lg:flex-none
+          [:button.mx-2
+           {:type "button" :on-click #(rf/dispatch [:search/show-form false])}
+           [:i.fa-solid.fa-arrow-left]]
+          [:input.w-full.lg:w-96.bg-transparent.py-2.pl-0.pr-6.mx-2.border-none.focus:ring-transparent.placeholder-white
+           {:type          "text"
+            :ref           #(do (reset! !input %)
+                                (when %
+                                  (.focus %)))
+            :default-value @!query
+            :on-change     #(let [input (.. % -target -value)]
+                              (when-not (empty? input)
+                                (rf/dispatch [:search/change-query input]))
+                              (reset! !query input))
+            :placeholder   "Search"}]
+          [:button.mx-4 {:type "submit"} [:i.fa-solid.fa-search]]
+          [:button.mx-4.text-xs.absolute.right-8.top-3
+           {:on-click #(when @!input
+                         (set! (.-value @!input) "")
+                         (reset! !query "")
+                         (.focus @!input))
+            :type     "button"
+            :class    (when (empty? @!query) :invisible)}
+           [:i.fa-solid.fa-circle-xmark]]]]))))
 
 (defn mobile-nav-item
   [route icon label & {:keys [new-tab? active?]}]
@@ -150,9 +153,11 @@
          (case (-> match
                    :data
                    :name)
-           :channel-page [channel/metadata-popover
-                          @(rf/subscribe [:channel])]
-           :stream-page  [stream/metadata-popover @(rf/subscribe [:stream])]
+           :channel-page  [channel/metadata-popover
+                           @(rf/subscribe [:channel])]
+           :stream-page   [stream/metadata-popover @(rf/subscribe [:stream])]
+           :playlist-page [playlist/metadata-popover
+                           @(rf/subscribe [:playlist])]
            [:<>])])
       [:a.mx-3.hidden.lg:block
        {:href (rfe/href :settings-page)}
@@ -183,9 +188,10 @@
        (case (-> match
                  :data
                  :name)
-         :channel-page (:name @(rf/subscribe [:channel]))
-         :kiosk-page   (:id @(rf/subscribe [:kiosk]))
-         :stream-page  (:name @(rf/subscribe [:stream]))
+         :channel-page  (:name @(rf/subscribe [:channel]))
+         :kiosk-page    (:id @(rf/subscribe [:kiosk]))
+         :stream-page   (:name @(rf/subscribe [:stream]))
+         :playlist-page (:name @(rf/subscribe [:playlist]))
          nil)]
       [search-form]
       [nav-right-content match]]]))
