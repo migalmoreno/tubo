@@ -79,80 +79,103 @@
 (defn metadata
   [{:keys [name] :as stream}]
   [:<>
-   [:div.flex.items-center.justify-between.my-3
+   [:div.flex.items-center.justify-between.mt-3
     [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]
     [:div.hidden.lg:block
      [metadata-popover stream]]]
-   [:div.flex.justify-between.py-2.flex-nowrap
+   [:div.flex.justify-between.py-6.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
 (defn description
-  [{:keys [description show-description]}]
+  [{:keys [description show-description tags]}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [layout/show-more-container show-description description
-       #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
-                        :main-player/toggle-layout
-                        :stream/toggle-layout)
-                      :show-description])])))
+      [:div
+       [layout/show-more-container show-description description
+        #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
+                         :main-player/toggle-layout
+                         :stream/toggle-layout)
+                       :show-description])]
+       [:div.flex.gap-2.py-2
+        (for [[i tag] (map-indexed vector tags)]
+          ^{:key i}
+          [:span.bg-neutral-300.dark:bg-neutral-800.rounded-md.p-2.text-sm
+           (str "#" tag)])]])))
 
 (defn comments
-  [{:keys [comments-page show-comments show-comments-loading url] :as stream}]
+  [{:keys [comments-page show-comments show-comments-loading] :as stream}]
   (let [show?         (:show-comments @(rf/subscribe [:settings]))
         service-color @(rf/subscribe [:service-color])]
-    (when (and comments-page (seq (:comments comments-page)) show?)
-      [layout/accordeon
-       {:label     "Comments"
-        :on-open   #(if show-comments
-                      (rf/dispatch [:stream/toggle-layout :show-comments])
-                      (if comments-page
-                        (rf/dispatch [:stream/toggle-layout :show-comments])
-                        (rf/dispatch [:comments/fetch-page url])))
-        :open?     show-comments
-        :left-icon "fa-solid fa-comments"}
-       (if show-comments-loading
-         [layout/loading-icon service-color "text-2xl"]
-         (when (and show-comments comments-page)
-           [comments/comments comments-page stream]))])))
+    (when show?
+      (if show-comments-loading
+        [layout/loading-icon service-color "text-2xl"]
+        (when (and show-comments comments-page)
+          [comments/comments comments-page stream])))))
 
-(defn suggested
+(defn related-items
   [_]
-  (let [!menu-active? (r/atom nil)]
-    (fn [{:keys [related-streams show-related]}]
+  (let [!menu-active? (r/atom nil)
+        !layout       (r/atom :list)]
+    (fn [{:keys [related-streams]}]
       (let [show? (:show-related @(rf/subscribe [:settings]))]
         (when (and show? (seq related-streams))
-          [layout/accordeon
-           {:label        "Suggested"
-            :on-open      #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
-                                           :main-player/toggle-layout
-                                           :stream/toggle-layout)
-                                         :show-related])
-            :open?        (not show-related)
-            :left-icon    "fa-solid fa-list"
-            :right-button [layout/popover-menu !menu-active?
-                           [{:label    "Add to queue"
-                             :icon     [:i.fa-solid.fa-headphones]
-                             :on-click #(rf/dispatch [:queue/add-n
-                                                      related-streams true])}
-                            {:label    "Add to playlist"
-                             :icon     [:i.fa-solid.fa-plus]
-                             :on-click #(rf/dispatch [:modals/open
-                                                      [modals/add-to-bookmark
-                                                       related-streams]])}]]}
-           [items/related-streams related-streams nil]])))))
+          [:div
+           [:div.flex.flex-wrap.items-center.justify-between.mt-8.min-w-full
+            [:div.flex.gap-2.items-center
+             [:span.font-semibold.text-xl "Next Up"]]
+            [:div.flex.gap-4
+             [layout/popover-menu !menu-active?
+              [{:label    "Add to queue"
+                :icon     [:i.fa-solid.fa-headphones]
+                :on-click #(rf/dispatch [:queue/add-n
+                                         related-streams
+                                         true])}
+               {:label    "Add to playlist"
+                :icon     [:i.fa-solid.fa-plus]
+                :on-click #(rf/dispatch [:modals/open
+                                         [modals/add-to-bookmark
+                                          related-streams]])}]]
+             [items/layout-switcher !layout]]
+            [items/related-streams related-streams nil !layout]]])))))
 
 (defn stream
   []
-  (let [stream        @(rf/subscribe [:stream])
-        !player       @(rf/subscribe [:main-player])
-        page-loading? @(rf/subscribe [:show-page-loading])]
-    [:<>
-     (when-not page-loading?
-       [:div.flex.flex-col.justify-center.items-center.xl:pt-4
-        [player/video-player stream !player]])
-     [layout/content-container
-      [metadata stream]
-      [description stream]
-      [comments stream]
-      [suggested stream]]]))
+  (let [!active-tab (r/atom :comments)]
+    (fn []
+      (let [stream          @(rf/subscribe [:stream])
+            !player         @(rf/subscribe [:main-player])
+            page-loading?   @(rf/subscribe [:show-page-loading])
+            comments-length (-> stream
+                                :comments-page
+                                :comments
+                                count)]
+        [:<>
+         (when-not page-loading?
+           [:div.flex.flex-col.justify-center.items-center.xl:pt-4
+            [player/video-player stream !player]])
+         [layout/content-container
+          [metadata stream]
+          [description stream]
+          [:div.mt-10
+           [layout/tabs
+            [{:id       :comments
+              :label    "Comments"
+              :label-fn (fn [label]
+                          [:div.flex.gap-3.items-center.justify-center
+                           [:i.fa-solid.fa-comments]
+                           [:span label]
+                           [:span.dark:bg-neutral-800.rounded.px-2
+                            comments-length]])}
+             {:id       :related-items
+              :label    "Related Items"
+              :label-fn (fn [label]
+                          [:div.flex.gap-3.items-center.justify-center
+                           [:i.fa-solid.fa-table-list]
+                           [:span label]])}]
+            :selected-id @!active-tab
+            :on-change #(reset! !active-tab %)]]
+          (case @!active-tab
+            :comments      [comments stream]
+            :related-items [related-items stream]
+            [comments stream])]]))))

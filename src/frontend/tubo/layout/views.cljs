@@ -236,3 +236,24 @@
     [:div.flex.justify-center.gap-x-6
      [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
      [secondary-button "Retry" #(rf/dispatch cb)]]]])
+
+(defn tabs
+  [tabs]
+  (let [!current (r/atom (nth tabs 0))]
+    (fn [tabs & {:keys [on-change]}]
+      [:div
+       (into
+        [:ul.w-full.flex.justify-center.items-center]
+        (for [[i tab] (map-indexed vector tabs)]
+          (let [selected? (= (:id tab) (:id @!current))]
+            (when tab
+              [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2.border-transparent
+               {:class (if selected? :border-white :border-transparent) :key i}
+               [:button.flex-auto.py-4
+                {:on-click (when (not selected?)
+                             (fn []
+                               (reset! !current tab)
+                               (on-change (:id @!current))))}
+                (if (:label-fn tab)
+                  ((:label-fn tab) (:label tab))
+                  (:label tab))]]))))])))

@@ -30,4 +30,4 @@
          [stream/metadata stream]
          [stream/description stream]
          [stream/comments stream]
-         [stream/suggested stream]]])]))
+         [stream/related-items stream]]])]))

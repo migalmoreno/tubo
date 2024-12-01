@@ -70,24 +70,28 @@
    {:keys [uploader-name uploader-avatar url]}]
   (let [pagination-loading? @(rf/subscribe [:show-pagination-loading])
         service-color       @(rf/subscribe [:service-color])]
-    [:div.flex.flex-col
-     [:div
-      (for [[i {:keys [replies show-replies] :as comment}]
-            (map-indexed vector comments)]
-        [:div.flex.flex-col {:key i}
-         [:div.flex
-          [comment-item
-           (assoc comment
-                  :author-name   uploader-name
-                  :author-avatar uploader-avatar)]]
-         (when (and replies show-replies)
-           [:div {:style {:marginLeft "32px"}}
-            (for [[i reply] (map-indexed vector (:items replies))]
-              ^{:key i}
-              [comment-item
-               (assoc reply
-                      :author-name   uploader-name
-                      :author-avatar uploader-avatar)])])])]
+    [:div.flex.flex-col.py-4
+     (if (empty? comments)
+       [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4.h-44
+        [:i.fa-solid.fa-ghost.text-3xl]
+        [:p.text-lg "No available comments"]]
+       [:div
+        (for [[i {:keys [replies show-replies] :as comment}]
+              (map-indexed vector comments)]
+          [:div.flex.flex-col {:key i}
+           [:div.flex
+            [comment-item
+             (assoc comment
+                    :author-name   uploader-name
+                    :author-avatar uploader-avatar)]]
+           (when (and replies show-replies)
+             [:div {:style {:marginLeft "32px"}}
+              (for [[i reply] (map-indexed vector (:items replies))]
+                ^{:key i}
+                [comment-item
+                 (assoc reply
+                        :author-name   uploader-name
+                        :author-avatar uploader-avatar)])])])])
      (when (:url next-page)
        (if pagination-loading?
          [layout/loading-icon service-color]
