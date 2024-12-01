@@ -17,8 +17,10 @@
 
 (rf/reg-fx
  :player/src
- (fn [{:keys [player src]}]
-   (set! (.-source @player) (clj->js src))))
+ (fn [{:keys [player src current-pos]}]
+   (set! (.-src @player) (clj->js src))
+   (set! (.-onended @player)
+         #(rf/dispatch [:queue/change-pos (inc current-pos)]))))
 
 (rf/reg-fx
  :player/loop
@@ -35,7 +37,9 @@
  :player/pause
  (fn [{:keys [paused? player]}]
    (when (and player @player)
-     (set! (.-paused @player) paused?))))
+     (if paused?
+       (.play @player)
+       (.pause @player)))))
 
 (rf/reg-fx
  :media-session-metadata

@@ -1,14 +1,22 @@
 @use "@fontsource/nunito-sans/scss/mixins" as NunitoSans;
 $fontsourceDir: "~@fontsource";
-@include NunitoSans.faces($weights: (200, 300, 400, 500, 600, 700, 800, 900));
+@include NunitoSans.faces(
+  $weights: (
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800,
+    900,
+  )
+);
 $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 @import "@fortawesome/fontawesome-free/scss/brands";
 @import "@fortawesome/fontawesome-free/scss/regular";
 @import "@fortawesome/fontawesome-free/scss/solid";
 @import "@fortawesome/fontawesome-free/scss/fontawesome";
-@import '@vidstack/react/player/styles/default/theme.css';
-@import '@vidstack/react/player/styles/default/layouts/video.css';
-@import '@vidstack/react/player/styles/default/layouts/audio.css';
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";

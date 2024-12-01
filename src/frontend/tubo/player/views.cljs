@@ -2,27 +2,17 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   ["@vidstack/react" :refer (MediaPlayer MediaProvider Poster)]
-   ["@vidstack/react/player/layouts/default" :refer
-    (defaultLayoutIcons DefaultVideoLayout)]))
-
-(defn get-video-player-sources
-  [available-streams service-id]
-  (if available-streams
-    (if (= service-id 3)
-      (map (fn [{:keys [content]}] {:src content :type "video/mp4"})
-           (reverse available-streams))
-      (->> available-streams
-           (filter #(and (not= (:format %) "WEBMA_OPUS")
-                         (not= (:format %) "OPUS")
-                         (not= (:format %) "M4A")))
-           (sort-by :bitrate)
-           (#(if (empty? (filter (fn [x] (= (:format x) "MP3")) %))
-               (reverse %)
-               %))
-           (map (fn [{:keys [content]}] {:src content :type "video/mp4"}))
-           first))
-    []))
+   ["media-chrome/dist/react" :refer
+    (MediaController
+     MediaControlBar
+     MediaTimeRange
+     MediaTimeDisplay
+     MediaVolumeRange
+     MediaFullscreenButton
+     MediaPipButton
+     MediaPlayButton
+     MediaPlaybackRateButton
+     MediaMuteButton)]))
 
 (defn video-player
   [_stream _!player]
@@ -31,41 +21,96 @@
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:main-player/ready false])
       :reagent-render
-      (fn [{:keys [name video-streams audio-streams thumbnail-url service-id]}
+      (fn [{:keys [video-streams audio-streams thumbnail-url]}
            !player]
-        (let [show-main-player? @(rf/subscribe [:main-player/show])]
-          [:> MediaPlayer
-           {:title          name
-            :src            (get-video-player-sources (into video-streams
-                                                            audio-streams)
-                                                      service-id)
-            :poster         thumbnail-url
-            :class          "w-full xl:w-3/5 overflow-hidden"
-            :playsInline    true
-            :ref            #(reset! !player %)
-            :loop           (when show-main-player?
-                              (= @(rf/subscribe [:player/loop]) :stream))
-            :onSeeked       (when show-main-player?
-                              #(reset! !elapsed-time (.-currentTime @!player)))
-            :onTimeUpdate   (when show-main-player?
-                              #(reset! !elapsed-time (.-currentTime @!player)))
-            :onEnded        #(when show-main-player?
-                               (rf/dispatch [:queue/change-pos
-                                             (inc @(rf/subscribe
-                                                    [:queue/position]))])
-                               (reset! !elapsed-time 0))
-            :onLoadedData   (fn []
-                              (when show-main-player?
-                                (rf/dispatch [:main-player/start]))
-                              (when (and @!main-player-first? show-main-player?)
-                                (reset! !main-player-first? false)))
-            :onPlay         #(rf/dispatch [:main-player/play])
-            :onCanPlay      #(rf/dispatch [:main-player/ready true])
-            :onSourceChange #(when-not @!main-player-first?
-                               (reset! !elapsed-time 0))}
-           [:> MediaProvider
-            [:> Poster
-             {:src   thumbnail-url
-              :alt   name
-              :class :vds-poster}]]
-           [:> DefaultVideoLayout {:icons defaultLayoutIcons}]]))})))
+        (let [show-main-player? @(rf/subscribe [:main-player/show])
+              service-color     @(rf/subscribe [:service-color])]
+          [:div
+           {:class "w-full h-80 md:h-[450px] lg:h-[600px]"}
+           [:> MediaController
+            {:style {"--media-secondary-color" "transparent"
+                     "--media-primary-color"   "white"
+                     "aspectRatio"             "16/9"
+                     "height"                  "100%"
+                     "width"                   "100%"}}
+            [:video
+             {:style          {"max-height" "100%"
+                               "min-height" "100%"
+                               "min-width"  "100%"
+                               "max-width"  "100%"}
+              :ref            #(reset! !player %)
+              :poster         thumbnail-url
+              :loop           (when show-main-player?
+                                (= @(rf/subscribe [:player/loop]) :stream))
+              :on-can-play    #(rf/dispatch [:main-player/ready true])
+              :on-ended       #(when show-main-player?
+                                 (rf/dispatch [:queue/change-pos
+                                               (inc @(rf/subscribe
+                                                      [:queue/position]))])
+                                 (reset! !elapsed-time 0))
+              :on-play        #(rf/dispatch [:main-player/play])
+              :on-loaded-data (fn []
+                                (when show-main-player?
+                                  (rf/dispatch [:main-player/start]))
+                                (when (and @!main-player-first?
+                                           show-main-player?)
+                                  (reset! !main-player-first? false)))
+              :on-time-update (when show-main-player?
+                                #(reset! !elapsed-time (.-currentTime
+                                                        @!player)))
+              :on-seeked      (when show-main-player?
+                                #(reset! !elapsed-time (.-currentTime
+                                                        @!player)))
+              :slot           "media"
+              :src            (:content (nth (into video-streams audio-streams)
+                                             0))
+              :preload        "auto"
+              :muted          @(rf/subscribe [:player/muted])
+              :crossOrigin    ""}]
+            [:div.ytp-gradient-bottom.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
+             {:style
+              {"paddingTop" "37px"
+               "height" "170px"
+               "backgroundImage"
+               "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAACqCAYAAABsziWkAAAAAXNSR0IArs4c6QAAAQVJREFUOE9lyNdHBQAAhfHb3nvvuu2997jNe29TJJEkkkgSSSSJJJJEEkkiifRH5jsP56Xz8PM5gcC/xfDEmjhKxEOCSaREEiSbFEqkQppJpzJMJiWyINvkUCIX8kw+JQqg0BRRxaaEEqVQZsopUQGVpooS1VBjglStqaNEPTSYRko0QbNpoUQrtJl2qsN0UqILuk0PJXqhz/RTYgAGzRA1bEYoMQpjZpwSExAyk5SYgmkzQ82aOUqEIWKilJiHBbNIiSVYhhVYhTVYhw3YhC3Yhh3YhT3YhwM4hCM4hhM4hTM4hwu4hCu4hhu4hTu4hwd4hCd4hhd4hTd4hw/4hC/4hh/4/QM2/id28uIEJAAAAABJRU5ErkJggg==')"}}]
+            [:> MediaTimeRange
+             {:class "w-full h-[5px]"
+              :style
+              {"--media-control-hover-background" "transparent"
+               "--media-range-track-transition" "height 0.1s linear"
+               "--media-range-track-background" "rgba(255,255,255,.2)"
+               "--media-range-track-pointer-background" "rgba(255,255,255,.5)"
+               "--media-time-range-buffered-color" "rgba(255,255,255,.4)"
+               "--media-range-bar-color" service-color
+               "--media-range-thumb-border-radius" "13px"
+               "--media-range-thumb-background" service-color
+               "--media-range-thumb-transition" "transform 0.1s linear"
+               "--media-range-thumb-transform" "scale(0) translate(0%, 0%)"}}]
+            [:> MediaControlBar
+             {:class "relative pl-[10px] pr-[5px]"
+              :style
+              {"--media-control-hover-background"  "transparent"
+               "--media-range-track-height"        "3px"
+               "--media-range-thumb-height"        "13px"
+               "--media-range-thumb-width"         "13px"
+               "--media-range-thumb-border-radius" "13px"}}
+             [:> MediaPlayButton
+              {:class "py-[6px] px-[10px]"
+               :style
+               {"--media-button-icon-width" "30px"}}]
+             [:> MediaMuteButton
+              {:class "peer/mute"}]
+             [:> MediaVolumeRange
+              {:class
+               ["w-0" "overflow-hidden" "transition-[width]"
+                "transition-200" "ease-in" "peer-hover/mute:w-[70px]"
+                "peer-focus/mute:w-[70px]" "hover:w-[70px]" "focus:w-[70px]"]
+               :style
+               {"--media-range-track-background" "rgba(255,255,255,.2)"
+                "--media-range-bar-color"        service-color
+                "--media-range-thumb-background" service-color}}]
+             [:> MediaTimeDisplay {:showDuration true}]
+             [:span.control-spacer.grow]
+             [:> MediaPlaybackRateButton]
+             [:> MediaPipButton]
+             [:> MediaFullscreenButton]]]]))})))

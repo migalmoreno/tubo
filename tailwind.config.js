@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{html,js,cljs}"],
   darkMode: "class",
@@ -8,12 +7,9 @@ module.exports = {
         "nunito-sans": ["Nunito Sans", "sans-serif"],
       },
       screens: {
-        "xs": "480px",
+        xs: "480px",
       },
     },
   },
-  plugins: [
-    require("@tailwindcss/forms"),
-    require("@vidstack/react/tailwind.cjs")
-  ],
-}
+  plugins: [require("@tailwindcss/forms")],
+};

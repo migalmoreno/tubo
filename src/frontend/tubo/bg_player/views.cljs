@@ -2,14 +2,12 @@
   (:require
    [clojure.string :as str]
    [re-frame.core :as rf]
+   [reagent.dom :as rdom]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.layout.views :as layout]
-   [tubo.utils :as utils]
-   ["@vidstack/react" :refer (MediaPlayer MediaProvider)]
-   ["@vidstack/react/player/layouts/default" :refer
-    (defaultLayoutIcons DefaultAudioLayout)]))
+   [tubo.utils :as utils]))
 
 (defonce base-slider-classes
   ["h-2" "cursor-pointer" "appearance-none" "bg-neutral-300"
@@ -180,8 +178,7 @@
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
          [layout/loading-icon color "lg:text-2xl"])
-       :on-click
-       #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
+       :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes ["lg:text-2xl"]]
       [button
@@ -258,52 +255,31 @@
           :menu-styles {:bottom "30px" :top nil :right "10px"}
           :extra-classes [:pt-1 :!pl-4 :px-3]]]))))
 
-(defn get-audio-player-sources
-  [available-streams]
-  (if available-streams
-    (->> available-streams
-         (filter #(not= (:format %) "OPUS"))
-         (sort-by :bitrate)
-         (map (fn [{:keys [content]}] {:src content :type "audio/mpeg"})))
-    []))
-
 (defn audio-player
-  [_ _]
-  (let [!elapsed-time     @(rf/subscribe [:elapsed-time])
-        !bg-player-first? (r/atom nil)]
+  [_]
+  (let [!elapsed-time @(rf/subscribe [:elapsed-time])
+        queue-pos     @(rf/subscribe [:queue/position])
+        stream        @(rf/subscribe [:queue/current])]
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:bg-player/ready false])
+      :component-did-mount
+      (fn [this]
+        (set! (.-onended (rdom/dom-node this))
+              #(rf/dispatch [:queue/change-pos (inc queue-pos)]))
+        (when stream
+          (set! (.-src (rdom/dom-node this))
+                (:content (nth (:audio-streams stream) 0)))))
       :reagent-render
-      (fn [{:keys [name audio-streams]} !player]
-        [:> MediaPlayer
-         {:title          name
-          :class          "invisible fixed"
-          :controls       []
-          :src            (get-audio-player-sources audio-streams)
-          :viewType       "audio"
-          :ref            #(reset! !player %)
+      (fn [!player]
+        [:audio
+         {:ref            #(reset! !player %)
           :loop           (= @(rf/subscribe [:player/loop]) :stream)
-          :onCanPlay      #(rf/dispatch [:bg-player/ready true])
-          :onSeeked       #(reset! !elapsed-time (.-currentTime @!player))
-          :onTimeUpdate   #(reset! !elapsed-time (.-currentTime @!player))
-          :onEnded        (fn []
-                            (rf/dispatch [:queue/change-pos
-                                          (inc @(rf/subscribe
-                                                 [:queue/position]))])
-                            (reset! !elapsed-time 0))
-          :onPlay         #(rf/dispatch [:bg-player/play])
-          :onReplay       (fn []
-                            (rf/dispatch [:bg-player/set-paused false])
-                            (reset! !elapsed-time 0))
-          :onPause        #(rf/dispatch [:bg-player/set-paused true])
-          :onLoadedData   (fn []
-                            (rf/dispatch [:bg-player/start])
-                            (when-not @!bg-player-first?
-                              (reset! !bg-player-first? true)))
-          :onSourceChange #(when @!bg-player-first?
-                             (reset! !elapsed-time 0))}
-         [:> MediaProvider]
-         [:> DefaultAudioLayout {:icons defaultLayoutIcons}]])})))
+          :on-can-play    #(rf/dispatch [:bg-player/ready true])
+          :on-seeked      #(reset! !elapsed-time (.-currentTime @!player))
+          :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
+          :on-play        #(rf/dispatch [:bg-player/set-paused false])
+          :on-pause       #(rf/dispatch [:bg-player/set-paused true])
+          :on-loaded-data #(rf/dispatch [:bg-player/start])}])})))
 
 (defn player
   []
@@ -335,7 +311,7 @@
          :background-position "center"
          :background-repeat   "no-repeat"}}
        [:div.flex.items-center
-        [audio-player stream !player]
+        [audio-player !player]
         [metadata stream]
         [main-controls !player color]
         [extra-controls !player stream color]]])))

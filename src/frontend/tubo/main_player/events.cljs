@@ -14,7 +14,7 @@
  [(rf/inject-cofx ::inject/sub [:main-player])]
  (fn [{:keys [db main-player]} [_ paused?]]
    (when (:main-player/ready db)
-     {:player/pause {:paused? paused?
+     {:player/pause {:paused? (not paused?)
                      :player  main-player}})))
 
 (rf/reg-event-fx

@@ -19,36 +19,20 @@
  :bg-player/pause
  [(rf/inject-cofx ::inject/sub [:bg-player])]
  (fn [{:keys [bg-player]} [_ paused?]]
-   {:player/pause {:paused? paused?
+   {:player/pause {:paused? (not paused?)
                    :player  bg-player}}))
-
-(rf/reg-event-fx
- :bg-player/play
- [(rf/inject-cofx ::inject/sub [:elapsed-time])
-  (rf/inject-cofx ::inject/sub [:main-player])]
- (fn [{:keys [main-player db elapsed-time]}]
-   {:fx [[:dispatch [:bg-player/set-paused false]]
-         [:dispatch [:bg-player/seek @elapsed-time]]
-         (when (and (:main-player/ready db) main-player @main-player)
-           [:dispatch [:main-player/pause true]])]}))
-
-(rf/reg-event-fx
- :bg-player/stop
- (fn [_]
-   {:fx [[:dispatch [:bg-player/pause true]]
-         [:dispatch [:bg-player/seek 0]]]}))
 
 (rf/reg-event-fx
  :bg-player/start
  [(rf/inject-cofx ::inject/sub [:bg-player])
   (rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db bg-player]} _]
+ (fn [{:keys [db bg-player elapsed-time]} _]
    {:fx [[:dispatch [:bg-player/set-paused true]]
+         [:dispatch [:bg-player/seek @elapsed-time]]
          [:dispatch [:bg-player/pause false]]
          [:dispatch
           [:player/change-volume (:player/volume db)
-           bg-player]]
-        ]}))
+           bg-player]]]}))
 
 (rf/reg-event-fx
  :bg-player/mute
