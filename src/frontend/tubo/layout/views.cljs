@@ -145,7 +145,8 @@
                  [:span.whitespace-nowrap label]]
         classes ["relative" "flex" "items-center" "gap-x-3"
                  "hover:bg-neutral-200"
-                 "dark:hover:bg-stone-800" "py-2" "px-3" "rounded"]]
+                 "dark:hover:bg-neutral-700" "py-2" "px-3"
+                 "first:rounded-t" "last:rounded-b"]]
     (if link
       [:a
        {:href   (:route link)
@@ -160,7 +161,7 @@
 (defn menu
   [active? items & {:keys [right top bottom left] :or {right "15px" top "0px"}}]
   (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.border.border-neutral-300.dark:border-stone-700.rounded-t.rounded-b.z-20.p-2.flex.flex-col.text-neutral-800.dark:text-white
+    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white
      {:class (when-not active? "hidden")
       :style {:right right :left left :top top :bottom bottom}}
      (for [[i item] (map-indexed vector (remove nil? items))]
