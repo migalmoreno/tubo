@@ -140,7 +140,7 @@
    [:div
     [layout/thumbnail thumbnail-url (rfe/href :stream-page nil {:url url})
      name nil :classes [:h-14 :py-2 "w-[70px]"]]]
-   [:div.flex.flex-col.px-2
+   [:div.flex.flex-col.pl-2.pr-4
     [:a.text-xs.line-clamp-1
      {:href  (rfe/href :stream-page nil {:url url})
       :title name}
