@@ -1,4 +1,4 @@
-(ns tubo.components.layout
+(ns tubo.layout.views
   (:require
    [clojure.string :as str]
    [re-frame.core :as rf]
@@ -234,5 +234,5 @@
     (when parse-error
       [:span (:status-text parse-error)])
     [:div.flex.justify-center.gap-x-3
-     [primary-button "Go Back" #(rf/dispatch [:history-go -1])]
+     [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
      [secondary-button "Retry" #(rf/dispatch cb)]]]])

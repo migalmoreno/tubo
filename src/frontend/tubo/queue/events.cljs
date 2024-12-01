@@ -6,8 +6,8 @@
  :queue/show
  (fn [{:keys [db]} [_ show?]]
    {:db            (apply assoc
-                          (assoc db :show-queue show?)
-                          (when show? [:show-search-form false]))
+                          (assoc db :queue/show show?)
+                          (when show? [:search/show-form false]))
     :body-overflow show?}))
 
 (rf/reg-event-fx
@@ -15,7 +15,7 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ val]]
    (let [queue             (:queue db)
-         queue-pos         (+ 1 (:queue-pos db))
+         queue-pos         (+ 1 (:queue/position db))
          queue-to-end      (subvec queue queue-pos)
          shuffled-to-end   (shuffle queue-to-end)
          unshuffled-to-end (into (subvec queue 0 queue-pos) queue-to-end)
@@ -26,8 +26,10 @@
          updated-db        (assoc db
                                   :queue
                                   (if val shuffled-queue unshuffled-queue))]
-     {:db    (assoc updated-db :shuffle val :queue/unshuffled unshuffled-queue)
-      :store (assoc store :queue (:queue updated-db) :shuffle val)})))
+     {:db    (assoc updated-db
+                    :player/shuffled  val
+                    :queue/unshuffled unshuffled-queue)
+      :store (assoc store :queue (:queue updated-db) :player/shuffled val)})))
 
 (rf/reg-event-fx
  :queue/add
@@ -49,7 +51,7 @@
  (fn [{:keys [db]} [_ streams notify?]]
    {:fx (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
               [[:dispatch
-                [:player/fetch-stream
+                [:bg-player/fetch-stream
                  (-> streams
                      first
                      :url)
@@ -69,7 +71,7 @@
    (let [updated-db   (update db
                               :queue
                               #(into (subvec % 0 pos) (subvec % (inc pos))))
-         queue-pos    (:queue-pos db)
+         queue-pos    (:queue/position db)
          queue-length (count (:queue updated-db))]
      {:db    updated-db
       :store (assoc store :queue (:queue updated-db))
@@ -85,7 +87,7 @@
                     (= pos queue-pos)    pos
                     :else                (dec queue-pos))]]]
                (= (count (:queue updated-db)) 0)
-               [[:dispatch [:player/dispose]]
+               [[:dispatch [:bg-player/dispose]]
                 [:dispatch [:queue/show false]]]
                :else [])})))
 
@@ -95,15 +97,15 @@
  (fn [{:keys [db]} [_ i]]
    (let [idx    (if (< i (count (:queue db)))
                   i
-                  (when (= (:loop-playback db) :playlist) 0))
+                  (when (= (:player/loop db) :playlist) 0))
          stream (get (:queue db) idx)]
      (when stream
-       {:fx [[:dispatch [:player/fetch-stream (:url stream) idx true]]]}))))
+       {:fx [[:dispatch [:bg-player/fetch-stream (:url stream) idx true]]]}))))
 
 (rf/reg-event-fx
  :queue/change-stream
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream idx]]
    (let [update-entry (fn [x] (update-in x [:queue idx] #(merge % stream)))]
-     {:db    (assoc (update-entry db) :queue-pos idx)
-      :store (assoc (update-entry store) :queue-pos idx)})))
+     {:db    (assoc (update-entry db) :queue/position idx)
+      :store (assoc (update-entry store) :queue/position idx)})))

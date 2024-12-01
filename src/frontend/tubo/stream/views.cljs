@@ -5,9 +5,9 @@
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
-   [tubo.components.items :as items]
-   [tubo.components.layout :as layout]
-   [tubo.components.player :as player]
+   [tubo.items.views :as items]
+   [tubo.layout.views :as layout]
+   [tubo.player.views :as player]
    [tubo.utils :as utils]))
 
 (defn metadata-popover
@@ -22,10 +22,10 @@
         [layout/popover-menu !menu-active?
          [{:label    "Add to queue"
            :icon     [:i.fa-solid.fa-headphones]
-           :on-click #(rf/dispatch [:player/switch-to-background stream true])}
+           :on-click #(rf/dispatch [:bg-player/show stream true])}
           {:label    "Play radio"
            :icon     [:i.fa-solid.fa-tower-cell]
-           :on-click #(rf/dispatch [:player/start-radio stream])}
+           :on-click #(rf/dispatch [:bg-player/start-radio stream])}
           {:label    (if liked? "Remove favorite" "Favorite")
            :icon     (if liked?
                        [:i.fa-solid.fa-heart

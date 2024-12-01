@@ -4,8 +4,8 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
-   [tubo.components.items :as items]
-   [tubo.components.layout :as layout]))
+   [tubo.items.views :as items]
+   [tubo.layout.views :as layout]))
 
 (defn bookmarks
   []
@@ -56,7 +56,8 @@
   (let [!menu-active? (r/atom nil)]
     (fn []
       (let [bookmarks                    @(rf/subscribe [:bookmarks])
-            {{:keys [id]} :query-params} @(rf/subscribe [:current-match])
+            {{:keys [id]} :query-params} @(rf/subscribe
+                                           [:navigation/current-match])
             {:keys [items name]}         (first (filter #(= (:id %) id)
                                                         bookmarks))]
         [layout/content-container

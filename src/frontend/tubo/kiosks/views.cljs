@@ -2,8 +2,8 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.components.items :as items]
-   [tubo.components.layout :as layout]))
+   [tubo.items.views :as items]
+   [tubo.layout.views :as layout]))
 
 (defn kiosk-active?
   [& {:keys [kiosk kiosk-id service-id default-service default-kiosk path]}]

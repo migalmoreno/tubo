@@ -3,16 +3,16 @@
    [re-frame.core :as rf]))
 
 (rf/reg-sub
- :search-results
+ :search/results
  (fn [db _]
-   (:search-results db)))
+   (:search/results db)))
 
 (rf/reg-sub
- :search-query
+ :search/query
  (fn [db _]
-   (:search-query db)))
+   (:search/query db)))
 
 (rf/reg-sub
- :show-search-form
+ :search/show-form
  (fn [db _]
-   (:show-search-form db)))
+   (:search/show-form db)))

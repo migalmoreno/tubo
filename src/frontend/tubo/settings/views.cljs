@@ -1,7 +1,7 @@
 (ns tubo.settings.views
   (:require
    [re-frame.core :as rf]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (defn boolean-input
   [label key value]

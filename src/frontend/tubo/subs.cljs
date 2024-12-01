@@ -2,10 +2,13 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
+   [tubo.bg-player.subs]
    [tubo.bookmarks.subs]
    [tubo.channel.subs]
    [tubo.kiosks.subs]
+   [tubo.main-player.subs]
    [tubo.modals.subs]
+   [tubo.navigation.subs]
    [tubo.notifications.subs]
    [tubo.player.subs]
    [tubo.playlist.subs]
@@ -59,11 +62,6 @@
    (or (and (= theme "auto") (= @!auto-theme "dark")) (= theme "dark"))))
 
 (rf/reg-sub
- :current-match
- (fn [db _]
-   (:current-match db)))
-
-(rf/reg-sub
  :page-scroll
  (fn [db _]
    (:page-scroll db)))
@@ -77,8 +75,3 @@
  :show-pagination-loading
  (fn [db _]
    (:show-pagination-loading db)))
-
-(rf/reg-sub
- :show-mobile-nav
- (fn [db _]
-   (:show-mobile-nav db)))

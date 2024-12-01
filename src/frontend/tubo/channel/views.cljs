@@ -3,8 +3,8 @@
    [reagent.core :as r]
    [re-frame.core :as rf]
    [tubo.bookmarks.modals :as modals]
-   [tubo.components.items :as items]
-   [tubo.components.layout :as layout]))
+   [tubo.items.views :as items]
+   [tubo.layout.views :as layout]))
 
 (defn metadata-popover
   [_]

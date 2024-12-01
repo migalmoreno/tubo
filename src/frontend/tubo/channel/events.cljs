@@ -3,7 +3,7 @@
    [re-frame.core :as rf]
    [tubo.api :as api]
    [tubo.channel.views :as channel]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (rf/reg-event-fx
  :channel/fetch

@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.components.layout :as layout]
+   [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
 
 (defn comment-top-metadata

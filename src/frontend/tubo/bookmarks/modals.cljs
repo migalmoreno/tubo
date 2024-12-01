@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.components.layout :as layout]
+   [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]))
 
 (defn bookmark-item

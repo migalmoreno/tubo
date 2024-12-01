@@ -4,8 +4,8 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
-   [tubo.components.layout :as layout]
-   [tubo.components.player :as player]
+   [tubo.bg-player.views :as player]
+   [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
 
 (defn item-metadata
@@ -41,7 +41,7 @@
         :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) item])}
        {:label    "Play radio"
         :icon     [:i.fa-solid.fa-tower-cell]
-        :on-click #(rf/dispatch [:player/start-radio item])}
+        :on-click #(rf/dispatch [:bg-player/start-radio item])}
        {:label    "Add to playlist"
         :icon     [:i.fa-solid.fa-plus]
         :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark item]])}
@@ -50,7 +50,7 @@
         :on-click #(rf/dispatch [:queue/remove i])}
        {:label    "Show channel details"
         :icon     [:i.fa-solid.fa-user]
-        :on-click #(rf/dispatch [:navigate
+        :on-click #(rf/dispatch [:navigation/navigate
                                  {:name   :channel-page
                                   :params {}
                                   :query  {:url uploader-url}}])}]
@@ -82,15 +82,15 @@
 
 (defn main-controls
   [color]
-  (let [loop-playback    @(rf/subscribe [:loop-playback])
-        shuffle?         @(rf/subscribe [:shuffle])
-        !player          @(rf/subscribe [:player])
+  (let [loop-playback    @(rf/subscribe [:player/loop])
+        shuffle?         @(rf/subscribe [:player/shuffled])
+        !player          @(rf/subscribe [:bg-player])
         loading?         @(rf/subscribe [:bg-player/loading])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        paused?          @(rf/subscribe [:paused])
+        paused?          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         queue            @(rf/subscribe [:queue])
-        queue-pos        @(rf/subscribe [:queue-pos])]
+        queue-pos        @(rf/subscribe [:queue/position])]
     [:<>
      [:div.flex.flex-auto.py-2.w-full.items-center.text-sm
       [:span.mr-4.whitespace-nowrap
@@ -141,10 +141,10 @@
 
 (defn queue
   []
-  (let [show-queue @(rf/subscribe [:show-queue])
-        stream     @(rf/subscribe [:queue-stream])
+  (let [show-queue @(rf/subscribe [:queue/show])
+        stream     @(rf/subscribe [:queue/current])
         bookmarks  @(rf/subscribe [:bookmarks])
-        queue-pos  @(rf/subscribe [:queue-pos])
+        queue-pos  @(rf/subscribe [:queue/position])
         queue      @(rf/subscribe [:queue])
         color      (-> stream
                        :service-id

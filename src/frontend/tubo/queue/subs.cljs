@@ -13,18 +13,18 @@
    (:queue/unshuffled db)))
 
 (rf/reg-sub
- :queue-pos
+ :queue/position
  (fn [db _]
-   (:queue-pos db)))
+   (:queue/position db)))
 
 (rf/reg-sub
- :show-queue
+ :queue/show
  (fn [db _]
-   (:show-queue db)))
+   (:queue/show db)))
 
 (rf/reg-sub
- :queue-stream
+ :queue/current
  (fn [_]
-   [(rf/subscribe [:queue]) (rf/subscribe [:queue-pos])])
+   [(rf/subscribe [:queue]) (rf/subscribe [:queue/position])])
  (fn [[queue pos] _]
    (and (not-empty queue) (< pos (count queue)) (nth queue pos))))

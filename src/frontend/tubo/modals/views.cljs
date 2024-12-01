@@ -1,7 +1,7 @@
 (ns tubo.modals.views
   (:require
    [re-frame.core :as rf]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (defn modal-content
   [title body & extra-buttons]

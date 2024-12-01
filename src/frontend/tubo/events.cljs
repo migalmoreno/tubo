@@ -6,13 +6,14 @@
    [reagent.core :as r]
    [re-frame.core :as rf]
    [re-promise.core]
-   [reitit.frontend.easy :as rfe]
-   [reitit.frontend.controllers :as rfc]
+   [tubo.bg-player.events]
    [tubo.bookmarks.events]
    [tubo.channel.events]
    [tubo.comments.events]
    [tubo.kiosks.events]
+   [tubo.main-player.events]
    [tubo.modals.events]
+   [tubo.navigation.events]
    [tubo.notifications.events]
    [tubo.player.events]
    [tubo.playlist.events]
@@ -30,13 +31,13 @@
  (fn [{:keys [store]} _]
    (let [if-nil #(if (nil? %1) %2 %1)]
      {:db
-      {:paused         true
-       :muted          (:muted store)
+      {:player/paused  true
+       :player/muted   (:player/muted store)
        :queue          (if-nil (:queue store) [])
        :service-id     (if-nil (:service-id store) 0)
-       :loop-playback  (if-nil (:loop-playback store) :playlist)
-       :queue-pos      (if-nil (:queue-pos store) 0)
-       :volume-level   (if-nil (:volume-level store) 100)
+       :player/loop    (if-nil (:player/loop store) :playlist)
+       :queue/position (if-nil (:palyer/position store) 0)
+       :player/volume  (if-nil (:player/volume store) 100)
        :bg-player/show (:bg-player/show store)
        :bookmarks      (if-nil (:bookmarks store)
                                [{:id (nano-id) :name "Liked Streams"}])
@@ -81,54 +82,6 @@
  :scroll-into-view
  (fn [_ [_ element]]
    {:scroll-into-view! element}))
-
-(rf/reg-fx
- :history-go!
- (fn [idx]
-   (.go js/window.history idx)))
-
-(rf/reg-event-fx
- :history-go
- (fn [_ [_ idx]]
-   {:history-go! idx}))
-
-(rf/reg-fx
- :navigate!
- (fn [{:keys [name params query]}]
-   (rfe/push-state name params query)))
-
-(rf/reg-event-fx
- :navigate
- (fn [_ [_ route]]
-   {:navigate! route}))
-
-(rf/reg-event-fx
- :toggle-mobile-nav
- (fn [{:keys [db]} _]
-   {:db            (assoc db :show-mobile-nav (not (:show-mobile-nav db)))
-    :body-overflow (not (:show-mobile-nav db))}))
-
-(rf/reg-event-fx
- :navigated
- (fn [{:keys [db]} [_ new-match]]
-   (let [old-match   (:current-match db)
-         controllers (rfc/apply-controllers (:controllers old-match) new-match)
-         match       (assoc new-match :controllers controllers)]
-     {:db            (-> db
-                         (assoc :current-match match)
-                         (assoc :show-mobile-nav false)
-                         (assoc :show-pagination-loading false))
-      :scroll-to-top nil
-      :body-overflow false
-      :fx            [(when (:main-player/show db)
-                        [:dispatch [:player/switch-from-main]])
-                      [:dispatch [:queue/show false]]
-                      [:dispatch
-                       [:services/fetch-all
-                        [:services/load] [:bad-response]]]
-                      [:dispatch
-                       [:kiosks/fetch-all (:service-id db)
-                        [:kiosks/load] [:bad-response]]]]})))
 
 (defonce timeouts! (r/atom {}))
 
@@ -183,4 +136,4 @@
 (rf/reg-event-fx
  :change-view
  (fn [{:keys [db]} [_ view]]
-   {:db (assoc-in db [:current-match :data :view] view)}))
+   {:db (assoc-in db [:navigation/current-match :data :view] view)}))

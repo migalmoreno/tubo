@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [tubo.api :as api]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (rf/reg-event-db
  :kiosks/load
@@ -93,7 +93,7 @@
  (fn [_ [_ service-id]]
    {:fx [[:dispatch [:services/change-id service-id]]
          [:dispatch
-          [:navigate
+          [:navigation/navigate
            {:name   :kiosk-page
             :params {}
             :query  {:serviceId service-id}}]]]}))

@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [tubo.api :as api]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (rf/reg-event-fx
  :search/fetch
@@ -17,7 +17,7 @@
  (fn [{:keys [db]} [_ res]]
    (let [search-res (js->clj res :keywordize-keys true)]
      {:db (assoc db
-                 :search-results    search-res
+                 :search/results    search-res
                  :show-page-loading false)
       :fx [[:dispatch [:services/fetch search-res]]]})))
 
@@ -34,8 +34,8 @@
  (fn [{:keys [db]} [_ service-id query]]
    {:db (assoc db
                :show-page-loading true
-               :show-search-form  true
-               :search-results    nil)
+               :search/show-form  true
+               :search/results    nil)
     :fx [[:dispatch
           [:search/fetch service-id
            [:search/load-page] [:search/bad-page-response service-id query]
@@ -48,13 +48,13 @@
    (let [search-res (js->clj res :keywordize-keys true)]
      (if (empty? (:items search-res))
        (-> db
-           (assoc-in [:search-results :next-page] nil)
+           (assoc-in [:search/results :next-page] nil)
            (assoc :show-pagination-loading false))
        (-> db
-           (update-in [:search-results :items]
+           (update-in [:search/results :items]
                       #(apply conj %1 %2)
                       (:items search-res))
-           (assoc-in [:search-results :next-page] (:next-page search-res))
+           (assoc-in [:search/results :next-page] (:next-page search-res))
            (assoc :show-pagination-loading false))))))
 
 (rf/reg-event-fx
@@ -73,12 +73,12 @@
  :search/show-form
  (fn [db [_ show?]]
    (when-not (= (-> db
-                    :current-match
+                    :navigation/current-match
                     :path)
                 "search")
-     (assoc db :show-search-form show?))))
+     (assoc db :search/show-form show?))))
 
 (rf/reg-event-db
  :search/change-query
  (fn [db [_ res]]
-   (assoc db :search-query res)))
+   (assoc db :search/query res)))

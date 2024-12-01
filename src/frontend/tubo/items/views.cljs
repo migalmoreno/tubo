@@ -1,10 +1,10 @@
-(ns tubo.components.items
+(ns tubo.items.views
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as bookmarks]
-   [tubo.components.layout :as layout]
+   [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
    [tubo.utils :as utils]))
 
@@ -22,11 +22,10 @@
             (if (or (= type "stream") audio-streams video-streams)
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
-                :on-click #(rf/dispatch [:player/switch-to-background item
-                                         true])}
+                :on-click #(rf/dispatch [:bg-player/show item true])}
                {:label    "Play radio"
                 :icon     [:i.fa-solid.fa-tower-cell]
-                :on-click #(rf/dispatch [:player/start-radio item])}
+                :on-click #(rf/dispatch [:bg-player/start-radio item])}
                {:label    (if liked? "Remove favorite" "Favorite")
                 :icon     [:i.fa-solid.fa-heart
                            (when (and liked? service-id)
@@ -46,7 +45,7 @@
                   :on-click #(rf/dispatch [:bookmark/remove item])})
                {:label    "Show channel details"
                 :icon     [:i.fa-solid.fa-user]
-                :on-click #(rf/dispatch [:navigate
+                :on-click #(rf/dispatch [:navigation/navigate
                                          {:name   :channel-page
                                           :params {}
                                           :query  {:url uploader-url}}])}]

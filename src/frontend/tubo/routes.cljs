@@ -68,7 +68,7 @@
 (defn on-navigate
   [new-match]
   (when new-match
-    (rf/dispatch [:navigated new-match])))
+    (rf/dispatch [:navigation/navigated new-match])))
 
 (defn start-routes!
   []

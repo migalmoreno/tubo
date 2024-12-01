@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [tubo.api :as api]
-   [tubo.components.layout :as layout]))
+   [tubo.layout.views :as layout]))
 
 (rf/reg-event-fx
  :stream/fetch
