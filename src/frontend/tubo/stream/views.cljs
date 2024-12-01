@@ -116,7 +116,7 @@
 (defn related-items
   [_]
   (let [!menu-active? (r/atom nil)
-        !layout       (r/atom :list)]
+        !layout       (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{:keys [related-streams]}]
       (let [show? (:show-related @(rf/subscribe [:settings]))]
         (when (and show? (seq related-streams))

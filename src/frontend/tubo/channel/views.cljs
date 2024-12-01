@@ -39,7 +39,7 @@
 (defn channel
   [_]
   (let [!show-description? (r/atom false)
-        !layout            (r/atom :list)]
+        !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banner description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])

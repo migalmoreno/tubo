@@ -175,7 +175,7 @@
        [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4
         [:i.fa-solid.fa-ghost.text-3xl]
         [:p.text-lg "No available streams"]]
-       (if (and !layout (= @!layout :grid))
+       (if (and !layout (= @!layout "grid"))
          [:div.grid.w-full.gap-x-10.gap-y-6
           {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
           (for [[i item] (map-indexed vector related-streams)]
@@ -188,14 +188,16 @@
 
 (defn layout-switcher
   [!layout]
-  [:div.gap-x-6.text-lg.flex.justify-end
-   [:button
-    {:on-click #(reset! !layout :list)
+  [:div.gap-x-5.text-lg.flex.items-center.justify-end
+   [:button.flex.items-center
+    {:on-click #(reset! !layout "list")
      :title    "Switch to list layout"}
-    [:i.fa-solid.fa-list
-     {:class (when-not (= @!layout :list) :text-neutral-500)}]]
-   [:button
-    {:on-click #(reset! !layout :grid)
+    [:i.fa-solid.fa-list.text-sm
+     {:class (when-not (= @!layout "list")
+               ["dark:text-neutral-500" "text-neutral-400"])}]]
+   [:button.flex.items-center
+    {:on-click #(reset! !layout "grid")
      :title    "Switch to grid layout"}
-    [:i.fa-solid.fa-grip
-     {:class (when-not (= @!layout :grid) :text-neutral-500)}]]])
+    [:i.fa-solid.fa-grip.text-base
+     {:class (when-not (= @!layout "grid")
+               ["dark:text-neutral-500" "text-neutral-400"])}]]])

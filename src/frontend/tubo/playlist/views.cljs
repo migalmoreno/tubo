@@ -24,7 +24,7 @@
 
 (defn playlist
   [_]
-  (let [!layout (r/atom :list)]
+  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [name next-page uploader-name uploader-url related-streams
                     stream-count]

@@ -49,6 +49,7 @@
                         :show-description (if-nil (:show-description
                                                    store)
                                                   true)
+                        :items-layout     :list
                         :default-service  (if-nil
                                            (:default-service store)
                                            {:service-id 0

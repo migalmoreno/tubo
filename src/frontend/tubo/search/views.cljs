@@ -7,7 +7,7 @@
 
 (defn search
   [_]
-  (let [!layout (r/atom :list)]
+  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [q serviceId]} :query-params}]
       (let [{:keys [items next-page]} @(rf/subscribe [:search/results])
             next-page-url             (:url next-page)
