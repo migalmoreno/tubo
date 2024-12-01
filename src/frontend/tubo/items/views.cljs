@@ -175,7 +175,6 @@
                                        nil
                                        {:url (:url %)})]
     [:div.flex.flex-col.flex-auto.my-2.md:my-8
-     [modals/modal]
      (if (empty? related-streams)
        [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4
         [:i.fa-solid.fa-ghost.text-3xl]
