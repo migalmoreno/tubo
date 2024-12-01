@@ -225,14 +225,14 @@
 
 (defn error
   [{:keys [_failure parse-error status status-text]} cb]
-  [:div.flex.flex-auto.h-full.items-center.justify-center.p-5
-   [:div.flex.flex-col.gap-y-6.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-300.dark:bg-neutral-800.p-5
+  [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
+   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-stone-700.bg-neutral-300.dark:bg-neutral-800.p-8
     [:div.flex.items-center.gap-2.text-xl
      [:i.fa-solid.fa-circle-exclamation]
      [:h3.font-bold
-      (str status (when (and status status-text) ": ") status-text)]]
+      (str status " " status-text)]]
     (when parse-error
-      [:span (:status-text parse-error)])
-    [:div.flex.justify-center.gap-x-3
+      [:span (or (:original-text parse-error) (:status-text parse-error))])
+    [:div.flex.justify-center.gap-x-6
      [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
      [secondary-button "Retry" #(rf/dispatch cb)]]]])

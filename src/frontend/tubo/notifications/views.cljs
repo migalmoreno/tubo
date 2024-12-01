@@ -22,9 +22,10 @@
          #(rf/dispatch [:notifications/remove (:id notification)])}
         [:i.fa-solid.fa-close]]
        [:span.font-bold
-        (str status (when (and status status-text) ": ") status-text)]
+        (str status " " status-text)]
        (when parse-error
-         [:span.line-clamp-1 (:status-text parse-error)])]]]))
+         [:span.line-clamp-1
+          (or (:original-text parse-error) (:status-text parse-error))])]]]))
 
 (defn notifications-panel
   []
