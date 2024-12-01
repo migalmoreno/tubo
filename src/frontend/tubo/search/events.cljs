@@ -72,11 +72,7 @@
 (rf/reg-event-db
  :search/show-form
  (fn [db [_ show?]]
-   (when-not (= (-> db
-                    :navigation/current-match
-                    :path)
-                "search")
-     (assoc db :search/show-form show?))))
+   (assoc db :search/show-form show?)))
 
 (rf/reg-event-db
  :search/change-query
