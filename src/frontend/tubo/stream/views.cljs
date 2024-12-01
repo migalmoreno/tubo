@@ -39,7 +39,8 @@
           {:label    "Add to playlist"
            :icon     [:i.fa-solid.fa-plus]
            :on-click #(rf/dispatch [:modals/open
-                                    [modals/add-to-bookmark stream]])}]]))))
+                                    [modals/add-to-bookmark stream]])}]
+         :extra-classes ["p-3" "lg:p-0"]]))))
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
@@ -56,51 +57,46 @@
        [:p.mx-2 (utils/format-quantity subscriber-count)]])]])
 
 (defn metadata-stats
-  [{:keys [view-count like-count dislike-count upload-date]}]
-  [:div.flex.flex-col.items-end.flex-auto.justify-center
-   (when view-count
-     [:div.sm:text-base.text-sm.mb-1
-      [:i.fa-solid.fa-eye]
-      [:span.ml-2 (.toLocaleString view-count)]])
-   [:div.flex
+  [{:keys [like-count dislike-count] :as stream}]
+  [:div.flex.items-center.justify-end.gap-x-2
+   [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.font-semibold.gap-x-4
     (when like-count
-      [:div.items-center.sm:text-base.text-sm
+      [:div.flex.items-center.gap-x-2
        [:i.fa-solid.fa-thumbs-up]
-       [:span.ml-2 (.toLocaleString like-count)]])
+       [:span (utils/format-quantity like-count)]])
     (when dislike-count
-      [:div.ml-2.items-center.sm:text-base.text-sm
+      [:div.flex.items-center.gap-x-2
        [:i.fa-solid.fa-thumbs-down]
-       [:span.ml-2 dislike-count]])]
-   (when upload-date
-     [:div.sm:text-base.text-sm.mt-1.whitespace-nowrap
-      [:i.fa-solid.fa-calendar]
-      [:span.ml-2 (utils/format-date-string upload-date)]])])
+       [:span dislike-count]])]
+   [:div.hidden.lg:flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full
+    [metadata-popover stream]]])
 
 (defn metadata
   [{:keys [name] :as stream}]
   [:<>
    [:div.flex.items-center.justify-between.mt-3
-    [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]
-    [:div.hidden.lg:block
-     [metadata-popover stream]]]
+    [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]]
    [:div.flex.justify-between.py-6.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
 (defn description
-  [{:keys [description show-description tags]}]
+  [{:keys [description show-description tags view-count upload-date]}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [:div
+      [:div.bg-neutral-200.dark:bg-neutral-800.p-3.rounded-lg.break-all
+       [:div.flex.gap-x-3.font-semibold
+        [:span (str (utils/format-quantity view-count) " views")]
+        [:span (utils/format-date-ago upload-date)]]
        [layout/show-more-container show-description description
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
                          :stream/toggle-layout)
                        :show-description])]
-       [:div.flex.gap-2.py-2
+       [:div.flex.gap-2.py-2.flex-wrap
         (for [[i tag] (map-indexed vector tags)]
           ^{:key i}
-          [:span.bg-neutral-300.dark:bg-neutral-800.rounded-md.p-2.text-sm.line-clamp-1
+          [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.line-clamp-1
            (str "#" tag)])]])))
 
 (defn comments
@@ -152,7 +148,7 @@
                                 count)]
         [:<>
          (when-not page-loading?
-           [:div.flex.flex-col.justify-center.items-center.xl:pt-4
+           [:div.flex.flex-col.justify-center.items-center
             [player/video-player stream !player]])
          [layout/content-container
           [metadata stream]
@@ -166,7 +162,7 @@
                 [:div.flex.gap-3.items-center.justify-center
                  [:i.fa-solid.fa-comments]
                  [:span label]
-                 [:span.bg-neutral-200.dark:bg-neutral-800.rounded.px-2
+                 [:span.bg-neutral-200.dark:bg-neutral-800.rounded.px-2.text-sm
                   comments-length]])}
              {:id       :related-items
               :label    "Related Items"
