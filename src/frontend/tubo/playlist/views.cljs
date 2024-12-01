@@ -7,10 +7,25 @@
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]))
 
-(defn playlist
-  [{{:keys [url]} :query-params}]
+(defn metadata-popover
+  [_]
   (let [!menu-active? (r/atom nil)]
-    (fn []
+    (fn [{:keys [related-streams]}]
+      (when related-streams
+        [layout/popover-menu !menu-active?
+         [{:label    "Add to queue"
+           :icon     [:i.fa-solid.fa-headphones]
+           :on-click #(rf/dispatch [:queue/add-n related-streams true])}
+          {:label    "Add to playlist"
+           :icon     [:i.fa-solid.fa-plus]
+           :on-click #(rf/dispatch [:modals/open
+                                    [modals/add-to-bookmark
+                                     related-streams]])}]]))))
+
+(defn playlist
+  [_]
+  (let [!layout (r/atom :list)]
+    (fn [{{:keys [url]} :query-params}]
       (let [{:keys [name next-page uploader-name uploader-url related-streams
                     stream-count]
              :as   playlist}
@@ -22,16 +37,8 @@
         [layout/content-container
          [:div.flex.flex-col.justify-center
           [layout/content-header name
-           (when related-streams
-             [layout/popover-menu !menu-active?
-              [{:label    "Add to queue"
-                :icon     [:i.fa-solid.fa-headphones]
-                :on-click #(rf/dispatch [:queue/add-n related-streams true])}
-               {:label    "Add to playlist"
-                :icon     [:i.fa-solid.fa-plus]
-                :on-click #(rf/dispatch [:modals/open
-                                         [modals/add-to-bookmark
-                                          related-streams]])}]])]
+           [:div.hidden.lg:block
+            [metadata-popover playlist]]]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
            [:div.flex.items-center
             [layout/uploader-avatar playlist]
@@ -40,4 +47,5 @@
               :title uploader-name}
              uploader-name]]
            [:span.text-sm.whitespace-nowrap (str stream-count " streams")]]]
-         [items/related-streams related-streams next-page-url]]))))
+         [items/layout-switcher !layout]
+         [items/related-streams related-streams next-page-url !layout]]))))

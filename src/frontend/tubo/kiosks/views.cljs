@@ -1,5 +1,6 @@
 (ns tubo.kiosks.views
   (:require
+   [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.items.views :as items]
@@ -32,14 +33,18 @@
        kiosk]])])
 
 (defn kiosk
-  [{{:keys [serviceId]} :query-params}]
-  (let [{:keys [id related-streams next-page]}
-        @(rf/subscribe [:kiosk])
-        next-page-url (:url next-page)
-        service-id (or @(rf/subscribe [:service-id]) serviceId)
-        scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
-    (when scrolled-to-bottom?
-      (rf/dispatch [:kiosks/fetch-paginated service-id id next-page-url]))
-    [layout/content-container
-     [layout/content-header id]
-     [items/related-streams related-streams next-page-url]]))
+  [_]
+  (let [!layout (r/atom :list)]
+    (fn [{{:keys [serviceId]} :query-params}]
+      (let [{:keys [id related-streams next-page]}
+            @(rf/subscribe [:kiosk])
+            next-page-url (:url next-page)
+            service-id (or @(rf/subscribe [:service-id]) serviceId)
+            scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
+        (when scrolled-to-bottom?
+          (rf/dispatch [:kiosks/fetch-paginated service-id id next-page-url]))
+        [layout/content-container
+         [layout/content-header
+          id
+          [items/layout-switcher !layout]]
+         [items/related-streams related-streams next-page-url !layout]]))))

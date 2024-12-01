@@ -38,7 +38,8 @@
 
 (defn channel
   [_]
-  (let [!show-description? (r/atom false)]
+  (let [!show-description? (r/atom false)
+        !layout            (r/atom :list)]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banner description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
@@ -57,4 +58,5 @@
           (when-not (empty? description)
             [layout/show-more-container @!show-description? description
              #(reset! !show-description? (not @!show-description?))])
-          [items/related-streams related-streams next-page-url]]]))))
+          [items/layout-switcher !layout]
+          [items/related-streams related-streams next-page-url !layout]]]))))
