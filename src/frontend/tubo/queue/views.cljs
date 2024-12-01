@@ -102,7 +102,7 @@
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
          "--:--")]]
-     [:div.flex.justify-center.items-center
+     [:div.flex.justify-center.items-center.gap-x-4
       [player/loop-button loop-playback color true]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]

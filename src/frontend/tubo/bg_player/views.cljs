@@ -59,7 +59,7 @@
 
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
-  [:button.outline-none.focus:ring-transparent.px-2.pt-1
+  [:button.outline-none.focus:ring-transparent
    {:class    (into (into (when disabled? [:opacity-50 :cursor-auto])
                           (when-not show-on-mobile? [:hidden :lg:block]))
                     extra-classes)
@@ -124,8 +124,7 @@
          [button
           :icon
           (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-          :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])
-          :extra-classes [:pl-3 :pr-2]]
+          :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])]
          (when @show-slider?
            [:input.absolute.w-24.ml-2.m-1.bottom-16
             {:class    (str/join " " styles)
@@ -162,7 +161,7 @@
         paused?          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])]
     [:div.flex.flex-col.items-center.ml-auto
-     [:div.flex.justify-end
+     [:div.flex.justify-end.gap-x-4
       [loop-button loop-playback color]
       [button
        :icon [:i.fa-solid.fa-backward-step]
@@ -215,7 +214,7 @@
                                 first
                                 :items))
             bookmark  #(rf/dispatch [:modals/open [modals/add-to-bookmark %]])]
-        [:div.flex.lg:justify-end.lg:flex-1
+        [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
          [volume-slider !player volume muted? color]
          [button
           :icon [:i.fa-solid.fa-list]
@@ -253,7 +252,7 @@
             :icon     [:i.fa-solid.fa-close]
             :on-click #(rf/dispatch [:bg-player/dispose])}]
           :menu-styles {:bottom "30px" :top nil :right "10px"}
-          :extra-classes [:pt-1 :!pl-4 :px-3]]]))))
+          :extra-classes [:!pl-4 :px-3]]]))))
 
 (defn audio-player
   [_]

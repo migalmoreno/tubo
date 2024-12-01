@@ -124,7 +124,7 @@
            [:div.flex.flex-wrap.items-center.justify-between.mt-8.min-w-full
             [:div.flex.gap-2.items-center
              [:span.font-semibold.text-xl "Next Up"]]
-            [:div.flex.gap-4
+            [:div.flex.gap-x-4
              [layout/popover-menu !menu-active?
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
