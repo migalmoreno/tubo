@@ -9,7 +9,8 @@
 
 (defn bookmarks
   []
-  (let [!menu-active? (r/atom nil)]
+  (let [!menu-active? (r/atom nil)
+        !layout       (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn []
       (let [bookmarks @(rf/subscribe [:bookmarks])
             items     (map
@@ -25,7 +26,7 @@
                                                   :thumbnail-url))
                        bookmarks)]
         [layout/content-container
-         [layout/content-header "Bookmarked Playlists"
+         [layout/content-header "Bookmarks"
           [layout/popover-menu !menu-active?
            [{:label    "Add New"
              :icon     [:i.fa-solid.fa-plus]
@@ -49,11 +50,13 @@
             {:label    "Clear All"
              :icon     [:i.fa-solid.fa-trash]
              :on-click #(rf/dispatch [:bookmarks/clear])}]]]
-         [items/related-streams items]]))))
+         [items/layout-switcher !layout]
+         [items/related-streams items nil !layout]]))))
 
 (defn bookmark
   []
-  (let [!menu-active? (r/atom nil)]
+  (let [!menu-active? (r/atom nil)
+        !layout       (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn []
       (let [bookmarks                    @(rf/subscribe [:bookmarks])
             {{:keys [id]} :query-params} @(rf/subscribe
@@ -71,5 +74,7 @@
                :icon     [:i.fa-solid.fa-plus]
                :on-click #(rf/dispatch [:modals/open
                                         [modals/add-to-bookmark items]])}]])]
+         [items/layout-switcher !layout]
          [items/related-streams
-          (map #(assoc % :type "stream" :bookmark-id id) items)]]))))
+          (map #(assoc % :type "stream" :bookmark-id id) items) nil
+          !layout]]))))

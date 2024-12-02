@@ -44,7 +44,5 @@
         (when scrolled-to-bottom?
           (rf/dispatch [:kiosks/fetch-paginated service-id id next-page-url]))
         [layout/content-container
-         [layout/content-header
-          id
-          [items/layout-switcher !layout]]
+         [layout/content-header id [items/layout-switcher !layout]]
          [items/related-streams related-streams next-page-url !layout]]))))
