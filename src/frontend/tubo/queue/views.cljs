@@ -119,7 +119,7 @@
        :show-on-mobile? true]
       [player/button
        :icon
-       (if (and (not loading?) @!player)
+       (if (and (not loading?) (or (nil? bg-player-ready?) @!player))
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])

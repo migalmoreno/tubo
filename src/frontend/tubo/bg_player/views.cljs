@@ -172,7 +172,7 @@
        :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])]
       [button
        :icon
-       (if (and (not loading?) @!player)
+       (if (and (not loading?) (or (nil? bg-player-ready?) @!player))
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
