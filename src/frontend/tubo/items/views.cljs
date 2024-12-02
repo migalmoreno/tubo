@@ -167,9 +167,15 @@
         pagination-loading? @(rf/subscribe [:show-pagination-loading])
         bookmarks           @(rf/subscribe [:bookmarks])
         item-url            #(case (:type %)
-                               "stream"   (rfe/href :stream-page nil {:url %})
-                               "channel"  (rfe/href :channel-page nil {:url %})
-                               "playlist" (rfe/href :playlist-page nil {:url %})
+                               "stream"   (rfe/href :stream-page
+                                                    nil
+                                                    {:url (:url %)})
+                               "channel"  (rfe/href :channel-page
+                                                    nil
+                                                    {:url (:url %)})
+                               "playlist" (rfe/href :playlist-page
+                                                    nil
+                                                    {:url (:url %)})
                                (:url %))]
     [:div.flex.flex-col.flex-auto.my-2.md:my-8
      (if (empty? related-streams)
