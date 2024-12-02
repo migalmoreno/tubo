@@ -41,7 +41,7 @@
  :main-player/toggle-layout
  (fn [db [_ layout]]
    (assoc-in db
-    [:queue (:queue-pos db) layout]
+    [:queue (:queue/position db) layout]
     (not (get-in db [:queue (:queue/position db) layout])))))
 
 (rf/reg-event-fx

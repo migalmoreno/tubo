@@ -36,7 +36,7 @@
        :queue          (if-nil (:queue store) [])
        :service-id     (if-nil (:service-id store) 0)
        :player/loop    (if-nil (:player/loop store) :playlist)
-       :queue/position (if-nil (:palyer/position store) 0)
+       :queue/position (if-nil (:queue/position store) 0)
        :player/volume  (if-nil (:player/volume store) 100)
        :bg-player/show (:bg-player/show store)
        :bookmarks      (if-nil (:bookmarks store)
