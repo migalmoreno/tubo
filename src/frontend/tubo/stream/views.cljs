@@ -85,7 +85,7 @@
   [{:keys [description show-description tags view-count upload-date]}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [:div.bg-neutral-200.dark:bg-neutral-800.p-3.rounded-lg.break-all
+      [:div.bg-neutral-200.dark:bg-neutral-800.p-3.rounded-lg.break-words
        [:div.flex.gap-x-3.font-semibold
         [:span (str (utils/format-quantity view-count) " views")]
         [:span (utils/format-date-ago upload-date)]]
