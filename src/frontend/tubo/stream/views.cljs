@@ -93,11 +93,12 @@
                          :main-player/toggle-layout
                          :stream/toggle-layout)
                        :show-description])]
-       [:div.flex.gap-2.py-2.flex-wrap
-        (for [[i tag] (map-indexed vector tags)]
-          ^{:key i}
-          [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.line-clamp-1
-           (str "#" tag)])]])))
+       (when-not (empty? tags)
+         [:div.flex.gap-2.py-2.flex-wrap
+          (for [[i tag] (map-indexed vector tags)]
+            ^{:key i}
+            [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.line-clamp-1
+             (str "#" tag)])])])))
 
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading] :as stream}]
