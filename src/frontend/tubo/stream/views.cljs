@@ -23,7 +23,7 @@
          [{:label    "Add to queue"
            :icon     [:i.fa-solid.fa-headphones]
            :on-click #(rf/dispatch [:bg-player/show stream true])}
-          {:label    "Play radio"
+          {:label    "Start radio"
            :icon     [:i.fa-solid.fa-tower-cell]
            :on-click #(rf/dispatch [:bg-player/start-radio stream])}
           {:label    (if liked? "Remove favorite" "Favorite")

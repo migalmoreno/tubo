@@ -227,7 +227,7 @@
                        (when liked? {:style {:color color}})]
             :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add)
                                      stream true])}
-           {:label    "Play radio"
+           {:label    "Start radio"
             :icon     [:i.fa-solid.fa-tower-cell]
             :on-click #(rf/dispatch [:bg-player/start-radio stream])}
            {:label    "Add current to playlist"

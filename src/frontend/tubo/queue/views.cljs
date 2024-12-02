@@ -41,7 +41,7 @@
                      {:style {:color (utils/get-service-color service-id)}})]
         :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) item
                                  true])}
-       {:label    "Play radio"
+       {:label    "Start radio"
         :icon     [:i.fa-solid.fa-tower-cell]
         :on-click #(rf/dispatch [:bg-player/start-radio item])}
        {:label    "Add to playlist"
