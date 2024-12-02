@@ -59,15 +59,16 @@
 (defn metadata-stats
   [{:keys [like-count dislike-count] :as stream}]
   [:div.flex.items-center.justify-end.gap-x-2
-   [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.font-semibold.gap-x-4
-    (when like-count
-      [:div.flex.items-center.gap-x-2
-       [:i.fa-solid.fa-thumbs-up]
-       [:span (utils/format-quantity like-count)]])
-    (when dislike-count
-      [:div.flex.items-center.gap-x-2
-       [:i.fa-solid.fa-thumbs-down]
-       [:span dislike-count]])]
+   (when (or like-count dislike-count)
+     [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.font-semibold.gap-x-4
+      (when like-count
+        [:div.flex.items-center.gap-x-2
+         [:i.fa-solid.fa-thumbs-up]
+         [:span (utils/format-quantity like-count)]])
+      (when dislike-count
+        [:div.flex.items-center.gap-x-2
+         [:i.fa-solid.fa-thumbs-down]
+         [:span dislike-count]])])
    [:div.hidden.lg:flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full
     [metadata-popover stream]]])
 
