@@ -48,6 +48,6 @@
             [:a.line-clamp-1.ml-2
              {:href  (rfe/href :channel-page nil {:url uploader-url})
               :title uploader-name}
-             uploader-name]]]]
-         [items/layout-switcher !layout]
+             uploader-name]]
+           [items/layout-switcher !layout]]]
          [items/related-streams related-streams next-page-url !layout]]))))

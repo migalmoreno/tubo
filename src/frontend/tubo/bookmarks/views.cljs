@@ -27,30 +27,32 @@
                        bookmarks)]
         [layout/content-container
          [layout/content-header "Bookmarks"
-          [layout/popover-menu !menu-active?
-           [{:label    "Add New"
-             :icon     [:i.fa-solid.fa-plus]
-             :on-click #(rf/dispatch [:modals/open [modals/add-bookmark]])}
-            [:<>
-             [:input.hidden
-              {:id        "file-selector"
-               :type      "file"
-               :multiple  "multiple"
-               :on-click  #(reset! !menu-active? true)
-               :on-change #(rf/dispatch [:bookmarks/import
-                                         (.. % -target -files)])}]
-             [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
-              {:for "file-selector"}]
-             [:span.text-xs.w-10.min-w-4.w-4.flex.items-center
-              [:i.fa-solid.fa-file-import]]
-             [:span "Import"]]
-            {:label    "Export"
-             :icon     [:i.fa-solid.fa-file-export]
-             :on-click #(rf/dispatch [:bookmarks/export])}
-            {:label    "Clear All"
-             :icon     [:i.fa-solid.fa-trash]
-             :on-click #(rf/dispatch [:bookmarks/clear])}]]]
-         [items/layout-switcher !layout]
+          [:div.flex.flex-auto
+           [layout/popover-menu !menu-active?
+            [{:label    "Add New"
+              :icon     [:i.fa-solid.fa-plus]
+              :on-click #(rf/dispatch [:modals/open [modals/add-bookmark]])}
+             [:<>
+              [:input.hidden
+               {:id        "file-selector"
+                :type      "file"
+                :multiple  "multiple"
+                :on-click  #(reset! !menu-active? true)
+                :on-change #(rf/dispatch [:bookmarks/import
+                                          (.. % -target -files)])}]
+              [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
+               {:for "file-selector"}]
+              [:span.text-xs.w-10.min-w-4.w-4.flex.items-center
+               [:i.fa-solid.fa-file-import]]
+              [:span "Import"]]
+             {:label    "Export"
+              :icon     [:i.fa-solid.fa-file-export]
+              :on-click #(rf/dispatch [:bookmarks/export])}
+             {:label    "Clear All"
+              :icon     [:i.fa-solid.fa-trash]
+              :on-click #(rf/dispatch [:bookmarks/clear])}]
+            :menu-styles {:bottom nil :top "5px" :left nil :right nil}]]
+          [items/layout-switcher !layout]]
          [items/related-streams items nil !layout]]))))
 
 (defn bookmark
@@ -66,15 +68,17 @@
         [layout/content-container
          [layout/content-header name
           (when-not (empty? items)
-            [layout/popover-menu !menu-active?
-             [{:label    "Add to queue"
-               :icon     [:i.fa-solid.fa-headphones]
-               :on-click #(rf/dispatch [:queue/add-n items true])}
-              {:label    "Add to playlist"
-               :icon     [:i.fa-solid.fa-plus]
-               :on-click #(rf/dispatch [:modals/open
-                                        [modals/add-to-bookmark items]])}]])]
-         [items/layout-switcher !layout]
+            [:div.flex.flex-auto
+             [layout/popover-menu !menu-active?
+              [{:label    "Add to queue"
+                :icon     [:i.fa-solid.fa-headphones]
+                :on-click #(rf/dispatch [:queue/add-n items true])}
+               {:label    "Add to playlist"
+                :icon     [:i.fa-solid.fa-plus]
+                :on-click #(rf/dispatch [:modals/open
+                                         [modals/add-to-bookmark items]])}]
+              :menu-styles {:bottom nil :top "5px" :left nil :right nil}]])
+          [items/layout-switcher !layout]]
          [items/related-streams
           (map #(assoc % :type "stream" :bookmark-id id) items) nil
           !layout]]))))
