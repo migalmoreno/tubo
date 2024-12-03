@@ -67,7 +67,7 @@
 
 (defn comments
   [{:keys [comments next-page]}
-   {:keys [uploader-name uploader-avatar url]}]
+   {:keys [uploader-name uploader-avatars url]}]
   (let [pagination-loading? @(rf/subscribe [:show-pagination-loading])
         service-color       @(rf/subscribe [:service-color])]
     [:div.flex.flex-col.py-4
@@ -83,7 +83,9 @@
             [comment-item
              (assoc comment
                     :author-name   uploader-name
-                    :author-avatar uploader-avatar)]]
+                    :author-avatar (-> uploader-avatars
+                                       last
+                                       :url))]]
            (when (and replies show-replies)
              [:div {:style {:marginLeft "32px"}}
               (for [[i reply] (map-indexed vector (:items replies))]
@@ -91,7 +93,9 @@
                 [comment-item
                  (assoc reply
                         :author-name   uploader-name
-                        :author-avatar uploader-avatar)])])])])
+                        :author-avatar (-> uploader-avatars
+                                           last
+                                           :url))])])])])
      (when (:url next-page)
        (if pagination-loading?
          [layout/loading-icon service-color]
