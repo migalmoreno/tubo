@@ -169,7 +169,7 @@
      :hls-url            (.getHlsUrl info)
      :dash-mpd-url       (.getDashMpdUrl info)
      :preview-frames     (j/from-java (.getPreviewFrames info))
-     :stream-segments    (.getStreamSegments info)
+     :stream-segments    (j/from-java (.getStreamSegments info))
      :support-info       (.getSupportInfo info)
      :short?             (.isShortFormContent info)
      :license            (.getLicence info)
