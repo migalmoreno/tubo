@@ -36,7 +36,8 @@
       :name        :channel-page
       :controllers [{:parameters {:query [:url]}
                      :start      (fn [{{:keys [url]} :query}]
-                                   (rf/dispatch [:channel/fetch-page url]))}]}]
+                                   (rf/dispatch [:channel/fetch-page url]))
+                     :stop       #(rf/dispatch [:channel/reset])}]}]
     ["/playlist"
      {:view        playlist/playlist
       :name        :playlist-page
