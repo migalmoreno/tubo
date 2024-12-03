@@ -107,7 +107,8 @@
         service-color @(rf/subscribe [:service-color])]
     (when show?
       (if show-comments-loading
-        [layout/loading-icon service-color "text-2xl"]
+        [:div.h-44.flex.items-center
+         [layout/loading-icon service-color "text-2xl"]]
         (when (and show-comments comments-page)
           [comments/comments comments-page stream])))))
 
@@ -120,9 +121,8 @@
         (when (and show? (seq related-streams))
           [:div
            [:div.flex.flex-wrap.items-center.justify-between.mt-8.min-w-full
-            [:div.flex.gap-2.items-center
-             [:span.font-semibold.text-xl "Next Up"]]
-            [:div.flex.gap-x-4
+            [:div.flex.gap-x-4.items-center
+             [:span.font-semibold.text-xl "Next Up"]
              [layout/popover-menu !menu-active?
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
@@ -133,8 +133,9 @@
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [:modals/open
                                          [modals/add-to-bookmark
-                                          related-streams]])}]]
-             [items/layout-switcher !layout]]
+                                          related-streams]])}]
+              :menu-styles {:bottom "30px" :top nil :left "20px" :right nil}]]
+            [items/layout-switcher !layout]
             [items/related-streams related-streams nil !layout]]])))))
 
 (defn stream
