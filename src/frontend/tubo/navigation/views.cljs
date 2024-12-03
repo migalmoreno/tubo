@@ -27,11 +27,11 @@
                                            :params {}
                                            :query  {:q         search-query
                                                     :serviceId service-id}}])))}
-         [:div.flex.relative.flex-auto.lg:flex-none
-          [:button.mx-2
+         [:div.flex.items-center.relative.flex-auto.lg:flex-none
+          [:button.p-2
            {:type "button" :on-click #(rf/dispatch [:search/show-form false])}
            [:i.fa-solid.fa-arrow-left]]
-          [:input.w-full.lg:w-96.bg-transparent.py-2.pl-0.pr-6.mx-2.border-none.focus:ring-transparent.placeholder-white
+          [:input.w-full.lg:w-96.bg-transparent.pl-0.pr-6.m-2.border-none.focus:ring-transparent.placeholder-white
            {:type          "text"
             :ref           #(do (reset! !input %)
                                 (when %
@@ -42,8 +42,8 @@
                                 (rf/dispatch [:search/change-query input]))
                               (reset! !query input))
             :placeholder   "Search"}]
-          [:button.mx-3 {:type "submit"} [:i.fa-solid.fa-search]]
-          [:button.mx-4.text-xs.absolute.right-8.top-3
+          [:button.p-3 {:type "submit"} [:i.fa-solid.fa-search]]
+          [:button.p-4.text-xs.absolute.right-8
            {:on-click #(when @!input
                          (set! (.-value @!input) "")
                          (reset! !query "")
