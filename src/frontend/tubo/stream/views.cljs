@@ -47,15 +47,15 @@
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
   [:div.flex.items-center
    [layout/uploader-avatar stream]
-   [:div.mx-3
+   [:div.mx-3.gap-x-2
     [:a.line-clamp-1.font-semibold
      {:href  (rfe/href :channel-page nil {:url uploader-url})
       :title uploader-name}
      uploader-name]
     (when subscriber-count
-      [:div.flex.my-2.items-center
-       [:i.fa-solid.fa-users.text-xs]
-       [:p.mx-2 (utils/format-quantity subscriber-count)]])]])
+      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
+       [:span
+        (str (utils/format-quantity subscriber-count) " subscribers")]])]])
 
 (defn metadata-stats
   [{:keys [like-count dislike-count] :as stream}]
