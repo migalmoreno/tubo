@@ -21,7 +21,7 @@
                 #^{:static true} [getInstance [] tubo.DownloaderImpl]])
 
 (def user-agent
-  "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
+  "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0")
 (def instance (atom nil))
 
 (defn -downloader-impl
