@@ -171,8 +171,7 @@
 
 (defn popover-menu
   [!menu-active? items &
-   {:keys [menu-styles extra-classes]
-    :or   {menu-styles {:right "25px"} extra-classes [:p-3]}}]
+   {:keys [menu-styles extra-classes] :or {extra-classes [:p-3]}}]
   [:div.flex.items-center
    [focus-overlay #(reset! !menu-active? false) @!menu-active? true]
    [:button.focus:outline-none.relative

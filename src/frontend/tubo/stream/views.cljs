@@ -40,6 +40,7 @@
            :icon     [:i.fa-solid.fa-plus]
            :on-click #(rf/dispatch [:modals/open
                                     [modals/add-to-bookmark stream]])}]
+         :menu-styles {:top "15px" :right "30px"}
          :extra-classes ["p-3" "lg:p-0"]]))))
 
 (defn metadata-uploader

@@ -20,7 +20,8 @@
            :icon     [:i.fa-solid.fa-plus]
            :on-click #(rf/dispatch [:modals/open
                                     [modals/add-to-bookmark
-                                     related-streams]])}]]))))
+                                     related-streams]])}]
+         :menu-styles {:top "15px" :right "30px"}]))))
 
 (defn playlist
   [_]
