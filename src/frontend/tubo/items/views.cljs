@@ -60,7 +60,7 @@
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration]
+           stream-count verified? thumbnails duration type]
     :as   item} route bookmarks]
   [:div.w-full
    [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
@@ -90,7 +90,7 @@
        (when (and uploader-url verified?)
          [:i.fa-solid.fa-circle-check.text-xs])]
       [item-popover item bookmarks]]
-     (when subscriber-count
+     (when (and (= type "channel") subscriber-count)
        [:div.flex.items-center
         [:i.fa-solid.fa-users.text-xs]
         [:span.mx-2 (utils/format-quantity subscriber-count)]])
@@ -107,7 +107,7 @@
 
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration upload-date]
+           stream-count verified? thumbnails duration upload-date type]
     :as   item} route bookmarks]
   [:div.w-full
    [:div.flex.gap-x-3.xs:gap-x-5
@@ -156,7 +156,7 @@
           [:span (utils/format-date-ago upload-date)]])
        (when (or subscriber-count stream-count)
          [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
-          (when subscriber-count
+          (when (and (= type "channel") subscriber-count)
             [:<>
              [:div.flex.items-center.h-full
               [:p
