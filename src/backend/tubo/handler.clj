@@ -37,6 +37,10 @@
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (apply api/get-channel url (if nextPage [nextPage] []))))
 
+(defn channel-tabs
+  [{{:keys [url tab-id]} :path-params {:strs [nextPage]} :query-params}]
+  (response (apply api/get-channel-tab url tab-id (if nextPage [nextPage] []))))
+
 (defn playlist
   [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
   (response (apply api/get-playlist url (if nextPage [nextPage] []))))

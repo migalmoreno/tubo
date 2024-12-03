@@ -42,7 +42,10 @@
                 :parameters {:path {:service-id int? :kiosk-id string?}}
                 :handler    handler/kiosk}}]]]]
      ["/streams/:url" {:get handler/stream}]
-     ["/channels/:url" {:get handler/channel}]
+     ["/channels"
+      ["/:url"
+       ["" {:get handler/channel}]
+       ["/tabs/:tab-id" {:get handler/channel-tabs}]]]
      ["/playlists/:url" {:get handler/playlist}]
      ["/comments/:url" {:get handler/comments}]]]
    {:data {:middleware [rrc/coerce-request-middleware
