@@ -41,7 +41,8 @@
 (defn channel
   [_]
   (let [!show-description? (r/atom false)
-        !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))]
+        !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))
+        !active-tab        (r/atom nil)]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banners description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
@@ -49,7 +50,8 @@
             scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])
             page-loading? @(rf/subscribe [:show-page-loading])]
         (when (and next-page-url scrolled-to-bottom?)
-          (rf/dispatch [:channel/fetch-paginated url next-page-url]))
+          (rf/dispatch [:channel/fetch-paginated url @!active-tab
+                        next-page-url]))
         [:<>
          (when-not page-loading?
            (when banners
@@ -63,5 +65,19 @@
           (when-not (empty? description)
             [layout/show-more-container @!show-description? description
              #(reset! !show-description? (not @!show-description?))])
-          [items/layout-switcher !layout]
+          [:div.flex.justify-between
+           [layout/tabs
+            (map (fn [tab]
+                   {:id    (-> tab
+                               :contentFilters
+                               first)
+                    :label (-> tab
+                               :contentFilters
+                               first)})
+                 (:tabs channel))
+            :selected-id @!active-tab
+            :on-change
+            #(do (reset! !active-tab %)
+                 (rf/dispatch [:channel/fetch-tab url %]))]
+           [items/layout-switcher !layout]]
           [items/related-streams related-streams next-page-url !layout]]]))))

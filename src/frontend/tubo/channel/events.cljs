@@ -39,6 +39,22 @@
            [:channel/bad-page-response uri]]]]
     :db (assoc db :show-page-loading true)}))
 
+(rf/reg-event-fx
+ :channel/load-tab
+ (fn [{:keys [db]} [_ res]]
+   (let [tab-res (js->clj res :keywordize-keys true)]
+     {:db (-> db
+              (assoc-in [:channel :related-streams] (:related-streams tab-res))
+              (assoc-in [:channel :next-page-url] (:next-page-url tab-res)))})))
+
+(rf/reg-event-fx
+ :channel/fetch-tab
+ (fn [_ [_ uri tab-id]]
+   (api/get-request
+    (str "/channels/" (js/encodeURIComponent uri) "/tabs/" tab-id)
+    [:channel/load-tab]
+    [:channel/bad-page-response])))
+
 (rf/reg-event-db
  :channel/load-paginated
  (fn [db [_ res]]
@@ -62,12 +78,13 @@
 
 (rf/reg-event-fx
  :channel/fetch-paginated
- (fn [{:keys [db]} [_ uri next-page-url]]
+ (fn [{:keys [db]} [_ uri tab-id next-page-url]]
    (if (empty? next-page-url)
      {:db (assoc db :show-pagination-loading false)}
      (assoc
       (api/get-request
-       (str "/channels/" (js/encodeURIComponent uri))
+       (str "/channels/" (js/encodeURIComponent uri)
+            "/tabs/"     (or tab-id "default"))
        [:channel/load-paginated]
        [:channel/bad-paginated-response]
        {:nextPage (js/encodeURIComponent next-page-url)})
