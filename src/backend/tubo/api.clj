@@ -73,19 +73,19 @@
 
 (defn get-channel
   ([url]
-   (let [info                 (ChannelInfo/getInfo (url-decode url))
-         service              (NewPipe/getServiceByUrl (url-decode url))
-         preloaded-videos-tab (->> (.getTabs info)
-                                   (filter #(instance?
-                                             ReadyChannelTabListLinkHandler
-                                             %))
-                                   (filter #(some #{ChannelTabs/VIDEOS}
-                                                  (.getContentFilters %)))
-                                   first)
-         tab-info             (ChannelTabInfo/getInfo
-                               service
-                               (or preloaded-videos-tab
-                                   (first (.getTabs info))))]
+   (let [info       (ChannelInfo/getInfo (url-decode url))
+         service    (NewPipe/getServiceByUrl (url-decode url))
+         videos-tab (->> (.getTabs info)
+                         (filter #(instance?
+                                   ReadyChannelTabListLinkHandler
+                                   %))
+                         (filter #(some #{ChannelTabs/VIDEOS}
+                                        (.getContentFilters %)))
+                         first)
+         tab-info   (ChannelTabInfo/getInfo
+                     service
+                     (or videos-tab
+                         (first (.getTabs info))))]
      {:name             (.getName info)
       :service-id       (.getServiceId info)
       :id               (.getId info)
@@ -100,19 +100,20 @@
       :related-streams  (when tab-info
                           (get-items (.getRelatedItems tab-info)))}))
   ([url page-url]
-   (let [channel-info         (ChannelInfo/getInfo (url-decode url))
-         service              (NewPipe/getServiceByUrl (url-decode url))
-         preloaded-videos-tab (->> (.getTabs channel-info)
-                                   (filter #(instance?
-                                             ReadyChannelTabListLinkHandler
-                                             %))
-                                   (filter #(some #{ChannelTabs/VIDEOS}
-                                                  (.getContentFilters %)))
-                                   first)
-         tab-info             (ChannelTabInfo/getMoreItems service
-                                                           preloaded-videos-tab
-                                                           (Page. (url-decode
-                                                                   page-url)))]
+   (let [channel-info (ChannelInfo/getInfo (url-decode url))
+         service      (NewPipe/getServiceByUrl (url-decode url))
+         videos-tab   (->> (.getTabs channel-info)
+                           (filter #(instance?
+                                     ReadyChannelTabListLinkHandler
+                                     %))
+                           (filter #(some #{ChannelTabs/VIDEOS}
+                                          (.getContentFilters %)))
+                           first)
+         tab-info     (ChannelTabInfo/getMoreItems
+                       service
+                       (or videos-tab (first (.getTabs channel-info)))
+                       (Page. (url-decode
+                               page-url)))]
      {:related-streams (get-items (.getRelatedItems tab-info))
       :next-page       (j/from-java (.getNextPage tab-info))})))
 
@@ -207,6 +208,8 @@
    :uploader-url         (.getUploaderUrl item)
    :uploader-avatars     (j/from-java (.getUploaderAvatars item))
    :uploader-verified?   (.isUploaderVerified item)
+   :creator-reply?       (.hasCreatorReply item)
+   :channel-owner?       (.isChannelOwner item)
    :like-count           (non-negative (.getLikeCount item))
    :reply-count          (non-negative (.getReplyCount item))
    :hearted-by-uploader? (.isHeartedByUploader item)
