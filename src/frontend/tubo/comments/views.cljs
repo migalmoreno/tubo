@@ -34,7 +34,7 @@
    (when (and like-count (> like-count 0))
      [:div.flex.items-center.my-2
       [:i.fa-solid.fa-thumbs-up.text-xs]
-      [:p.mx-1 like-count]])
+      [:p.mx-1 (utils/format-quantity like-count)]])
    (when hearted-by-uploader?
      [:div.relative.w-4.h-4.mx-2
       [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500]
