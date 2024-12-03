@@ -235,7 +235,8 @@
      [:h3.font-bold
       (str status " " status-text)]]
     (when parse-error
-      [:span (or (:original-text parse-error) (:status-text parse-error))])
+      [:span.break-all
+       (or (:original-text parse-error) (:status-text parse-error))])
     [:div.flex.justify-center.gap-x-6
      [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
      [secondary-button "Retry" #(rf/dispatch cb)]]]])
