@@ -15,15 +15,15 @@
       (let [bookmarks @(rf/subscribe [:bookmarks])
             items     (map
                        #(assoc %
-                               :stream-count  (count (:items %))
-                               :bookmark-id   (:id %)
-                               :url           (rfe/href :bookmark-page
-                                                        nil
-                                                        {:id (:id %)})
-                               :thumbnail-url (-> %
-                                                  :items
-                                                  first
-                                                  :thumbnail-url))
+                               :stream-count (count (:items %))
+                               :bookmark-id  (:id %)
+                               :url          (rfe/href :bookmark-page
+                                                       nil
+                                                       {:id (:id %)})
+                               :thumbnails   (-> %
+                                                 :items
+                                                 first
+                                                 :thumbnails))
                        bookmarks)]
         [layout/content-container
          [layout/content-header "Bookmarks"

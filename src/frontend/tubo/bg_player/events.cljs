@@ -144,7 +144,10 @@
                       [[:media-session-metadata
                         {:title   (:name stream-res)
                          :artist  (:uploader-name stream-res)
-                         :artwork [{:src (:thumbnail-url stream-res)}]}]
+                         :artwork [{:src (-> stream-res
+                                             :thumbnails
+                                             last
+                                             :url)}]}]
                        [:media-session-handlers
                         {:current-pos idx
                          :player      bg-player}]]))})))

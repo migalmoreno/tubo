@@ -60,11 +60,14 @@
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnail-url duration]
+           stream-count verified? thumbnails duration]
     :as   item} route bookmarks]
   [:div.w-full
    [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
-    [layout/thumbnail thumbnail-url route name duration
+    [layout/thumbnail
+     (-> thumbnails
+         last
+         :url) route name duration
      :classes [:py-2 :h-44 "xs:h-28"] :rounded? true]
     [:div
      (when name
@@ -104,11 +107,14 @@
 
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnail-url duration upload-date]
+           stream-count verified? thumbnails duration upload-date]
     :as   item} route bookmarks]
   [:div.w-full
    [:div.flex.gap-x-3.xs:gap-x-5
-    [layout/thumbnail thumbnail-url route name duration
+    [layout/thumbnail
+     (-> thumbnails
+         last
+         :url) route name duration
      :classes
      [:py-2 :h-28 "sm:h-36" "min-w-[130px]" "max-w-[130px]" "sm:min-w-[250px]"
       "sm:max-w-[250px]"] :rounded?
@@ -155,8 +161,9 @@
              [:div.flex.items-center.h-full
               [:p
                (str (utils/format-quantity subscriber-count) " subscribers")]]
-             [:span.px-2.hidden.xs:inline-block
-              {:dangerouslySetInnerHTML {:__html "&bull;"}}]])
+             (when stream-count
+               [:span.px-2.hidden.xs:inline-block
+                {:dangerouslySetInnerHTML {:__html "&bull;"}}])])
           (when stream-count
             [:span
              (str (utils/format-quantity stream-count) " streams")])])]]]]])

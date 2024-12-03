@@ -8,13 +8,13 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [thumbnail-url route name duration & {:keys [classes rounded?]}]
+  [thumbnail route name duration & {:keys [classes rounded?]}]
   [:div.flex.box-border {:class classes}
    [:div.relative.min-w-full
     [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
-    (if thumbnail-url
+    (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
-       {:src thumbnail-url :class (when rounded? :rounded)}]
+       {:src thumbnail :class (when rounded? :rounded)}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
@@ -63,9 +63,9 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn uploader-avatar
-  [{:keys [uploader-avatar uploader-name uploader-url]}
+  [{:keys [uploader-avatars uploader-name uploader-url]}
    & {:keys [classes] :or {classes ["w-12" "xs:w-16" "h-12" "xs:h-16"]}}]
-  (when uploader-avatar
+  (when (seq uploader-avatars)
     [:div.relative.flex-auto.flex.items-center.shrink-0.grow-0 {:class classes}
      (conj
       (when uploader-url
@@ -74,7 +74,11 @@
           :title uploader-name
           :key   uploader-url}])
       [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full
-       {:src uploader-avatar :alt uploader-name :key uploader-name}])]))
+       {:src (-> uploader-avatars
+                 last
+                 :url)
+        :alt uploader-name
+        :key uploader-name}])]))
 
 (defn button
   [label on-click left-icon right-icon &
@@ -226,8 +230,8 @@
 (defn error
   [{:keys [_failure parse-error status status-text]} cb]
   [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
-   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.bg-neutral-300.dark:bg-neutral-800.p-8
-    [:div.flex.items-center.gap-2.text-xl
+   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700
+    [:div.flex.items-center.gap-x-4.text-xl
      [:i.fa-solid.fa-circle-exclamation]
      [:h3.font-bold
       (str status " " status-text)]]
@@ -239,24 +243,25 @@
 
 (defn tabs
   [tabs]
-  (let [!current (r/atom (nth tabs 0))]
+  (let [!current (r/atom (and (seq tabs) (nth tabs 0)))]
     (fn [tabs & {:keys [on-change]}]
       [:div
        (into
-        [:ul.w-full.flex.justify-center.items-center]
-        (for [[i tab] (map-indexed vector tabs)]
-          (let [selected? (= (:id tab) (:id @!current))]
-            (when tab
-              [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
-               {:class (if selected?
-                         "border-neutral-700 dark:border-neutral-100"
-                         "!border-transparent")
-                :key   i}
-               [:button.flex-auto.py-4
-                {:on-click (when (not selected?)
-                             (fn []
-                               (reset! !current tab)
-                               (on-change (:id @!current))))}
-                (if (:label-fn tab)
-                  ((:label-fn tab) (:label tab))
-                  (:label tab))]]))))])))
+        [:ul.w-full.flex.gap-x-4.justify-center.items-center]
+        (when (seq tabs)
+          (for [[i tab] (map-indexed vector tabs)]
+            (let [selected? (= (:id tab) (:id @!current))]
+              (when tab
+                [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
+                 {:class (if selected?
+                           "border-neutral-700 dark:border-neutral-100"
+                           "!border-transparent")
+                  :key   i}
+                 [:button.flex-auto.py-4
+                  {:on-click (when (not selected?)
+                               (fn []
+                                 (reset! !current tab)
+                                 (on-change (:id @!current))))}
+                  (if (:label-fn tab)
+                    ((:label-fn tab) (:label tab))
+                    (:label tab))]])))))])))

@@ -9,7 +9,7 @@
    [tubo.utils :as utils]))
 
 (defn item-metadata
-  [{:keys [uploader-name name service-id duration thumbnail-url]} queue-pos i]
+  [{:keys [uploader-name name service-id duration thumbnails]} queue-pos i]
   [:div.flex.cursor-pointer.py-2
    {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-neutral-800"])
     :on-click #(rf/dispatch [:queue/change-pos i])}
@@ -17,7 +17,10 @@
     [:span.font-bold.text-neutral-400.text-sm
      (if (= i queue-pos) [:i.fa-solid.fa-play] (inc i))]]
    [:div.flex.items-center.shrink-0.grow-0
-    [layout/thumbnail thumbnail-url nil name duration :classes
+    [layout/thumbnail
+     (-> thumbnails
+         last
+         :url) nil name duration :classes
      ["h-12" "xs:h-16" "w-16" "xs:w-24" "md:w-32"]]]
    [:div.flex.flex-col.pl-4.pr-12.w-full
     [:h1.line-clamp-1.w-fit.text-sm.xs:text-lg {:title name} name]

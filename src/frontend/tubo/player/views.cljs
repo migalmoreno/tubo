@@ -21,7 +21,7 @@
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:main-player/ready false])
       :reagent-render
-      (fn [{:keys [video-streams audio-streams thumbnail-url]}
+      (fn [{:keys [video-streams audio-streams thumbnails]}
            !player]
         (let [show-main-player? @(rf/subscribe [:main-player/show])
               service-color     @(rf/subscribe [:service-color])]
@@ -34,12 +34,14 @@
                      "height"                  "100%"
                      "width"                   "100%"}}
             [:video
-             {:style          {"max-height" "100%"
-                               "min-height" "100%"
-                               "min-width"  "100%"
-                               "max-width"  "100%"}
+             {:style          {"maxHeight" "100%"
+                               "minHeight" "100%"
+                               "minWidth"  "100%"
+                               "maxWidth"  "100%"}
               :ref            #(reset! !player %)
-              :poster         thumbnail-url
+              :poster         (-> thumbnails
+                                  last
+                                  :url)
               :loop           (when show-main-player?
                                 (= @(rf/subscribe [:player/loop]) :stream))
               :on-can-play    #(rf/dispatch [:main-player/ready true])

@@ -14,7 +14,9 @@
     [layout/thumbnail
      (-> items
          first
-         :thumbnail-url) nil name nil
+         :thumbnails
+         last
+         :url) nil name nil
      :classes [:h-24 :py-2] :rounded? true]]
    [:div.flex.flex-col.py-4.px-4
     [:h1.line-clamp-1.font-bold {:title name} name]
