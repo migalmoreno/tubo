@@ -43,16 +43,21 @@
   [_]
   (let [!show-description? (r/atom false)
         !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))
-        !active-tab        (r/atom nil)]
+        !active-tab-id     (r/atom nil)]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banners description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
-            next-page-url (:url next-page)
-            scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])
-            page-loading? @(rf/subscribe [:show-page-loading])]
-        (when (and next-page-url scrolled-to-bottom?)
-          (rf/dispatch [:channel/fetch-paginated url @!active-tab
-                        next-page-url]))
+            page-loading? @(rf/subscribe [:show-page-loading])
+            active-tab (first (filter #(= @!active-tab-id
+                                          (-> %
+                                              :contentFilters
+                                              first))
+                                      (:tabs channel)))
+            next-page-url (if active-tab
+                            (-> active-tab
+                                :next-page
+                                :url)
+                            (:url next-page))]
         [:<>
          (when-not page-loading?
            (when banners
@@ -76,9 +81,13 @@
                                :contentFilters
                                first)})
                  (:tabs channel))
-            :selected-id @!active-tab
+            :selected-id @!active-tab-id
             :on-change
-            #(do (reset! !active-tab %)
+            #(do (reset! !active-tab-id %)
                  (rf/dispatch [:channel/fetch-tab url %]))]
            [items/layout-switcher !layout]]
-          [items/related-streams related-streams next-page-url !layout]]]))))
+          [items/related-streams
+           (or (:related-streams active-tab) related-streams) next-page-url
+           !layout
+           #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
+                          next-page-url])]]]))))
