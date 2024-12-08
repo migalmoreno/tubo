@@ -62,16 +62,17 @@
 
 (rf/reg-event-fx
  :likes/add-n
- (fn [_ [_ items]]
+ (fn [_ [_ items notify?]]
    {:fx (conj (map (fn [item]
                      [:dispatch [:likes/add item]])
                    items)
-              [:dispatch
-               [:notifications/add
-                {:status-text (str "Added "
-                                   (count items)
-                                   " items to likes")
-                 :failure     :success}]])}))
+              (when notify?
+                [:dispatch
+                 [:notifications/add
+                  {:status-text (str "Added "
+                                     (count items)
+                                     " items to likes")
+                   :failure     :success}]]))}))
 
 (rf/reg-event-fx
  :likes/add
@@ -186,19 +187,27 @@
                            bookmarks)
               [:dispatch
                [:notifications/add
-                {:status-text "Imported playlists successfully"
+                {:status-text (str "Imported "
+                                   (count bookmarks)
+                                   " playlists successfully")
                  :failure     :success}]])}))
 
 (defn fetch-imported-bookmarks-items
   [bookmarks]
   (-> #(-> (p/all (map (fn [stream]
-                         (p/then (js/fetch
-                                  (str "/api/v1/streams/"
-                                       (js/encodeURIComponent stream)))
-                                 (fn [res] (.json res))))
+                         (-> (js/fetch
+                              (str "/api/v1/streams/"
+                                   (js/encodeURIComponent stream)))
+                             (p/then (fn [res] (.json res)))
+                             (p/catch (fn []
+                                        (rf/dispatch
+                                         [:notifications/add
+                                          {:status-text
+                                           (str "Error importing " stream)
+                                           :failure :error}])))))
                        (:items %)))
            (p/then (fn [results]
-                     (assoc % :items results))))
+                     (assoc % :items (remove nil? results)))))
       (map bookmarks)
       p/all))
 
@@ -213,8 +222,8 @@
                     [:bookmarks/add-imported]]}
     :fx [[:dispatch
           [:notifications/add
-           {:status-text "Importing playlists..."
-            :failure     :success}
+           {:status-text "Importing playlists"
+            :failure     :loading}
            false]]]}))
 
 (rf/reg-fx
