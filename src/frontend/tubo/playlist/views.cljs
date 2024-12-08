@@ -31,10 +31,7 @@
                     stream-count]
              :as   playlist}
             @(rf/subscribe [:playlist])
-            next-page-url (:url next-page)
-            scrolled-to-bottom? @(rf/subscribe [:scrolled-to-bottom])]
-        (when scrolled-to-bottom?
-          (rf/dispatch [:playlist/fetch-paginated url next-page-url]))
+            next-page-url (:url next-page)]
         [layout/content-container
          [:div.flex.flex-col.justify-center
           [layout/content-header
@@ -51,4 +48,5 @@
               :title uploader-name}
              uploader-name]]
            [items/layout-switcher !layout]]]
-         [items/related-streams related-streams next-page-url !layout]]))))
+         [items/related-streams related-streams next-page-url !layout
+          #(rf/dispatch [:playlist/fetch-paginated url next-page-url])]]))))
