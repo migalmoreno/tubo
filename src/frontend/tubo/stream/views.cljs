@@ -40,8 +40,8 @@
            :icon     [:i.fa-solid.fa-plus]
            :on-click #(rf/dispatch [:modals/open
                                     [modals/add-to-bookmark stream]])}]
-         :menu-styles {:top "15px" :right "30px"}
-         :extra-classes ["p-3" "lg:p-0"]]))))
+         :menu-classes ["xs:right-5" "xs:top-5" "xs:left-auto" "xs:bottom-auto"]
+         :extra-classes ["xs:py-2" "xs:px-4"]]))))
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
@@ -70,7 +70,7 @@
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-down]
          [:span dislike-count]])])
-   [:div.hidden.lg:flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full
+   [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-800.rounded-full
     [metadata-popover stream]]])
 
 (defn metadata
@@ -134,8 +134,7 @@
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [:modals/open
                                          [modals/add-to-bookmark
-                                          related-streams]])}]
-              :menu-styles {:bottom "30px" :top nil :left "20px" :right nil}]]
+                                          related-streams]])}]]]
             [items/layout-switcher !layout]
             [items/related-streams related-streams nil !layout]]])))))
 

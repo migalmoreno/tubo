@@ -56,7 +56,8 @@
                                            true])})])]
         (when (not-empty (remove nil? items))
           [layout/popover-menu !menu-active? items :extra-classes
-           [:pr-0 :pl-4] :menu-styles {:right "15px"}])))))
+           [:pr-0 :pl-4] :menu-classes
+           ["xs:right-5" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]])))))
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count

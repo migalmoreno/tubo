@@ -59,7 +59,8 @@
                                  {:name   :channel-page
                                   :params {}
                                   :query  {:url uploader-url}}])}]
-      :menu-styles {:right "40px"}
+      :menu-classes
+      ["xs:right-5" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]
       :extra-classes [:px-7 :py-2]]]))
 
 (defn queue-item

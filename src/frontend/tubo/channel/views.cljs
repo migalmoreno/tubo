@@ -21,7 +21,8 @@
            :on-click #(rf/dispatch [:modals/open
                                     [modals/add-to-bookmark
                                      related-streams]])}]
-         :menu-styles {:top "15px" :right "30px"}]))))
+         :menu-classes
+         ["xs:right-7" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]]))))
 
 (defn metadata
   [{:keys [avatars name subscriber-count] :as channel}]
@@ -36,7 +37,7 @@
        [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
         [:span
          (str (utils/format-quantity subscriber-count) " subscribers")]])]]
-   [:div.hidden.lg:block
+   [:div.hidden.xs:block
     [metadata-popover channel]]])
 
 (defn channel

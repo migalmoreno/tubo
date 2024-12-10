@@ -50,8 +50,7 @@
               :on-click #(rf/dispatch [:bookmarks/export])}
              {:label    "Clear All"
               :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/clear])}]
-            :menu-styles {:bottom nil :top "5px" :left nil :right nil}]]
+              :on-click #(rf/dispatch [:bookmarks/clear])}]]]
           [items/layout-switcher !layout]]
          [items/related-streams items nil !layout]]))))
 
@@ -76,8 +75,7 @@
                {:label    "Add to playlist"
                 :icon     [:i.fa-solid.fa-plus]
                 :on-click #(rf/dispatch [:modals/open
-                                         [modals/add-to-bookmark items]])}]
-              :menu-styles {:bottom nil :top "5px" :left nil :right nil}]])
+                                         [modals/add-to-bookmark items]])}]]])
           [items/layout-switcher !layout]]
          [items/related-streams
           (map #(assoc % :type "stream" :bookmark-id id) items) nil

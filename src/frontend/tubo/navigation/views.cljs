@@ -149,7 +149,7 @@
        {:on-click #(rf/dispatch [:search/show-form true])}
        [:i.fa-solid.fa-search]]
       (when-not (or show-queue? show-main-player?)
-        [:div.lg:hidden
+        [:div.xs:hidden
          (case (-> match
                    :data
                    :name)

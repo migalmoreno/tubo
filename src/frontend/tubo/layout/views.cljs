@@ -39,9 +39,9 @@
      :style {:color service-color}}]])
 
 (defn focus-overlay
-  [on-click active? transparent?]
+  [on-click active? transparent? extra-classes]
   [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out.z-20
-   {:class    (when-not transparent? "bg-black")
+   {:class    (conj extra-classes (when-not transparent? "bg-black"))
     :style    {:visibility (when-not active? "hidden")
                :opacity    (if active? "0.5" "0")}
     :on-click on-click}])
@@ -161,24 +161,26 @@
        (if (vector? item) item content)])))
 
 (defn menu
-  [active? items & {:keys [right top bottom left] :or {right "15px" top "0px"}}]
+  [active? items & {:keys [extra-classes]}]
   (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900
-     {:class (when-not active? "hidden")
-      :style {:right right :left left :top top :bottom bottom}}
+    [:ul.xs:absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-2.left-2.right-2.fixed
+     {:class (conj extra-classes (when-not active? "hidden"))}
      (for [[i item] (map-indexed vector (remove nil? items))]
        ^{:key i} [menu-item item])]))
 
 (defn popover-menu
   [!menu-active? items &
-   {:keys [menu-styles extra-classes] :or {extra-classes [:p-3]}}]
+   {:keys [menu-classes extra-classes]
+    :or   {extra-classes [:p-3]
+           menu-classes  ["xs:bottom-auto" "xs:left-auto" "xs:right-auto"]}}]
   [:div.flex.items-center
-   [focus-overlay #(reset! !menu-active? false) @!menu-active? true]
-   [:button.focus:outline-none.relative
+   [focus-overlay #(reset! !menu-active? false) @!menu-active? true
+    ["bg-black" "xs:bg-transparent"]]
+   [:button.focus:outline-none.xs:relative
     {:on-click #(reset! !menu-active? (not @!menu-active?))
      :class    extra-classes}
     [:i.fa-solid.fa-ellipsis-vertical]
-    [menu @!menu-active? items menu-styles]]])
+    [menu @!menu-active? items :extra-classes menu-classes]]])
 
 (defn accordeon
   [{:keys [label on-open open? left-icon right-button]} & content]

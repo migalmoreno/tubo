@@ -21,7 +21,8 @@
            :on-click #(rf/dispatch [:modals/open
                                     [modals/add-to-bookmark
                                      related-streams]])}]
-         :menu-styles {:top "15px" :right "30px"}]))))
+         :menu-classes
+         ["xs:right-7" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]]))))
 
 (defn playlist
   [_]
@@ -38,7 +39,7 @@
            [:div.flex.flex-col.gap-y-2.mb-2 name
             [:span.text-sm.whitespace-nowrap.text-neutral-600.dark:text-neutral-400
              (str stream-count " streams")]]
-           [:div.hidden.lg:block
+           [:div.hidden.xs:block
             [metadata-popover playlist]]]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
            [:div.flex.items-center

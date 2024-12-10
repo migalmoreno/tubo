@@ -254,7 +254,8 @@
            {:label    "Close player"
             :icon     [:i.fa-solid.fa-close]
             :on-click #(rf/dispatch [:bg-player/dispose])}]
-          :menu-styles {:bottom "30px" :top nil :right "10px"}
+          :menu-classes
+          ["xs:right-5" "xs:top-auto" "xs:left-auto" "xs:bottom-5"]
           :extra-classes [:!pl-4 :px-3]]]))))
 
 (defn audio-player
