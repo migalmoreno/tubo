@@ -64,11 +64,12 @@
                                 #(reset! !elapsed-time (.-currentTime
                                                         @!player)))
               :slot           "media"
-              :src            (:content (nth (into video-streams audio-streams)
-                                             0))
+
+              :src            (-> (into video-streams audio-streams)
+                                  first
+                                  :content)
               :preload        "auto"
-              :muted          @(rf/subscribe [:player/muted])
-              :crossOrigin    ""}]
+              :muted          @(rf/subscribe [:player/muted])}]
             [:div.ytp-gradient-bottom.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
              {:style
               {"paddingTop" "37px"
