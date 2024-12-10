@@ -4,6 +4,13 @@
    [promesa.core :as p]
    [re-frame.core :as rf]))
 
+(defn get-stream-metadata
+  [stream]
+  (select-keys stream
+               [:type :service-id :url :name :thumbnails :verified?
+                :uploader-name :uploader-url :uploader-avatars :upload-date
+                :short-description :duration :view-count :uploaded]))
+
 (rf/reg-event-fx
  :bookmarks/add
  [(rf/inject-cofx :store)]
@@ -86,7 +93,7 @@
      (let [updated-db (update-in db
                                  [:bookmarks 0 :items]
                                  #(into [] (conj (into [] %1) %2))
-                                 (assoc item
+                                 (assoc (get-stream-metadata item)
                                         :bookmark-id
                                         (-> db
                                             :bookmarks
@@ -145,7 +152,9 @@
                       (update-in db
                                  [:bookmarks pos :items]
                                  #(into [] (conj (into [] %1) %2))
-                                 (assoc item :bookmark-id (:id bookmark))))]
+                                 (assoc (get-stream-metadata item)
+                                        :bookmark-id
+                                        (:id bookmark))))]
      {:db    updated-db
       :store (assoc store :bookmarks (:bookmarks updated-db))
       :fx    [[:dispatch [:modals/close]]
@@ -195,20 +204,24 @@
 
 (defn fetch-imported-bookmarks-items
   [bookmarks]
-  (-> #(-> (p/all (map (fn [stream]
-                         (-> (js/fetch
-                              (str "/api/v1/streams/"
-                                   (js/encodeURIComponent stream)))
-                             (p/then (fn [res] (.json res)))
-                             (p/catch (fn []
-                                        (rf/dispatch
-                                         [:notifications/add
-                                          {:status-text
-                                           (str "Error importing " stream)
-                                           :failure :error}])))))
-                       (:items %)))
+  (-> #(-> (p/all
+            (map (fn [stream]
+                   (-> (js/fetch
+                        (str "/api/v1/streams/"
+                             (js/encodeURIComponent stream)))
+                       (p/then (fn [res] (.json res)))
+                       (p/catch (fn []
+                                  (rf/dispatch
+                                   [:notifications/add
+                                    {:status-text
+                                     (str "Error importing " stream)
+                                     :failure :error}])))))
+                 (:items %)))
            (p/then (fn [results]
-                     (assoc % :items (remove nil? results)))))
+                     (assoc %
+                            :items
+                            (map (fn [item] (get-stream-metadata item))
+                                 (remove nil? results))))))
       (map bookmarks)
       p/all))
 
