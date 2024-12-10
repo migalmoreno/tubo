@@ -302,8 +302,9 @@
                           bg-color
                           "),url("
                           (-> stream
+                              :thumbnails
                               last
-                              :thumbnails)
+                              :url)
                           ")")]
     (when show-player?
       [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
