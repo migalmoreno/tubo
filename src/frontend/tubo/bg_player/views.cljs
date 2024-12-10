@@ -271,12 +271,16 @@
               #(rf/dispatch [:queue/change-pos (inc queue-pos)]))
         (when stream
           (set! (.-src (rdom/dom-node this))
-                (:content (nth (:audio-streams stream) 0)))))
+                (-> stream
+                    :audio-streams
+                    first
+                    :content))))
       :reagent-render
       (fn [!player]
         [:audio
          {:ref            #(reset! !player %)
           :loop           (= @(rf/subscribe [:player/loop]) :stream)
+          :muted          @(rf/subscribe [:player/muted])
           :on-can-play    #(rf/dispatch [:bg-player/ready true])
           :on-seeked      #(reset! !elapsed-time (.-currentTime @!player))
           :on-time-update #(reset! !elapsed-time (.-currentTime @!player))

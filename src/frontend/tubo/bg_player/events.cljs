@@ -6,9 +6,8 @@
 (rf/reg-event-fx
  :bg-player/seek
  [(rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [db bg-player]} [_ time]]
-   (when (:bg-player/ready db)
-     {:player/time {:time time :player bg-player}})))
+ (fn [{:keys [bg-player]} [_ time]]
+   {:player/time {:time time :player bg-player}}))
 
 (rf/reg-event-db
  :bg-player/set-paused
