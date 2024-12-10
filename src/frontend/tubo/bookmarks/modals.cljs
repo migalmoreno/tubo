@@ -9,7 +9,7 @@
   [{:keys [items name] :as bookmark} item]
   [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
    {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add)
-                             bookmark item])}
+                             bookmark item true])}
    [:div.w-24
     [layout/thumbnail
      (-> items

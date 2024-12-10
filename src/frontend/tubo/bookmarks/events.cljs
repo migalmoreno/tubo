@@ -120,18 +120,19 @@
 
 (rf/reg-event-fx
  :bookmark/add-n
- (fn [_ [_ bookmark items]]
+ (fn [_ [_ bookmark items notify?]]
    {:fx (conj (map (fn [item]
                      [:dispatch [:bookmark/add bookmark item]])
                    items)
-              [:dispatch
-               [:notifications/add
-                {:status-text (str "Added "
-                                   (count items)
-                                   " items to playlist \""
-                                   (:name bookmark)
-                                   "\"")
-                 :failure     :success}]])}))
+              (when notify?
+                [:dispatch
+                 [:notifications/add
+                  {:status-text (str "Added "
+                                     (count items)
+                                     " items to playlist \""
+                                     (:name bookmark)
+                                     "\"")
+                   :failure     :success}]]))}))
 
 (rf/reg-event-fx
  :bookmark/add
