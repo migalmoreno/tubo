@@ -220,7 +220,9 @@
            (p/then (fn [results]
                      (assoc %
                             :items
-                            (map (fn [item] (get-stream-metadata item))
+                            (map (fn [item]
+                                   (get-stream-metadata
+                                    (js->clj item :keywordize-keys true)))
                                  (remove nil? results))))))
       (map bookmarks)
       p/all))
@@ -229,9 +231,7 @@
  :bookmarks/process-import
  (fn [_ [_ bookmarks]]
    {:promise
-    {:call         #(-> (fetch-imported-bookmarks-items bookmarks)
-                        (p/then (fn [res]
-                                  (js->clj res :keywordize-keys true))))
+    {:call         #(fetch-imported-bookmarks-items bookmarks)
      :on-success-n [[:notifications/clear]
                     [:bookmarks/add-imported]]}
     :fx [[:dispatch
