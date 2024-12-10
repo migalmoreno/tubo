@@ -86,19 +86,12 @@
 (rf/reg-event-fx
  :bg-player/show
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream notify?]]
+ (fn [{:keys [db]} [_ stream notify?]]
    (let [updated-db (update db :queue conj stream)
          idx        (.indexOf (:queue updated-db) stream)]
-     {:db    updated-db
-      :store (assoc store :queue (:queue updated-db))
-      :fx    [[:dispatch
-               [:bg-player/fetch-stream
-                (:url stream) idx (= (count (:queue db)) 0)]]
-              (when (and notify? (not (= (count (:queue db)) 0)))
-                [:dispatch
-                 [:notifications/add
-                  {:status-text "Added stream to queue"
-                   :failure     :info}]])]})))
+     {:fx [(if (= (count (:queue db)) 0)
+             [:dispatch [:bg-player/fetch-stream (:url stream) idx true]]
+             [:dispatch [:queue/add stream notify?]])]})))
 
 (rf/reg-event-fx
  :bg-player/start-radio

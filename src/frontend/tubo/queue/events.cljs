@@ -3,6 +3,13 @@
    [re-frame.core :as rf]
    [vimsical.re-frame.cofx.inject :as inject]))
 
+(defn get-stream-metadata
+  [stream]
+  (select-keys stream
+               [:type :service-id :url :name :thumbnails :audio-streams
+                :video-streams :uploader-name :uploader-url :duration
+                :bookmark-id]))
+
 (rf/reg-event-fx
  :queue/show
  (fn [{:keys [db]} [_ show?]]
@@ -36,7 +43,7 @@
  :queue/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream notify?]]
-   (let [updated-db (update db :queue conj stream)]
+   (let [updated-db (update db :queue conj (get-stream-metadata stream))]
      {:db    updated-db
       :store (assoc store :queue (:queue updated-db))
       :fx    (if notify?
@@ -108,7 +115,11 @@
  [(rf/inject-cofx :store)
   (rf/inject-cofx ::inject/sub [:bg-player])]
  (fn [{:keys [db store bg-player]} [_ stream idx]]
-   (let [update-entry (fn [x] (update-in x [:queue idx] #(merge % stream)))]
+   (let [update-entry (fn [x]
+                        (update-in
+                         x
+                         [:queue idx]
+                         #(merge % (get-stream-metadata stream))))]
      {:db         (assoc (update-entry db) :queue/position idx)
       :store      (assoc (update-entry store) :queue/position idx)
       :player/src {:player      bg-player
