@@ -100,7 +100,7 @@
 (defn secondary-button
   [label on-click left-icon right-icon]
   [button label on-click left-icon right-icon
-   :button-classes ["bg-neutral-100" "dark:bg-neutral-800"]
+   :button-classes ["bg-neutral-200" "dark:bg-neutral-800"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
 
 (defn generic-input
