@@ -18,7 +18,7 @@
 
 (defn modal-panel
   [{:keys [child show?]}]
-  [:div.fixed.flex.flex-col.items-center.justify-center.w-full.z-20.top-0
+  [:div.fixed.flex.flex-col.items-center.justify-center.w-full.z-30.top-0
    {:class ["min-h-[100dvh]" "h-[100dvh]"]}
    [layout/focus-overlay #(rf/dispatch [:modals/close]) show?]
    [:div.flex.items-center.justify-center.flex-auto.shrink-0.w-full.max-h-full.p-5
