@@ -1,27 +1,13 @@
 (ns tubo.handler
   (:require
    [clojure.string :as str]
-   [hiccup.page :as hiccup]
-   [ring.util.response :refer [response]]
+   [ring.util.response :refer [response resource-response content-type]]
    [tubo.api :as api]))
 
 (defn index
   [_]
-  (response
-   (hiccup/html5
-    [:head
-     [:meta {:charset "UTF-8"}]
-     [:meta
-      {:name "viewport"
-       :content
-       "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
-     [:title "Tubo"]
-     [:link {:rel "icon" :type "image/svg+xml" :href "/icons/tubo.svg"}]
-     (hiccup/include-css "/styles/index.css")]
-    [:body
-     [:div#app]
-     (hiccup/include-js "/js/main.js")
-     [:script "tubo.core.init();"]])))
+  (-> (resource-response "index.html" {:root "public"})
+      (content-type "text/html")))
 
 (defn search
   [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters
