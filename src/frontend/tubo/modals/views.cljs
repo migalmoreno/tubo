@@ -17,15 +17,14 @@
       [layout/primary-button "Ok" #(rf/dispatch [:modals/close])])]])
 
 (defn modal-panel
-  [{:keys [child show?]}]
-  [:div.fixed.flex.flex-col.items-center.justify-center.w-full.z-30.top-0
-   {:class ["min-h-[100dvh]" "h-[100dvh]"]}
-   [layout/focus-overlay #(rf/dispatch [:modals/close]) show?]
-   [:div.flex.items-center.justify-center.flex-auto.shrink-0.w-full.max-h-full.p-5
-    {:class ["sm:w-3/4" "md:w-3/5" "lg:w-1/2" "xl:w-1/3"]}
+  [{:keys [child]}]
+  [:div.fixed.z-30.flex.flex-col.items-center.justify-center
+   {:class ["top-1/2" "left-1/2" "-translate-x-1/2" "-translate-y-1/2"
+            "w-4/5" "sm:w-3/4" "md:w-3/5" "lg:w-1/2" "xl:w-1/3"]}
+   [:div.w-full.max-h-full
     child]])
 
-(defn modal
+(defn modals-container
   []
   (fn []
     (let [modals        @(rf/subscribe [:modals])

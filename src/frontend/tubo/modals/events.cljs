@@ -32,12 +32,20 @@
                      [:modals/delete
                       (-> (:modals db)
                           last
-                          :id)]]]
+                          :id)]]
+                    (when (<= (count (:modals db)) 1)
+                      [:dispatch
+                       [:layout/hide-bg-overlay]])]
     :body-overflow false}))
 
 (rf/reg-event-fx
  :modals/open
  (fn [_ [_ child]]
    {:fx            [[:dispatch
-                     [:modals/add {:show? true :child child :id (nano-id)}]]]
+                     [:modals/add {:show? true :child child :id (nano-id)}]]
+                    [:dispatch
+                     [:layout/show-bg-overlay
+                      {:extra-classes ["z-30"]
+                       :on-click      #(rf/dispatch [:modals/close])}
+                      true]]]
     :body-overflow true}))
