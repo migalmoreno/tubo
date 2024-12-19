@@ -5,15 +5,15 @@
    [tubo.layout.views :as layout]))
 
 (defn boolean-input
-  [label key value]
+  [label keys value]
   [layout/boolean-input label value
-   #(rf/dispatch [:settings/change key (not value)])])
+   #(rf/dispatch [:settings/change keys (not value)])])
 
 (defn select-input
-  [label key value options on-change]
+  [label keys value options on-change]
   [layout/select-input label value options
    (or on-change
-       #(rf/dispatch [:settings/change key (.. % -target -value)]))])
+       #(rf/dispatch [:settings/change keys (.. % -target -value)]))])
 
 (defn general-settings
   [{:keys [theme default-service items-layout]}]

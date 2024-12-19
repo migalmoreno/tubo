@@ -6,9 +6,10 @@
 (rf/reg-event-fx
  :settings/change
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ key val]]
-   {:db    (assoc-in db [:settings key] val)
-    :store (assoc store key val)}))
+ (fn [{:keys [db store]} [_ keys val]]
+   (let [update-settings #(assoc-in % (into [:settings] keys) val)]
+     {:db    (update-settings db)
+      :store (update-settings store)})))
 
 (rf/reg-event-fx
  :settings/load-kiosks
@@ -22,21 +23,17 @@
          default-kiosk         (if (some #(= % default-service-kiosk)
                                          (:available-kiosks kiosks-res))
                                  default-service-kiosk
-                                 (:default-kiosk kiosks-res))]
-     {:db    (update-in db
-                        [:settings :default-service]
-                        assoc
-                        :id               service-name
-                        :service-id       service-id
-                        :available-kiosks (:available-kiosks kiosks-res)
-                        :default-kiosk    default-kiosk)
-      :store (update-in store
-                        [:default-service]
-                        assoc
-                        :id               service-name
-                        :service-id       service-id
-                        :available-kiosks (:available-kiosks kiosks-res)
-                        :default-kiosk    default-kiosk)})))
+                                 (:default-kiosk kiosks-res))
+         update-settings       #(update-in %
+                                           [:settings :default-service]
+                                           assoc
+                                           :id               service-name
+                                           :service-id       service-id
+                                           :available-kiosks (:available-kiosks
+                                                              kiosks-res)
+                                           :default-kiosk    default-kiosk)]
+     {:db    (update-settings db)
+      :store (update-settings store)})))
 
 (rf/reg-event-fx
  :settings/change-service
@@ -52,13 +49,6 @@
      (api/get-request (str "/services/" service-id "/kiosks")
                       [:settings/load-kiosks val service-id]
                       [:bad-response]))))
-
-(rf/reg-event-fx
- :settings/change-kiosk
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ val]]
-   {:db    (assoc-in db [:settings :default-service :default-kiosk] val)
-    :store (assoc-in store [:default-service :default-kiosk] val)}))
 
 (rf/reg-event-fx
  :settings/fetch-page
