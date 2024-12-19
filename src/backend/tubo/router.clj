@@ -28,8 +28,7 @@
                           {:summary
                            "returns default kiosk entries for a given service"
                            :coercion reitit.coercion.malli/coercion
-                           :parameters {:path  {:service-id int?}
-                                        :query {:region [:maybe string?]}}
+                           :parameters {:path {:service-id int?}}
                            :handler handler/kiosk}}
       :api/all-kiosks {:get {:summary
                              "returns all kiosks supported by a given service"
@@ -40,8 +39,7 @@
                   {:summary
                    "returns kiosk entries for a given service and a kiosk ID"
                    :coercion reitit.coercion.malli/coercion
-                   :parameters {:path  {:service-id int? :kiosk-id string?}
-                                :query {:region [:maybe string?]}}
+                   :parameters {:path {:service-id int? :kiosk-id string?}}
                    :handler handler/kiosk}}
       :api/stream {:get {:summary "returns stream data for a given URL"
                          :handler handler/stream}}
