@@ -106,14 +106,14 @@
         last
         :url) route name duration
     :classes
-    [:py-2 :h-28 "sm:h-36" "min-w-[130px]" "max-w-[130px]" "sm:min-w-[250px]"
+    ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]" "sm:h-36" "sm:min-w-[250px]"
      "sm:max-w-[250px]"] :rounded?
     true]
    [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
     (when name
       [:div.flex.items-center.justify-between.mt-2
        [:a {:href route :title name}
-        [:h1.line-clamp-1.xs:text-xl
+        [:h1.line-clamp-1.text-sm.xs:text-xl
          {:class "[overflow-wrap:anywhere]"}
          name
          (when (and verified? (not uploader-url))
@@ -130,20 +130,20 @@
              {:href  (rfe/href :channel-page nil {:url uploader-url})
               :title uploader-name
               :key   url}])
-          [:h1.font-semibold.line-clamp-1.break-all.text-sm
+          [:h1.font-semibold.line-clamp-1.break-all.text-xs.xs:text-sm
            {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
            uploader-name])
          (when (and uploader-url verified?)
            [:i.fa-solid.fa-circle-check.text-xs])])
       (when (or view-count upload-date)
-        [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
+        [:div.flex.text-xs.xs:text-sm
          (when view-count
            [:<>
-            [:div.flex.items-center.h-full
+            [:div.flex.items-center.h-full.whitespace-nowrap
              [:p (str (utils/format-quantity view-count) " views")]]
-            [:span.px-2.hidden.xs:inline-block
+            [:span.px-2
              {:dangerouslySetInnerHTML {:__html "&bull;"}}]])
-         [:span (utils/format-date-ago upload-date)]])
+         [:span.line-clamp-1 (utils/format-date-ago upload-date)]])
       (when (or subscriber-count stream-count)
         [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
          (when (and (= type "channel") subscriber-count)
