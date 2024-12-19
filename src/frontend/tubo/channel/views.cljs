@@ -38,7 +38,7 @@
     [metadata-popover channel]]])
 
 (defn channel
-  [_]
+  []
   (let [!show-description? (r/atom false)
         !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))
         !active-tab-id     (r/atom nil)]

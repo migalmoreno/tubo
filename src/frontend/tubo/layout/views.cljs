@@ -224,7 +224,7 @@
      (map-indexed #(with-meta %2 {:key %1}) content))])
 
 (defn show-more-container
-  [_open? _text _on-open]
+  []
   (let [!text-container  (atom nil)
         !resize-observer (atom nil)
         text-clamped?    (r/atom nil)]

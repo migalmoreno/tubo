@@ -5,24 +5,24 @@
 
 (rf/reg-sub
  :service-id
- (fn [db _]
+ (fn [db]
    (:service-id db)))
 
 (rf/reg-sub
  :service-color
- (fn [_]
+ (fn []
    (rf/subscribe [:service-id]))
- (fn [id _]
+ (fn [id]
    (and id (utils/get-service-color id))))
 
 (rf/reg-sub
  :service-name
- (fn [_]
+ (fn []
    (rf/subscribe [:service-id]))
- (fn [id _]
+ (fn [id]
    (and id (utils/get-service-name id))))
 
 (rf/reg-sub
  :services
- (fn [db _]
+ (fn [db]
    (:services db)))

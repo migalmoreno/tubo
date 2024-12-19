@@ -7,30 +7,30 @@
 
 (rf/reg-sub
  :player/loop
- (fn [db _]
+ (fn [db]
    (:player/loop db)))
 
 (rf/reg-sub
  :player/shuffled
- (fn [db _]
+ (fn [db]
    (:player/shuffled db)))
 
 (rf/reg-sub
  :player/paused
- (fn [db _]
+ (fn [db]
    (:player/paused db)))
 
 (rf/reg-sub
  :player/volume
- (fn [db _]
+ (fn [db]
    (:player/volume db)))
 
 (rf/reg-sub
  :player/muted
- (fn [db _]
+ (fn [db]
    (:player/muted db)))
 
 (rf/reg-sub
  :elapsed-time
- (fn [_ _]
+ (fn []
    !elapsed-time))

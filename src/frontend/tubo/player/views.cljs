@@ -15,7 +15,7 @@
      MediaMuteButton)]))
 
 (defn video-player
-  [_stream _!player]
+  []
   (let [!elapsed-time       @(rf/subscribe [:elapsed-time])
         !main-player-first? (r/atom true)]
     (r/create-class

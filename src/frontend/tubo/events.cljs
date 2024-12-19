@@ -61,7 +61,7 @@
 
 (rf/reg-fx
  :scroll-to-top
- (fn [_]
+ (fn []
    (.scrollTo js/window #js {"top" 0 "behavior" "smooth"})))
 
 (rf/reg-fx
@@ -132,7 +132,7 @@
 
 (rf/reg-event-fx
  :fetch-homepage
- (fn [_ _]
+ (fn []
    {:fx [[:dispatch [:services/fetch-all [:load-homepage] [:bad-response]]]]}))
 
 (rf/reg-event-fx

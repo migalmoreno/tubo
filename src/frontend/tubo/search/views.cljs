@@ -6,7 +6,7 @@
    [tubo.layout.views :as layout]))
 
 (defn search
-  [_]
+  []
   (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [q serviceId]} :query-params}]
       (let [{:keys [items next-page]} @(rf/subscribe [:search/results])

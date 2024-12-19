@@ -4,5 +4,5 @@
 
 (rf/reg-sub
  :stream
- (fn [db _]
+ (fn [db]
    (:stream db)))

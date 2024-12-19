@@ -33,7 +33,7 @@
        kiosk]])])
 
 (defn kiosk
-  [_]
+  []
   (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [serviceId]} :query-params}]
       (let [{:keys [id related-streams next-page]}

@@ -22,7 +22,7 @@
      :tooltip-classes ["right-7" "top-0"]]))
 
 (defn playlist
-  [_]
+  []
   (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [name next-page uploader-name uploader-url related-streams

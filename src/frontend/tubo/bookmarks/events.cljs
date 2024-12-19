@@ -54,7 +54,7 @@
 
 (rf/reg-event-fx
  :bookmarks/clear
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]}]
    {:fx (conj (into
                (map (fn [bookmark]
                       [:dispatch [:bookmarks/remove (:id bookmark)]])
@@ -262,7 +262,7 @@
 
 (rf/reg-event-fx
  :bookmarks/export
- (fn [{:keys [db]} [_]]
+ (fn [{:keys [db]}]
    {:file-download
     {:name      "playlists.json"
      :mime-type "application/json"

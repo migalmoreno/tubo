@@ -4,15 +4,15 @@
 
 (rf/reg-sub
  :search/results
- (fn [db _]
+ (fn [db]
    (:search/results db)))
 
 (rf/reg-sub
  :search/query
- (fn [db _]
+ (fn [db]
    (:search/query db)))
 
 (rf/reg-sub
  :search/show-form
- (fn [db _]
+ (fn [db]
    (:search/show-form db)))

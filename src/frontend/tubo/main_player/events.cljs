@@ -27,7 +27,7 @@
 (rf/reg-event-fx
  :main-player/start
  [(rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db elapsed-time]} _]
+ (fn [{:keys [db elapsed-time]}]
    {:fx [[:dispatch [:main-player/pause false]]
          (when (and (:main-player/show db) (not (:bg-player/ready db)))
            [:dispatch [:main-player/seek @elapsed-time]])]}))

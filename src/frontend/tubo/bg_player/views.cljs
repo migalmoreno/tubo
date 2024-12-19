@@ -111,7 +111,7 @@
       :value     @!elapsed-time}]))
 
 (defn volume-slider
-  [_ _ _ _]
+  []
   (let [show-slider? (r/atom nil)]
     (fn [player volume-level muted? service-color]
       (let [styles (concat ["rotate-[270deg]"]
@@ -265,7 +265,7 @@
      [popover stream]]))
 
 (defn audio-player
-  [_]
+  []
   (let [!elapsed-time @(rf/subscribe [:elapsed-time])
         queue-pos     @(rf/subscribe [:queue/position])
         stream        @(rf/subscribe [:queue/current])]

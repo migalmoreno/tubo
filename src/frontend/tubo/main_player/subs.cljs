@@ -6,15 +6,15 @@
 
 (rf/reg-sub
  :main-player/ready
- (fn [db _]
+ (fn [db]
    (:main-player/ready db)))
 
 (rf/reg-sub
  :main-player/show
- (fn [db _]
+ (fn [db]
    (:main-player/show db)))
 
 (rf/reg-sub
  :main-player
- (fn [_ _]
+ (fn []
    !player))

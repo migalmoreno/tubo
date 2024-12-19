@@ -25,7 +25,7 @@
  :bg-player/start
  [(rf/inject-cofx ::inject/sub [:bg-player])
   (rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db bg-player elapsed-time]} _]
+ (fn [{:keys [db bg-player elapsed-time]}]
    {:fx [[:dispatch [:bg-player/set-paused true]]
          [:dispatch [:bg-player/seek @elapsed-time]]
          [:dispatch [:bg-player/pause false]]
@@ -44,14 +44,14 @@
 (rf/reg-event-fx
  :bg-player/hide
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} _]
+ (fn [{:keys [db store]}]
    {:db    (assoc db :bg-player/show false)
     :store (assoc store :bg-player/show false)}))
 
 (rf/reg-event-fx
  :bg-player/dispose
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} _]
+ (fn [{:keys [db store]}]
    (let [remove-entries
          (fn [elem]
            (-> elem
@@ -107,14 +107,14 @@
 (rf/reg-event-fx
  :bg-player/switch-to-main
  [(rf/inject-cofx :store)]
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]}]
    {:fx            [[:dispatch [:main-player/show true]]]
     :db            (assoc db :bg-player/show false)
     :scroll-to-top nil}))
 
 (rf/reg-event-fx
  :bg-player/switch-from-main
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]}]
    {:db (assoc db :bg-player/show true)
     :fx [[:dispatch [:main-player/show false]]
          [:dispatch [:main-player/pause true]]]}))

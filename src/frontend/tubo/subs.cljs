@@ -32,22 +32,22 @@
 
 (rf/reg-sub
  :dark-theme
- (fn [_]
+ (fn []
    (rf/subscribe [:settings]))
  (fn [{:keys [theme]} _]
    (or (and (= theme "auto") (= @!auto-theme "dark")) (= theme "dark"))))
 
 (rf/reg-sub
  :page-scroll
- (fn [db _]
+ (fn [db]
    (:page-scroll db)))
 
 (rf/reg-sub
  :show-page-loading
- (fn [db _]
+ (fn [db]
    (:show-page-loading db)))
 
 (rf/reg-sub
  :show-pagination-loading
- (fn [db _]
+ (fn [db]
    (:show-pagination-loading db)))

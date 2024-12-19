@@ -4,10 +4,10 @@
 
 (rf/reg-sub
  :kiosks
- (fn [db _]
+ (fn [db]
    (:kiosks db)))
 
 (rf/reg-sub
  :kiosk
- (fn [db _]
+ (fn [db]
    (:kiosk db)))

@@ -4,5 +4,5 @@
 
 (rf/reg-sub
  :playlist
- (fn [db _]
+ (fn [db]
    (:playlist db)))

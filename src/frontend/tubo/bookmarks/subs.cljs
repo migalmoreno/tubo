@@ -4,7 +4,7 @@
 
 (rf/reg-sub
  :bookmarks
- (fn [db _]
+ (fn [db]
    (:bookmarks db)))
 
 (rf/reg-sub

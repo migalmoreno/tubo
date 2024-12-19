@@ -6,20 +6,20 @@
 
 (rf/reg-sub
  :bg-player/ready
- (fn [db _]
+ (fn [db]
    (:bg-player/ready db)))
 
 (rf/reg-sub
  :bg-player/show
- (fn [db _]
+ (fn [db]
    (:bg-player/show db)))
 
 (rf/reg-sub
  :bg-player/loading
- (fn [db _]
+ (fn [db]
    (:bg-player/loading db)))
 
 (rf/reg-sub
  :bg-player
- (fn [_ _]
+ (fn []
    !player))

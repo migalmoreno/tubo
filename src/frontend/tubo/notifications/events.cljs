@@ -30,5 +30,5 @@
 
 (rf/reg-event-db
  :notifications/clear
- (fn [db _]
+ (fn [db]
    (dissoc db :notifications)))

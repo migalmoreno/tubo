@@ -4,10 +4,10 @@
 
 (rf/reg-sub
  :navigation/show-mobile-menu
- (fn [db _]
+ (fn [db]
    (:navigation/show-mobile-menu db)))
 
 (rf/reg-sub
  :navigation/current-match
- (fn [db _]
+ (fn [db]
    (:navigation/current-match db)))

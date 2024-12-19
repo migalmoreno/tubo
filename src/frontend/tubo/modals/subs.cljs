@@ -4,5 +4,5 @@
 
 (rf/reg-sub
  :modals
- (fn [db _]
+ (fn [db]
    (:modals db)))

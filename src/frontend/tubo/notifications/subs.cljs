@@ -4,5 +4,5 @@
 
 (rf/reg-sub
  :notifications
- (fn [db _]
+ (fn [db]
    (:notifications db)))
