@@ -113,7 +113,7 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn text-input
-  [label _key value on-change placeholder]
+  [label value on-change placeholder]
   [generic-input label
    [:input.text-black
     {:type          "text"
@@ -122,7 +122,7 @@
      :placeholder   placeholder}]])
 
 (defn boolean-input
-  [label _key value on-change]
+  [label value on-change]
   [generic-input label
    [:input
     {:type      "checkbox"
@@ -131,7 +131,7 @@
      :on-change on-change}]])
 
 (defn select-input
-  [label _key value options on-change]
+  [label value options on-change]
   [generic-input label
    [:select.focus:ring-transparent.bg-transparent.font-bold
     {:value     value

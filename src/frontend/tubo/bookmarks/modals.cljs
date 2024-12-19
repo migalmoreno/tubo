@@ -27,7 +27,7 @@
   (let [!bookmark-name (r/atom "")]
     (fn []
       [modals/modal-content "Create New Playlist?"
-       [layout/text-input "Title" :text-input @!bookmark-name
+       [layout/text-input "Title" @!bookmark-name
         #(reset! !bookmark-name (.. % -target -value)) "Playlist name"]
        [layout/secondary-button "Back"
         #(rf/dispatch [:modals/close])]

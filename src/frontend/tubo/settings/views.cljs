@@ -6,12 +6,12 @@
 
 (defn boolean-input
   [label key value]
-  [layout/boolean-input label key value
+  [layout/boolean-input label value
    #(rf/dispatch [:settings/change key (not value)])])
 
 (defn select-input
   [label key value options on-change]
-  [layout/select-input label key value options
+  [layout/select-input label value options
    (or on-change
        #(rf/dispatch [:settings/change key (.. % -target -value)]))])
 
