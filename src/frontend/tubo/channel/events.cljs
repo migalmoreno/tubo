@@ -138,8 +138,3 @@
        {:nextPage (js/encodeURIComponent next-page-url)})
       :db
       (assoc db :show-pagination-loading true)))))
-
-(rf/reg-event-db
- :channel/reset
- (fn [db _]
-   (assoc db :channel nil)))
