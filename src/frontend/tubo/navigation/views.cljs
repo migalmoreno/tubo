@@ -44,14 +44,14 @@
                               (reset! !query input))
             :placeholder   "Search"}]
           [:button.p-3 {:type "submit"} [:i.fa-solid.fa-search]]
-          [:button.p-4.text-xs.absolute.right-8
+          [:button.p-4.absolute.right-8
            {:on-click #(when @!input
                          (set! (.-value @!input) "")
                          (reset! !query "")
                          (.focus @!input))
             :type     "button"
             :class    (when (empty? @!query) :invisible)}
-           [:i.fa-solid.fa-circle-xmark]]]]))))
+           [:i.fa-solid.fa-xmark]]]]))))
 
 (defn mobile-nav-item
   [route icon label & {:keys [new-tab? active?]}]
