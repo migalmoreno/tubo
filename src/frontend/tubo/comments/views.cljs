@@ -66,41 +66,54 @@
           [:i.fa-solid.fa-turn-down.mx-2.text-xs]]))]]])
 
 (defn comments
-  [{:keys [comments next-page]}
-   {:keys [uploader-name uploader-avatars url]}]
-  (let [pagination-loading? @(rf/subscribe [:show-pagination-loading])
-        service-color       @(rf/subscribe [:service-color])]
-    [:div.flex.flex-col.py-4
-     (if (empty? comments)
-       [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4.h-44
-        [:i.fa-solid.fa-ghost.text-3xl]
-        [:p.text-lg "No available comments"]]
-       [:div
-        (for [[i {:keys [replies show-replies] :as comment}]
-              (map-indexed vector comments)]
-          [:div.flex.flex-col {:key i}
-           [:div.flex
-            [comment-item
-             (assoc comment
-                    :author-name   uploader-name
-                    :author-avatar (-> uploader-avatars
-                                       last
-                                       :url))]]
-           (when (and replies show-replies)
-             [:div {:style {:marginLeft "32px"}}
-              (for [[i reply] (map-indexed vector (:items replies))]
-                ^{:key i}
+  []
+  (let [!observer (atom nil)]
+    (fn [{:keys [comments next-page]}
+         {:keys [uploader-name uploader-avatars url]}]
+      (let [service-color       @(rf/subscribe [:service-color])
+            next-page-url       (:url next-page)
+            pagination-loading? @(rf/subscribe [:show-pagination-loading])
+            last-item-ref       #(when-not pagination-loading?
+                                   (when @!observer (.disconnect @!observer))
+                                   (when %
+                                     (.observe
+                                      (reset! !observer
+                                        (js/IntersectionObserver.
+                                         (fn [entries]
+                                           (when (.-isIntersecting (first
+                                                                    entries))
+                                             (rf/dispatch
+                                              [:comments/fetch-paginated url
+                                               (:url next-page)])))))
+                                      %)))]
+        [:div.flex.flex-col.py-4
+         (if (empty? comments)
+           [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4.h-44
+            [:i.fa-solid.fa-ghost.text-3xl]
+            [:p.text-lg "No available comments"]]
+           [:div
+            (for [[i {:keys [replies show-replies] :as comment}]
+                  (map-indexed vector comments)]
+              ^{:key i}
+              [:div.flex.flex-col
+               {:ref (when (and next-page-url (= (+ i 1) (count comments)))
+                       last-item-ref)}
+               [:div.flex
                 [comment-item
-                 (assoc reply
+                 (assoc comment
                         :author-name   uploader-name
                         :author-avatar (-> uploader-avatars
                                            last
-                                           :url))])])])])
-     (when (:url next-page)
-       (if pagination-loading?
-         [layout/loading-icon service-color]
-         [:div.flex.justify-center
-          [layout/primary-button
-           "Show more comments"
-           #(rf/dispatch [:comments/fetch-paginated url (:url next-page)])
-           [:i.fa-solid.fa-plus]]]))]))
+                                           :url))]]
+               (when (and replies show-replies)
+                 [:div {:style {:marginLeft "32px"}}
+                  (for [[i reply] (map-indexed vector (:items replies))]
+                    ^{:key i}
+                    [comment-item
+                     (assoc reply
+                            :author-name   uploader-name
+                            :author-avatar (-> uploader-avatars
+                                               last
+                                               :url))])])])
+            (when (and pagination-loading? (seq next-page-url))
+              [layout/loading-icon service-color :text-md])])]))))

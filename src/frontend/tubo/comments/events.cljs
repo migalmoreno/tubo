@@ -52,6 +52,12 @@
        (assoc :show-pagination-loading false))))
 
 (rf/reg-event-fx
+ :comments/bad-paginated-response
+ (fn [{:keys [db]} [_ res]]
+   {:fx [[:dispatch [:bad-response res]]]
+    :db (assoc db :show-pagination-loading false)}))
+
+(rf/reg-event-fx
  :comments/fetch-paginated
  (fn [{:keys [db]} [_ url next-page-url]]
    (if (empty? next-page-url)
@@ -59,5 +65,5 @@
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch
             [:comments/fetch url
-             [:comments/load-paginated] [:bad-response]
+             [:comments/load-paginated] [:comments/bad-paginated-response]
              {:nextPage (js/encodeURIComponent next-page-url)}]]]})))
