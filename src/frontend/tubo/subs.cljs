@@ -34,7 +34,7 @@
  :dark-theme
  (fn []
    (rf/subscribe [:settings]))
- (fn [{:keys [theme]} _]
+ (fn [{:keys [theme]}]
    (or (and (= theme "auto") (= @!auto-theme "dark")) (= theme "dark"))))
 
 (rf/reg-sub
