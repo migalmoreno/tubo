@@ -7,8 +7,9 @@
   [stream]
   (select-keys stream
                [:type :service-id :url :name :thumbnails :audio-streams
-                :video-streams :uploader-name :uploader-url :duration
-                :bookmark-id]))
+                :video-streams :verified? :uploader-name :uploader-url
+                :uploader-avatars :upload-date :short-description :duration
+                :view-count :bookmark-id]))
 
 (rf/reg-event-fx
  :queue/show
