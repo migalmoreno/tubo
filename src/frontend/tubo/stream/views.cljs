@@ -70,9 +70,9 @@
 (defn metadata
   [{:keys [name] :as stream}]
   [:<>
-   [:div.flex.items-center.justify-between.mt-3
-    [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-1 {:title name} name]]
-   [:div.flex.justify-between.py-6.flex-nowrap
+   [:div.flex.items-center.justify-between
+    [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]]
+   [:div.flex.justify-between.py-4.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
