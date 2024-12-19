@@ -52,7 +52,7 @@
 
 (defn settings
   []
-  (let [!active-tab (r/atom :content)]
+  (let [!active-tab (r/atom :appearance)]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
