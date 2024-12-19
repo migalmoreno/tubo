@@ -282,7 +282,7 @@
         [:ul.w-full.flex.gap-x-4.justify-center.items-center]
         (when (seq tabs)
           (for [[i tab] (map-indexed vector tabs)]
-            (let [selected? (= (:id tab) selected-id)]
+            (let [selected? (= (:id tab) (or selected-id (:id @!current)))]
               (when tab
                 [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
                  {:class (if selected?
