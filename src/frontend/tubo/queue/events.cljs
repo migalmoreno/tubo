@@ -37,8 +37,11 @@
                                   (if val shuffled-queue unshuffled-queue))]
      {:db    (assoc updated-db
                     :player/shuffled  val
-                    :queue/unshuffled unshuffled-queue)
-      :store (assoc store :queue (:queue updated-db) :player/shuffled val)})))
+                    :queue/unshuffled (if val unshuffled-queue nil))
+      :store (assoc store
+                    :queue            (:queue updated-db)
+                    :queue/unshuffled (if val unshuffled-queue nil)
+                    :player/shuffled  val)})))
 
 (rf/reg-event-fx
  :queue/add

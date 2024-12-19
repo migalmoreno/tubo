@@ -56,7 +56,9 @@
          (fn [elem]
            (-> elem
                (assoc :queue [])
-               (assoc :queue/position 0)))]
+               (assoc :queue/unshuffled nil)
+               (assoc :queue/position 0)
+               (assoc :player/shuffled false)))]
      {:db    (remove-entries db)
       :store (remove-entries store)
       :fx    [[:dispatch [:bg-player/pause true]]
