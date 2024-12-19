@@ -255,11 +255,15 @@
             (str "show " (if open? "less" "more"))])])})))
 
 (defn error
-  [{:keys [_failure parse-error status status-text]} cb]
+  [{:keys [failure parse-error status status-text]} cb]
   [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
    [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700
     [:div.flex.items-center.gap-x-4.text-xl
-     [:i.fa-solid.fa-circle-exclamation]
+     (case failure
+       :success [:i.fa-solid.fa-circle-check]
+       :error   [:i.fa-solid.fa-circle-exclamation]
+       :loading [:div.grow-0 [loading-icon]]
+       [:i.fa-solid.fa-circle-info])
      [:h3.font-bold
       (str status " " status-text)]]
     (when parse-error
