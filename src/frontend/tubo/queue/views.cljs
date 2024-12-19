@@ -153,13 +153,12 @@
         color      (-> stream
                        :service-id
                        utils/get-service-color)]
-    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.z-10.backdrop-blur
+    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur
      {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
               "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
               (when-not show-queue "invisible")
               (if show-queue "opacity-1" "opacity-0")]}
-     [layout/focus-overlay #(rf/dispatch [:queue/show false]) show-queue true]
-     [:div.z-20.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
+     [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
       {:class ["lg:w-4/5" "xl:w-3/5"]}
       [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1
        (for [[i item] (map-indexed vector queue)]
