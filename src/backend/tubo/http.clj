@@ -1,7 +1,7 @@
 (ns tubo.http
   (:require
    [org.httpkit.server :refer [run-server]]
-   [tubo.routes :as routes])
+   [tubo.router :as router])
   (:import
    tubo.DownloaderImpl
    org.schabi.newpipe.extractor.NewPipe
@@ -13,7 +13,7 @@
   ([] (start-server! 3000))
   ([port]
    (NewPipe/init (DownloaderImpl/init) (Localization. "en" "US"))
-   (reset! server (run-server #'routes/app {:port port}))
+   (reset! server (run-server #'router/app {:port port}))
    (println "Server running in port" port)))
 
 (defn stop-server! [] (when @server (@server :timeout 100) (reset! server nil)))

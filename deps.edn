@@ -5,12 +5,14 @@
         metosin/reitit-ring                     {:mvn/version "0.5.18"}
         metosin/reitit-middleware               {:mvn/version "0.5.18"}
         metosin/reitit-malli                    {:mvn/version "0.5.18"}
+        metosin/reitit-swagger                  {:mvn/version "0.5.18"}
+        metosin/reitit-swagger-ui               {:mvn/version "0.5.18"}
         ring/ring                               {:mvn/version "1.9.5"}
         ring/ring-json                          {:mvn/version "0.5.1"}
         org.clojure/java.data                   {:mvn/version "1.0.95"}
         hiccup/hiccup                           {:mvn/version "1.0.5"}
         ring-cors/ring-cors                     {:mvn/version "0.1.13"}}
- :paths ["src/backend" "resources" "classes"]
+ :paths ["src/backend" "src/shared" "resources" "classes"]
  :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :aliases
  {:build {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}

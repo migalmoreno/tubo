@@ -4,7 +4,7 @@
    [reagent.core :as r]
    [re-frame.core :as rf]
    [tubo.events]
-   [tubo.routes :as routes]
+   [tubo.router :as router]
    [tubo.subs]
    [tubo.views :as views]))
 
@@ -13,7 +13,7 @@
 (defn ^:dev/after-load mount-root
   []
   (rf/clear-subscription-cache!)
-  (routes/start-routes!)
+  (router/start-router!)
   (.render root (r/as-element [(fn [] views/app)])))
 
 (defn ^:export init [] (rf/dispatch-sync [:initialize-db]) (mount-root))
