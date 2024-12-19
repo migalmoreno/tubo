@@ -1,6 +1,7 @@
 (ns tubo.layout.views
   (:require
    [clojure.string :as str]
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [reagent.core :as r]
@@ -38,13 +39,15 @@
     {:class classes
      :style {:color service-color}}]])
 
-(defn focus-overlay
-  [on-click active? transparent? extra-classes]
-  [:div.w-full.fixed.min-h-screen.right-0.top-0.transition-all.delay-75.ease-in-out.z-20
-   {:class    (conj extra-classes (when-not transparent? "bg-black"))
-    :style    {:visibility (when-not active? "hidden")
-               :opacity    (if active? "0.5" "0")}
-    :on-click on-click}])
+(defn background-overlay
+  []
+  (when-let [{:keys [show?] :as overlay} @(rf/subscribe [:layout/bg-overlay])]
+    [:div.w-full.fixed.min-h-screen.right-0.top-0.z-20
+     {:class    (conj (:extra-classes overlay)
+                      (when-not (:transparent? overlay) "bg-black"))
+      :style    {:visibility (when-not show? "hidden")
+                 :opacity    (if show? "0.5" "0")}
+      :on-click (:on-click overlay)}]))
 
 (defn content-container
   [& children]
@@ -138,7 +141,7 @@
       [:option.dark:bg-neutral-900.border-none {:value option :key i}
        option])]])
 
-(defn menu-item
+(defn tooltip-item
   [{:keys [label icon on-click link] :as item}]
   (let [content [:<>
                  (when icon
@@ -160,27 +163,50 @@
         :class    (str/join " " classes)}
        (if (vector? item) item content)])))
 
-(defn menu
-  [active? items & {:keys [extra-classes]}]
+(defn tooltip
+  [items & {:keys [extra-classes]}]
   (when-not (empty? (remove nil? items))
-    [:ul.xs:absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-20.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-2.left-2.right-2.fixed
-     {:class (conj extra-classes (when-not active? "hidden"))}
+    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30
+     {:class (conj extra-classes)}
      (for [[i item] (map-indexed vector (remove nil? items))]
-       ^{:key i} [menu-item item])]))
+       ^{:key i} [tooltip-item item])]))
 
-(defn popover-menu
-  [!menu-active? items &
-   {:keys [menu-classes extra-classes]
-    :or   {extra-classes [:p-3]
-           menu-classes  ["xs:bottom-auto" "xs:left-auto" "xs:right-auto"]}}]
-  [:div.flex.items-center
-   [focus-overlay #(reset! !menu-active? false) @!menu-active? true
-    ["bg-black" "xs:bg-transparent"]]
-   [:button.focus:outline-none.xs:relative
-    {:on-click #(reset! !menu-active? (not @!menu-active?))
-     :class    extra-classes}
-    [:i.fa-solid.fa-ellipsis-vertical]
-    [menu @!menu-active? items :extra-classes menu-classes]]])
+(defn mobile-tooltip
+  []
+  (let [{:keys [id items show?]} @(rf/subscribe [:layout/mobile-tooltip])
+        tooltip-data             (rf/subscribe [:layout/tooltip-by-id id])]
+    (when @tooltip-data
+      [:div.xs:hidden
+       {:class    (str "tooltip-controller-" id)
+        :on-click #(do (rf/dispatch [:layout/destroy-tooltip-by-id id])
+                       (rf/dispatch [:layout/hide-bg-overlay]))}
+       (when-not (empty? (remove nil? items))
+         [:ul.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-30.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-4.left-2.right-2.fixed
+          {:class (when-not show? "hidden")}
+          (for [[i item] (map-indexed vector (remove nil? items))]
+            ^{:key i} [tooltip-item item])])])))
+
+(defn popover
+  []
+  (let [tooltip-id   (nano-id)
+        tooltip-data (rf/subscribe [:layout/tooltip-by-id tooltip-id])]
+    (fn [items &
+         {:keys [extra-classes tooltip-classes] :or {extra-classes ["p-3"]}}]
+      [:div.flex.items-center.tooltip-controller
+       {:class (str "tooltip-controller-" tooltip-id)}
+       [:button.focus:outline-none.relative.hidden.xs:block
+        {:on-click #(if @tooltip-data
+                      (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+                      (rf/dispatch [:layout/register-tooltip {:id tooltip-id}]))
+         :class    extra-classes}
+        [:i.fa-solid.fa-ellipsis-vertical]
+        (when @tooltip-data
+          [tooltip items :extra-classes tooltip-classes])]
+       [:button.focus:outline-none.relative.xs:hidden
+        {:on-click #(rf/dispatch [:layout/show-mobile-tooltip
+                                  {:items items :id tooltip-id}])
+         :class    extra-classes}
+        [:i.fa-solid.fa-ellipsis-vertical]]])))
 
 (defn accordeon
   [{:keys [label on-open open? left-icon right-button]} & content]

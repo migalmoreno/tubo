@@ -6,6 +6,7 @@
    [tubo.bookmarks.subs]
    [tubo.channel.subs]
    [tubo.kiosks.subs]
+   [tubo.layout.subs]
    [tubo.main-player.subs]
    [tubo.modals.subs]
    [tubo.navigation.subs]

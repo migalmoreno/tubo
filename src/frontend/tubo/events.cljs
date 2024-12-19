@@ -11,6 +11,7 @@
    [tubo.channel.events]
    [tubo.comments.events]
    [tubo.kiosks.events]
+   [tubo.layout.events]
    [tubo.main-player.events]
    [tubo.modals.events]
    [tubo.navigation.events]
