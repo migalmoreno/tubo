@@ -60,35 +60,6 @@
      (conj icon {:class ["text-neutral-600" "dark:text-neutral-300"]})]
     [:span {:class (when active? "font-bold")} label]]])
 
-(defn mobile-nav
-  [show-mobile-nav? service-color services available-kiosks &
-   {:keys [service-id] :as kiosk-args}]
-  [:<>
-   [layout/focus-overlay #(rf/dispatch [:navigation/toggle-mobile-menu])
-    show-mobile-nav?]
-   [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.transition-all.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-20
-    {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
-    [:div.flex.justify-center.py-4.items-center.text-white
-     {:style {:background service-color}}
-     [layout/logo :height 75 :width 75]
-     [:h3.text-3xl.font-bold "Tubo"]]
-    [services/services-dropdown services service-id service-color]
-    [:div.relative.py-4
-     [:ul.flex.flex-col
-      (for [[i kiosk] (map-indexed vector available-kiosks)]
-        ^{:key i}
-        [mobile-nav-item
-         (rfe/href :kiosk-page nil {:serviceId service-id :kioskId kiosk})
-         [:i.fa-solid.fa-fire] kiosk
-         :active? (kiosks/kiosk-active? (assoc kiosk-args :kiosk kiosk))])]]
-    [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
-     {:class "border-t-[1px]"}
-     [:ul.flex.flex-col
-      [mobile-nav-item (rfe/href :bookmarks-page) [:i.fa-solid.fa-bookmark]
-       "Bookmarks"]
-      [mobile-nav-item (rfe/href :settings-page) [:i.fa-solid.fa-cog]
-       "Settings"]]]]])
-
 (defn nav-left-content
   [title]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
@@ -110,7 +81,7 @@
      (when-not (or show-queue? show-main-player? show-search-form?)
        [:button.text-white.mx-3.lg:hidden
         {:on-click #(rf/dispatch
-                     [:navigation/toggle-mobile-menu])}
+                     [:navigation/show-mobile-menu])}
         [:i.fa-solid.fa-bars]])
      (when-not (or show-queue? show-main-player? show-search-form?)
        [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1.lg:hidden
@@ -167,23 +138,11 @@
        [:i.fa-solid.fa-bookmark]]]]))
 
 (defn navbar
-  [{{:keys [kioskId]} :query-params path :path :as match}]
-  (let [service-id       @(rf/subscribe [:service-id])
-        service-color    @(rf/subscribe [:service-color])
-        services         @(rf/subscribe [:services])
-        show-mobile-nav? @(rf/subscribe [:navigation/show-mobile-menu])
-        settings         @(rf/subscribe [:settings])
-        kiosks           @(rf/subscribe [:kiosks])]
+  [match]
+  (let [service-color @(rf/subscribe [:service-color])]
     [:nav.sticky.flex.items-center.px-2.h-14.top-0.z-20
      {:style {:background service-color}}
      [:div.flex.flex-auto.items-center
-      [mobile-nav show-mobile-nav? service-color services
-       (:available-kiosks kiosks)
-       :kiosk-id kioskId
-       :service-id service-id
-       :default-service (:default-service settings)
-       :default-kiosk (:default-kiosk kiosks)
-       :path path]
       [nav-left-content
        (case (-> match
                  :data
@@ -195,3 +154,41 @@
          nil)]
       [search-form]
       [nav-right-content match]]]))
+
+(defn mobile-menu
+  [{{:keys [kioskId]} :query-params path :path}]
+  (let [service-id       @(rf/subscribe [:service-id])
+        service-color    @(rf/subscribe [:service-color])
+        services         @(rf/subscribe [:services])
+        show-mobile-nav? @(rf/subscribe [:navigation/show-mobile-menu])
+        kiosks           @(rf/subscribe [:kiosks])
+        settings         @(rf/subscribe [:settings])]
+    [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.transition-all.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-30
+     {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
+     [:div.flex.justify-center.py-4.items-center.text-white
+      {:style {:background service-color}}
+      [layout/logo :height 75 :width 75]
+      [:h3.text-3xl.font-bold "Tubo"]]
+     [services/services-dropdown services service-id service-color]
+     [:div.relative.py-4
+      [:ul.flex.flex-col
+       (for [[i kiosk] (map-indexed vector (:available-kiosks kiosks))]
+         ^{:key i}
+         [mobile-nav-item
+          (rfe/href :kiosk-page nil {:serviceId service-id :kioskId kiosk})
+          [:i.fa-solid.fa-fire] kiosk
+          :active?
+          (kiosks/kiosk-active?
+           :kiosk-id        kioskId
+           :service-id      service-id
+           :default-service (:default-service settings)
+           :default-kiosk   (:default-kiosk kiosks)
+           :path            path
+           :kiosk           kiosk)])]]
+     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
+      {:class "border-t-[1px]"}
+      [:ul.flex.flex-col
+       [mobile-nav-item (rfe/href :bookmarks-page) [:i.fa-solid.fa-bookmark]
+        "Bookmarks"]
+       [mobile-nav-item (rfe/href :settings-page) [:i.fa-solid.fa-cog]
+        "Settings"]]]]))

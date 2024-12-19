@@ -24,13 +24,21 @@
  (fn [_ [_ route]]
    {:navigate! route}))
 
+(rf/reg-event-db
+ :navigation/hide-mobile-menu
+ (fn [db]
+   (assoc db :navigation/show-mobile-menu false)))
+
 (rf/reg-event-fx
- :navigation/toggle-mobile-menu
- (fn [{:keys [db]} _]
-   {:db            (assoc db
-                          :navigation/show-mobile-menu
-                          (not (:navigation/show-mobile-menu db)))
-    :body-overflow (not (:navigation/show-mobile-menu db))}))
+ :navigation/show-mobile-menu
+ (fn [{:keys [db]}]
+   {:db            (assoc db :navigation/show-mobile-menu true)
+    :body-overflow (not (:navigation/show-mobile-menu db))
+    :fx            [[:dispatch
+                     [:layout/show-bg-overlay
+                      {:extra-classes ["z-30"]
+                       :on-click      #(rf/dispatch
+                                        [:navigation/hide-mobile-menu])}]]]}))
 
 (rf/reg-event-fx
  :navigation/navigated
@@ -46,6 +54,7 @@
       :body-overflow false
       :fx            [(when (:main-player/show db)
                         [:dispatch [:bg-player/switch-from-main]])
+                      [:dispatch [:layout/hide-bg-overlay]]
                       [:dispatch [:queue/show false]]
                       [:dispatch
                        [:services/fetch-all
