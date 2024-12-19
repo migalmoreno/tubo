@@ -71,28 +71,32 @@
        [:button.ml-2.invisible.absolute.lg:visible.lg:relative
         [:a.font-bold {:href (rfe/href :homepage)}
          [layout/logo :height 35 :width 35]]])
-     (when (and show-queue? (not show-search-form?))
-       [:button.text-white.mx-2
-        {:on-click #(rf/dispatch [:queue/show false])}
-        [:i.fa-solid.fa-arrow-left]])
-     (when (and show-main-player? (not show-search-form?))
-       [:button.text-white.mx-2
-        {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
-        [:i.fa-solid.fa-arrow-left]])
-     (when-not (or show-queue? show-main-player? show-search-form?)
+     (cond (and show-main-player? (not show-search-form?))
+           [:button.text-white.mx-2
+            {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
+            [:i.fa-solid.fa-arrow-left]]
+           (and show-queue? (not show-search-form?))
+           [:button.text-white.mx-2
+            {:on-click #(rf/dispatch [:queue/show false])}
+            [:i.fa-solid.fa-arrow-left]])
+     (when (and (not show-queue?)
+                (not show-main-player?)
+                (not show-search-form?))
        [:button.text-white.mx-3.lg:hidden
         {:on-click #(rf/dispatch
                      [:navigation/show-mobile-menu])}
         [:i.fa-solid.fa-bars]])
-     (when-not (or show-queue? show-main-player? show-search-form?)
-       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1.lg:hidden
-        title])
-     (when (and show-queue? (not show-search-form?))
-       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
-        "Play Queue"])
-     (when (and show-main-player? (not show-search-form?))
-       [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
-        "Main Player"])]))
+     (cond (and (not show-queue?)
+                (not show-main-player?)
+                (not show-search-form?))
+           [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1.lg:hidden
+            title]
+           (and show-main-player? (not show-search-form?))
+           [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
+            "Main Player"]
+           (and show-queue? (not show-search-form?))
+           [:h1.text-white.text-lg.sm:text-xl.font-bold.line-clamp-1
+            "Play Queue"])]))
 
 (defn nav-right-content
   [{{:keys [kioskId]} :query-params path :path :as match}]
