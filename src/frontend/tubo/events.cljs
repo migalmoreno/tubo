@@ -32,32 +32,48 @@
  (fn [{:keys [store]} _]
    (let [if-nil #(if (nil? %1) %2 %1)]
      {:db
-      {:player/paused  true
-       :player/muted   (:player/muted store)
-       :queue          (if-nil (:queue store) [])
-       :service-id     (if-nil (:service-id store) 0)
-       :player/loop    (if-nil (:player/loop store) :playlist)
-       :queue/position (if-nil (:queue/position store) 0)
-       :player/volume  (if-nil (:player/volume store) 100)
-       :bg-player/show (:bg-player/show store)
-       :bookmarks      (if-nil (:bookmarks store)
-                               [{:id (nano-id) :name "Liked Streams"}])
-       :settings       {:theme            (if-nil (:theme store) "auto")
-                        :show-comments    (if-nil (:show-comments store)
-                                                  true)
-                        :show-related     (if-nil (:show-related store)
-                                                  true)
-                        :show-description (if-nil (:show-description
-                                                   store)
-                                                  true)
-                        :items-layout     "list"
-                        :default-service  (if-nil
-                                           (:default-service store)
-                                           {:service-id 0
-                                            :id "YouTube"
-                                            :default-kiosk "Trending"
-                                            :available-kiosks
-                                            ["Trending"]})}}})))
+      {:player/paused    true
+       :player/muted     (:player/muted store)
+       :player/shuffled  (:player/shuffled store)
+       :player/loop      (if-nil (:player/loop store) :playlist)
+       :player/volume    (if-nil (:player/volume store) 100)
+       :bg-player/show   (:bg-player/show store)
+       :queue            (if-nil (:queue store) [])
+       :queue/position   (if-nil (:queue/position store) 0)
+       :queue/unshuffled (:queue/unshuffled store)
+       :service-id       (if-nil (:service-id store) 0)
+       :bookmarks        (if-nil (:bookmarks store)
+                                 [{:id (nano-id) :name "Liked Streams"}])
+       :settings         {:theme            (if-nil (-> store
+                                                        :settings
+                                                        :theme)
+                                                    "auto")
+                          :show-comments    (if-nil (-> store
+                                                        :settings
+                                                        :show-comments)
+                                                    true)
+                          :show-related     (if-nil (-> store
+                                                        :settings
+                                                        :show-related)
+                                                    true)
+                          :show-description (if-nil (-> store
+                                                        :settings
+                                                        :show-description)
+                                                    true)
+                          :items-layout     "list"
+                          :default-country  (if-nil (-> store
+                                                        :settings
+                                                        :default-country)
+                                                    {0 {:name "United States"
+                                                        :code "US"}})
+                          :default-service  (if-nil (-> store
+                                                        :settings
+                                                        :default-service)
+                                                    {:service-id 0
+                                                     :id "YouTube"
+                                                     :default-kiosk "Trending"
+                                                     :available-kiosks
+                                                     ["Trending"]})}}})))
 
 (rf/reg-fx
  :scroll-to-top

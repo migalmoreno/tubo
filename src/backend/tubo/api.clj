@@ -3,10 +3,12 @@
    [clojure.java.data :as j]
    [ring.util.codec :refer [url-decode]])
   (:import
+   java.util.Locale
    org.schabi.newpipe.extractor.channel.ChannelInfo
    org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo
    org.schabi.newpipe.extractor.channel.tabs.ChannelTabs
    org.schabi.newpipe.extractor.comments.CommentsInfo
+   org.schabi.newpipe.extractor.localization.ContentCountry
    org.schabi.newpipe.extractor.kiosk.KioskInfo
    org.schabi.newpipe.extractor.playlist.PlaylistInfo
    org.schabi.newpipe.extractor.search.SearchInfo
@@ -270,9 +272,14 @@
       :next-page (j/from-java (.getNextPage info))})))
 
 (defn get-kiosk
-  ([service-id]
+  ([{:keys [region]} service-id]
+   (println region)
    (let [service   (NewPipe/getService service-id)
-         extractor (doto (.getDefaultKioskExtractor (.getKioskList service))
+         extractor (doto (.getDefaultKioskExtractor
+                          (if region
+                            (doto (.getKioskList service)
+                              (.forceContentCountry (ContentCountry. region)))
+                            (.getKioskList service)))
                      (.fetchPage))
          info      (KioskInfo/getInfo extractor)]
      {:id              (.getId info)
@@ -280,10 +287,16 @@
       :service-id      service-id
       :next-page       (j/from-java (.getNextPage info))
       :related-streams (get-items (.getRelatedItems info))}))
-  ([kiosk-id service-id]
+  ([{:keys [region]} kiosk-id service-id]
    (let [service (NewPipe/getService service-id)
          extractor
-         (doto (.getExtractorById (.getKioskList service) kiosk-id nil)
+         (doto (.getExtractorById
+                (if region
+                  (doto (.getKioskList service)
+                    (.forceContentCountry (ContentCountry. region)))
+                  (.getKioskList service))
+                kiosk-id
+                nil)
            (.fetchPage))
          info (KioskInfo/getInfo extractor)]
      {:id              (.getId info)
@@ -291,9 +304,15 @@
       :service-id      service-id
       :next-page       (j/from-java (.getNextPage info))
       :related-streams (get-items (.getRelatedItems info))}))
-  ([kiosk-id service-id page-url]
+  ([{:keys [region]} kiosk-id service-id page-url]
    (let [service    (NewPipe/getService service-id)
-         extractor  (.getExtractorById (.getKioskList service) kiosk-id nil)
+         extractor  (.getExtractorById
+                     (if region
+                       (doto (.getKioskList service)
+                         (.forceContentCountry (ContentCountry. region)))
+                       (.getKioskList service))
+                     kiosk-id
+                     nil)
          url        (url-decode page-url)
          kiosk-info (KioskInfo/getInfo extractor)
          info       (KioskInfo/getMoreItems service
@@ -311,9 +330,20 @@
 
 (defn get-service
   [service]
-  {:id       (.getServiceId service)
-   :info     (j/from-java (.getServiceInfo service))
-   :base-url (.getBaseUrl service)})
+  {:id                  (.getServiceId service)
+   :info                (j/from-java (.getServiceInfo service))
+   :base-url            (.getBaseUrl service)
+   :supported-languages (map (fn [lang]
+                               {:name (.getDisplayLanguage
+                                       (Locale. (.getLanguageCode lang)
+                                                (.getCountryCode lang)))
+                                :code (.getLocalizationCode lang)})
+                             (.getSupportedLocalizations service))
+   :supported-countries (map (fn [country]
+                               {:name (.getDisplayCountry
+                                       (Locale. "" (.toString country)))
+                                :code (.toString country)})
+                             (.getSupportedCountries service))})
 
 (defn get-services
   []

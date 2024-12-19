@@ -45,8 +45,9 @@
 
 (defn kiosk
   [{{{:keys [kiosk-id service-id]} :path} :parameters
-    {:strs [nextPage]}                    :query-params}]
+    {:strs [nextPage region]}             :query-params}]
   (response (apply api/get-kiosk
+                   {:region region}
                    (if kiosk-id
                      (into
                       [kiosk-id]

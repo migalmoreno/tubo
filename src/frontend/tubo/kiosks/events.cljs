@@ -21,10 +21,11 @@
 
 (rf/reg-event-fx
  :kiosks/fetch-default
- (fn [_ [_ service-id on-success on-error]]
+ (fn [_ [_ service-id on-success on-error params]]
    (api/get-request (str "/services/" service-id "/default-kiosk")
                     on-success
-                    on-error)))
+                    on-error
+                    params)))
 
 (rf/reg-event-fx
  :kiosks/fetch-all
@@ -58,15 +59,21 @@
 (rf/reg-event-fx
  :kiosks/fetch-page
  (fn [{:keys [db]} [_ service-id kiosk-id]]
-   {:db (assoc db
-               :show-page-loading true
-               :kiosk             nil)
-    :fx [[:dispatch
-          (if kiosk-id
-            [:kiosks/fetch service-id kiosk-id
-             [:kiosks/load-page]
-             [:kiosks/bad-page-response service-id kiosk-id]]
-            [:kiosks/fetch-default-page service-id])]]}))
+   (let [default-country (-> db
+                             :settings
+                             :default-country
+                             (get (js/parseInt service-id))
+                             :code)]
+     {:db (assoc db
+                 :show-page-loading true
+                 :kiosk             nil)
+      :fx [[:dispatch
+            (if kiosk-id
+              [:kiosks/fetch service-id kiosk-id
+               [:kiosks/load-page]
+               [:kiosks/bad-page-response service-id kiosk-id]
+               (when default-country {:region default-country})]
+              [:kiosks/fetch-default-page service-id])]]})))
 
 (rf/reg-event-fx
  :kiosks/fetch-default-page
@@ -80,13 +87,19 @@
            (-> db
                :settings
                :default-service
-               :default-kiosk))]
+               :default-kiosk))
+         default-country (-> db
+                             :settings
+                             :default-country
+                             (get (js/parseInt service-id))
+                             :code)]
      {:fx [[:dispatch
             (if default-kiosk-id
               [:kiosks/fetch-page service-id default-kiosk-id]
               [:kiosks/fetch-default service-id
                [:kiosks/load-page]
-               [:kiosks/bad-page-response service-id nil]])]]})))
+               [:kiosks/bad-page-response service-id nil]
+               (when default-country {:region default-country})])]]})))
 
 (rf/reg-event-fx
  :kiosks/change-page
