@@ -153,7 +153,7 @@
         color      (-> stream
                        :service-id
                        utils/get-service-color)]
-    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur
+    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
      {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
               "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
               (when-not show-queue "invisible")
