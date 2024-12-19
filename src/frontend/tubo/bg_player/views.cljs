@@ -203,60 +203,66 @@
          (utils/format-duration (.-duration @!player))
          "--:--")]]]))
 
+(defn popover
+  [{:keys [uploader-url url] :as stream}]
+  (let [queue      @(rf/subscribe [:queue])
+        queue-pos  @(rf/subscribe [:queue/position])
+        favorited? @(rf/subscribe [:bookmarks/favorited url])
+        bookmark   #(rf/dispatch [:modals/open
+                                  [modals/add-to-bookmark %]])]
+    [layout/popover
+     [{:label    (if favorited? "Remove favorite" "Favorite")
+       :icon     [:i.fa-solid.fa-heart
+                  (when favorited?
+                    {:style {:color (-> stream
+                                        :service-id
+                                        utils/get-service-color)}})]
+       :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add)
+                                stream
+                                true])}
+      {:label    "Start radio"
+       :icon     [:i.fa-solid.fa-tower-cell]
+       :on-click #(rf/dispatch [:bg-player/start-radio
+                                stream])}
+      {:label    "Add current to playlist"
+       :icon     [:i.fa-solid.fa-plus]
+       :on-click #(bookmark stream)}
+      {:label    "Add queue to playlist"
+       :icon     [:i.fa-solid.fa-list]
+       :on-click #(bookmark queue)}
+      {:label    "Remove from queue"
+       :icon     [:i.fa-solid.fa-trash]
+       :on-click #(rf/dispatch [:queue/remove
+                                queue-pos])}
+      {:label    "Switch to main"
+       :icon     [:i.fa-solid.fa-display]
+       :on-click #(rf/dispatch
+                   [:bg-player/switch-to-main])}
+      {:label    "Show channel details"
+       :icon     [:i.fa-solid.fa-user]
+       :on-click #(rf/dispatch [:navigation/navigate
+                                {:name   :channel-page
+                                 :params {}
+                                 :query  {:url
+                                          uploader-url}}])}
+      {:label    "Close player"
+       :icon     [:i.fa-solid.fa-close]
+       :on-click #(rf/dispatch [:bg-player/dispose])}]
+     :tooltip-classes ["right-5" "bottom-5"]
+     :extra-classes [:!pl-4 :px-3]]))
+
 (defn extra-controls
-  [_ _ _]
-  (let [!menu-active? (r/atom nil)]
-    (fn [!player {:keys [url uploader-url] :as stream} color]
-      (let [muted?    @(rf/subscribe [:player/muted])
-            volume    @(rf/subscribe [:player/volume])
-            queue     @(rf/subscribe [:queue])
-            queue-pos @(rf/subscribe [:queue/position])
-            bookmarks @(rf/subscribe [:bookmarks])
-            liked?    (some #(= (:url %) url)
-                            (-> bookmarks
-                                first
-                                :items))
-            bookmark  #(rf/dispatch [:modals/open [modals/add-to-bookmark %]])]
-        [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
-         [volume-slider !player volume muted? color]
-         [button
-          :icon [:i.fa-solid.fa-list]
-          :on-click #(rf/dispatch [:queue/show true])
-          :show-on-mobile? true
-          :extra-classes [:!pl-4 :!pr-3]]
-         [layout/popover-menu !menu-active?
-          [{:label    (if liked? "Remove favorite" "Favorite")
-            :icon     [:i.fa-solid.fa-heart
-                       (when liked? {:style {:color color}})]
-            :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add)
-                                     stream true])}
-           {:label    "Start radio"
-            :icon     [:i.fa-solid.fa-tower-cell]
-            :on-click #(rf/dispatch [:bg-player/start-radio stream])}
-           {:label    "Add current to playlist"
-            :icon     [:i.fa-solid.fa-plus]
-            :on-click #(bookmark stream)}
-           {:label    "Add queue to playlist"
-            :icon     [:i.fa-solid.fa-list]
-            :on-click #(bookmark queue)}
-           {:label    "Remove from queue"
-            :icon     [:i.fa-solid.fa-trash]
-            :on-click #(rf/dispatch [:queue/remove queue-pos])}
-           {:label    "Switch to main"
-            :icon     [:i.fa-solid.fa-display]
-            :on-click #(rf/dispatch [:bg-player/switch-to-main])}
-           {:label    "Show channel details"
-            :icon     [:i.fa-solid.fa-user]
-            :on-click #(rf/dispatch [:navigation/navigate
-                                     {:name   :channel-page
-                                      :params {}
-                                      :query  {:url uploader-url}}])}
-           {:label    "Close player"
-            :icon     [:i.fa-solid.fa-close]
-            :on-click #(rf/dispatch [:bg-player/dispose])}]
-          :menu-classes
-          ["xs:right-5" "xs:top-auto" "xs:left-auto" "xs:bottom-5"]
-          :extra-classes [:!pl-4 :px-3]]]))))
+  [!player stream color]
+  (let [muted? @(rf/subscribe [:player/muted])
+        volume @(rf/subscribe [:player/volume])]
+    [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
+     [volume-slider !player volume muted? color]
+     [button
+      :icon [:i.fa-solid.fa-list]
+      :on-click #(rf/dispatch [:queue/show true])
+      :show-on-mobile? true
+      :extra-classes [:!pl-4 :!pr-3]]
+     [popover stream]]))
 
 (defn audio-player
   [_]

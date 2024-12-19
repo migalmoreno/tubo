@@ -1,68 +1,59 @@
 (ns tubo.items.views
   (:require
    [re-frame.core :as rf]
-   [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as bookmarks]
    [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
 
 (defn item-popover
-  [_ _]
-  (let [!menu-active? (r/atom nil)]
-    (fn [{:keys [service-id audio-streams video-streams type url bookmark-id
-                 uploader-url]
-          :as   item} bookmarks]
-      (let [liked? (some #(= (:url %) url)
-                         (-> bookmarks
-                             first
-                             :items))
-            items
-            (if (or (= type "stream") audio-streams video-streams)
-              [{:label    "Add to queue"
-                :icon     [:i.fa-solid.fa-headphones]
-                :on-click #(rf/dispatch [:bg-player/show item true])}
-               {:label    "Start radio"
-                :icon     [:i.fa-solid.fa-tower-cell]
-                :on-click #(rf/dispatch [:bg-player/start-radio item])}
-               {:label    (if liked? "Remove favorite" "Favorite")
-                :icon     [:i.fa-solid.fa-heart
-                           (when (and liked? service-id)
-                             {:style {:color (utils/get-service-color
-                                              service-id)}})]
-                :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add)
-                                         item true])}
-               {:label    "Add to playlist"
-                :icon     [:i.fa-solid.fa-plus]
-                :on-click #(rf/dispatch [:modals/open
-                                         [bookmarks/add-to-bookmark item]])}
-               (when (some #(= (:url %) url)
-                           (:items (first (filter #(= (:id %) bookmark-id)
-                                                  bookmarks))))
-                 {:label    "Remove from playlist"
-                  :icon     [:i.fa-solid.fa-trash]
-                  :on-click #(rf/dispatch [:bookmark/remove item])})
-               {:label    "Show channel details"
-                :icon     [:i.fa-solid.fa-user]
-                :on-click #(rf/dispatch [:navigation/navigate
-                                         {:name   :channel-page
-                                          :params {}
-                                          :query  {:url uploader-url}}])}]
-              [(when (and bookmarks
-                          (some #(= (:id %) bookmark-id) (rest bookmarks)))
-                 {:label    "Remove playlist"
-                  :icon     [:i.fa-solid.fa-trash]
-                  :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
-                                           true])})])]
-        (when (not-empty (remove nil? items))
-          [layout/popover-menu !menu-active? items :extra-classes
-           [:pr-0 :pl-4] :menu-classes
-           ["xs:right-5" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]])))))
+  [{:keys [service-id audio-streams video-streams type url bookmark-id
+           uploader-url]
+    :as   item}]
+  (let [favorited? @(rf/subscribe [:bookmarks/favorited url])
+        items
+        (if (or (= type "stream") audio-streams video-streams)
+          [{:label    "Add to queue"
+            :icon     [:i.fa-solid.fa-headphones]
+            :on-click #(rf/dispatch [:bg-player/show item true])}
+           {:label    "Start radio"
+            :icon     [:i.fa-solid.fa-tower-cell]
+            :on-click #(rf/dispatch [:bg-player/start-radio item])}
+           {:label    (if favorited? "Remove favorite" "Favorite")
+            :icon     [:i.fa-solid.fa-heart
+                       (when (and favorited? service-id)
+                         {:style {:color (utils/get-service-color
+                                          service-id)}})]
+            :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add)
+                                     item true])}
+           {:label    "Add to playlist"
+            :icon     [:i.fa-solid.fa-plus]
+            :on-click #(rf/dispatch [:modals/open
+                                     [bookmarks/add-to-bookmark item]])}
+           (when @(rf/subscribe [:bookmarks/playlisted url bookmark-id])
+             {:label    "Remove from playlist"
+              :icon     [:i.fa-solid.fa-trash]
+              :on-click #(rf/dispatch [:bookmark/remove item])})
+           {:label    "Show channel details"
+            :icon     [:i.fa-solid.fa-user]
+            :on-click #(rf/dispatch [:navigation/navigate
+                                     {:name   :channel-page
+                                      :params {}
+                                      :query  {:url uploader-url}}])}]
+          [(when @(rf/subscribe [:bookmarks/bookmarked bookmark-id])
+             {:label    "Remove playlist"
+              :icon     [:i.fa-solid.fa-trash]
+              :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
+                                       true])})])]
+    (when (not-empty (remove nil? items))
+      [layout/popover items
+       :extra-classes [:pr-0 :pl-4]
+       :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
            stream-count verified? thumbnails duration type]
-    :as   item} route bookmarks]
+    :as   item} route]
   [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
    [layout/thumbnail
     (-> thumbnails
@@ -89,7 +80,7 @@
         uploader-name])
       (when (and uploader-url verified?)
         [:i.fa-solid.fa-circle-check.text-xs])]
-     [item-popover item bookmarks]]
+     [item-popover item]]
     (when (and (= type "channel") subscriber-count)
       [:div.flex.items-center
        [:i.fa-solid.fa-users.text-xs]
@@ -108,7 +99,7 @@
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name subscriber-count view-count
            stream-count verified? thumbnails duration upload-date type]
-    :as   item} route bookmarks]
+    :as   item} route]
   [:div.flex.gap-x-3.xs:gap-x-5
    [layout/thumbnail
     (-> thumbnails
@@ -127,7 +118,7 @@
          name
          (when (and verified? (not uploader-url))
            [:i.fa-solid.fa-circle-check.pl-3.text-sm])]]
-       [item-popover item bookmarks]])
+       [item-popover item]])
     [:div.flex.items-center.justify-between.gap-y-2
      [:div.flex.flex-col.justify-center.gap-y-2.text-neutral-600.dark:text-neutral-400
       (when (or uploader-url uploader-name)
@@ -173,7 +164,6 @@
     (fn [related-streams next-page-url !layout pagination-fn]
       (let [service-color       @(rf/subscribe [:service-color])
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
-            bookmarks           @(rf/subscribe [:bookmarks])
             item-url            #(case (:type %)
                                    "stream"   (rfe/href :stream-page
                                                         nil
@@ -210,7 +200,7 @@
                  {:ref (when (and (seq next-page-url)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
-                 [grid-item-content item (item-url item) bookmarks]])]
+                 [grid-item-content item (item-url item)]])]
              [:div.flex.flex-wrap.w-full.gap-x-10.gap-y-6
               (for [[i item] (map-indexed vector related-streams)]
                 ^{:key i}
@@ -218,7 +208,7 @@
                  {:ref (when (and (seq next-page-url)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
-                 [list-item-content item (item-url item) bookmarks]])]))
+                 [list-item-content item (item-url item)]])]))
          (when (and pagination-loading? (seq next-page-url))
            [layout/loading-icon service-color :text-md])]))))
 

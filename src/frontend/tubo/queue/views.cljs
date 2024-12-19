@@ -31,13 +31,13 @@
      [:span (utils/get-service-name service-id)]]]])
 
 (defn popover
-  [{:keys [url service-id uploader-url] :as item} i menu-active? bookmarks]
+  [{:keys [url service-id uploader-url] :as item} i bookmarks]
   (let [liked? (some #(= (:url %) url)
                      (-> bookmarks
                          first
                          :items))]
     [:div.absolute.right-0.top-0.min-h-full.flex.items-center
-     [layout/popover-menu menu-active?
+     [layout/popover
       [{:label    (if liked? "Remove favorite" "Favorite")
         :icon     [:i.fa-solid.fa-heart
                    (when liked?
@@ -59,20 +59,18 @@
                                  {:name   :channel-page
                                   :params {}
                                   :query  {:url uploader-url}}])}]
-      :menu-classes
-      ["xs:right-5" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]
+      :tooltip-classes ["right-5" "top-0" "z-20"]
       :extra-classes [:px-7 :py-2]]]))
 
 (defn queue-item
-  [_item _queue _queue-pos _i _bookmarks]
-  (let [!menu-active?     (r/atom false)
-        show-main-player? @(rf/subscribe [:main-player/show])]
+  []
+  (let [show-main-player? @(rf/subscribe [:main-player/show])]
     (fn [item queue queue-pos i bookmarks]
       [:div.relative.w-full
        {:ref #(when (and queue (= queue-pos i) (not show-main-player?))
                 (rf/dispatch [:scroll-into-view %]))}
        [item-metadata item queue-pos i]
-       [popover item i !menu-active? bookmarks]])))
+       [popover item i bookmarks]])))
 
 (defn queue-metadata
   [{:keys [url name uploader-url uploader-name]}]

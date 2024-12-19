@@ -11,37 +11,31 @@
    [tubo.utils :as utils]))
 
 (defn metadata-popover
-  [_]
-  (let [!menu-active? (r/atom nil)]
-    (fn [{:keys [service-id url] :as stream}]
-      (let [bookmarks @(rf/subscribe [:bookmarks])
-            liked?    (some #(= (:url %) url)
-                            (-> bookmarks
-                                first
-                                :items))]
-        [layout/popover-menu !menu-active?
-         [{:label    "Add to queue"
-           :icon     [:i.fa-solid.fa-headphones]
-           :on-click #(rf/dispatch [:bg-player/show stream true])}
-          {:label    "Start radio"
-           :icon     [:i.fa-solid.fa-tower-cell]
-           :on-click #(rf/dispatch [:bg-player/start-radio stream])}
-          {:label    (if liked? "Remove favorite" "Favorite")
-           :icon     (if liked?
-                       [:i.fa-solid.fa-heart
-                        {:style {:color (utils/get-service-color service-id)}}]
-                       [:i.fa-solid.fa-heart])
-           :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) stream
-                                    true])}
-          {:label "Original"
-           :link  {:route url :external? true}
-           :icon  [:i.fa-solid.fa-external-link-alt]}
-          {:label    "Add to playlist"
-           :icon     [:i.fa-solid.fa-plus]
-           :on-click #(rf/dispatch [:modals/open
-                                    [modals/add-to-bookmark stream]])}]
-         :menu-classes ["xs:right-5" "xs:top-5" "xs:left-auto" "xs:bottom-auto"]
-         :extra-classes ["xs:py-2" "xs:px-4"]]))))
+  [{:keys [service-id url] :as stream}]
+  (let [favorited? @(rf/subscribe [:bookmarks/favorited url])]
+    [layout/popover
+     [{:label    "Add to queue"
+       :icon     [:i.fa-solid.fa-headphones]
+       :on-click #(rf/dispatch [:bg-player/show stream true])}
+      {:label    "Start radio"
+       :icon     [:i.fa-solid.fa-tower-cell]
+       :on-click #(rf/dispatch [:bg-player/start-radio stream])}
+      {:label    (if favorited? "Remove favorite" "Favorite")
+       :icon     (if favorited?
+                   [:i.fa-solid.fa-heart
+                    {:style {:color (utils/get-service-color service-id)}}]
+                   [:i.fa-solid.fa-heart])
+       :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add) stream
+                                true])}
+      {:label "Original"
+       :link  {:route url :external? true}
+       :icon  [:i.fa-solid.fa-external-link-alt]}
+      {:label    "Add to playlist"
+       :icon     [:i.fa-solid.fa-plus]
+       :on-click #(rf/dispatch [:modals/open
+                                [modals/add-to-bookmark stream]])}]
+     :tooltip-classes ["right-5" "top-5"]
+     :extra-classes ["p-3" "xs:py-2" "xs:px-4"]]))
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
@@ -114,9 +108,8 @@
           [comments/comments comments-page stream])))))
 
 (defn related-items
-  [_]
-  (let [!menu-active? (r/atom nil)
-        !layout       (r/atom (:items-layout @(rf/subscribe [:settings])))]
+  []
+  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{:keys [related-streams]}]
       (let [show? (:show-related @(rf/subscribe [:settings]))]
         (when (and show? (seq related-streams))
@@ -124,7 +117,7 @@
            [:div.flex.flex-wrap.items-center.justify-between.mt-8.min-w-full
             [:div.flex.gap-x-4.items-center
              [:span.font-semibold.text-xl "Next Up"]
-             [layout/popover-menu !menu-active?
+             [layout/popover
               [{:label    "Add to queue"
                 :icon     [:i.fa-solid.fa-headphones]
                 :on-click #(rf/dispatch [:queue/add-n

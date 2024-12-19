@@ -8,21 +8,18 @@
    [tubo.utils :as utils]))
 
 (defn metadata-popover
-  [_]
-  (let [!menu-active? (r/atom nil)]
-    (fn [{:keys [related-streams]}]
-      (when related-streams
-        [layout/popover-menu !menu-active?
-         [{:label    "Add streams to queue"
-           :icon     [:i.fa-solid.fa-headphones]
-           :on-click #(rf/dispatch [:queue/add-n related-streams true])}
-          {:label    "Add streams to playlist"
-           :icon     [:i.fa-solid.fa-plus]
-           :on-click #(rf/dispatch [:modals/open
-                                    [modals/add-to-bookmark
-                                     related-streams]])}]
-         :menu-classes
-         ["xs:right-7" "xs:top-0" "xs:left-auto" "xs:bottom-auto"]]))))
+  [{:keys [related-streams]}]
+  (when related-streams
+    [layout/popover
+     [{:label    "Add streams to queue"
+       :icon     [:i.fa-solid.fa-headphones]
+       :on-click #(rf/dispatch [:queue/add-n related-streams true])}
+      {:label    "Add streams to playlist"
+       :icon     [:i.fa-solid.fa-plus]
+       :on-click #(rf/dispatch [:modals/open
+                                [modals/add-to-bookmark
+                                 related-streams]])}]
+     :tooltip-classes ["right-7" "top-0"]]))
 
 (defn metadata
   [{:keys [avatars name subscriber-count] :as channel}]
