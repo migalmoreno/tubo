@@ -88,23 +88,22 @@
  :bg-player/show
  [(rf/inject-cofx :store)]
  (fn [{:keys [db]} [_ stream notify?]]
-   (let [updated-db (update db :queue conj stream)
-         idx        (.indexOf (:queue updated-db) stream)]
-     {:fx [(if (= (count (:queue db)) 0)
-             [:dispatch [:bg-player/fetch-stream (:url stream) idx true]]
-             [:dispatch [:queue/add stream notify?]])]})))
+   {:fx [(if (= (count (:queue db)) 0)
+           [:dispatch [:bg-player/fetch-stream (:url stream) 0 true]]
+           [:dispatch [:queue/add stream notify?]])]}))
 
 (rf/reg-event-fx
  :bg-player/start-radio
  (fn [{:keys [db]} [_ stream]]
-   {:fx [[:dispatch [:bg-player/show stream]]
-         (when (not= (count (:queue db)) 0)
-           [:dispatch [:queue/change-pos (count (:queue db))]])
-         [:dispatch [:bg-player/fetch-related-streams (:url stream)]]
-         [:dispatch
-          [:notifications/add
-           {:status-text "Started stream radio"
-            :failure     :info}]]]}))
+   (let [updated-db (update db :queue conj stream)
+         idx        (.lastIndexOf (:queue updated-db) stream)]
+     {:fx [[:dispatch [:queue/add stream]]
+           [:dispatch [:bg-player/fetch-stream (:url stream) idx true]]
+           [:dispatch [:bg-player/fetch-related-streams (:url stream)]]
+           [:dispatch
+            [:notifications/add
+             {:status-text "Started stream radio"
+              :failure     :info}]]]})))
 
 (rf/reg-event-fx
  :bg-player/switch-to-main
