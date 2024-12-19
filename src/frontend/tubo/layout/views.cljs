@@ -295,7 +295,9 @@
                                  (reset! !current tab)
                                  (on-change (:id @!current))))}
                   (:left-icon tab)
-                  [:span.hidden.xs:block
+                  [:span
+                   {:class (when (or (:left-icon tab) (:right-icon tab))
+                             ["hidden" "xs:block"])}
                    (if (:label-fn tab)
                      ((:label-fn tab) (:label tab))
                      (:label tab))]
