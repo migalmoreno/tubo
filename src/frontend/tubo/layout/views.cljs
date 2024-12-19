@@ -276,24 +276,27 @@
 (defn tabs
   [tabs]
   (let [!current (r/atom (and (seq tabs) (nth tabs 0)))]
-    (fn [tabs & {:keys [on-change]}]
+    (fn [tabs & {:keys [on-change selected-id]}]
       [:div
        (into
         [:ul.w-full.flex.gap-x-4.justify-center.items-center]
         (when (seq tabs)
           (for [[i tab] (map-indexed vector tabs)]
-            (let [selected? (= (:id tab) (:id @!current))]
+            (let [selected? (= (:id tab) selected-id)]
               (when tab
                 [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
                  {:class (if selected?
                            "border-neutral-700 dark:border-neutral-100"
                            "!border-transparent")
                   :key   i}
-                 [:button.flex-auto.py-4
+                 [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center
                   {:on-click (when (not selected?)
                                (fn []
                                  (reset! !current tab)
                                  (on-change (:id @!current))))}
-                  (if (:label-fn tab)
-                    ((:label-fn tab) (:label tab))
-                    (:label tab))]])))))])))
+                  (:left-icon tab)
+                  [:span.hidden.xs:block
+                   (if (:label-fn tab)
+                     ((:label-fn tab) (:label tab))
+                     (:label tab))]
+                  (:right-icon tab)]])))))])))

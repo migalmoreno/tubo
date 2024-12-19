@@ -135,13 +135,9 @@
   []
   (let [!active-tab (r/atom :comments)]
     (fn []
-      (let [stream          @(rf/subscribe [:stream])
-            !player         @(rf/subscribe [:main-player])
-            page-loading?   @(rf/subscribe [:show-page-loading])
-            comments-length (-> stream
-                                :comments-page
-                                :comments
-                                count)]
+      (let [stream        @(rf/subscribe [:stream])
+            !player       @(rf/subscribe [:main-player])
+            page-loading? @(rf/subscribe [:show-page-loading])]
         [:<>
          (when-not page-loading?
            [:div.flex.flex-col.justify-center.items-center
@@ -151,21 +147,12 @@
           [description stream]
           [:div.mt-10
            [layout/tabs
-            [{:id :comments
-              :label "Comments"
-              :label-fn
-              (fn [label]
-                [:div.flex.gap-3.items-center.justify-center
-                 [:i.fa-solid.fa-comments]
-                 [:span label]
-                 [:span.bg-neutral-200.dark:bg-neutral-800.rounded.px-2.text-sm
-                  comments-length]])}
-             {:id       :related-items
-              :label    "Related Items"
-              :label-fn (fn [label]
-                          [:div.flex.gap-3.items-center.justify-center
-                           [:i.fa-solid.fa-table-list]
-                           [:span label]])}]
+            [{:id        :comments
+              :label     "Comments"
+              :left-icon [:i.fa-solid.fa-comments]}
+             {:id        :related-items
+              :label     "Related Items"
+              :left-icon [:i.fa-solid.fa-table-list]}]
             :selected-id @!active-tab
             :on-change #(reset! !active-tab %)]]
           (case @!active-tab
