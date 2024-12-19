@@ -8,7 +8,8 @@
    [tubo.layout.views :as layout]
    [tubo.services.views :as services]
    [tubo.stream.views :as stream]
-   [tubo.playlist.views :as playlist]))
+   [tubo.playlist.views :as playlist]
+   [tubo.bg-player.views :as bg-player]))
 
 (defn search-form
   []
@@ -119,17 +120,20 @@
       [:button.mx-3
        {:on-click #(rf/dispatch [:search/show-form true])}
        [:i.fa-solid.fa-search]]
-      (when-not (or show-queue? show-main-player?)
-        [:div.xs:hidden
-         (case (-> match
-                   :data
-                   :name)
-           :channel-page  [channel/metadata-popover
-                           @(rf/subscribe [:channel])]
-           :stream-page   [stream/metadata-popover @(rf/subscribe [:stream])]
-           :playlist-page [playlist/metadata-popover
-                           @(rf/subscribe [:playlist])]
-           [:<>])])
+      [:div.xs:hidden
+       (case (-> match
+                 :data
+                 :name)
+         :channel-page  [channel/metadata-popover
+                         @(rf/subscribe [:channel])]
+         :stream-page   [stream/metadata-popover @(rf/subscribe [:stream])]
+         :playlist-page [playlist/metadata-popover
+                         @(rf/subscribe [:playlist])]
+         (cond show-main-player? [stream/metadata-popover
+                                  @(rf/subscribe [:stream])]
+               show-queue?       [bg-player/popover
+                                  @(rf/subscribe [:queue/current])]
+               :else             [:<>]))]
       [:a.mx-3.hidden.lg:block
        {:href (rfe/href :settings-page)}
        [:i.fa-solid.fa-cog]]
