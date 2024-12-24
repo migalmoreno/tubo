@@ -22,29 +22,44 @@
    [select-input "List view mode" [:items-layout] items-layout #{:grid :list}]])
 
 (defn content-settings
-  [{:keys [default-service default-country show-description show-comments
-           show-related]}]
+  [{:keys [default-service default-country default-kiosk show-description
+           show-comments show-related]}]
   (let [services   @(rf/subscribe [:services])
+        kiosks     @(rf/subscribe [:kiosks])
         service-id @(rf/subscribe [:service-id])
         countries  (->> services
                         (filter #(= (:id %) service-id))
                         first
                         :supported-countries)]
     [:<>
-     [select-input "Default content country" nil
+     [select-input "Default country" nil
       (:name (get default-country service-id)) (map :name countries)
       (fn [e]
         (rf/dispatch [:settings/change [:default-country service-id]
                       (first (filter #(= (.. e -target -value) (:name %))
                                      countries))]))]
-     [select-input "Default service" [:default-service] (:id default-service)
+     [select-input "Default service" nil
+      (->> services
+           (filter #(= (:id %) default-service))
+           first
+           :info
+           :name)
       (map #(-> %
                 :info
                 :name)
            services)
-      #(rf/dispatch [:settings/change-service (.. % -target -value)])]
-     [select-input "Default kiosk" [:default-service :default-kiosk]
-      (:default-kiosk default-service) (:available-kiosks default-service)]
+      (fn [e]
+        (rf/dispatch [:settings/change [:default-service]
+                      (->> services
+                           (filter #(= (.. e -target -value)
+                                       (-> %
+                                           :info
+                                           :name)))
+                           first
+                           :id)]))]
+     [select-input "Default kiosk" [:default-kiosk service-id]
+      (or (get default-kiosk service-id) (:default-kiosk kiosks))
+      (:available-kiosks kiosks)]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]

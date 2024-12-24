@@ -190,7 +190,8 @@
            :kiosk-id        kioskId
            :service-id      service-id
            :default-service (:default-service settings)
-           :default-kiosk   (:default-kiosk kiosks)
+           :default-kiosk   (or (get (:default-kiosk settings) service-id)
+                                (:default-kiosk kiosks))
            :path            path
            :kiosk           kiosk)])]]
      [:div.relative.dark:border-neutral-800.border-gray-300.pt-4

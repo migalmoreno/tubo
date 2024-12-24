@@ -78,21 +78,15 @@
 (rf/reg-event-fx
  :kiosks/fetch-default-page
  (fn [{:keys [db]} [_ service-id]]
-   (let [default-kiosk-id
-         (when (= (js/parseInt service-id)
-                  (-> db
-                      :settings
-                      :default-service
-                      :service-id))
-           (-> db
-               :settings
-               :default-service
-               :default-kiosk))
-         default-country (-> db
-                             :settings
-                             :default-country
-                             (get (js/parseInt service-id))
-                             :code)]
+   (let [default-kiosk-id (-> db
+                              :settings
+                              :default-kiosk
+                              (get (js/parseInt service-id)))
+         default-country  (-> db
+                              :settings
+                              :default-country
+                              (get (js/parseInt service-id))
+                              :code)]
      {:fx [[:dispatch
             (if default-kiosk-id
               [:kiosks/fetch-page service-id default-kiosk-id]

@@ -66,14 +66,14 @@
                                                         :default-country)
                                                     {0 {:name "United States"
                                                         :code "US"}})
+                          :default-kiosk    (if-nil (-> store
+                                                        :settings
+                                                        :default-kiosk)
+                                                    {0 "Trending"})
                           :default-service  (if-nil (-> store
                                                         :settings
                                                         :default-service)
-                                                    {:service-id 0
-                                                     :id "YouTube"
-                                                     :default-kiosk "Trending"
-                                                     :available-kiosks
-                                                     ["Trending"]})}}})))
+                                                    0)}}})))
 
 (rf/reg-fx
  :scroll-to-top
@@ -131,25 +131,13 @@
      (.remove !link))))
 
 (rf/reg-event-fx
- :load-homepage
- (fn [{:keys [db]} [_ res]]
-   (let [updated-db (assoc db :services (js->clj res :keywordize-keys true))
-         service-id (:id (first
-                          (filter #(= (-> db
-                                          :settings
-                                          :default-service
-                                          :id)
-                                      (-> %
-                                          :info
-                                          :name))
-                                  (:services updated-db))))]
+ :fetch-homepage
+ (fn [{:keys [db]}]
+   (let [service-id (-> db
+                        :settings
+                        :default-service)]
      {:fx [[:dispatch [:kiosks/fetch-default-page service-id]]
            [:dispatch [:services/change-id service-id]]]})))
-
-(rf/reg-event-fx
- :fetch-homepage
- (fn []
-   {:fx [[:dispatch [:services/fetch-all [:load-homepage] [:bad-response]]]]}))
 
 (rf/reg-event-fx
  :change-view

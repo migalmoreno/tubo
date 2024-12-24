@@ -11,12 +11,11 @@
   (or (= kiosk-id kiosk)
       (and (= path "/kiosk")
            (not kiosk-id)
-           (not= (js/parseInt service-id)
-                 (:service-id default-service))
+           (not= (js/parseInt service-id) default-service)
            (= default-kiosk kiosk))
       (and (or (= path "/") (= path "/kiosk"))
            (not kiosk-id)
-           (= (:default-kiosk default-service) kiosk))))
+           (= default-kiosk kiosk))))
 
 (defn kiosks-menu
   [& {:keys [kiosks service-id] :as kiosk-args}]
