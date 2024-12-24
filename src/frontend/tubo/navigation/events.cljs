@@ -24,16 +24,17 @@
  (fn [_ [_ route]]
    {:navigate! route}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :navigation/hide-mobile-menu
- (fn [db]
-   (assoc db :navigation/show-mobile-menu false)))
+ (fn [{:keys [db]}]
+   {:db            (assoc db :navigation/show-mobile-menu false)
+    :body-overflow false}))
 
 (rf/reg-event-fx
  :navigation/show-mobile-menu
  (fn [{:keys [db]}]
    {:db            (assoc db :navigation/show-mobile-menu true)
-    :body-overflow (not (:navigation/show-mobile-menu db))
+    :body-overflow true
     :fx            [[:dispatch
                      [:layout/show-bg-overlay
                       {:extra-classes ["z-30"]
