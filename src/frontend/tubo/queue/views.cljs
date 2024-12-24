@@ -1,6 +1,5 @@
 (ns tubo.queue.views
   (:require
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
@@ -153,16 +152,17 @@
         color      (-> stream
                        :service-id
                        utils/get-service-color)]
-    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
-     {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
-              "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
-              (when-not show-queue "invisible")
-              (if show-queue "opacity-1" "opacity-0")]}
-     [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
-      {:class ["lg:w-4/5" "xl:w-3/5"]}
-      [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1
-       (for [[i item] (map-indexed vector queue)]
-         ^{:key i} [queue-item item queue queue-pos i bookmarks])]
-      [:div.flex.flex-col.py-4.shrink-0.px-5
-       [queue-metadata stream]
-       [main-controls color]]]]))
+    (when show-queue
+      [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
+       {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
+                "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
+                (when-not show-queue "invisible")
+                (if show-queue "opacity-1" "opacity-0")]}
+       [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
+        {:class ["lg:w-4/5" "xl:w-3/5"]}
+        [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1
+         (for [[i item] (map-indexed vector queue)]
+           ^{:key i} [queue-item item queue queue-pos i bookmarks])]
+        [:div.flex.flex-col.py-4.shrink-0.px-5
+         [queue-metadata stream]
+         [main-controls color]]]])))
