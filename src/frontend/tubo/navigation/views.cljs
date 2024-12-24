@@ -53,14 +53,6 @@
             :class    (when (empty? @!query) :invisible)}
            [:i.fa-solid.fa-xmark]]]]))))
 
-(defn mobile-nav-item
-  [route icon label & {:keys [new-tab? active?]}]
-  [:li.px-5.py-2
-   [:a.flex {:href route :target (when new-tab? "_blank")}
-    [:div.w-6.flex.justify-center.items-center.mr-4
-     (conj icon {:class ["text-neutral-600" "dark:text-neutral-300"]})]
-    [:span {:class (when active? "font-bold")} label]]])
-
 (defn nav-left-content
   [title]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
@@ -163,6 +155,14 @@
       [search-form]
       [nav-right-content match]]]))
 
+(defn mobile-menu-item
+  [route icon label & {:keys [new-tab? active?]}]
+  [:li.hover:bg-neutral-800
+   [:a.flex.gap-x-4.p-4 {:href route :target (when new-tab? "_blank")}
+    [:div.w-6.flex.justify-center.items-center
+     (conj icon {:class ["text-neutral-600" "dark:text-neutral-300"]})]
+    [:span {:class (when active? "font-bold")} label]]])
+
 (defn mobile-menu
   [{{:keys [kioskId]} :query-params path :path}]
   (let [service-id       @(rf/subscribe [:service-id])
@@ -173,16 +173,16 @@
         settings         @(rf/subscribe [:settings])]
     [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.transition-all.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-30
      {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
-     [:div.flex.justify-center.py-4.items-center.text-white
+     [:div.flex.justify-center.items-center.py-8.gap-x-4
       {:style {:background service-color}}
-      [layout/logo :height 75 :width 75]
-      [:h3.text-3xl.font-bold "Tubo"]]
+      [layout/logo :height 50 :width 50]
+      [:h3.text-3xl.font-semibold "Tubo"]]
      [services/services-dropdown services service-id service-color]
-     [:div.relative.py-4
+     [:div.relative.py-2
       [:ul.flex.flex-col
        (for [[i kiosk] (map-indexed vector (:available-kiosks kiosks))]
          ^{:key i}
-         [mobile-nav-item
+         [mobile-menu-item
           (rfe/href :kiosk-page nil {:serviceId service-id :kioskId kiosk})
           [:i.fa-solid.fa-fire] kiosk
           :active?
@@ -194,10 +194,10 @@
                                 (:default-kiosk kiosks))
            :path            path
            :kiosk           kiosk)])]]
-     [:div.relative.dark:border-neutral-800.border-gray-300.pt-4
-      {:class "border-t-[1px]"}
-      [:ul.flex.flex-col
-       [mobile-nav-item (rfe/href :bookmarks-page) [:i.fa-solid.fa-bookmark]
-        "Bookmarks"]
-       [mobile-nav-item (rfe/href :settings-page) [:i.fa-solid.fa-cog]
-        "Settings"]]]]))
+     [:ul.flex.flex-col.border-t.dark:border-neutral-800.border-gray-300.py-2
+      [mobile-menu-item (rfe/href :bookmarks-page) [:i.fa-solid.fa-bookmark]
+       "Bookmarks"]
+      [mobile-menu-item (rfe/href :settings-page) [:i.fa-solid.fa-cog]
+       "Settings"]
+      [mobile-menu-item (rfe/href :about-page) [:i.fa-solid.fa-circle-info]
+       "About & FAQ"]]]))
