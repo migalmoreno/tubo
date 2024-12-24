@@ -209,19 +209,21 @@
         [:i.fa-solid.fa-ellipsis-vertical]]])))
 
 (defn accordeon
-  [{:keys [label on-open open? left-icon right-button]} & content]
-  [:div.py-4
-   [:div.flex.justify-between
-    [:div.flex.items-center.text-sm.sm:text-base
-     (when left-icon
-       [:i.w-6 {:class left-icon}])
-     [:h2.mx-4.text-lg.w-24 label]
-     [:i.fa-solid.fa-chevron-up.cursor-pointer.text-sm
-      {:class    (if open? :fa-chevron-up :fa-chevron-down)
-       :on-click on-open}]]
-    right-button]
-   (when open?
-     (map-indexed #(with-meta %2 {:key %1}) content))])
+  []
+  (let [!open? (r/atom false)]
+    (fn [{:keys [label on-open open? left-icon]} & content]
+      [:div.flex.flex-col.py-4.flex-auto.justify-center
+       [:div.flex.justify-center
+        [:div.flex.items-center.cursor-pointer.gap-x-2
+         {:on-click #(do (when on-open (on-open))
+                         (reset! !open? (not @!open?)))}
+         left-icon
+         [:div.flex.gap-x-4.items-center
+          label
+          [:i.fa-solid {:class (if @!open? :fa-caret-up :fa-caret-down)}]]]]
+       (when @!open?
+         [:div.py-4
+          (map-indexed #(with-meta %2 {:key %1}) content)])])))
 
 (defn show-more-container
   []
