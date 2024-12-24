@@ -1,7 +1,6 @@
 const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts");
-const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: process.env.NODE_ENV,
@@ -15,18 +14,6 @@ module.exports = {
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: "styles/[name].css",
-    }),
-    new CopyPlugin({
-      patterns: [
-        {
-          from: path.resolve(__dirname, "resources/src/icons"),
-          to: "icons",
-        },
-        {
-          from: path.resolve(__dirname, "resources/src/index.html"),
-          to: "index.html",
-        },
-      ],
     }),
   ],
   module: {

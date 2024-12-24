@@ -3,10 +3,20 @@
                   :proxy-url "http://localhost:3000"}}
  :builds
  {:tubo
-  {:target     :browser
-   :output-dir "resources/public/js"
-   :asset-path "/js"
-   :js-options {:entry-keys        ["module" "browser" "main"]
-                :export-conditions ["import" "module" "browser" "require"
-                                    "default"]}
-   :modules    {:main {:init-fn tubo.core/init}}}}}
+  {:target           :browser
+   :asset-path       "/js"
+   :output-dir       "resources/public/js"
+   :git-inject       {:version-pattern "^(.*)$"}
+   :build-hooks      [(shadow-git-inject.core/hook)
+                      (hooks/copy-assets
+                       {:public-dir "resources/public"
+                        :assets     {"resources/src/icons"      "icons"
+                                     "resources/src/index.html" "index.html"}})]
+   :dev              {:build-hooks [(hooks/webpack-watch)]}
+   :release          {:build-hooks [(hooks/webpack-release)]}
+   :compiler-options {:closure-defines {tubo.utils/version
+                                        :shadow-git-inject/version}}
+   :js-options       {:entry-keys        ["module" "browser" "main"]
+                      :export-conditions ["import" "module" "browser" "require"
+                                          "default"]}
+   :modules          {:main {:init-fn tubo.core/init}}}}}

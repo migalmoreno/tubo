@@ -17,7 +17,6 @@ To bundle the whole project into a self-contained uber-jar you need to follow th
 
 #+begin_src sh
 npm i
-npm run build
 clojure -T:frontend:build uberjar
 #+end_src
 

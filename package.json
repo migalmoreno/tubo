@@ -1,9 +1,4 @@
 {
-  "scripts": {
-    "start": "webpack --watch --mode development",
-    "dev": "webpack --mode development",
-    "build": "webpack --mode production"
-  },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.2",
     "hls-video-element": "^1.2.11",
@@ -17,8 +12,6 @@
     "@fontsource/nunito-sans": "^5.0.12",
     "@tailwindcss/forms": "^0.5.4",
     "autoprefixer": "^10.4.15",
-    "copy-webpack-plugin": "^11.0.0",
-    "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
     "cssnano": "^6.0.1",
     "mini-css-extract-plugin": "^2.7.6",

@@ -18,7 +18,7 @@
  {:build {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
           :ns-default build}
   :frontend
-  {:extra-paths ["src/frontend"]
+  {:extra-paths ["src/frontend" "src/shared" "env/dev"]
    :extra-deps  {thheller/shadow-cljs          {:mvn/version "2.28.20"}
                  cider/cider-nrepl             {:mvn/version "0.28.4"}
                  metosin/reitit-frontend       {:mvn/version "0.5.18"}
@@ -31,6 +31,9 @@
                  nano-id/nano-id               {:mvn/version "1.1.0"}
                  com.github.scopews/svgreq     {:mvn/version "1.1.0"}
                  funcool/promesa               {:mvn/version "11.0.678"}
-                 re-promise/re-promise         {:mvn/version "0.1.1"}}
+                 re-promise/re-promise         {:mvn/version "0.1.1"}
+                 babashka/process              {:mvn/version "0.5.22"}
+                 babashka/fs                   {:mvn/version "0.5.23"}
+                 day8/shadow-git-inject        {:mvn/version "0.0.5"}}
    :main-opts   ["-m" "shadow.cljs.devtools.cli"]}
   :run {:main-opts ["-m" "tubo.core"]}}}

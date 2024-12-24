@@ -9,7 +9,6 @@ COPY package* /app/
 RUN npm install
 
 COPY . /app
-RUN npm run build
 RUN clojure -M:frontend release tubo
 
 FROM clojure:tools-deps
