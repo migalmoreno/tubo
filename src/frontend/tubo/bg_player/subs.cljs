@@ -1,6 +1,7 @@
 (ns tubo.bg-player.subs
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [reagent.core :as r]))
 
 (defonce !player (atom nil))
 
@@ -23,3 +24,10 @@
  :bg-player
  (fn []
    !player))
+
+(defonce !buffered (r/atom 0))
+
+(rf/reg-sub
+ :bg-player/buffered
+ (fn []
+   !buffered))

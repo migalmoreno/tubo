@@ -21,6 +21,11 @@
    {:player/pause {:paused? (not paused?)
                    :player  bg-player}}))
 
+(rf/reg-event-db
+ :bg-player/set-loading
+ (fn [db [_ val]]
+   (assoc db :bg-player/loading val)))
+
 (rf/reg-event-fx
  :bg-player/start
  [(rf/inject-cofx ::inject/sub [:bg-player])

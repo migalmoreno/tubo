@@ -1,6 +1,5 @@
 (ns tubo.bg-player.views
   (:require
-   [clojure.string :as str]
    [re-frame.core :as rf]
    [reagent.dom :as rdom]
    [reagent.core :as r]
@@ -8,54 +7,6 @@
    [tubo.bookmarks.modals :as modals]
    [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
-
-(defonce base-slider-classes
-  ["h-2" "cursor-pointer" "appearance-none" "bg-neutral-300"
-   "dark:bg-neutral-600"
-   "rounded-full" "overflow-hidden" "focus:outline-none"
-   "[&::-webkit-slider-thumb]:appearance-none"
-   "[&::-webkit-slider-thumb]:border-0"
-   "[&::-webkit-slider-thumb]:rounded-full"
-   "[&::-webkit-slider-thumb]:h-2"
-   "[&::-webkit-slider-thumb]:w-2"
-   "[&::-webkit-slider-thumb]:shadow-[-405px_0_0_400px]"
-   "[&::-moz-range-thumb]:border-0"
-   "[&::-moz-range-thumb]:rounded-full"
-   "[&::-moz-range-thumb]:h-2"
-   "[&::-moz-range-thumb]:w-2"
-   "[&::-moz-range-thumb]:shadow-[-405px_0_0_400px]"])
-
-(defn get-slider-shadow-classes
-  [service-color]
-  (case service-color
-    "#cc0000" ["[&::-webkit-slider-thumb]:shadow-[#cc0000]"
-               "[&::-moz-range-thumb]:shadow-[#cc0000]"]
-    "#ff7700" ["[&::-webkit-slider-thumb]:shadow-[#ff7700]"
-               "[&::-moz-range-thumb]:shadow-[#ff7700]"]
-    "#333333" ["[&::-webkit-slider-thumb]:shadow-[#333333]"
-               "[&::-moz-range-thumb]:shadow-[#333333]"]
-    "#F2690D" ["[&::-webkit-slider-thumb]:shadow-[#F2690D]"
-               "[&::-moz-range-thumb]:shadow-[#F2690D]"]
-    "#629aa9" ["[&::-webkit-slider-thumb]:shadow-[#629aa9]"
-               "[&::-moz-range-thumb]:shadow-[#629aa9]"]
-    ["[&::-webkit-slider-thumb]:shadow-neutral-300"
-     "[&::-moz-range-thumb]:shadow-neutral-300"]))
-
-(defn get-slider-bg-classes
-  [service-color]
-  (case service-color
-    "#cc0000" ["[&::-webkit-slider-thumb]:bg-[#cc0000]"
-               "[&::-moz-range-thumb]:bg-[#cc0000]"]
-    "#ff7700" ["[&::-webkit-slider-thumb]:bg-[#ff7700]"
-               "[&::-moz-range-thumb]:bg-[#ff7700]"]
-    "#333333" ["[&::-webkit-slider-thumb]:bg-[#333333]"
-               "[&::-moz-range-thumb]:bg-[#333333]"]
-    "#F2690D" ["[&::-webkit-slider-thumb]:bg-[#F2690D]"
-               "[&::-moz-range-thumb]:bg-[#F2690D]"]
-    "#629aa9" ["[&::-webkit-slider-thumb]:bg-[#629aa9]"
-               "[&::-moz-range-thumb]:bg-[#629aa9]"]
-    ["[&::-webkit-slider-thumb]:bg-neutral-300"
-     "[&::-moz-range-thumb]:bg-neutral-300"]))
 
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
@@ -91,48 +42,72 @@
    :extra-classes [:text-sm]
    :show-on-mobile? show-on-mobile?])
 
+(defonce slider-classes
+  ["h-2" "cursor-pointer" "appearance-none" "rounded-full"
+   "overflow-hidden"
+   "bg-neutral-300" "dark:bg-neutral-600" "focus:outline-none"
+   "[&::-webkit-slider-runnable-track]:h-2"
+   "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#A3A3A3_var(--buffered),#D4D4D4_var(--buffered))]"
+   "dark:[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
+   "[&::-webkit-slider-thumb]:appearance-none"
+   "[&::-webkit-slider-thumb]:border-0"
+   "[&::-webkit-slider-thumb]:rounded"
+   "[&::-webkit-slider-thumb]:h-2"
+   "[&::-webkit-slider-thumb]:w-2"
+   "[&::-webkit-slider-thumb]:shadow-[-405px_0_0_400px]"
+   "[&::-webkit-slider-thumb]:shadow-[var(--thumb-bg)]"
+   "[&::-webkit-slider-thumb]:bg-[var(--thumb-bg)]"
+   "[&::-moz-range-track]:h-2"
+   "[&::-moz-range-track]:bg-[linear-gradient(to_right,#A3A3A3_var(--buffered),#D4D4D4_var(--buffered))]"
+   "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
+   "[&::-moz-range-thumb]:border-0"
+   "[&::-moz-range-thumb]:rounded"
+   "[&::-moz-range-thumb]:h-2"
+   "[&::-moz-range-thumb]:w-2"
+   "[&::-moz-range-thumb]:shadow-[-405px_0_0_400px]"
+   "[&::-moz-range-thumb]:shadow-[var(--thumb-bg)]"
+   "[&::-moz-range-thumb]:bg-[var(--thumb-bg)]"])
+
 (defn time-slider
   [!player !elapsed-time service-color]
-  (let [styles           (concat base-slider-classes
-                                 (get-slider-bg-classes service-color)
-                                 (get-slider-shadow-classes service-color))
-        bg-player-ready? @(rf/subscribe [:bg-player/ready])]
+  (let [bg-player-ready? @(rf/subscribe [:bg-player/ready])
+        !buffered        @(rf/subscribe [:bg-player/buffered])
+        max-value        (if (and bg-player-ready?
+                                  @!player
+                                  (not (js/isNaN (.-duration @!player))))
+                           (.floor js/Math (.-duration @!player))
+                           100)]
     [:input.w-full
-     {:class     styles
+     {:style     {"--buffered" (str @!buffered "%")
+                  "--thumb-bg" service-color}
+      :class     slider-classes
       :type      "range"
       :on-input  #(reset! !elapsed-time (.. % -target -value))
       :on-change #(when (and bg-player-ready? @!player)
                     (set! (.-currentTime @!player) @!elapsed-time))
-      :max       (if (and bg-player-ready?
-                          @!player
-                          (not (js/isNaN (.-duration @!player))))
-                   (.floor js/Math (.-duration @!player))
-                   100)
+      :max       max-value
       :value     @!elapsed-time}]))
 
 (defn volume-slider
   []
   (let [show-slider? (r/atom nil)]
     (fn [player volume-level muted? service-color]
-      (let [styles (concat ["rotate-[270deg]"]
-                           base-slider-classes
-                           (get-slider-bg-classes service-color)
-                           (get-slider-shadow-classes service-color))]
-        [:div.relative.flex.flex-col.justify-center.items-center
-         {:on-mouse-over #(reset! show-slider? true)
-          :on-mouse-out  #(reset! show-slider? false)}
-         [button
-          :icon
-          (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-          :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])]
-         (when @show-slider?
-           [:input.absolute.w-24.ml-2.m-1.bottom-16
-            {:class    (str/join " " styles)
-             :type     "range"
-             :on-input #(rf/dispatch [:player/change-volume
-                                      (.. % -target -value) player])
-             :max      100
-             :value    volume-level}])]))))
+      [:div.relative.flex.flex-col.justify-center.items-center
+       {:on-mouse-over #(reset! show-slider? true)
+        :on-mouse-out  #(reset! show-slider? false)}
+       [button
+        :icon
+        (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
+        :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])]
+       (when @show-slider?
+         [:input.absolute.w-24.ml-2.m-1.bottom-16
+          {:style    {"--thumb-bg" service-color}
+           :class    (concat ["rotate-[270deg]"] slider-classes)
+           :type     "range"
+           :on-input #(rf/dispatch [:player/change-volume (.. % -target -value)
+                                    player])
+           :max      100
+           :value    volume-level}])])))
 
 (defn metadata
   [{:keys [thumbnails url name uploader-url uploader-name]}]
@@ -160,8 +135,8 @@
         loading?         @(rf/subscribe [:bg-player/loading])
         loop-playback    @(rf/subscribe [:player/loop])
         shuffle?         @(rf/subscribe [:player/shuffled])
-        bg-player-ready? @(rf/subscribe [:bg-player/ready])
         paused?          @(rf/subscribe [:player/paused])
+        bg-player-ready? @(rf/subscribe [:bg-player/ready])
         !elapsed-time    @(rf/subscribe [:elapsed-time])]
     [:div.flex.flex-col.items-center.ml-auto
      [:div.flex.justify-end.gap-x-4
@@ -268,7 +243,8 @@
   []
   (let [!elapsed-time @(rf/subscribe [:elapsed-time])
         queue-pos     @(rf/subscribe [:queue/position])
-        stream        @(rf/subscribe [:queue/current])]
+        stream        @(rf/subscribe [:queue/current])
+        !buffered     @(rf/subscribe [:bg-player/buffered])]
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:bg-player/ready false])
       :component-did-mount
@@ -283,16 +259,36 @@
                     :content))))
       :reagent-render
       (fn [!player]
-        [:audio
-         {:ref            #(reset! !player %)
-          :loop           (= @(rf/subscribe [:player/loop]) :stream)
-          :muted          @(rf/subscribe [:player/muted])
-          :on-can-play    #(rf/dispatch [:bg-player/ready true])
-          :on-seeked      #(reset! !elapsed-time (.-currentTime @!player))
-          :on-time-update #(reset! !elapsed-time (.-currentTime @!player))
-          :on-play        #(rf/dispatch [:bg-player/set-paused false])
-          :on-pause       #(rf/dispatch [:bg-player/set-paused true])
-          :on-loaded-data #(rf/dispatch [:bg-player/start])}])})))
+        (let [on-progress
+              #(let [len (.. @!player -buffered -length)]
+                 (when (and (.-duration @!player) (> len 0))
+                   (if (= (.end (.-buffered @!player) (- len 1))
+                          (.-duration @!player))
+                     (reset! !buffered 100)
+                     (when (< (.start (.-buffered @!player) (- len 1))
+                              (.-currentTime @!player))
+                       (reset! !buffered (* (/ (.end (.-buffered @!player)
+                                                     (- len 1))
+                                               (.-duration @!player))
+                                            100))))))
+              on-update (fn []
+                          (when @(rf/subscribe [:bg-player/loading])
+                            (rf/dispatch [:bg-player/set-loading false]))
+                          (on-progress)
+                          (reset! !elapsed-time (.-currentTime @!player)))]
+          [:audio
+           {:ref            #(reset! !player %)
+            :preload        "metadata"
+            :on-waiting     #(rf/dispatch [:bg-player/set-loading true])
+            :loop           (= @(rf/subscribe [:player/loop]) :stream)
+            :muted          @(rf/subscribe [:player/muted])
+            :on-can-play    #(rf/dispatch [:bg-player/ready true])
+            :on-seeked      #(reset! !elapsed-time (.-currentTime @!player))
+            :on-progress    on-progress
+            :on-time-update on-update
+            :on-loaded-data #(rf/dispatch [:bg-player/start])
+            :on-play        #(rf/dispatch [:bg-player/set-paused false])
+            :on-pause       #(rf/dispatch [:bg-player/set-paused true])}]))})))
 
 (defn player
   []
