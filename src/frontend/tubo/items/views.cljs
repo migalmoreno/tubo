@@ -141,9 +141,11 @@
            [:<>
             [:div.flex.items-center.h-full.whitespace-nowrap
              [:p (str (utils/format-quantity view-count) " views")]]
-            [:span.px-2
-             {:dangerouslySetInnerHTML {:__html "&bull;"}}]])
-         [:span.line-clamp-1 (utils/format-date-ago upload-date)]])
+            (when upload-date
+              [:span.px-2
+               {:dangerouslySetInnerHTML {:__html "&bull;"}}])])
+         (when upload-date
+           [:span.line-clamp-1 (utils/format-date-ago upload-date)])])
       (when (or subscriber-count stream-count)
         [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
          (when (and (= type "channel") subscriber-count)
