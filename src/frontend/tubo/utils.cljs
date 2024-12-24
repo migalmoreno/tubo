@@ -2,6 +2,8 @@
   (:require
    ["timeago.js" :as timeago]))
 
+(goog-define ^js/String version "unknown")
+
 (defn get-service-color
   [id]
   (when id

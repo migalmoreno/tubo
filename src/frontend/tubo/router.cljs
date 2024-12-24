@@ -4,6 +4,7 @@
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
+   [tubo.about.views :as about]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosk]
@@ -77,6 +78,10 @@
                       :name        :bookmarks-page
                       :controllers [{:start #(rf/dispatch
                                               [:bookmarks/fetch-page])}]}
+      :web/about     {:view about/about
+                      :name :about-page}
+      :web/privacy   {:view about/privacy-policy
+                      :name :privacy-page}
       nil)
     (r/expand data opts)))
 

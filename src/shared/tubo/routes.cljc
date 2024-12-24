@@ -10,6 +10,8 @@
    ["/settings" :web/settings]
    ["/bookmark" :web/bookmark]
    ["/bookmarks" :web/bookmarks]
+   ["/about" :web/about]
+   ["/privacy" :web/privacy]
    ["/swagger.json" :api/swagger-spec]
    ["/api-docs/*" :api/swagger-ui]
    ["/api/v1"
