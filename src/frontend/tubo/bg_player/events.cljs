@@ -88,9 +88,9 @@
  :bg-player/show
  [(rf/inject-cofx :store)]
  (fn [{:keys [db]} [_ stream notify?]]
-   {:fx [(if (= (count (:queue db)) 0)
-           [:dispatch [:bg-player/fetch-stream (:url stream) 0 true]]
-           [:dispatch [:queue/add stream notify?]])]}))
+   {:fx [[:dispatch [:queue/add stream notify?]]
+         (when (= (count (:queue db)) 0)
+           [:dispatch [:bg-player/fetch-stream (:url stream) 0 true]])]}))
 
 (rf/reg-event-fx
  :bg-player/start-radio
