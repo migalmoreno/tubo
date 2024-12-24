@@ -273,7 +273,6 @@
 
 (defn get-kiosk
   ([{:keys [region]} service-id]
-   (println region)
    (let [service   (NewPipe/getService service-id)
          extractor (doto (.getDefaultKioskExtractor
                           (if region
