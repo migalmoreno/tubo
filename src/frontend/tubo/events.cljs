@@ -121,16 +121,16 @@
  (fn [_ [_ element]]
    {:scroll-top! element}))
 
-(defonce timeouts! (r/atom {}))
+(defonce !timeouts (atom {}))
 
 (rf/reg-fx
  :timeout
  (fn [{:keys [id event time]}]
-   (when-some [existing (get @timeouts! id)]
+   (when-some [existing (get @!timeouts id)]
      (js/clearTimeout existing)
-     (swap! timeouts! dissoc id))
+     (swap! !timeouts dissoc id))
    (when (some? event)
-     (swap! timeouts! assoc
+     (swap! !timeouts assoc
        id
        (js/setTimeout #(rf/dispatch event) time)))))
 
