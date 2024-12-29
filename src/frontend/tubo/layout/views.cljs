@@ -86,11 +86,11 @@
 (defn button
   [label on-click left-icon right-icon &
    {:keys [button-classes label-classes icon-classes]}]
-  [:button.px-4.rounded-3xl.py-1.outline-none.focus:ring-transparent.whitespace-nowrap
+  [:button.flex.items-center.gap-x-2.px-4.py-2.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap
    {:on-click on-click :class button-classes}
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
-   [:span.mx-2.font-bold.text-sm {:class label-classes} label]
+   [:span.font-bold.text-sm {:class label-classes} label]
    (when right-icon
      (conj right-icon {:class (or icon-classes label-classes)}))])
 
