@@ -8,8 +8,8 @@
   [title text & children]
   [:div.flex.flex-col.w-full.gap-y-6
    [:div.flex.flex-col.gap-y-2
-    [:h4.text-xl title]
-    [:span.text-neutral-400 text]]
+    [:h4.font-semibold.text-xl title]
+    [:span.text-neutral-600.dark:text-neutral-400 text]]
    [:div.flex
     (map-indexed #(with-meta %2 {:key %1}) children)]])
 
@@ -22,7 +22,8 @@
      [:div.flex.flex-col.items-center.gap-y-2
       [:h3.font-semibold.text-3xl "Tubo"]
       [:span.text-sm version]]
-     [:div.text-neutral-400 "A libre streaming front-end for the web"]]
+     [:div.text-neutral-600.dark:text-neutral-400
+      "A libre streaming front-end for the web"]]
     [:div.flex.flex-col.gap-y-4.py-8.w-full
      [about-entry "Website"
       "Visit Tubo's homepage for more information and documentation."

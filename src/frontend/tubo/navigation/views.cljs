@@ -62,7 +62,7 @@
      (when-not (or show-queue? show-main-player?)
        [:button.ml-2.invisible.absolute.lg:visible.lg:relative
         [:a.font-bold {:href (rfe/href :homepage)}
-         [layout/logo :height 35 :width 35]]])
+         [layout/logo :height 25 :width 25]]])
      (cond (and show-main-player? (not show-search-form?))
            [:button.text-white.mx-2
             {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
@@ -135,7 +135,10 @@
        [:i.fa-solid.fa-cog]]
       [:a.mx-3.hidden.lg:block
        {:href (rfe/href :bookmarks-page)}
-       [:i.fa-solid.fa-bookmark]]]]))
+       [:i.fa-solid.fa-bookmark]]
+      [:a.mx-3.hidden.lg:block
+       {:href (rfe/href :about-page)}
+       [:i.fa-solid.fa-circle-info]]]]))
 
 (defn navbar
   [match]
@@ -157,7 +160,7 @@
 
 (defn mobile-menu-item
   [route icon label & {:keys [new-tab? active?]}]
-  [:li.hover:bg-neutral-800
+  [:li.hover:bg-neutral-200.dark:hover:bg-neutral-800
    [:a.flex.gap-x-4.p-4 {:href route :target (when new-tab? "_blank")}
     [:div.w-6.flex.justify-center.items-center
      (conj icon {:class ["text-neutral-600" "dark:text-neutral-300"]})]
@@ -171,12 +174,12 @@
         show-mobile-nav? @(rf/subscribe [:navigation/show-mobile-menu])
         kiosks           @(rf/subscribe [:kiosks])
         settings         @(rf/subscribe [:settings])]
-    [:div.fixed.overflow-x-hidden.min-h-screen.w-60.top-0.transition-all.ease-in-out.delay-75.bg-white.dark:bg-neutral-900.z-30
+    [:div.fixed.min-h-screen.w-60.top-0.bg-neutral-100.dark:bg-neutral-900.transition-all.ease-in-out.delay-75.z-30
      {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
      [:div.flex.justify-center.items-center.py-8.gap-x-4
       {:style {:background service-color}}
       [layout/logo :height 50 :width 50]
-      [:h3.text-3xl.font-semibold "Tubo"]]
+      [:h3.text-white.text-3xl.font-semibold "Tubo"]]
      [services/services-dropdown services service-id service-color]
      [:div.relative.py-2
       [:ul.flex.flex-col
