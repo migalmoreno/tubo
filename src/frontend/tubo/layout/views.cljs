@@ -112,14 +112,26 @@
    [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
+(defn form-field
+  [{:keys [label orientation]} & children]
+  [:div.w-full.flex.py-2.gap-x-4.gap-y-1
+   {:class (if (= orientation :horizontal)
+             [:flex-col]
+             [:justify-between :items-center])}
+   [:label.text-neutral-600.dark:text-neutral-300 label]
+   (map-indexed #(with-meta %2 {:key %1}) children)])
+
 (defn text-input
-  [label value on-change placeholder]
-  [generic-input label
-   [:input.text-black
-    {:type          "text"
-     :default-value value
-     :on-change     on-change
-     :placeholder   placeholder}]])
+  [value on-change placeholder]
+  [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
+   {:type          "text"
+    :default-value value
+    :on-change     on-change
+    :placeholder   placeholder}])
+
+(defn text-field
+  [label & args]
+  [form-field {:label label :orientation :horizontal} (apply text-input args)])
 
 (defn boolean-input
   [label value on-change]
