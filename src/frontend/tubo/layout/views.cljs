@@ -19,9 +19,9 @@
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
-      [:div.rounded.p-1.xs:p-2.absolute.bottom-1.right-1.z-0
+      [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
        {:class "bg-[rgba(0,0,0,.7)]"}
-       [:p.text-white.text-xs.xs:text-base
+       [:p.text-white.text-xs
         (if (= duration 0)
           "LIVE"
           (utils/format-duration duration))]])]])
