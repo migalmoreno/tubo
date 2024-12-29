@@ -7,27 +7,27 @@
 
 (defn bookmark-item
   [{:keys [items name] :as bookmark} item]
-  [:div.flex.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
+  [:div.flex.gap-x-4.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
    {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add)
                              bookmark item true])}
-   [:div.w-24
-    [layout/thumbnail
-     (-> items
-         first
-         :thumbnails
-         last
-         :url) nil name nil
-     :classes [:h-24 :py-2] :rounded? true]]
-   [:div.flex.flex-col.py-4.px-4
-    [:h1.line-clamp-1.font-bold {:title name} name]
-    [:span.text-sm (str (count items) " streams")]]])
+   [layout/thumbnail
+    (-> items
+        first
+        :thumbnails
+        last
+        :url) nil name nil
+    :classes [:h-24 :py-2 "min-w-[125px]" "max-w-[125px]"] :rounded? true]
+   [:div.flex.flex-col.py-2
+    [:h1.line-clamp-1 {:title name} name]
+    [:span.text-xs.text-neutral-600.dark:text-neutral-400
+     (str (count items) " streams")]]])
 
 (defn add-bookmark
   [item]
   (let [!bookmark-name (r/atom "")]
     (fn []
       [modals/modal-content "Create New Playlist?"
-       [layout/text-input "Title" @!bookmark-name
+       [layout/text-field "Title" @!bookmark-name
         #(reset! !bookmark-name (.. % -target -value)) "Playlist name"]
        [layout/secondary-button "Back"
         #(rf/dispatch [:modals/close])]
