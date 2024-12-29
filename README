@@ -60,6 +60,62 @@ server {
 }
 #+end_src
 
+* Development setup
+To get a development environment set up, first install the front-end dependencies.
+
+#+begin_src sh
+npm i
+#+end_src
+
+Then, compile ahead-of-time (AOT) the necessary classes.
+
+#+begin_src sh
+clojure -M -e "(compile 'tubo.downloader-impl)"
+#+end_src
+
+** CLI
+To start a front-end development server with hot-reload support, run:
+
+#+begin_src sh
+clojure -M:frontend watch tubo
+#+end_src
+
+You can now access it at http://localhost:8020.
+
+To start the API, run:
+
+#+begin_src sh
+clojure -M:run
+#+end_src
+
+Note that front-end API requests will be proxied to the API.
+
+** REPL
+You can also work on Tubo using an interactive environment like [[https://docs.cider.mx/cider/index.html][CIDER]]. Once you have it installed, do =M-x cider-jack-in-clj&cljs= in a source file and you'll enter a live REPL.
+
+If you'd like to automate the process, you can place something along the following lines in your =.dir-locals.el= file to automatically start the REPLs with the needed configuration.
+
+#+begin_src clojure
+((nil . ((cider-preferred-build-tool . clojure-cli)
+         (cider-clojure-cli-aliases . "-M:frontend")
+         (cider-default-cljs-repl . custom)
+         (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :tubo)\n(shadow/nrepl-select :tubo))")
+         (cider-merge-sessions . :project)
+         (eval . (progn
+                   (unless (boundp 'cider-jack-in-nrepl-middlewares)
+                     (require 'cider))
+                   (make-variable-buffer-local 'cider-jack-in-nrepl-middlewares)
+                   (add-to-list 'cider-jack-in-nrepl-middlewares "cider.nrepl/cider-middleware")
+                   (add-to-list 'cider-jack-in-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))))))
+#+end_src
+
+You can then invoke this to start the API:
+
+#+begin_src clojure
+user=> (require '[tubo.http])
+user=> (http/start-server!)
+#+end_src
+
 * Public Instances
 | URL                           | Country |
 |-------------------------------+---------|
