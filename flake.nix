@@ -15,6 +15,8 @@
           buildInputs = with pkgs; [
             zprint
             clj-kondo
+            clojure
+            jdk
           ];
         };
       });
