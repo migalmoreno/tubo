@@ -2,8 +2,9 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
+   [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
-   [tubo.bg-player.views :as player]
+   [tubo.player.views :as player]
    [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
 
@@ -62,14 +63,11 @@
       :extra-classes [:px-7 :py-2]]]))
 
 (defn queue-item
-  []
-  (let [show-main-player? @(rf/subscribe [:main-player/show])]
-    (fn [item queue queue-pos i bookmarks]
-      [:div.relative.w-full
-       {:ref #(when (and queue (= queue-pos i) (not show-main-player?))
-                (rf/dispatch [:scroll-into-view %]))}
-       [item-metadata item queue-pos i]
-       [popover item i bookmarks]])))
+  [item queue queue-pos i bookmarks]
+  [:div.relative.w-full
+   {:ref #(when (and queue (= queue-pos i)) (rf/dispatch [:scroll-top %]))}
+   [item-metadata item queue-pos i]
+   [popover item i bookmarks]])
 
 (defn queue-metadata
   [{:keys [url name uploader-url uploader-name]}]
@@ -100,7 +98,7 @@
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
-      [player/time-slider !player !elapsed-time color]
+      [bg-player/time-slider !player !elapsed-time color]
       [:span.ml-4.whitespace-nowrap
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
@@ -152,17 +150,17 @@
         color      (-> stream
                        :service-id
                        utils/get-service-color)]
-    (when show-queue
-      [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
-       {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
-                "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
-                (when-not show-queue "invisible")
-                (if show-queue "opacity-1" "opacity-0")]}
-       [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
-        {:class ["lg:w-4/5" "xl:w-3/5"]}
-        [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1
-         (for [[i item] (map-indexed vector queue)]
-           ^{:key i} [queue-item item queue queue-pos i bookmarks])]
-        [:div.flex.flex-col.py-4.shrink-0.px-5
-         [queue-metadata stream]
-         [main-controls color]]]])))
+    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
+     {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
+              "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
+              (when-not show-queue "invisible")
+              (if show-queue "opacity-1" "opacity-0")]}
+     [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
+      {:class ["lg:w-4/5" "xl:w-3/5"]}
+      [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1.relative.scroll-smooth
+       (for [[i item] (map-indexed vector queue)]
+         ^{:key i}
+         [queue-item item queue queue-pos i bookmarks])]
+      [:div.flex.flex-col.py-4.shrink-0.px-5
+       [queue-metadata stream]
+       [main-controls color]]]]))

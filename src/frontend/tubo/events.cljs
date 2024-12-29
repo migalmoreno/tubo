@@ -111,15 +111,15 @@
    (set! (.-title js/document) (str title " - Tubo"))))
 
 (rf/reg-fx
- :scroll-into-view!
+ :scroll-top!
  (fn [element]
    (when element
-     (.scrollIntoView element (js-obj "behavior" "smooth")))))
+     (set! (.-scrollTop (.-parentNode element)) (.-offsetTop element)))))
 
 (rf/reg-event-fx
- :scroll-into-view
+ :scroll-top
  (fn [_ [_ element]]
-   {:scroll-into-view! element}))
+   {:scroll-top! element}))
 
 (defonce timeouts! (r/atom {}))
 
