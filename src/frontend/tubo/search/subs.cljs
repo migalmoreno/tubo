@@ -16,3 +16,8 @@
  :search/show-form
  (fn [db]
    (:search/show-form db)))
+
+(rf/reg-sub
+ :search/filter
+ (fn [db]
+   (:search/filter db)))

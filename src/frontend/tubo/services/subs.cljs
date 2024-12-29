@@ -1,7 +1,8 @@
 (ns tubo.services.subs
   (:require
    [re-frame.core :as rf]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [tubo.services.views :as services]))
 
 (rf/reg-sub
  :service-id
@@ -26,3 +27,10 @@
  :services
  (fn [db]
    (:services db)))
+
+(rf/reg-sub
+ :services/current
+ (fn []
+   [(rf/subscribe [:services]) (rf/subscribe [:service-id])])
+ (fn [[services id]]
+   (get services id)))

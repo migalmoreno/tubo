@@ -11,12 +11,12 @@
 
 (defn search
   [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters
-    {:strs [contentFilters sortFilter nextPage]}    :query-params}]
+    {:strs [filter sort nextPage]}                  :query-params}]
   (response (apply api/get-search
                    service-id
                    q
-                   (and contentFilters (str/split contentFilters #","))
-                   sortFilter
+                   {:filter (and (seq filter) (str/split filter #","))
+                    :sort   sort}
                    (if nextPage [nextPage] []))))
 
 (defn channel

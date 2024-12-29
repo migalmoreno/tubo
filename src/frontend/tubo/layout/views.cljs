@@ -131,15 +131,18 @@
      :on-change on-change}]])
 
 (defn select-input
-  [label value options on-change]
-  [generic-input label
-   [:select.focus:ring-transparent.bg-transparent.font-bold
-    {:value     value
-     :on-change on-change}
-    (for [[i option] (map-indexed vector options)]
-      ^{:key i}
-      [:option.dark:bg-neutral-900.border-none {:value option :key i}
-       option])]])
+  [value options on-change]
+  [:select.focus:ring-transparent.bg-transparent.font-bold
+   {:value     value
+    :on-change on-change}
+   (for [[i option] (map-indexed vector options)]
+     ^{:key i}
+     [:option.dark:bg-neutral-900.border-none {:value option :key i}
+      option])])
+
+(defn select-field
+  [label & args]
+  [generic-input label (apply select-input args)])
 
 (defn tooltip-item
   [{:keys [label icon on-click link] :as item}]

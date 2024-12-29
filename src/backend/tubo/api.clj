@@ -249,25 +249,25 @@
       :disabled? false})))
 
 (defn get-search
-  ([service-id query content-filters sort-filter]
+  ([service-id query {:keys [filter sort]}]
    (let [service (NewPipe/getService service-id)
          query-handler
          (.. service
              (getSearchQHFactory)
-             (fromQuery query (or content-filters '()) (or sort-filter "")))
+             (fromQuery query (or filter '()) (or sort "")))
          info (SearchInfo/getInfo service query-handler)]
      {:items             (get-items (.getRelatedItems info))
       :next-page         (j/from-java (.getNextPage info))
       :service-id        service-id
       :search-suggestion (.getSearchSuggestion info)
       :corrected-search? (.isCorrectedSearch info)}))
-  ([service-id query content-filters sort-filter page-url]
+  ([service-id query {:keys [filter sort]} page-url]
    (let [service (NewPipe/getService service-id)
          url (url-decode page-url)
          query-handler
          (.. service
              (getSearchQHFactory)
-             (fromQuery query (or content-filters '()) (or sort-filter "")))
+             (fromQuery query (or filter '()) (or sort "")))
          info (SearchInfo/getMoreItems service query-handler (Page. url))]
      {:items     (get-items (.getItems info))
       :next-page (j/from-java (.getNextPage info))})))
@@ -343,7 +343,10 @@
                                {:name (.getDisplayCountry
                                        (Locale. "" (.toString country)))
                                 :code (.toString country)})
-                             (.getSupportedCountries service))})
+                             (.getSupportedCountries service))
+   :content-filters     (j/from-java (.. service
+                                         (getSearchQHFactory)
+                                         (getAvailableContentFilter)))})
 
 (defn get-services
   []

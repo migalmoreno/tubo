@@ -1,57 +1,15 @@
 (ns tubo.navigation.views
   (:require
    [re-frame.core :as rf]
-   [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosks]
    [tubo.layout.views :as layout]
    [tubo.services.views :as services]
+   [tubo.search.views :as search]
    [tubo.stream.views :as stream]
    [tubo.playlist.views :as playlist]
    [tubo.bg-player.views :as bg-player]))
-
-(defn search-form
-  []
-  (let [!query (r/atom "")
-        !input (r/atom nil)]
-    (fn []
-      (let [search-query      @(rf/subscribe [:search/query])
-            show-search-form? @(rf/subscribe [:search/show-form])
-            service-id        @(rf/subscribe [:service-id])]
-        [:form.relative.text-white.flex.items-center.justify-center.flex-auto.lg:flex-1
-         {:class     (when-not show-search-form? "hidden")
-          :on-submit #(do (.preventDefault %)
-                          (when-not (empty? @!query)
-                            (rf/dispatch [:navigation/navigate
-                                          {:name   :search-page
-                                           :params {}
-                                           :query  {:q         search-query
-                                                    :serviceId service-id}}])))}
-         [:div.flex.items-center.relative.flex-auto.lg:flex-none
-          [:button.p-2
-           {:type "button" :on-click #(rf/dispatch [:search/show-form false])}
-           [:i.fa-solid.fa-arrow-left]]
-          [:input.w-full.lg:w-96.bg-transparent.pl-0.pr-6.m-2.border-none.focus:ring-transparent.placeholder-white
-           {:type          "text"
-            :ref           #(do (reset! !input %)
-                                (when %
-                                  (.focus %)))
-            :default-value @!query
-            :on-change     #(let [input (.. % -target -value)]
-                              (when-not (empty? input)
-                                (rf/dispatch [:search/change-query input]))
-                              (reset! !query input))
-            :placeholder   "Search"}]
-          [:button.p-3 {:type "submit"} [:i.fa-solid.fa-search]]
-          [:button.p-4.absolute.right-8
-           {:on-click #(when @!input
-                         (set! (.-value @!input) "")
-                         (reset! !query "")
-                         (.focus @!input))
-            :type     "button"
-            :class    (when (empty? @!query) :invisible)}
-           [:i.fa-solid.fa-xmark]]]]))))
 
 (defn nav-left-content
   [title]
@@ -155,7 +113,7 @@
          :stream-page   (:name @(rf/subscribe [:stream]))
          :playlist-page (:name @(rf/subscribe [:playlist]))
          nil)]
-      [search-form]
+      [search/search-form]
       [nav-right-content match]]]))
 
 (defn mobile-menu-item

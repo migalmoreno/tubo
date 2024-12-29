@@ -11,7 +11,7 @@
 
 (defn select-input
   [label keys value options on-change]
-  [layout/select-input label value options
+  [layout/select-field label value options
    (or on-change
        #(rf/dispatch [:settings/change keys (.. % -target -value)]))])
 
@@ -22,15 +22,13 @@
    [select-input "List view mode" [:items-layout] items-layout #{:grid :list}]])
 
 (defn content-settings
-  [{:keys [default-service default-country default-kiosk show-description
-           show-comments show-related]}]
+  [{:keys [default-service default-country default-kiosk default-filter
+           show-description show-comments show-related]}]
   (let [services   @(rf/subscribe [:services])
+        service    @(rf/subscribe [:services/current])
         kiosks     @(rf/subscribe [:kiosks])
         service-id @(rf/subscribe [:service-id])
-        countries  (->> services
-                        (filter #(= (:id %) service-id))
-                        first
-                        :supported-countries)]
+        countries  (:supported-countries service)]
     [:<>
      [select-input "Default country" nil
       (:name (get default-country service-id)) (map :name countries)
@@ -60,6 +58,9 @@
      [select-input "Default kiosk" [:default-kiosk service-id]
       (or (get default-kiosk service-id) (:default-kiosk kiosks))
       (:available-kiosks kiosks)]
+     [select-input "Default filter" [:default-filter service-id]
+      (or (get default-filter service-id) (first (:content-filters service)))
+      (:content-filters service)]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]

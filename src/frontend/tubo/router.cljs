@@ -23,15 +23,18 @@
                       :controllers [{:start #(rf/dispatch [:fetch-homepage])}]}
       :web/search    {:view        search/search
                       :name        :search-page
-                      :controllers [{:parameters {:query [:q :serviceId]}
-                                     :start      (fn [{{:keys [serviceId q]}
+                      :controllers [{:parameters {:query [:q :serviceId
+                                                          :filter]}
+                                     :start      (fn [{{:keys [serviceId q
+                                                               filter]}
                                                        :query}]
                                                    (rf/dispatch
                                                     [:search/fetch-page
                                                      serviceId
-                                                     q]))
+                                                     q
+                                                     filter]))
                                      :stop       #(rf/dispatch
-                                                   [:search/show-form false])}]}
+                                                   [:search/leave-page])}]}
       :web/stream    {:view        stream/stream
                       :name        :stream-page
                       :controllers [{:parameters {:query [:url]}
