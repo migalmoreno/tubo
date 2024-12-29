@@ -31,7 +31,8 @@
         countries  (:supported-countries service)]
     [:<>
      [select-input "Default country" nil
-      (:name (get default-country service-id)) (map :name countries)
+      (or (:name (get default-country service-id)) (first countries))
+      (map :name countries)
       (fn [e]
         (rf/dispatch [:settings/change [:default-country service-id]
                       (first (filter #(= (.. e -target -value) (:name %))
