@@ -80,7 +80,7 @@ To start a front-end development server with hot-reload support, run:
 clojure -M:frontend watch tubo
 #+end_src
 
-You can now access it at http://localhost:8020.
+You can now access it in your browser at http://localhost:8020
 
 To start the API, run:
 
@@ -113,7 +113,7 @@ You can then invoke this to start the API:
 
 #+begin_src clojure
 user=> (require '[tubo.http])
-user=> (http/start-server!)
+user=> (tubo.http/start-server!)
 #+end_src
 
 * Public Instances
