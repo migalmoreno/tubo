@@ -5,7 +5,8 @@
    [tubo.layout.views :as layout]
    [tubo.player.views :as player]
    [tubo.queue.views :as queue]
-   [tubo.stream.views :as stream]))
+   [tubo.stream.views :as stream]
+   [tubo.utils :as utils]))
 
 (defn player-args
   [!player]
@@ -27,7 +28,9 @@
         stream        @(rf/subscribe [:queue/current])
         show-player?  @(rf/subscribe [:main-player/show])
         loop-playback @(rf/subscribe [:player/loop])
-        service-color @(rf/subscribe [:service-color])
+        color         (-> stream
+                          :service-id
+                          utils/get-service-color)
         shuffled      @(rf/subscribe [:player/shuffled])]
     [:div.fixed.w-full.bg-neutral-100.dark:bg-neutral-900.overflow-auto.z-10.transition-all.ease-in-out
      {:class ["h-[calc(100%-56px)]"
@@ -39,17 +42,17 @@
           #(rf/dispatch [:main-player/set-stream stream pos])]]
         [:div.flex.flex-col.w-full.p-4
          {:class ["lg:w-4/5" "xl:w-3/5"]}
-         [:div.border.border-neutral-700.rounded-md
-          [:div.p-5.flex.items-center.justify-between.bg-neutral-800.rounded-t-md.border-b.border-neutral-700
+         [:div.bg-neutral-200.dark:bg-neutral-950
+          [:div.p-5.flex.items-center.justify-between.rounded-t-md
            [:div.flex.flex-col
             [:h4.font-bold.text-lg "Queue"]
-            [:span.text-xs.text-neutral-400.dark:text-neutral-500
-             (str pos "/" (count queue))]]
+            [:span.text-xs.text-neutral-600.dark:text-neutral-500
+             (str (inc pos) "/" (count queue))]]
            [:div.flex.items-center
             [:div.px-4
-             [player/loop-button loop-playback service-color true]]
+             [player/loop-button loop-playback color true]]
             [:div.pl-4.pr-5
-             [player/shuffle-button shuffled service-color true]]
+             [player/shuffle-button shuffled color true]]
             [bg-player/popover stream]]]
           [:div.flex.flex-col.gap-y-1.w-full.h-fit.max-h-64.overflow-y-auto.relative.scroll-smooth
            (for [[i item] (map-indexed vector queue)]

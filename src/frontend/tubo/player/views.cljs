@@ -20,7 +20,8 @@
      MediaSettingsMenu
      MediaSettingsMenuButton
      MediaSettingsMenuItem
-     MediaRenditionMenu)]))
+     MediaRenditionMenu)]
+   [tubo.utils :as utils]))
 
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
@@ -58,11 +59,11 @@
 
 (defn video-player
   [_ _ _ on-mount]
-  (let [service-color @(rf/subscribe [:service-color])]
-    (r/create-class
-     {:component-did-mount on-mount
-      :reagent-render
-      (fn [{:keys [thumbnails subtitles]} !player video-args]
+  (r/create-class
+   {:component-did-mount on-mount
+    :reagent-render
+    (fn [{:keys [thumbnails subtitles service-id]} !player video-args]
+      (let [service-color (utils/get-service-color service-id)]
         [:div
          {:class "w-full h-80 md:h-[450px] lg:h-[600px]"}
          [:> MediaController
@@ -162,4 +163,4 @@
            [:span.control-spacer.grow]
            [:> MediaSettingsMenuButton]
            [:> MediaPipButton]
-           [:> MediaFullscreenButton]]]])})))
+           [:> MediaFullscreenButton]]]]))}))

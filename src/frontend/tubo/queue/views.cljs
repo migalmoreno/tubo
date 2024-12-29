@@ -11,7 +11,7 @@
 (defn item-metadata
   [{:keys [uploader-name name service-id duration thumbnails]} queue-pos i]
   [:div.flex.cursor-pointer.py-2
-   {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-neutral-800"])
+   {:class    (when (= i queue-pos) ["bg-neutral-300" "dark:bg-neutral-800"])
     :on-click #(rf/dispatch [:queue/change-pos i])}
    [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-28.xs:w-28
     [:span.font-bold.text-neutral-400.text-sm
