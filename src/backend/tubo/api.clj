@@ -169,6 +169,7 @@
      :subscriber-count   (non-negative (.getUploaderSubscriberCount info))
      :audio-streams      (j/from-java (.getAudioStreams info))
      :video-streams      (j/from-java (.getVideoStreams info))
+     :video-only-streams (j/from-java (.getVideoOnlyStreams info))
      :hls-url            (.getHlsUrl info)
      :dash-mpd-url       (.getDashMpdUrl info)
      :preview-frames     (j/from-java (.getPreviewFrames info))

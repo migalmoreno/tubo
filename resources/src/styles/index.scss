@@ -20,3 +20,12 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+media-time-range {
+  --media-range-thumb-transform: scale(0) translate(0%, 0%);
+}
+
+media-time-range:hover {
+  --media-range-track-height: 5px;
+  --media-range-thumb-transform: scale(1) translate(0%, 0%);
+}

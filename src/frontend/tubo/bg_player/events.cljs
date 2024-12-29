@@ -1,6 +1,7 @@
 (ns tubo.bg-player.events
   (:require
    [re-frame.core :as rf]
+   [tubo.player.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
@@ -25,6 +26,19 @@
  :bg-player/set-loading
  (fn [db [_ val]]
    (assoc db :bg-player/loading val)))
+
+(rf/reg-event-fx
+ :bg-player/set-src
+ [(rf/inject-cofx ::inject/sub [:bg-player])]
+ (fn [{:keys [bg-player]} [_ src pos]]
+   {:fx [[:dispatch
+          [:player/set-src {:src src :player bg-player :current-pos pos}]]]}))
+
+(rf/reg-event-fx
+ :bg-player/set-stream
+ (fn [{:keys [db]} [_ stream pos]]
+   (let [audio-stream (utils/get-audio-stream stream (:settings db))]
+     {:fx [[:dispatch [:bg-player/set-src audio-stream pos]]]})))
 
 (rf/reg-event-fx
  :bg-player/start

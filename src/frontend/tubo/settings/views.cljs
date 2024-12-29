@@ -65,16 +65,29 @@
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
       show-related]]))
 
+(defn video-audio-settings
+  [{:keys [default-audio-format default-video-format default-resolution]}]
+  [:<>
+   [select-input "Default resolution" [:default-resolution]
+    default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
+   [select-input "Default video format" [:default-video-format]
+    default-video-format #{"MPEG-4" "WebM" "3GP"}]
+   [select-input "Default audio format" [:default-audio-format]
+    default-audio-format #{"m4a" "WebM"}]])
+
 (defn settings
   []
-  (let [!active-tab (r/atom :appearance)]
+  (let [!active-tab (r/atom :video-audio)]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
          [layout/content-header "Settings"]
          [:div.mt-4
           [layout/tabs
-           [{:id        :appearance
+           [{:id        :video-audio
+             :label     "Video and audio"
+             :left-icon [:i.fa-solid.fa-headphones]}
+            {:id        :appearance
              :label     "Appearance"
              :left-icon [:i.fa-solid.fa-palette]}
             {:id        :content
@@ -84,6 +97,7 @@
            :on-change #(reset! !active-tab %)]
           [:form.flex.flex-wrap.py-4.gap-y-4
            (case @!active-tab
-             :appearance [appearance-settings settings]
-             :content    [content-settings settings]
-             [appearance-settings settings])]]]))))
+             :appearance  [appearance-settings settings]
+             :content     [content-settings settings]
+             :video-audio [video-audio-settings settings]
+             [video-audio-settings settings])]]]))))

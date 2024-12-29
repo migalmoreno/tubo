@@ -141,7 +141,8 @@
         [:<>
          (when-not page-loading?
            [:div.flex.flex-col.justify-center.items-center
-            [player/video-player stream !player]])
+            [player/video-player stream !player {}
+             #(rf/dispatch [:player/set-stream stream !player])]])
          [layout/content-container
           [metadata stream]
           [description stream]

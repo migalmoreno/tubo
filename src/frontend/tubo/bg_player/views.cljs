@@ -1,46 +1,12 @@
 (ns tubo.bg-player.views
   (:require
    [re-frame.core :as rf]
-   [reagent.dom :as rdom]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.layout.views :as layout]
+   [tubo.player.views :as player]
    [tubo.utils :as utils]))
-
-(defn button
-  [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
-  [:button.outline-none.focus:ring-transparent
-   {:class    (into (into (when disabled? [:opacity-50 :cursor-auto])
-                          (when-not show-on-mobile? [:hidden :lg:block]))
-                    extra-classes)
-    :on-click on-click}
-   icon])
-
-(defn loop-button
-  [loop-playback color show-on-mobile?]
-  [button
-   :icon
-   [:div.relative.flex.items-center
-    [:i.fa-solid.fa-repeat
-     {:style {:color (when loop-playback color)}}]
-    (when (= loop-playback :stream)
-      [:div.absolute.w-full.h-full.flex.justify-center.items-center.font-bold
-       {:class "text-[6px]"
-        :style {:color (when loop-playback color)}}
-       "1"])]
-   :on-click #(rf/dispatch [:player/loop])
-   :extra-classes [:text-sm]
-   :show-on-mobile? show-on-mobile?])
-
-(defn shuffle-button
-  [shuffle? color show-on-mobile?]
-  [button
-   :icon
-   [:i.fa-solid.fa-shuffle {:style {:color (when shuffle? color)}}]
-   :on-click #(rf/dispatch [:queue/shuffle (not shuffle?)])
-   :extra-classes [:text-sm]
-   :show-on-mobile? show-on-mobile?])
 
 (defonce slider-classes
   ["h-2" "cursor-pointer" "appearance-none" "rounded-full"
@@ -95,7 +61,7 @@
       [:div.relative.flex.flex-col.justify-center.items-center
        {:on-mouse-over #(reset! show-slider? true)
         :on-mouse-out  #(reset! show-slider? false)}
-       [button
+       [player/button
         :icon
         (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
         :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])]
@@ -140,15 +106,15 @@
         !elapsed-time    @(rf/subscribe [:elapsed-time])]
     [:div.flex.flex-col.items-center.ml-auto
      [:div.flex.justify-end.gap-x-4
-      [loop-button loop-playback color]
-      [button
+      [player/loop-button loop-playback color]
+      [player/button
        :icon [:i.fa-solid.fa-backward-step]
        :on-click #(rf/dispatch [:queue/change-pos (dec queue-pos)])
        :disabled? (not (and queue (not= queue-pos 0)))]
-      [button
+      [player/button
        :icon [:i.fa-solid.fa-backward]
        :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])]
-      [button
+      [player/button
        :icon
        (if (and (not loading?) (or (nil? bg-player-ready?) @!player))
          (if paused?
@@ -158,14 +124,14 @@
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes ["lg:text-2xl"]]
-      [button
+      [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
-      [button
+      [player/button
        :icon [:i.fa-solid.fa-forward-step]
        :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
-      [shuffle-button shuffle? color]]
+      [player/shuffle-button shuffle? color]]
      [:div.hidden.lg:flex.items-center.text-sm
       [:span.mx-2
        (if (and bg-player-ready? @!player @!elapsed-time)
@@ -232,63 +198,56 @@
         volume @(rf/subscribe [:player/volume])]
     [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
      [volume-slider !player volume muted? color]
-     [button
+     [player/button
       :icon [:i.fa-solid.fa-list]
       :on-click #(rf/dispatch [:queue/show true])
       :show-on-mobile? true
       :extra-classes [:!pl-4 :!pr-3]]
      [popover stream]]))
 
+(defn on-progress
+  [!player !buffered]
+  (let [len (.. @!player -buffered -length)]
+    (when (and (.-duration @!player) (> len 0))
+      (if (= (.end (.-buffered @!player) (- len 1)) (.-duration @!player))
+        (reset! !buffered 100)
+        (when (< (.start (.-buffered @!player) (- len 1))
+                 (.-currentTime @!player))
+          (reset! !buffered (* (/ (.end (.-buffered @!player) (- len 1))
+                                  (.-duration @!player))
+                               100)))))))
+
+(defn on-update
+  [!player !buffered !elapsed]
+  (when @(rf/subscribe [:bg-player/loading])
+    (rf/dispatch [:bg-player/set-loading false]))
+  (on-progress !player !buffered)
+  (reset! !elapsed (.-currentTime @!player)))
+
 (defn audio-player
   []
-  (let [!elapsed-time @(rf/subscribe [:elapsed-time])
-        queue-pos     @(rf/subscribe [:queue/position])
-        stream        @(rf/subscribe [:queue/current])
-        !buffered     @(rf/subscribe [:bg-player/buffered])]
+  (let [!elapsed  @(rf/subscribe [:elapsed-time])
+        pos       @(rf/subscribe [:queue/position])
+        stream    @(rf/subscribe [:queue/current])
+        !buffered @(rf/subscribe [:bg-player/buffered])]
     (r/create-class
      {:component-will-unmount #(rf/dispatch [:bg-player/ready false])
-      :component-did-mount
-      (fn [this]
-        (set! (.-onended (rdom/dom-node this))
-              #(rf/dispatch [:queue/change-pos (inc queue-pos)]))
-        (when stream
-          (set! (.-src (rdom/dom-node this))
-                (-> stream
-                    :audio-streams
-                    first
-                    :content))))
+      :component-did-mount #(rf/dispatch [:bg-player/set-stream stream pos])
       :reagent-render
       (fn [!player]
-        (let [on-progress
-              #(let [len (.. @!player -buffered -length)]
-                 (when (and (.-duration @!player) (> len 0))
-                   (if (= (.end (.-buffered @!player) (- len 1))
-                          (.-duration @!player))
-                     (reset! !buffered 100)
-                     (when (< (.start (.-buffered @!player) (- len 1))
-                              (.-currentTime @!player))
-                       (reset! !buffered (* (/ (.end (.-buffered @!player)
-                                                     (- len 1))
-                                               (.-duration @!player))
-                                            100))))))
-              on-update (fn []
-                          (when @(rf/subscribe [:bg-player/loading])
-                            (rf/dispatch [:bg-player/set-loading false]))
-                          (on-progress)
-                          (reset! !elapsed-time (.-currentTime @!player)))]
-          [:audio
-           {:ref            #(reset! !player %)
-            :preload        "metadata"
-            :on-waiting     #(rf/dispatch [:bg-player/set-loading true])
-            :loop           (= @(rf/subscribe [:player/loop]) :stream)
-            :muted          @(rf/subscribe [:player/muted])
-            :on-can-play    #(rf/dispatch [:bg-player/ready true])
-            :on-seeked      #(reset! !elapsed-time (.-currentTime @!player))
-            :on-progress    on-progress
-            :on-time-update on-update
-            :on-loaded-data #(rf/dispatch [:bg-player/start])
-            :on-play        #(rf/dispatch [:bg-player/set-paused false])
-            :on-pause       #(rf/dispatch [:bg-player/set-paused true])}]))})))
+        [:audio
+         {:ref            #(reset! !player %)
+          :preload        "metadata"
+          :on-waiting     #(rf/dispatch [:bg-player/set-loading true])
+          :loop           (= @(rf/subscribe [:player/loop]) :stream)
+          :muted          @(rf/subscribe [:player/muted])
+          :on-can-play    #(rf/dispatch [:bg-player/ready true])
+          :on-seeked      #(reset! !elapsed (.-currentTime @!player))
+          :on-progress    #(on-progress !player !buffered)
+          :on-time-update #(on-update !player !buffered !elapsed)
+          :on-loaded-data #(rf/dispatch [:bg-player/start])
+          :on-play        #(rf/dispatch [:bg-player/set-paused false])
+          :on-pause       #(rf/dispatch [:bg-player/set-paused true])}])})))
 
 (defn player
   []

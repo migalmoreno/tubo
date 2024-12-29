@@ -44,36 +44,56 @@
        :service-id       (if-nil (:service-id store) 0)
        :bookmarks        (if-nil (:bookmarks store)
                                  [{:id (nano-id) :name "Liked Streams"}])
-       :settings         {:theme            (if-nil (-> store
-                                                        :settings
-                                                        :theme)
-                                                    "auto")
-                          :show-comments    (if-nil (-> store
-                                                        :settings
-                                                        :show-comments)
-                                                    true)
-                          :show-related     (if-nil (-> store
-                                                        :settings
-                                                        :show-related)
-                                                    true)
-                          :show-description (if-nil (-> store
-                                                        :settings
-                                                        :show-description)
-                                                    true)
-                          :items-layout     "list"
-                          :default-country  (if-nil (-> store
-                                                        :settings
-                                                        :default-country)
-                                                    {0 {:name "United States"
-                                                        :code "US"}})
-                          :default-kiosk    (if-nil (-> store
-                                                        :settings
-                                                        :default-kiosk)
-                                                    {0 "Trending"})
-                          :default-service  (if-nil (-> store
-                                                        :settings
-                                                        :default-service)
-                                                    0)}}})))
+       :settings         {:theme                (if-nil (-> store
+                                                            :settings
+                                                            :theme)
+                                                        "auto")
+                          :show-comments        (if-nil (-> store
+                                                            :settings
+                                                            :show-comments)
+                                                        true)
+                          :show-related         (if-nil (-> store
+                                                            :settings
+                                                            :show-related)
+                                                        true)
+                          :show-description     (if-nil (-> store
+                                                            :settings
+                                                            :show-description)
+                                                        true)
+                          :items-layout         "list"
+                          :default-resolution   (if-nil
+                                                 (-> store
+                                                     :settings
+                                                     :default-resolution)
+                                                 "720p")
+                          :default-video-format (if-nil
+                                                 (-> store
+                                                     :settings
+                                                     :default-video-format)
+                                                 "MPEG-4")
+                          :default-audio-format (if-nil
+                                                 (-> store
+                                                     :settings
+                                                     :default-audio-format)
+                                                 "m4a")
+                          :default-country      (if-nil (-> store
+                                                            :settings
+                                                            :default-country)
+                                                        {0 {:name
+                                                            "United States"
+                                                            :code "US"}})
+                          :default-kiosk        (if-nil (-> store
+                                                            :settings
+                                                            :default-kiosk)
+                                                        {0 "Trending"})
+                          :default-filter       (if-nil (-> store
+                                                            :settings
+                                                            :default-filter)
+                                                        {0 "all"})
+                          :default-service      (if-nil (-> store
+                                                            :settings
+                                                            :default-service)
+                                                        0)}}})))
 
 (rf/reg-fx
  :scroll-to-top

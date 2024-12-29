@@ -1,15 +1,14 @@
 (ns tubo.queue.events
   (:require
-   [re-frame.core :as rf]
-   [vimsical.re-frame.cofx.inject :as inject]))
+   [re-frame.core :as rf]))
 
 (defn get-stream-metadata
   [stream]
   (select-keys stream
                [:type :service-id :url :name :thumbnails :audio-streams
-                :video-streams :verified? :uploader-name :uploader-url
-                :uploader-avatars :upload-date :short-description :duration
-                :view-count :bookmark-id]))
+                :video-streams :video-only-streams :verified? :uploader-name
+                :uploader-url :uploader-avatars :upload-date :short-description
+                :duration :view-count :bookmark-id]))
 
 (rf/reg-event-fx
  :queue/show
@@ -116,19 +115,16 @@
 
 (rf/reg-event-fx
  :queue/change-stream
- [(rf/inject-cofx :store)
-  (rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [db store bg-player]} [_ stream idx]]
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ stream idx]]
    (let [update-entry (fn [x]
                         (update-in
                          x
                          [:queue idx]
                          #(merge % (get-stream-metadata stream))))]
-     {:db         (assoc (update-entry db) :queue/position idx)
-      :store      (assoc (update-entry store) :queue/position idx)
-      :player/src {:player      bg-player
-                   :src         (-> stream
-                                    :audio-streams
-                                    first
-                                    :content)
-                   :current-pos idx}})))
+     {:db    (assoc (update-entry db) :queue/position idx)
+      :store (assoc (update-entry store) :queue/position idx)
+      :fx    [[:dispatch
+               [(if (:main-player/show db)
+                  :main-player/set-stream
+                  :bg-player/set-stream) stream idx]]]})))

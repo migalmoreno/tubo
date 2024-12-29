@@ -1,7 +1,8 @@
 (ns tubo.player.events
   (:require
    [goog.object :as gobj]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.player.utils :as utils]))
 
 (rf/reg-fx
  :player/volume
@@ -20,8 +21,22 @@
  (fn [{:keys [player src current-pos]}]
    (when (and player @player)
      (set! (.-src @player) (clj->js src))
-     (set! (.-onended @player)
-           #(rf/dispatch [:queue/change-pos (inc current-pos)])))))
+     (when current-pos
+       (set! (.-onended @player)
+             #(rf/dispatch [:queue/change-pos (inc current-pos)]))))))
+
+(rf/reg-event-fx
+ :player/set-src
+ (fn [_ [_ opts]]
+   {:player/src opts}))
+
+(rf/reg-event-fx
+ :player/set-stream
+ (fn [{:keys [db]} [_ stream player pos]]
+   (let [video-stream (utils/get-video-stream stream (:settings db))]
+     {:fx [[:dispatch
+            [:player/set-src
+             {:player player :src video-stream :current-pos pos}]]]})))
 
 (rf/reg-fx
  :player/loop
