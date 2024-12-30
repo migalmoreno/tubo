@@ -17,6 +17,7 @@
             clj-kondo
             clojure
             jdk
+            nodejs
           ];
         };
       });
