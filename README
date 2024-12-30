@@ -80,7 +80,7 @@ To start a front-end development server with hot-reload support, run:
 clojure -M:frontend watch tubo
 #+end_src
 
-You can now access it in your browser at http://localhost:8020
+You can now access it in your browser at [[http://localhost:8020]]
 
 To start the API, run:
 
@@ -95,7 +95,7 @@ You can also work on Tubo using an interactive environment like [[https://docs.c
 
 If you'd like to automate the process, you can place something along the following lines in your =.dir-locals.el= file to automatically start the REPLs with the needed configuration.
 
-#+begin_src clojure
+#+begin_src elisp
 ((nil . ((cider-preferred-build-tool . clojure-cli)
          (cider-clojure-cli-aliases . "-M:frontend")
          (cider-default-cljs-repl . custom)
