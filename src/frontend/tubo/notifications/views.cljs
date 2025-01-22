@@ -24,7 +24,7 @@
          #(rf/dispatch [:notifications/remove (:id notification)])}
         [:i.fa-solid.fa-close]]
        [:span.font-bold.break-all
-        (str status " " status-text)]
+        (str status (when status-text (str " " status-text)))]
        (when parse-error
          [:span.line-clamp-1
           (or (:original-text parse-error) (:status-text parse-error))])]]]))

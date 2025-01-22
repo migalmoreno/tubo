@@ -282,7 +282,7 @@
        :loading [:div.grow-0 [loading-icon]]
        [:i.fa-solid.fa-circle-info])
      [:h3.font-bold
-      (str status " " status-text)]]
+      (str status (when status-text (str " " status-text)))]]
     (when parse-error
       [:span.break-words
        (or (:original-text parse-error) (:status-text parse-error))])
