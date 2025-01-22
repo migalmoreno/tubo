@@ -60,7 +60,14 @@ server {
 }
 #+end_src
 
-* Development setup
+* Public Instances
+| URL                           | Country |
+|-------------------------------+---------|
+| https://tubo.media (Official) | 🇪🇸    |
+| https://tubo.reallyaweso.me   | 🇩🇪    |
+| https://tubo.ducks.party      | 🇩🇪    |
+
+* Development Setup
 To get a development environment set up, first install the front-end dependencies.
 
 #+begin_src sh
@@ -115,13 +122,6 @@ You can then invoke this to start the API:
 user=> (require '[tubo.http])
 user=> (tubo.http/start-server!)
 #+end_src
-
-* Public Instances
-| URL                           | Country |
-|-------------------------------+---------|
-| https://tubo.media (Official) | 🇪🇸    |
-| https://tubo.reallyaweso.me   | 🇩🇪    |
-| https://tubo.ducks.party      | 🇩🇪    |
 
 * Browser Extension Support
 ** [[https://einaregilsson.com/redirector/][Redirector]]
