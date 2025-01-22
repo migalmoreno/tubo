@@ -42,7 +42,7 @@
          :rel    "noopener"}
         [layout/secondary-button "View on GitHub"]]]]
      [about-entry "Tubo's Privacy Policy"
-      "Tubo takes your data very seriously. Therefore, the application does not collect any data without your constent."
+      "Tubo takes your data very seriously. Therefore, the application does not collect any data without your consent."
       [:div.w-full.flex.justify-end
        [:a {:href (rfe/href :privacy-page)}
         [layout/secondary-button "Read Privacy Policy"]]]]]]])
