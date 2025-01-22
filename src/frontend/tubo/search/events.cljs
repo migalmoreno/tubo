@@ -121,7 +121,7 @@
  (fn [_ [_ query]]
    {:debounce {:id    :search/query
                :event [:search/set-query query]
-               :time  150}}))
+               :time  250}}))
 
 (rf/reg-event-fx
  :search/clear-query
