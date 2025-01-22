@@ -13,7 +13,8 @@
             show-search-form? @(rf/subscribe [:search/show-form])]
         [:form.relative.text-white.flex.items-center.justify-center.flex-auto.lg:flex-1
          {:class     (when-not show-search-form? "hidden")
-          :on-submit #(do (.preventDefault %) (rf/dispatch [:search/submit]))}
+          :on-submit #(do (.preventDefault %)
+                          (rf/dispatch [:search/submit (.-value @!input)]))}
          [:div.flex.items-center.relative.flex-auto.lg:flex-none
           [:button.p-2
            {:type "button" :on-click #(rf/dispatch [:search/cancel])}

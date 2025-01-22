@@ -142,14 +142,15 @@
 
 (rf/reg-event-fx
  :search/submit
- (fn [{:keys [db]}]
-   (when (seq (:search/query db))
+ (fn [{:keys [db]} [_ query]]
+   (when (seq query)
      {:stop-debounce :search/query
-      :fx            [[:dispatch
+      :fx            [[:dispatch [:search/set-query query]]
+                      [:dispatch
                        [:navigation/navigate
                         {:name   :search-page
                          :params {}
-                         :query  (into {:q         (:search/query db)
+                         :query  (into {:q         query
                                         :serviceId (:service-id db)}
                                        (when (seq (:search/filter db))
                                          {:filter (:search/filter db)}))}]]]})))
