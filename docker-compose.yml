@@ -1,11 +1,18 @@
 version: "3"
 services:
-  tubo:
-    container_name: tubo
-    hostname: tubo
+  backend:
+    container_name: tubo-backend
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/backend/Dockerfile
     ports:
       - 3000:3000
+    restart: always
+  bg-helper:
+    container_name: tubo-bg-helper
+    build:
+      context: .
+      dockerfile: ./docker/bg-helper/Dockerfile
+    ports:
+      - 3005:3005
     restart: always

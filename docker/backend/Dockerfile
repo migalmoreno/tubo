@@ -9,7 +9,7 @@ COPY package* /app/
 RUN npm install
 
 COPY . /app
-RUN clojure -M:frontend release tubo
+RUN clojure -M:cljs release frontend
 
 FROM clojure:tools-deps
 RUN mkdir /app
@@ -17,9 +17,7 @@ WORKDIR /app
 COPY deps.edn /app
 
 RUN clojure -P
-
 COPY . /app
-RUN clojure -M -e "(compile 'tubo.downloader-impl)"
 COPY --from=build /app/resources /app/resources
 
 EXPOSE 3000
