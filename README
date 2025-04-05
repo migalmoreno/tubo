@@ -12,6 +12,13 @@ Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][Ne
 
 * Installation
 ** Packaging
+*** Docker
+For Docker, there's a Docker Compose file available which you can run like this:
+
+#+begin_src sh
+docker compose up -d
+#+end_src
+
 *** Uberjar
 To bundle the whole project into a self-contained uber-jar you need to follow these build steps:
 
@@ -24,20 +31,6 @@ After the last command is completed, you'll get a path to the uber-jar, which yo
 
 #+begin_src sh
 java -jar target/tubo-<VERSION>.jar
-#+end_src
-
-*** Docker
-For Docker, there's an image available in Docker Hub you can use:
-
-#+begin_src sh
-docker pull migalmoreno/tubo
-docker run --publish 3000:3000 -d --name tubo migalmoreno/tubo:latest
-#+end_src
-
-There's also a Docker Compose file available which you can run like this:
-
-#+begin_src sh
-docker compose up -d
 #+end_src
 
 ** Reverse Proxy
