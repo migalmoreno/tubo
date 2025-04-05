@@ -1,0 +1,6 @@
+{:backend
+ {:port #or [#env BACKEND_PORT 3000]
+  :bg-helper-url
+  #or
+   [#env BG_HELPER_URL #join ["http://localhost:" #ref [:bg-helper :port]]]}
+ :bg-helper {:port #or [#env BG_HELPER_PORT 3005]}}
