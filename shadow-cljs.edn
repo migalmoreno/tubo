@@ -1,12 +1,12 @@
-{:deps {:aliases [:frontend]}
- :dev-http {8020 {:root      "resources/public"
-                  :proxy-url "http://localhost:3000"}}
+{:deps {:aliases [:cljs]}
  :builds
- {:tubo
+ {:frontend
   {:target           :browser
    :asset-path       "/js"
    :output-dir       "resources/public/js"
    :git-inject       {:version-pattern "^(.*)$"}
+   :dev-http         {8020 {:root      "resources/public"
+                            :proxy-url "http://localhost:3000"}}
    :build-hooks      [(shadow-git-inject.core/hook)
                       (hooks/copy-assets
                        {:public-dir "resources/public"
@@ -19,4 +19,11 @@
    :js-options       {:entry-keys        ["module" "browser" "main"]
                       :export-conditions ["import" "module" "browser" "require"
                                           "default"]}
-   :modules          {:main {:init-fn tubo.core/init}}}}}
+   :modules          {:main {:init-fn tubo.core/init}}}
+  :bg-helper
+  {:target           :node-script
+   :main             tubo.bg-helper/main
+   :output-to        "resources/public/js/bg-helper.js"
+   :devtools         {:before-load-async tubo.bg-helper/stop
+                      :after-load        tubo.bg-helper/start}
+   :compiler-options {:reader-features #{:node}}}}}

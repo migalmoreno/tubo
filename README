@@ -17,7 +17,7 @@ To bundle the whole project into a self-contained uber-jar you need to follow th
 
 #+begin_src sh
 npm i
-clojure -T:frontend:build uberjar
+clojure -T:cljs:build uberjar
 #+end_src
 
 After the last command is completed, you'll get a path to the uber-jar, which you can run like this:
@@ -78,7 +78,7 @@ npm i
 To start a front-end development server with hot-reload support, run:
 
 #+begin_src sh
-clojure -M:frontend watch tubo
+clojure -M:cljs watch tubo
 #+end_src
 
 You can now access it in your browser at [[http://localhost:8020]]
@@ -98,7 +98,7 @@ If you'd like to automate the process, you can place something along the followi
 
 #+begin_src elisp
 ((nil . ((cider-preferred-build-tool . clojure-cli)
-         (cider-clojure-cli-aliases . "-M:frontend")
+         (cider-clojure-cli-aliases . ":cljs")
          (cider-default-cljs-repl . custom)
          (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :tubo)\n(shadow/nrepl-select :tubo))")
          (cider-merge-sessions . :project)

@@ -1,28 +1,29 @@
 {:deps {aero/aero                               {:mvn/version "1.1.6"}
         com.github.TeamNewPipe/NewpipeExtractor {:mvn/version "0.24.5"}
         com.squareup.okhttp3/okhttp             {:mvn/version "4.10.0"}
-        http-kit/http-kit                       {:mvn/version "2.7.0-alpha1"}
-        metosin/reitit-core                     {:mvn/version "0.5.18"}
-        metosin/reitit-ring                     {:mvn/version "0.5.18"}
-        metosin/reitit-middleware               {:mvn/version "0.5.18"}
-        metosin/reitit-malli                    {:mvn/version "0.5.18"}
-        metosin/reitit-swagger                  {:mvn/version "0.5.18"}
-        metosin/reitit-swagger-ui               {:mvn/version "0.5.18"}
-        ring/ring                               {:mvn/version "1.9.5"}
-        ring/ring-json                          {:mvn/version "0.5.1"}
-        org.clojure/java.data                   {:mvn/version "1.0.95"}
-        hiccup/hiccup                           {:mvn/version "1.0.5"}
-        ring-cors/ring-cors                     {:mvn/version "0.1.13"}}
+        funcool/promesa                         {:mvn/version "11.0.678"}
+        hiccup/hiccup                           {:mvn/version "2.0.0-RC5"}
+        http-kit/http-kit                       {:mvn/version "2.8.0"}
+        metosin/reitit-core                     {:mvn/version "0.8.0"}
+        metosin/reitit-ring                     {:mvn/version "0.8.0"}
+        metosin/reitit-middleware               {:mvn/version "0.8.0"}
+        metosin/reitit-malli                    {:mvn/version "0.8.0"}
+        metosin/reitit-swagger                  {:mvn/version "0.8.0"}
+        metosin/reitit-swagger-ui               {:mvn/version "0.8.0"}
+        org.clojure/data.json                   {:mvn/version "2.5.1"}
+        org.clojure/java.data                   {:mvn/version "1.3.113"}
         org.clojure/tools.logging               {:mvn/version "1.3.0"}
+        ring/ring                               {:mvn/version "1.14.1"}
+        ring/ring-json                          {:mvn/version "0.5.1"}}
  :paths ["src/backend" "src/shared" "resources"]
  :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :aliases
  {:build {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
           :ns-default build}
-  :frontend
-  {:extra-paths ["src/frontend" "src/shared" "env/dev"]
-   :extra-deps  {thheller/shadow-cljs          {:mvn/version "2.28.20"}
-                 cider/cider-nrepl             {:mvn/version "0.28.4"}
+  :cljs
+  {:extra-paths ["src/frontend" "src/scripts" "src/shared" "env/dev"]
+   :extra-deps  {cider/cider-nrepl             {:mvn/version "0.28.4"}
+                 thheller/shadow-cljs          {:mvn/version "2.28.20"}
                  metosin/reitit-frontend       {:mvn/version "0.5.18"}
                  reagent/reagent               {:mvn/version "1.1.1"}
                  re-frame/re-frame             {:mvn/version "1.3.0"}
@@ -32,7 +33,6 @@
                  re-frame-utils/re-frame-utils {:mvn/version "0.1.0"}
                  nano-id/nano-id               {:mvn/version "1.1.0"}
                  com.github.scopews/svgreq     {:mvn/version "1.1.0"}
-                 funcool/promesa               {:mvn/version "11.0.678"}
                  re-promise/re-promise         {:mvn/version "0.1.1"}
                  babashka/process              {:mvn/version "0.5.22"}
                  babashka/fs                   {:mvn/version "0.5.23"}
