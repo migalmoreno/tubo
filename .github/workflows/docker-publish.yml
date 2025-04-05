@@ -11,9 +11,6 @@ jobs:
   docker-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -27,11 +24,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/bake-action@v6
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64
+          source: .
           push: true
-          tags: migalmoreno/tubo:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          set: |
+            backend.tags=migalmoreno/tubo-backend:latest
+            bg-helper.tags=migalmoreno/tubo-bg-helper:latest
+            *.platform+=linux/amd64
+            *.platform+=linux/arm64
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
