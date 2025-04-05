@@ -36,7 +36,6 @@
                         first-token)
                       (get-web-client-po-token))]
     (when po-token
-      (prn "Trying to get potokens" po-token)
       (px/schedule! 10000 #(swap! valid-po-tokens conj po-token))
       po-token)))
 
