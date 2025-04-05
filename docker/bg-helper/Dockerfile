@@ -1,4 +1,4 @@
-FROM clojure:tools-deps as build
+FROM clojure:tools-deps AS build
 
 RUN mkdir /app
 WORKDIR /app
@@ -11,4 +11,4 @@ RUN npm install
 COPY . /app
 RUN clojure -M:cljs release bg-helper
 
-CMD node resources/public/js/bg-helper.js
+CMD ["node", "resources/public/js/bg-helper.js"]

@@ -1,4 +1,4 @@
-FROM clojure:tools-deps as build
+FROM clojure:tools-deps AS build
 
 RUN mkdir /app
 WORKDIR /app
@@ -22,4 +22,4 @@ COPY --from=build /app/resources /app/resources
 
 EXPOSE 3000
 
-CMD clojure -M:run
+CMD ["clojure", "-M:run"]
