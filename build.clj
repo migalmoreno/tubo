@@ -13,19 +13,9 @@
   [_]
   (b/delete {:path "target"}))
 
-(defn aot-compile
-  [_]
-  (println "Compiling AOT namespaces...")
-  (b/compile-clj {:basis      basis
-                  :src-dir    ["src"]
-                  :class-dir  class-dir
-                  :ns-compile ['tubo.downloader-impl]})
-  (println "Compiled AOT namespaces"))
-
 (defn uberjar
   [_]
   (clean nil)
-  (aot-compile nil)
   (b/copy-dir {:src-dirs   ["src/clj" "resources"]
                :target-dir class-dir})
   (b/compile-clj {:basis     basis

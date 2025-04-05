@@ -12,7 +12,8 @@
         org.clojure/java.data                   {:mvn/version "1.0.95"}
         hiccup/hiccup                           {:mvn/version "1.0.5"}
         ring-cors/ring-cors                     {:mvn/version "0.1.13"}}
- :paths ["src/backend" "src/shared" "resources" "classes"]
+        org.clojure/tools.logging               {:mvn/version "1.3.0"}
+ :paths ["src/backend" "src/shared" "resources"]
  :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :aliases
  {:build {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}

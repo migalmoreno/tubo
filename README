@@ -74,12 +74,6 @@ To get a development environment set up, first install the front-end dependencie
 npm i
 #+end_src
 
-Then, compile ahead-of-time (AOT) the necessary classes.
-
-#+begin_src sh
-clojure -M -e "(compile 'tubo.downloader-impl)"
-#+end_src
-
 ** CLI
 To start a front-end development server with hot-reload support, run:
 
