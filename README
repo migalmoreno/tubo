@@ -71,7 +71,7 @@ npm i
 To start a front-end development server with hot-reload support, run:
 
 #+begin_src sh
-clojure -M:cljs watch tubo
+clojure -M:cljs watch frontend
 #+end_src
 
 You can now access it in your browser at [[http://localhost:8020]]
