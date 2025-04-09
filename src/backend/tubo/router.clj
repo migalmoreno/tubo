@@ -1,14 +1,15 @@
 (ns tubo.router
   (:require
+   [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
    [reitit.ring.coercion :as rrc]
+   [reitit.ring.middleware.muuntaja :as muuntaja]
+   [reitit.ring.middleware.exception :as exception]
    [reitit.coercion.malli]
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
-   [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.json :refer [wrap-json-response]]
    [ring.util.response :as res]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
@@ -70,13 +71,38 @@
        :handler handler/index})
     (r/expand data opts)))
 
+(defn wrap-cors
+  [handler]
+  (fn [request]
+    ((comp
+      #(res/header % "Access-Control-Allow-Methods" "*")
+      #(res/header % "Access-Control-Allow-Headers" "Authorization, *")
+      #(res/header % "Access-Control-Allow-Origin" "*")
+      #(res/header % "Access-Control-Max-Age" "86400")
+      handler)
+     request)))
+
 (def router
   (ring/router
    routes/routes
    {:expand expand-routes
-    :data   {:middleware [rrc/coerce-request-middleware
+    :data   {:muuntaja   m/instance
+             :middleware [wrap-cors
+                          rrc/coerce-exceptions-middleware
                           rrc/coerce-response-middleware
-                          rrc/coerce-exceptions-middleware]}}))
+                          muuntaja/format-middleware
+                          (exception/create-exception-middleware
+                           (merge exception/default-handlers
+                                  {::exception/default
+                                   (fn [ex _]
+                                     {:status 500
+                                      :body   {:message (ex-message ex)
+                                               :trace   (->> ex
+                                                             (.getStackTrace)
+                                                             (interpose "\n")
+                                                             (apply str))}})}))
+                          wrap-params
+                          rrc/coerce-request-middleware]}}))
 
 (def app
   (ring/ring-handler
@@ -85,7 +111,4 @@
     (ring/create-resource-handler {:path "/"})
     (ring/redirect-trailing-slash-handler {:method :add})
     (ring/create-default-handler
-     {:not-found (constantly {:status 404 :body "Not found"})}))
-   {:middleware [wrap-params
-                 [wrap-json-response {:pretty true}]
-                 wrap-reload]}))
+     {:not-found (constantly {:status 404 :body "Not found"})}))))
