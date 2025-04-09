@@ -35,7 +35,7 @@
 (defn loading-icon
   [service-color & classes]
   [:div.w-full.flex.justify-center.items-center.flex-auto
-   [:i.fas.fa-circle-notch.fa-spin
+   [:i.fa-solid.fa-circle-notch.fa-spin
     {:class classes
      :style {:color service-color}}]])
 
