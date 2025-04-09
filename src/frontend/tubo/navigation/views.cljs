@@ -71,8 +71,8 @@
          :default-kiosk (:default-kiosk kiosks)
          :path path]])
      [:div.flex.flex-auto.items-center.text-white.justify-end
-      [:button.mx-3
-       {:on-click #(rf/dispatch [:search/show-form true])}
+      [:button.px-3
+       {:on-click #(rf/dispatch [:search/activate true])}
        [:i.fa-solid.fa-search]]
       [:div.xs:hidden
        (case (-> match

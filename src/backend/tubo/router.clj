@@ -32,6 +32,12 @@
                          :parameters {:path  {:service-id int?}
                                       :query {:q string?}}
                          :handler search/create-search-handler}}
+      :api/suggestions {:get {:summary
+                              "returns search suggestions for a given service"
+                              :coercion reitit.coercion.malli/coercion
+                              :parameters {:path  {:service-id int?}
+                                           :query {:q string?}}
+                              :handler search/create-suggestions-handler}}
       :api/default-kiosk {:get
                           {:summary
                            "returns default kiosk entries for a given service"
