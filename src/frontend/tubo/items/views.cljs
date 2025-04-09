@@ -222,12 +222,12 @@
    [:button.flex.items-center
     {:on-click #(reset! !layout "list")
      :title    "Switch to list layout"}
-    [:i.fa-solid.fa-list.text-sm
+    [:i.fa-solid.fa-list-ul
      {:class (when-not (= @!layout "list")
                ["dark:text-neutral-500" "text-neutral-400"])}]]
    [:button.flex.items-center
     {:on-click #(reset! !layout "grid")
      :title    "Switch to grid layout"}
-    [:i.fa-solid.fa-grip.text-base
+    [:i.fa-solid.fa-table-cells-large
      {:class (when-not (= @!layout "grid")
                ["dark:text-neutral-500" "text-neutral-400"])}]]])
