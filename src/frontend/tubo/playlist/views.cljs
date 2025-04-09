@@ -33,7 +33,8 @@
         [layout/content-container
          [:div.flex.flex-col.justify-center
           [layout/content-header
-           [:div.flex.flex-col.gap-y-2.mb-2 name
+           [:div.flex.flex-col.gap-y-2.mb-2
+            [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
             [:span.text-sm.whitespace-nowrap.text-neutral-600.dark:text-neutral-400
              (str stream-count " streams")]]
            [:div.hidden.xs:block

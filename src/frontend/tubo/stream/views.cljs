@@ -48,7 +48,7 @@
      uploader-name]
     (when subscriber-count
       [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
-       [:span
+       [:span {:title subscriber-count}
         (str (utils/format-quantity subscriber-count) " subscribers")]])]])
 
 (defn metadata-stats
