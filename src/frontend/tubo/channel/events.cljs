@@ -1,8 +1,7 @@
 (ns tubo.channel.events
   (:require
    [re-frame.core :as rf]
-   [tubo.channel.views :as channel]
-   [tubo.layout.views :as layout]))
+   [tubo.channel.views :as channel]))
 
 (rf/reg-event-fx
  :channel/fetch
@@ -13,12 +12,6 @@
 
 (rf/reg-event-fx
  :channel/load-page
-(rf/reg-event-fx
- :channel/bad-page-response
- (fn [{:keys [db]} [_ uri res]]
-   {:fx [[:dispatch
-          [:change-view #(layout/error res [:channel/fetch-page uri])]]]
-    :db (assoc db :show-page-loading false)}))
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
                :channel           body
@@ -32,7 +25,7 @@
    {:fx [[:dispatch [:change-view channel/channel]]
          [:dispatch
           [:channel/fetch uri [:channel/load-page]
-           [:channel/bad-page-response uri]]]]
+           [:bad-page-response [:channel/fetch-page uri]]]]]
     :db (assoc db :show-page-loading true)}))
 
 (rf/reg-event-fx

@@ -1,7 +1,6 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
-   [tubo.layout.views :as layout]))
 
 (defonce !timeouts (atom {}))
 
@@ -31,22 +30,13 @@
 
 (rf/reg-event-fx
  :search/load-page
- (fn [{:keys [db]} [_ {:keys [query filter]} res]]
-   (let [search-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db
-                 :search/results    search-res
-                 :search/query      query
-                 :search/filter     filter
-                 :show-page-loading false)
-      :fx [[:dispatch [:services/fetch search-res]]]})))
-
-(rf/reg-event-fx
- :search/bad-page-response
- (fn [{:keys [db]} [_ service-id query res]]
-   {:fx [[:dispatch
-          [:change-view
-           #(layout/error res [:search/fetch-page service-id query])]]]
-    :db (assoc db :show-page-loading false)}))
+ (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
+   {:db (assoc db
+               :search/results    body
+               :search/query      query
+               :search/filter     filter
+               :show-page-loading false)
+    :fx [[:dispatch [:services/fetch body]]]}))
 
 (rf/reg-event-fx
  :search/fetch-page
@@ -62,7 +52,7 @@
       :fx [[:dispatch
             [:search/fetch service-id
              [:search/load-page {:query query :filter filter}]
-             [:search/bad-page-response service-id query]
+             [:bad-page-response [:search/fetch-page service-id query]]
              (into {:q query}
                    (when (or (seq filter) default-filter)
                      {:filter (if (seq filter) filter default-filter)}))]]

@@ -272,23 +272,28 @@
             (str "show " (if open? "less" "more"))])])})))
 
 (defn error
-  [{:keys [failure parse-error status status-text]} cb]
-  [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
-   [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700
-    [:div.flex.items-center.gap-x-4.text-xl
-     (case failure
-       :success [:i.fa-solid.fa-circle-check]
-       :error   [:i.fa-solid.fa-circle-exclamation]
-       :loading [:div.grow-0 [loading-icon]]
-       [:i.fa-solid.fa-circle-info])
-     [:h3.font-bold
-      (str status (when status-text (str " " status-text)))]]
-    (when parse-error
-      [:span.break-words
-       (or (:original-text parse-error) (:status-text parse-error))])
-    [:div.flex.justify-center.gap-x-6
-     [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
-     [secondary-button "Retry" #(rf/dispatch cb)]]]])
+  [{:keys [type body status status-text problem-message]} cb]
+  (let [page-loading? @(rf/subscribe [:show-page-loading])
+        service-color @(rf/subscribe [:service-color])]
+    (if page-loading?
+      [loading-icon service-color "text-5xl"]
+      [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
+       [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700
+        [:div.flex.items-center.gap-x-4.text-xl
+         (cond type
+               (case type
+                 :success [:i.fa-solid.fa-circle-check]
+                 :error   [:i.fa-solid.fa-circle-exclamation]
+                 :loading [:div.grow-0 [loading-icon]]
+                 [:i.fa-solid.fa-circle-info])
+               problem-message [:i.fa-solid.fa-circle-exclamation])
+         [:h3.font-bold
+          (str status (when status-text (str " " status-text)))]]
+        (when-let [message (:message body)]
+          [:span.break-words message])
+        [:div.flex.justify-center.gap-x-6
+         [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
+         [secondary-button "Retry" #(rf/dispatch cb)]]]])))
 
 (defn tabs
   [tabs]

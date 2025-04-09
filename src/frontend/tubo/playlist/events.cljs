@@ -44,7 +44,8 @@
  (fn [{:keys [db]} [_ url]]
    {:fx [[:dispatch
           [:playlist/fetch url
-           [:playlist/load-page] [:bad-response]]]]
+           [:playlist/load-page]
+           [:bad-page-response [:playlist/fetch-page url]]]]]
     :db (assoc db
                :show-page-loading true
                :playlist          nil)}))

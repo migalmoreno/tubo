@@ -35,17 +35,6 @@
 
 (rf/reg-event-fx
  :kiosks/load-page
-(rf/reg-event-fx
- :kiosks/bad-page-response
- (fn [{:keys [db]} [_ service-id kiosk-id res]]
-   {:fx [[:dispatch
-          [:change-view
-           #(layout/error
-             res
-             (if kiosk-id
-               [:kiosks/fetch-page service-id kiosk-id]
-               [:kiosks/fetch-default-page service-id]))]]]
-    :db (assoc db :show-page-loading false)}))
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
                :kiosk             body
@@ -68,7 +57,7 @@
             (if kiosk-id
               [:kiosks/fetch service-id kiosk-id
                [:kiosks/load-page]
-               [:kiosks/bad-page-response service-id kiosk-id]
+               [:bad-page-response [:kiosks/fetch-page service-id kiosk-id]]
                (when default-country {:region default-country})]
               [:kiosks/fetch-default-page service-id])]]})))
 
@@ -89,7 +78,7 @@
               [:kiosks/fetch-page service-id default-kiosk-id]
               [:kiosks/fetch-default service-id
                [:kiosks/load-page]
-               [:kiosks/bad-page-response service-id nil]
+               [:bad-page-response [:kiosks/fetch-default-page service-id]]
                (when default-country {:region default-country})])]]})))
 
 (rf/reg-event-fx

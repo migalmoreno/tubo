@@ -12,6 +12,7 @@
    [tubo.config :as config]
    [tubo.kiosks.events]
    [tubo.layout.events]
+   [tubo.layout.views :as layout]
    [tubo.main-player.events]
    [tubo.modals.events]
    [tubo.navigation.events]
@@ -159,7 +160,15 @@
 (rf/reg-event-fx
  :bad-response
  (fn [_ [_ res]]
-   {:fx [[:dispatch [:notifications/add res]]]}))
+   {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]]}))
+
+(rf/reg-event-fx
+ :bad-page-response
+ (fn [{:keys [db]} [_ reload-cb res]]
+   {:fx [[:dispatch
+          [:change-view
+           #(layout/error (assoc res :type :error) reload-cb)]]]
+    :db (assoc db :show-page-loading false)}))
 
 (rf/reg-fx
  :file-download

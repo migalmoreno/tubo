@@ -4,16 +4,18 @@
    [tubo.layout.views :as layout]))
 
 (defn notification-content
-  [{:keys [failure parse-error status status-text] :as notification}]
+  [{:keys [type status status-text body problem-message] :as notification}]
   (when notification
     [:div.relative.flex.justify-center.pl-4.pr-8.py-5.rounded.shadow.dark:shadow-neutral-900.shadow-neutral-400
-     {:class (case failure
-               :success ["bg-green-600/90" :text-white]
-               :error   ["bg-red-600/90" :text-white]
-               ["dark:bg-neutral-800" "dark:text-white" :bg-neutral-100
-                :text-neutral-800])}
+     {:class (cond type
+                   (case type
+                     :success ["bg-green-600/90" :text-white]
+                     :error   ["bg-red-600/90" :text-white]
+                     ["dark:bg-neutral-800" "dark:text-white" :bg-neutral-100
+                      :text-neutral-800])
+                   problem-message ["bg-red-600/90"])}
      [:div.flex.items-center.gap-x-4
-      (case failure
+      (case type
         :success [:i.fa-solid.fa-circle-check]
         :error   [:i.fa-solid.fa-circle-exclamation]
         :loading [:div.grow-0 [layout/loading-icon]]
@@ -24,10 +26,9 @@
          #(rf/dispatch [:notifications/remove (:id notification)])}
         [:i.fa-solid.fa-close]]
        [:span.font-bold.break-all
-        (str status (when status-text (str " " status-text)))]
-       (when parse-error
-         [:span.line-clamp-1
-          (or (:original-text parse-error) (:status-text parse-error))])]]]))
+        (str status (if status-text (str " " status-text) problem-message))]
+       (when-let [message (:message body)]
+         [:span.line-clamp-1 message])]]]))
 
 (defn notifications-panel
   []
