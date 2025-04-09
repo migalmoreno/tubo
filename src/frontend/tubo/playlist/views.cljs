@@ -42,7 +42,7 @@
           [:div.flex.items-center.justify-between.my-4.gap-x-4
            [:div.flex.items-center
             [layout/uploader-avatar playlist]
-            [:a.line-clamp-1.ml-2
+            [:a.line-clamp-1.mx-3
              {:href  (rfe/href :channel-page nil {:url uploader-url})
               :title uploader-name}
              uploader-name]]
