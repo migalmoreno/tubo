@@ -22,17 +22,17 @@
         [:a.font-bold {:href (rfe/href :homepage)}
          [layout/logo :height 25 :width 25]]])
      (cond (and show-main-player? (not show-search-form?))
-           [:button.text-white.mx-2
+           [:button.text-white.px-2
             {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
             [:i.fa-solid.fa-arrow-left]]
            (and show-queue? (not show-search-form?))
-           [:button.text-white.mx-2
+           [:button.text-white.px-2
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
      (when (and (not show-queue?)
                 (not show-main-player?)
                 (not show-search-form?))
-       [:button.text-white.mx-3.lg:hidden
+       [:button.text-white.p-3.lg:hidden
         {:on-click #(rf/dispatch
                      [:navigation/show-mobile-menu])}
         [:i.fa-solid.fa-bars]])
@@ -88,13 +88,13 @@
                show-queue?       [bg-player/popover
                                   @(rf/subscribe [:queue/current])]
                :else             [:<>]))]
-      [:a.mx-3.hidden.lg:block
+      [:a.px-3.hidden.lg:block
        {:href (rfe/href :settings-page)}
        [:i.fa-solid.fa-cog]]
-      [:a.mx-3.hidden.lg:block
+      [:a.px-3.hidden.lg:block
        {:href (rfe/href :bookmarks-page)}
        [:i.fa-solid.fa-bookmark]]
-      [:a.mx-3.hidden.lg:block
+      [:a.px-3.hidden.lg:block
        {:href (rfe/href :about-page)}
        [:i.fa-solid.fa-circle-info]]]]))
 
