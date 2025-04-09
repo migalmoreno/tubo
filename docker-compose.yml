@@ -1,4 +1,14 @@
 services:
+  frontend:
+    container_name: tubo-frontend
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - backend
+    restart: always
   backend:
     container_name: tubo-backend
     build:

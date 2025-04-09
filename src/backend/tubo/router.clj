@@ -67,8 +67,7 @@
                                   :handler (swagger/create-swagger-handler)}}
       :api/swagger-ui {:no-doc true
                        :get    (swagger-ui/create-swagger-ui-handler)}
-      {:no-doc  true
-       :handler handler/index})
+      nil)
     (r/expand data opts)))
 
 (defn wrap-cors
