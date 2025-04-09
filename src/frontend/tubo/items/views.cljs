@@ -143,7 +143,8 @@
              [:p (str (utils/format-quantity view-count) " views")]]
             (when upload-date
               [:span.px-2
-               {:dangerouslySetInnerHTML {:__html "&bull;"}}])])
+               {:dangerouslySetInnerHTML {:__html "&bull;"}
+                :style                   {:font-size "0.5rem"}}])])
          (when upload-date
            [:span.line-clamp-1 (utils/format-date-ago upload-date)])])
       (when (or subscriber-count stream-count)
@@ -155,7 +156,8 @@
               (str (utils/format-quantity subscriber-count) " subscribers")]]
             (when stream-count
               [:span.px-2.hidden.xs:inline-block
-               {:dangerouslySetInnerHTML {:__html "&bull;"}}])])
+               {:dangerouslySetInnerHTML {:__html "&bull;"}
+                :style                   {:font-size "0.5rem"}}])])
          (when stream-count
            [:span
             (str (utils/format-quantity stream-count) " streams")])])]]]])
