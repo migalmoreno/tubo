@@ -10,6 +10,7 @@
    [tubo.bookmarks.events]
    [tubo.channel.events]
    [tubo.comments.events]
+   [tubo.config :as config]
    [tubo.kiosks.events]
    [tubo.layout.events]
    [tubo.main-player.events]
@@ -76,6 +77,12 @@
                                                      :settings
                                                      :default-audio-format)
                                                  "m4a")
+                          :instance             (if-nil (-> store
+                                                            :settings
+                                                            :instance)
+                                                        (config/get-in
+                                                         [:frontend
+                                                          :backend-url]))
                           :default-country      (if-nil (-> store
                                                             :settings
                                                             :default-country)

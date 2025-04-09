@@ -9,6 +9,12 @@
   [layout/boolean-input label value
    #(rf/dispatch [:settings/change keys (not value)])])
 
+(defn text-input
+  [label keys value]
+  [layout/form-field {:label label :orientation :vertical}
+   [layout/text-input value
+    #(rf/dispatch [:settings/change keys (.. % -target -value)])]])
+
 (defn select-input
   [label keys value options on-change]
   [layout/select-field label value options
@@ -23,7 +29,7 @@
 
 (defn content-settings
   [{:keys [default-service default-country default-kiosk default-filter
-           show-description show-comments show-related]}]
+           show-description show-comments show-related instance]}]
   (let [services   @(rf/subscribe [:services])
         service    @(rf/subscribe [:services/current])
         kiosks     @(rf/subscribe [:kiosks])
@@ -62,6 +68,7 @@
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
       (:content-filters service)]
+     [text-input "Instance" [:instance] instance]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
@@ -101,5 +108,4 @@
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
-             :video-audio [video-audio-settings settings]
-             [video-audio-settings settings])]]]))))
+             :video-audio [video-audio-settings settings])]]]))))
