@@ -1,25 +1,22 @@
 (ns tubo.playlist.events
   (:require
-   [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [re-frame.core :as rf]))
 
 (rf/reg-event-fx
  :playlist/fetch
  (fn [_ [_ url on-success on-error params]]
-   (api/get-request (str "/playlists/" (js/encodeURIComponent url))
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get (str "playlists/" (js/encodeURIComponent url)) on-success
+           on-error params]]]}))
 
 (rf/reg-event-db
  :playlist/load-paginated
- (fn [db [_ res]]
+ (fn [db [_ {:keys [body]}]]
    (-> db
        (update-in [:playlist :related-streams]
                   #(apply conj %1 %2)
-                  (:related-streams (js->clj res :keywordize-keys true)))
-       (assoc-in [:playlist :next-page]
-                 (:next-page (js->clj res :keywordize-keys true)))
+                  (:related-streams body))
+       (assoc-in [:playlist :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 
 (rf/reg-event-fx
@@ -35,13 +32,12 @@
 
 (rf/reg-event-fx
  :playlist/load-page
- (fn [{:keys [db]} [_ res]]
-   (let [playlist-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db
-                 :playlist          playlist-res
-                 :show-page-loading false)
-      :fx [[:dispatch [:services/fetch playlist-res]]
-           [:document-title (:name playlist-res)]]})))
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (assoc db
+               :playlist          body
+               :show-page-loading false)
+    :fx [[:dispatch [:services/fetch body]]
+         [:document-title (:name body)]]}))
 
 (rf/reg-event-fx
  :playlist/fetch-page

@@ -91,9 +91,8 @@
 
 (rf/reg-event-fx
  :bg-player/load-related-streams
- (fn [_ [_ res]]
-   (let [{:keys [related-streams]} (js->clj res :keywordize-keys true)]
-     {:fx [[:dispatch [:queue/add-n related-streams]]]})))
+ (fn [_ [_ {:keys [body]}]]
+   {:fx [[:dispatch [:queue/add-n (:related-streams body)]]]}))
 
 (rf/reg-event-fx
  :bg-player/fetch-related-streams
@@ -143,26 +142,25 @@
  :bg-player/load-stream
  [(rf/inject-cofx :store)
   (rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [db store bg-player]} [_ idx play? res]]
-   (let [stream-res (js->clj res :keywordize-keys true)]
-     {:db    (assoc db
-                    :bg-player/show    (not (:main-player/show db))
-                    :bg-player/loading false)
-      :store (assoc store :bg-player/show (not (:main-player/show db)))
-      :fx    (apply conj
-                    [(when play?
-                       [:dispatch [:queue/change-stream stream-res idx]])]
-                    (when (and (:bg-player/ready db) play?)
-                      [[:media-session-metadata
-                        {:title   (:name stream-res)
-                         :artist  (:uploader-name stream-res)
-                         :artwork [{:src (-> stream-res
-                                             :thumbnails
-                                             last
-                                             :url)}]}]
-                       [:media-session-handlers
-                        {:current-pos idx
-                         :player      bg-player}]]))})))
+ (fn [{:keys [db store bg-player]} [_ idx play? {:keys [body]}]]
+   {:db    (assoc db
+                  :bg-player/show    (not (:main-player/show db))
+                  :bg-player/loading false)
+    :store (assoc store :bg-player/show (not (:main-player/show db)))
+    :fx    (apply conj
+                  [(when play?
+                     [:dispatch [:queue/change-stream body idx]])]
+                  (when (and (:bg-player/ready db) play?)
+                    [[:media-session-metadata
+                      {:title   (:name body)
+                       :artist  (:uploader-name body)
+                       :artwork [{:src (-> body
+                                           :thumbnails
+                                           last
+                                           :url)}]}]
+                     [:media-session-handlers
+                      {:current-pos idx
+                       :player      bg-player}]]))}))
 
 (rf/reg-event-fx
  :bg-player/bad-response

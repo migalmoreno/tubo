@@ -1,11 +1,10 @@
 (ns tubo.events
   (:require
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
-   [day8.re-frame.http-fx]
    [nano-id.core :refer [nano-id]]
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [re-promise.core]
+   [superstructor.re-frame.fetch-fx]
    [tubo.bg-player.events]
    [tubo.bookmarks.events]
    [tubo.channel.events]
@@ -127,6 +126,22 @@
  :scroll-top
  (fn [_ [_ element]]
    {:scroll-top! element}))
+
+(rf/reg-event-fx
+ :api/get
+ (fn [{:keys [db]} [_ path on-success on-failure params]]
+   {:fetch
+    {:method                 :get
+     :url                    (str (get-in db [:settings :instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :request-content-type   :json
+     :response-content-types {#"application/.*json" :json}
+     :mode                   :cors
+     :credentials            :same-origin
+     :on-success             on-success
+     :on-failure             on-failure}}))
 
 (defonce !timeouts (atom {}))
 

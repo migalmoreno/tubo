@@ -1,7 +1,6 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]
    [tubo.layout.views :as layout]))
 
 (defonce !timeouts (atom {}))
@@ -26,10 +25,9 @@
 (rf/reg-event-fx
  :search/fetch
  (fn [_ [_ service-id on-success on-error params]]
-   (api/get-request (str "/services/" service-id "/search")
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get (str "services/" service-id "/search") on-success on-error
+           params]]]}))
 
 (rf/reg-event-fx
  :search/load-page
@@ -72,18 +70,17 @@
 
 (rf/reg-event-db
  :search/load-paginated
- (fn [db [_ res]]
-   (let [search-res (js->clj res :keywordize-keys true)]
-     (if (empty? (:items search-res))
-       (-> db
-           (assoc-in [:search/results :next-page] nil)
-           (assoc :show-pagination-loading false))
-       (-> db
-           (update-in [:search/results :items]
-                      #(apply conj %1 %2)
-                      (:items search-res))
-           (assoc-in [:search/results :next-page] (:next-page search-res))
-           (assoc :show-pagination-loading false))))))
+ (fn [db [_ {:keys [body]}]]
+   (if (empty? (:items body))
+     (-> db
+         (assoc-in [:search/results :next-page] nil)
+         (assoc :show-pagination-loading false))
+     (-> db
+         (update-in [:search/results :items]
+                    #(apply conj %1 %2)
+                    (:items body))
+         (assoc-in [:search/results :next-page] (:next-page body))
+         (assoc :show-pagination-loading false)))))
 
 (rf/reg-event-fx
  :search/fetch-paginated
