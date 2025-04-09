@@ -114,11 +114,11 @@
 
 (defn form-field
   [{:keys [label orientation]} & children]
-  [:div.w-full.flex.py-2.gap-x-4.gap-y-1
+  [:div.w-full.flex.py-2.gap-x-4.gap-y-2
    {:class (if (= orientation :horizontal)
              [:flex-col]
              [:justify-between :items-center])}
-   [:label.text-neutral-600.dark:text-neutral-300 label]
+   [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn text-input
