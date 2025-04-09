@@ -12,7 +12,10 @@
      MediaPipButton
      MediaPlayButton
      MediaMuteButton
-     MediaLoadingIndicator)]
+     MediaLoadingIndicator
+     MediaSeekBackwardButton
+     MediaPlayButton
+     MediaSeekForwardButton)]
    ["media-chrome/dist/react/menu/index.js"
     :refer
     (MediaCaptionsMenu
@@ -111,7 +114,24 @@
           [:> MediaLoadingIndicator
            {:slot       "centered-chrome"
             :noautohide true
-            :style      {"--media-loading-indicator-icon-height" "200px"}}]
+            :style      {"--media-loading-indicator-icon-height" "200px"
+                         "position"                              "absolute"}}]
+          [:div.block.sm:hidden {:slot "centered-chrome"}
+           [:> MediaSeekBackwardButton
+            {:seekoffset "15"
+             :style      {"--media-button-icon-height"       "50px"
+                          "--media-control-hover-background" "rgba(0 0 0 / .4)"}
+             :notooltip  true}]
+           [:> MediaPlayButton
+            {:style     {"--media-button-icon-height"       "50px"
+                         "--media-control-hover-background" "rgba(0 0 0 / .4)"}
+             :notooltip true}]
+           [:> MediaSeekForwardButton
+            {:seekoffset "15"
+             :style      {"--media-button-icon-height" "50px"
+                          "--media-control-hover-background"
+                          "rgba(0 0 0 / .4)"}
+             :notooltip  true}]]
           [:> MediaSettingsMenu
            {:anchor "auto"
             :hidden true
@@ -145,7 +165,7 @@
              "--media-range-thumb-border-radius" "13px"
              "--media-tooltip-display"           "none"}}
            [:> MediaPlayButton
-            {:class "py-[6px] px-[10px]"
+            {:class "hidden sm:block py-[6px] px-[10px]"
              :style
              {"--media-button-icon-width" "30px"}}]
            [:> MediaMuteButton
