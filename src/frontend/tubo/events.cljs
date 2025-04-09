@@ -64,7 +64,10 @@
                                                             :settings
                                                             :show-description)
                                                         true)
-                          :items-layout         "list"
+                          :items-layout         (if-nil (-> store
+                                                            :settings
+                                                            :items-layout)
+                                                        "list")
                           :default-resolution   (if-nil
                                                  (-> store
                                                      :settings
