@@ -55,7 +55,7 @@
   [{:keys [like-count dislike-count] :as stream}]
   [:div.flex.items-center.justify-end.gap-x-2
    (when (or like-count dislike-count)
-     [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.font-semibold.gap-x-4
+     [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.gap-x-4
       (when like-count
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-up]
@@ -68,22 +68,25 @@
     [metadata-popover stream]]])
 
 (defn metadata
-  [{:keys [name] :as stream}]
+  [{:keys [name view-count upload-date] :as stream}]
   [:<>
    [:div.flex.items-center.justify-between
     [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]]
+   [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1
+    [:span {:title view-count}
+     (str (utils/format-quantity view-count) " views")]
+    [:span
+     {:dangerouslySetInnerHTML {:__html "&bull;"} :style {:font-size "0.5rem"}}]
+    [:span {:title upload-date} (utils/format-date-ago upload-date)]]
    [:div.flex.justify-between.py-4.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
 (defn description
-  [{:keys [description show-description tags view-count upload-date]}]
+  [{:keys [description show-description tags]}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [:div.bg-neutral-200.dark:bg-neutral-800.p-3.rounded-lg.break-words
-       [:div.flex.gap-x-3.font-semibold
-        [:span (str (utils/format-quantity view-count) " views")]
-        [:span (utils/format-date-ago upload-date)]]
+      [:div.bg-neutral-200.dark:bg-neutral-800.p-4.rounded-lg.break-words.flex.flex-col.gap-y-2
        [layout/show-more-container show-description description
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
@@ -93,8 +96,9 @@
          [:div.flex.gap-2.py-2.flex-wrap
           (for [[i tag] (map-indexed vector tags)]
             ^{:key i}
-            [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.line-clamp-1
-             (str "#" tag)])])])))
+            [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.text-neutral-700.dark:text-neutral-300.flex.gap-x-1.items-center
+             [:i.fa-solid.fa-tag]
+             [:span.line-clamp-1 tag]])])])))
 
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading] :as stream}]
@@ -146,14 +150,14 @@
          [layout/content-container
           [metadata stream]
           [description stream]
-          [:div.mt-10
+          [:div.mt-5
            [layout/tabs
             [{:id        :comments
               :label     "Comments"
               :left-icon [:i.fa-solid.fa-comments]}
              {:id        :related-items
               :label     "Related Items"
-              :left-icon [:i.fa-solid.fa-table-list]}]
+              :left-icon [:i.fa-solid.fa-list-ul]}]
             :selected-id @!active-tab
             :on-change #(reset! !active-tab %)]]
           (case @!active-tab

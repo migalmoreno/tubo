@@ -262,7 +262,7 @@
          (.unobserve @!resize-observer @!text-container))
       :reagent-render
       (fn [open? text on-open]
-        [:div.py-3.min-w-full
+        [:div.min-w-full
          [:span.text-clip.pr-2
           {:dangerouslySetInnerHTML {:__html text}
            :class                   (when-not open? "line-clamp-2")
