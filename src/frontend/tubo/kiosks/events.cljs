@@ -1,60 +1,46 @@
 (ns tubo.kiosks.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]
    [tubo.layout.views :as layout]))
 
 (rf/reg-event-db
  :kiosks/load
- (fn [db [_ res]]
-   (assoc db :kiosks (js->clj res :keywordize-keys true))))
+ (fn [db [_ {:keys [body]}]]
+   (assoc db :kiosks body)))
 
 (rf/reg-event-fx
  :kiosks/fetch
  (fn [_ [_ service-id kiosk-id on-success on-error params]]
-   (api/get-request (str "/services/" service-id
-                         "/kiosks/"
-                         (js/encodeURIComponent kiosk-id))
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get
+           (str "services/" service-id
+                "/kiosks/"  (js/encodeURIComponent kiosk-id))
+           on-success on-error params]]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-default
  (fn [_ [_ service-id on-success on-error params]]
-   (api/get-request (str "/services/" service-id "/default-kiosk")
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get
+           (str "services/" service-id "/default-kiosk")
+           on-success on-error params]]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-all
  (fn [_ [_ id on-success on-error]]
-   (api/get-request (str "/services/" id "/kiosks")
-                    on-success
-                    on-error)))
+   {:fx [[:dispatch
+          [:api/get
+           (str "services/" id "/kiosks")
+           on-success on-error]]]}))
 
 (rf/reg-event-fx
  :kiosks/load-page
- (fn [{:keys [db]} [_ res]]
-   (let [kiosk-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db
-                 :kiosk             kiosk-res
-                 :show-page-loading false)
-      :fx [[:dispatch [:services/fetch kiosk-res]]
-           [:document-title (:id kiosk-res)]]})))
-
-(rf/reg-event-fx
- :kiosks/bad-page-response
- (fn [{:keys [db]} [_ service-id kiosk-id res]]
-   {:fx [[:dispatch
-          [:change-view
-           #(layout/error
-             res
-             (if kiosk-id
-               [:kiosks/fetch-page service-id kiosk-id]
-               [:kiosks/fetch-default-page service-id]))]]]
-    :db (assoc db :show-page-loading false)}))
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (assoc db
+               :kiosk             body
+               :show-page-loading false)
+    :fx [[:dispatch [:services/fetch body]]
+         [:document-title (:id body)]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-page
@@ -71,7 +57,7 @@
             (if kiosk-id
               [:kiosks/fetch service-id kiosk-id
                [:kiosks/load-page]
-               [:kiosks/bad-page-response service-id kiosk-id]
+               [:bad-page-response [:kiosks/fetch-page service-id kiosk-id]]
                (when default-country {:region default-country})]
               [:kiosks/fetch-default-page service-id])]]})))
 
@@ -92,7 +78,7 @@
               [:kiosks/fetch-page service-id default-kiosk-id]
               [:kiosks/fetch-default service-id
                [:kiosks/load-page]
-               [:kiosks/bad-page-response service-id nil]
+               [:bad-page-response [:kiosks/fetch-default-page service-id]]
                (when default-country {:region default-country})])]]})))
 
 (rf/reg-event-fx
@@ -107,14 +93,12 @@
 
 (rf/reg-event-db
  :kiosks/load-paginated
- (fn [db [_ res]]
-   (-> db
-       (update-in [:kiosk :related-streams]
-                  #(into %1 %2)
-                  (:related-streams (js->clj res :keywordize-keys true)))
-       (assoc-in [:kiosk :next-page]
-                 (:next-page (js->clj res :keywordize-keys true)))
-       (assoc :show-pagination-loading false))))
+ (fn [db [_ {:keys [body]}]]
+   (->
+     db
+     (update-in [:kiosk :related-streams] #(into %1 %2) (:related-streams body))
+     (assoc-in [:kiosk :next-page] (:next-page body))
+     (assoc :show-pagination-loading false))))
 
 (rf/reg-event-fx
  :kiosks/fetch-paginated

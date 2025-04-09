@@ -1,4 +1,14 @@
 services:
+  frontend:
+    container_name: tubo-frontend
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - backend
+    restart: always
   backend:
     container_name: tubo-backend
     build:
@@ -7,7 +17,7 @@ services:
     volumes:
       - ./resources/config.edn:/app/resources/config.edn
     ports:
-      - 3000:3000
+      - 3002:3002
     restart: always
   bg-helper:
     container_name: tubo-bg-helper

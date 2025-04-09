@@ -31,6 +31,7 @@ jobs:
         with:
           push: true
           set: |
+            frontend.tags=migalmoreno/tubo-frontend:latest
             backend.tags=migalmoreno/tubo-backend:latest
             bg-helper.tags=migalmoreno/tubo-bg-helper:latest
             *.platform+=linux/amd64

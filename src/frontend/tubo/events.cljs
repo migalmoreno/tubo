@@ -3,15 +3,17 @@
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
    [day8.re-frame.http-fx]
    [nano-id.core :refer [nano-id]]
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [re-promise.core]
+   [superstructor.re-frame.fetch-fx]
    [tubo.bg-player.events]
    [tubo.bookmarks.events]
    [tubo.channel.events]
    [tubo.comments.events]
+   [tubo.config :as config]
    [tubo.kiosks.events]
    [tubo.layout.events]
+   [tubo.layout.views :as layout]
    [tubo.main-player.events]
    [tubo.modals.events]
    [tubo.navigation.events]
@@ -31,7 +33,10 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [store]} _]
    (let [if-nil #(if (nil? %1) %2 %1)]
-     {:db
+     {:fx [[:dispatch
+            [:services/fetch-all
+             [:services/load] [:bad-response]]]]
+      :db
       {:player/paused    true
        :player/muted     (:player/muted store)
        :player/shuffled  (:player/shuffled store)
@@ -60,7 +65,10 @@
                                                             :settings
                                                             :show-description)
                                                         true)
-                          :items-layout         "list"
+                          :items-layout         (if-nil (-> store
+                                                            :settings
+                                                            :items-layout)
+                                                        "list")
                           :default-resolution   (if-nil
                                                  (-> store
                                                      :settings
@@ -76,6 +84,12 @@
                                                      :settings
                                                      :default-audio-format)
                                                  "m4a")
+                          :instance             (if-nil (-> store
+                                                            :settings
+                                                            :instance)
+                                                        (config/get-in
+                                                         [:frontend
+                                                          :backend-url]))
                           :default-country      (if-nil (-> store
                                                             :settings
                                                             :default-country)
@@ -121,6 +135,22 @@
  (fn [_ [_ element]]
    {:scroll-top! element}))
 
+(rf/reg-event-fx
+ :api/get
+ (fn [{:keys [db]} [_ path on-success on-failure params]]
+   {:fetch
+    {:method                 :get
+     :url                    (str (get-in db [:settings :instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :request-content-type   :json
+     :response-content-types {#"application/.*json" :json}
+     :mode                   :cors
+     :credentials            :same-origin
+     :on-success             on-success
+     :on-failure             on-failure}}))
+
 (defonce !timeouts (atom {}))
 
 (rf/reg-fx
@@ -137,7 +167,15 @@
 (rf/reg-event-fx
  :bad-response
  (fn [_ [_ res]]
-   {:fx [[:dispatch [:notifications/add res]]]}))
+   {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]]}))
+
+(rf/reg-event-fx
+ :bad-page-response
+ (fn [{:keys [db]} [_ reload-cb res]]
+   {:fx [[:dispatch
+          [:change-view
+           #(layout/error (assoc res :type :error) reload-cb)]]]
+    :db (assoc db :show-page-loading false)}))
 
 (rf/reg-fx
  :file-download

@@ -17,8 +17,9 @@
    ["/api/v1"
     ["/services"
      ["" :api/services]
-     ["/:service-id/search" :api/search]
      ["/:service-id"
+      ["/search" :api/search]
+      ["/suggestions" :api/suggestions]
       ["/default-kiosk" :api/default-kiosk]
       ["/kiosks"
        ["" :api/all-kiosks]

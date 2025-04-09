@@ -13,9 +13,8 @@
 (rf/reg-event-fx
  :queue/show
  (fn [{:keys [db]} [_ show?]]
-   {:db            (apply assoc
-                          (assoc db :queue/show show?)
-                          (when show? [:search/show-form false]))
+   {:db            (assoc db :queue/show show?)
+    :fx            [(when show? [:dispatch [:search/activate false]])]
     :body-overflow show?}))
 
 (rf/reg-event-fx
@@ -110,6 +109,7 @@
                   i
                   (when (= (:player/loop db) :playlist) 0))
          stream (get (:queue db) idx)]
+     (.log js/console (clj->js stream))
      (when stream
        {:fx [[:dispatch [:bg-player/fetch-stream (:url stream) idx true]]]}))))
 

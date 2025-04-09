@@ -1,8 +1,8 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
-   [tubo.api :as api]
-   [tubo.layout.views :as layout]))
+   [tubo.layout.views :as layout]
+   [vimsical.re-frame.cofx.inject :as inject]))
 
 (defonce !timeouts (atom {}))
 
@@ -26,29 +26,19 @@
 (rf/reg-event-fx
  :search/fetch
  (fn [_ [_ service-id on-success on-error params]]
-   (api/get-request (str "/services/" service-id "/search")
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get (str "services/" service-id "/search") on-success on-error
+           params]]]}))
 
 (rf/reg-event-fx
  :search/load-page
- (fn [{:keys [db]} [_ {:keys [query filter]} res]]
-   (let [search-res (js->clj res :keywordize-keys true)]
-     {:db (assoc db
-                 :search/results    search-res
-                 :search/query      query
-                 :search/filter     filter
-                 :show-page-loading false)
-      :fx [[:dispatch [:services/fetch search-res]]]})))
-
-(rf/reg-event-fx
- :search/bad-page-response
- (fn [{:keys [db]} [_ service-id query res]]
-   {:fx [[:dispatch
-          [:change-view
-           #(layout/error res [:search/fetch-page service-id query])]]]
-    :db (assoc db :show-page-loading false)}))
+ (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
+   {:db (assoc db
+               :search/results    body
+               :search/query      query
+               :search/filter     filter
+               :show-page-loading false)
+    :fx [[:dispatch [:services/fetch body]]]}))
 
 (rf/reg-event-fx
  :search/fetch-page
@@ -59,12 +49,14 @@
                             (get (js/parseInt service-id)))]
      {:db (assoc db
                  :show-page-loading true
-                 :search/show-form  true
                  :search/results    nil)
-      :fx [[:dispatch
+      :fx [[:dispatch [:search/show-form true]]
+           [:dispatch [:search/hide-suggestions]]
+           [:dispatch [:search/change-input query]]
+           [:dispatch
             [:search/fetch service-id
              [:search/load-page {:query query :filter filter}]
-             [:search/bad-page-response service-id query]
+             [:bad-page-response [:search/fetch-page service-id query]]
              (into {:q query}
                    (when (or (seq filter) default-filter)
                      {:filter (if (seq filter) filter default-filter)}))]]
@@ -72,18 +64,17 @@
 
 (rf/reg-event-db
  :search/load-paginated
- (fn [db [_ res]]
-   (let [search-res (js->clj res :keywordize-keys true)]
-     (if (empty? (:items search-res))
-       (-> db
-           (assoc-in [:search/results :next-page] nil)
-           (assoc :show-pagination-loading false))
-       (-> db
-           (update-in [:search/results :items]
-                      #(apply conj %1 %2)
-                      (:items search-res))
-           (assoc-in [:search/results :next-page] (:next-page search-res))
-           (assoc :show-pagination-loading false))))))
+ (fn [db [_ {:keys [body]}]]
+   (if (empty? (:items body))
+     (-> db
+         (assoc-in [:search/results :next-page] nil)
+         (assoc :show-pagination-loading false))
+     (-> db
+         (update-in [:search/results :items]
+                    #(apply conj %1 %2)
+                    (:items body))
+         (assoc-in [:search/results :next-page] (:next-page body))
+         (assoc :show-pagination-loading false)))))
 
 (rf/reg-event-fx
  :search/fetch-paginated
@@ -102,38 +93,137 @@
 
 (rf/reg-event-fx
  :search/leave-page
- (fn []
-   {:fx [[:dispatch [:search/show-form false]]
+ (fn [{:keys [db]}]
+   {:fx [(when-not (= (-> (:navigation/current-match db)
+                          :data
+                          :name)
+                      :search-page)
+           [:dispatch [:search/activate false]])
          [:dispatch [:search/change-filter nil]]]}))
+
+(rf/reg-fx
+ :focus-input!
+ (fn [input]
+   (.focus input)))
+
+(rf/reg-event-fx
+ :search/focus-input
+ [(rf/inject-cofx ::inject/sub [:search-input])]
+ (fn [{:keys [search-input]}]
+   {:focus-input! @search-input}))
+
+(rf/reg-fx
+ :change-input!
+ (fn [{:keys [input value]}]
+   (set! (.-value input) value)))
+
+(rf/reg-event-fx
+ :search/change-input
+ [(rf/inject-cofx ::inject/sub [:search-input])]
+ (fn [{:keys [search-input]} [_ val]]
+   {:change-input! {:input @search-input :value val}}))
 
 (rf/reg-event-db
  :search/show-form
  (fn [db [_ show?]]
    (assoc db :search/show-form show?)))
 
+(rf/reg-event-fx
+ :search/activate
+ (fn [_ [_ val]]
+   {:fx [[:dispatch [:search/show-form val]]
+         (if val
+           [:dispatch-later [{:ms 100 :dispatch [:search/focus-input]}]]
+           [:dispatch [:search/hide-suggestions]])]}))
+
+(rf/reg-event-fx
+ :search/fetch-suggestions
+ (fn [{:keys [db]} [_ query on-success]]
+   (when query
+     {:fx [[:dispatch
+            [:api/get (str "services/" (:service-id db) "/suggestions")
+             on-success
+             [:bad-response]
+             {:q query}]]]})))
+
+(rf/reg-event-db
+ :search/change-suggestions
+ (fn [db [_ {:keys [body]}]]
+   (update db :search/suggestions #(assoc %1 (:service-id db) %2) body)))
+
+(rf/reg-event-fx
+ :search/load-suggestions
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (update db :search/suggestions #(assoc %1 (:service-id db) %2) body)
+    :fx [[:dispatch [:search/show-suggestions true]]]}))
+
+(rf/reg-event-fx
+ :search/hide-suggestions
+ (fn []
+   {:fx [[:dispatch [:search/show-suggestions false]]
+         [:dispatch [:layout/hide-bg-overlay]]]}))
+
+(rf/reg-event-db
+ :search/show-suggestions
+ (fn [db [_ show?]]
+   (assoc db :search/show-suggestions show?)))
+
+(rf/reg-event-fx
+ :search/focus-search
+ (fn [{:keys [db]} [_ query]]
+   {:fx (into [[:dispatch
+                [:layout/show-bg-overlay
+                 {:extra-classes ["z-10"]
+                  :on-click      #(rf/dispatch [:search/hide-suggestions])}]]]
+              (if (seq (:search/query db))
+                [[:dispatch [:search/show-suggestions true]]
+                 (when-not (seq (:search/suggestions db))
+                   [:dispatch
+                    [:search/fetch-suggestions query
+                     [:search/load-suggestions]]])]
+                [[:dispatch [:search/show-suggestions false]]]))}))
+
+(rf/reg-event-fx
+ :search/set-debounced-query
+ (fn [_ [_ query]]
+   {:fx [[:dispatch [:search/set-query query]]
+         (when query
+           [:dispatch
+            [:search/fetch-suggestions query [:search/load-suggestions]]])]}))
+
 (rf/reg-event-db
  :search/set-query
  (fn [db [_ query]]
-   (assoc db :search/query query)))
+   (update db :search/query assoc (:service-id db) query)))
+
+(rf/reg-event-fx
+ :search/fill-query
+ (fn [_ [_ query]]
+   {:fx [[:dispatch [:search/change-query query]]
+         [:dispatch [:search/change-input query]]
+         [:dispatch [:search/focus-input]]]}))
 
 (rf/reg-event-fx
  :search/change-query
  (fn [_ [_ query]]
    {:debounce {:id    :search/query
-               :event [:search/set-query query]
-               :time  250}}))
+               :event [:search/set-debounced-query query]
+               :time  150}}))
 
 (rf/reg-event-fx
  :search/clear-query
  (fn []
    {:stop-debounce :search/query
-    :fx            [[:dispatch [:search/change-query nil]]]}))
+    :fx            [[:dispatch [:search/fill-query nil]]
+                    [:dispatch [:search/change-input ""]]
+                    [:dispatch [:search/focus-input]]
+                    [:dispatch [:search/change-suggestions nil]]]}))
 
 (rf/reg-event-fx
  :search/cancel
  (fn []
    {:stop-debounce :search/query
-    :fx            [[:dispatch [:search/show-form false]]]}))
+    :fx            [[:dispatch [:search/activate false]]]}))
 
 (rf/reg-event-db
  :search/change-filter
@@ -145,7 +235,9 @@
  (fn [{:keys [db]} [_ query]]
    (when (seq query)
      {:stop-debounce :search/query
-      :fx            [[:dispatch [:search/set-query query]]
+      :fx            [[:dispatch
+                       [:search/fetch-suggestions query
+                        [:search/change-suggestions]]]
                       [:dispatch
                        [:navigation/navigate
                         {:name   :search-page

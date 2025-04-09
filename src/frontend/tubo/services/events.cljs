@@ -1,7 +1,6 @@
 (ns tubo.services.events
   (:require
-   [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [re-frame.core :as rf]))
 
 (rf/reg-event-fx
  :services/fetch
@@ -22,9 +21,9 @@
 (rf/reg-event-fx
  :services/fetch-all
  (fn [_ [_ on-success on-error]]
-   (api/get-request "/services" on-success on-error)))
+   {:fx [[:dispatch [:api/get "services" on-success on-error]]]}))
 
 (rf/reg-event-db
  :services/load
- (fn [db [_ res]]
-   (assoc db :services (js->clj res :keywordize-keys true))))
+ (fn [db [_ {:keys [body]}]]
+   (assoc db :services body)))

@@ -1,22 +1,19 @@
 (ns tubo.comments.events
   (:require
-   [re-frame.core :as rf]
-   [tubo.api :as api]))
+   [re-frame.core :as rf]))
 
 (rf/reg-event-fx
  :comments/fetch
  (fn [_ [_ url on-success on-error params]]
-   (api/get-request (str "/comments/"
-                         (js/encodeURIComponent url))
-                    on-success
-                    on-error
-                    params)))
+   {:fx [[:dispatch
+          [:api/get (str "comments/" (js/encodeURIComponent url)) on-success
+           on-error params]]]}))
 
 (rf/reg-event-db
  :comments/load-page
- (fn [db [_ res]]
+ (fn [db [_ {:keys [body]}]]
    (-> db
-       (assoc-in [:stream :comments-page] (js->clj res :keywordize-keys true))
+       (assoc-in [:stream :comments-page] body)
        (assoc-in [:stream :show-comments-loading] false))))
 
 (rf/reg-event-fx
@@ -42,13 +39,12 @@
 
 (rf/reg-event-db
  :comments/load-paginated
- (fn [db [_ res]]
+ (fn [db [_ {:keys [body]}]]
    (-> db
        (update-in [:stream :comments-page :comments]
                   #(apply conj %1 %2)
-                  (:comments (js->clj res :keywordize-keys true)))
-       (assoc-in [:stream :comments-page :next-page]
-                 (:next-page (js->clj res :keywordize-keys true)))
+                  (:comments body))
+       (assoc-in [:stream :comments-page :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 
 (rf/reg-event-fx

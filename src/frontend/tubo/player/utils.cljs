@@ -24,24 +24,26 @@
                 streams)
               (first streams))
             (seq audio-streams)
-            (if (some #(fmt= % (:default-audio-format settings))
-                      audio-streams)
-              (->> audio-streams
-                   (filter #(fmt= % (:default-audio-format settings)))
-                   first)
-              (first audio-streams))
+            (as-> audio-streams streams
+              (remove #(= (:deliveryMethod %) "HLS") streams)
+              (if (some #(fmt= % (:default-audio-format settings))
+                        streams)
+                (filter #(fmt= % (:default-audio-format settings)) streams)
+                streams)
+              (first streams))
             :else (first video-streams))
       :content))
 
 (defn get-audio-stream
   [{:keys [audio-streams video-streams]} settings]
   (-> (cond (seq audio-streams)
-            (if (some #(fmt= % (:default-audio-format settings))
-                      audio-streams)
-              (->> audio-streams
-                   (filter #(fmt= % (:default-audio-format settings)))
-                   first)
-              (first audio-streams))
+            (as-> audio-streams streams
+              (remove #(= (:deliveryMethod %) "HLS") streams)
+              (if (some #(fmt= % (:default-audio-format settings))
+                        streams)
+                (filter #(fmt= % (:default-audio-format settings)) streams)
+                streams)
+              (first streams))
             (seq video-streams)
             (as-> video-streams streams
               (if (some #(fmt= % (:default-video-format settings)) streams)

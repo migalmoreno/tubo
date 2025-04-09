@@ -1,22 +1,22 @@
 (ns tubo.config
+  (:refer-clojure :exclude [get get-in])
   (:require
-   [aero.core :refer [read-config]]
-   #?@(:clj [[clojure.java.io :refer [resource]]]
-       :node [["path" :as path]])))
+   [shadow-env.core :as env]
+   #?@(:clj
+         [[clojure.java.io :refer [resource]]
+          [aero.core :refer [read-config]]])))
 
-(defn config
-  []
-  (read-config #?(:clj (resource "config.edn")
-                  :node (path/resolve "./resources/config.edn"))))
+#?(:clj
+     (defn read-env
+       [_]
+       (let [cfg (read-config (resource "config.edn"))]
+         {:common {}
+          :clj    cfg
+          :cljs   cfg})))
 
-(defn bg-helper-url
-  [config]
-  (get-in config [:backend :bg-helper-url]))
+(declare get)
+(env/link get `read-env)
 
-(defn bg-helper-port
-  [config]
-  (get-in config [:bg-helper :port]))
-
-(defn backend-port
-  [config]
-  (get-in config [:backend :port]))
+(defn get-in
+  [keys]
+  (clojure.core/get-in (get (first keys)) (rest keys)))

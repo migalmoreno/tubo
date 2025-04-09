@@ -1,13 +1,14 @@
 {:deps {:aliases [:cljs]}
+ :dev-http {8020 {:root      "resources/public"
+                  :proxy-url "http://localhost:3000"}}
  :builds
  {:frontend
   {:target           :browser
    :asset-path       "/js"
    :output-dir       "resources/public/js"
    :git-inject       {:version-pattern "^(.*)$"}
-   :dev-http         {8020 {:root      "resources/public"
-                            :proxy-url "http://localhost:3000"}}
    :build-hooks      [(shadow-git-inject.core/hook)
+                      (shadow-env.core/hook)
                       (hooks/copy-assets
                        {:public-dir "resources/public"
                         :assets     {"resources/src/icons"      "icons"
