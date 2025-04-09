@@ -13,10 +13,11 @@
 (defonce server (atom nil))
 
 (defn start-server!
-  ([] (start-server! (config/backend-port (config/config))))
+  ([]
+   (start-server! (config/get-in [:backend :port])))
   ([port]
    (NewPipe/init (downloader/create-downloader-impl) (Localization. "en" "US"))
-   (when (config/bg-helper-url (config/config))
+   (when (config/get-in [:backend :bg-helper-url])
      (YoutubeStreamExtractor/setPoTokenProvider
       (potoken/create-po-token-provider)))
    (reset! server (run-server #'router/app {:port port}))

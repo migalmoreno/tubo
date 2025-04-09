@@ -17,7 +17,8 @@
 (defn get-web-client-po-token
   []
   (let [visitor-data   (get-web-visitor-data)
-        {:keys [body]} @(client/post (str (config/bg-helper-url (config/config))
+        {:keys [body]} @(client/post (str (config/get-in [:backend
+                                                          :bg-helper-url])
                                           "/generate")
                                      {:body (json/write-str
                                              {:visitorData
