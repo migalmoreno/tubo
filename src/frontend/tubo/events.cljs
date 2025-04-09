@@ -32,7 +32,10 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [store]} _]
    (let [if-nil #(if (nil? %1) %2 %1)]
-     {:db
+     {:fx [[:dispatch
+            [:services/fetch-all
+             [:services/load] [:bad-response]]]]
+      :db
       {:player/paused    true
        :player/muted     (:player/muted store)
        :player/shuffled  (:player/shuffled store)

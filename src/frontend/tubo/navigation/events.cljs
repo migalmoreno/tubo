@@ -55,11 +55,7 @@
       :body-overflow false
       :fx            [(when (:main-player/show db)
                         [:dispatch [:bg-player/switch-from-main]])
-                      [:dispatch [:layout/hide-bg-overlay]]
-                      [:dispatch [:queue/show false]]
-                      [:dispatch
-                       [:services/fetch-all
-                        [:services/load] [:bad-response]]]
-                      [:dispatch
-                       [:kiosks/fetch-all (:service-id db)
-                        [:kiosks/load] [:bad-response]]]]})))
+                      (when (:layout/bg-overlay db)
+                        [:dispatch [:layout/hide-bg-overlay]])
+                      (when (:queue/show db)
+                        [:dispatch [:queue/show false]])]})))
