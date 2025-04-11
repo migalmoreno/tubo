@@ -228,6 +228,6 @@
    [:button.flex.items-center
     {:on-click #(reset! !layout "grid")
      :title    "Switch to grid layout"}
-    [:i.fa-solid.fa-table-cells-large
+    [:i.fa-solid.fa-border-all
      {:class (when-not (= @!layout "grid")
                ["dark:text-neutral-500" "text-neutral-400"])}]]])

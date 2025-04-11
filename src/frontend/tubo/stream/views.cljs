@@ -157,7 +157,7 @@
               :left-icon [:i.fa-solid.fa-comments]}
              {:id        :related-items
               :label     "Related Items"
-              :left-icon [:i.fa-solid.fa-list-ul]}]
+              :left-icon [:i.fa-solid.fa-images]}]
             :selected-id @!active-tab
             :on-change #(reset! !active-tab %)]]
           (case @!active-tab
