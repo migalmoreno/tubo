@@ -123,7 +123,7 @@
                           "--media-control-hover-background" "transparent"}
              :notooltip  true}]
            [:> MediaPlayButton
-            {:style     {"--media-button-icon-height"       "30px"
+            {:style     {"--media-button-icon-height"       "50px"
                          "--media-control-hover-background" "transparent"}
              :notooltip true}]
            [:> MediaSeekForwardButton
