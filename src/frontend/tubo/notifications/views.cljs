@@ -13,7 +13,10 @@
                      :error   ["bg-red-600/90" :text-white]
                      ["dark:bg-neutral-800" "dark:text-white" :bg-neutral-100
                       :text-neutral-800])
-                   problem-message ["bg-red-600/90"])}
+                   problem-message ["bg-red-600/90"]
+                   :else ["dark:bg-neutral-800" "dark:text-white"
+                          :bg-neutral-100
+                          :text-neutral-800])}
      [:div.flex.items-center.gap-x-4
       (case type
         :success [:i.fa-solid.fa-circle-check]
@@ -34,6 +37,6 @@
   []
   (fn []
     (let [notifications @(rf/subscribe [:notifications])]
-      [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-20.w-full.py-1.px-2
+      [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-30.w-full.py-1.px-2
        (for [[i notification] (map-indexed vector notifications)]
          ^{:key i} [notification-content notification])])))
