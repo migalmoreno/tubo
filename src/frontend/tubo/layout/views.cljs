@@ -286,9 +286,12 @@
                  :error   [:i.fa-solid.fa-circle-exclamation]
                  :loading [:div.grow-0 [loading-icon]]
                  [:i.fa-solid.fa-circle-info])
-               problem-message [:i.fa-solid.fa-circle-exclamation])
+               problem-message [:i.fa-solid.fa-circle-exclamation]
+               :else [:i.fa-solid.fa-circle-info])
          [:h3.font-bold
-          (str status (when status-text (str " " status-text)))]]
+          (cond (or status status-text)
+                (str status (when status-text (str " " status-text)))
+                problem-message problem-message)]]
         (when-let [message (:message body)]
           [:span.break-words message])
         [:div.flex.justify-center.gap-x-6
