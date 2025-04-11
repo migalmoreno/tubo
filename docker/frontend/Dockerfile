@@ -11,10 +11,12 @@ RUN npm install
 COPY . /app
 RUN clojure -M:cljs release frontend
 
-FROM nginxinc/nginx-unprivileged:alpine
+FROM nginx:stable-alpine
 
 COPY --from=build /app/resources/public /usr/share/nginx/html/
 
-EXPOSE 8080
+COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY docker/frontend/entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -4,10 +4,14 @@ services:
     build:
       context: .
       dockerfile: ./docker/frontend/Dockerfile
+    volumes:
+      - ./resources/config.edn:/app/resources/config.edn
     ports:
       - 8080:8080
     depends_on:
       - backend
+    environment:
+      - BACKEND_URL=http://localhost:3000
     restart: always
   backend:
     container_name: tubo-backend
