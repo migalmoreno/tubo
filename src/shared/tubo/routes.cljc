@@ -23,7 +23,11 @@
       ["/default-kiosk" :api/default-kiosk]
       ["/kiosks"
        ["" :api/all-kiosks]
-       ["/:kiosk-id" :api/kiosk]]]]
+       ["/:kiosk-id" :api/kiosk]]]
+     ["/3"
+      ["/instance" :api/instance]
+      ["/instance-metadata/:url" :api/instance-metadata]
+      ["/change-instance" :api/change-instance]]]
     ["/streams/:url" :api/stream]
     ["/channels"
      ["/:url"

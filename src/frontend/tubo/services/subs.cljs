@@ -1,8 +1,7 @@
 (ns tubo.services.subs
   (:require
    [re-frame.core :as rf]
-   [tubo.utils :as utils]
-   [tubo.services.views :as services]))
+   [tubo.utils :as utils]))
 
 (rf/reg-sub
  :service-id
@@ -15,6 +14,18 @@
    (rf/subscribe [:service-id]))
  (fn [id]
    (and id (utils/get-service-color id))))
+
+(rf/reg-sub
+ :peertube/instances
+ (fn [db]
+   (:peertube/instances db)))
+
+(rf/reg-sub
+ :peertube/active-instance
+ (fn [_]
+   (rf/subscribe [:peertube/instances]))
+ (fn [instances]
+   (first (filter :active? instances))))
 
 (rf/reg-sub
  :service-name

@@ -8,6 +8,8 @@
   (:import
    org.schabi.newpipe.extractor.NewPipe
    org.schabi.newpipe.extractor.localization.Localization
+   org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
+   org.schabi.newpipe.extractor.ServiceList
    org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor))
 
 (defonce server (atom nil))
@@ -20,6 +22,9 @@
    (when (config/get-in [:backend :bg-helper-url])
      (YoutubeStreamExtractor/setPoTokenProvider
       (potoken/create-po-token-provider)))
+   (when-let [instance (first (config/get-in [:peertube :instances]))]
+     (.setInstance ServiceList/PeerTube
+                   (PeertubeInstance. (:url instance) (:name instance))))
    (reset! server (run-server #'router/app {:port port}))
    (println "Backend server running on port" port)))
 

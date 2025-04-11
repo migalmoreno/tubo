@@ -2,7 +2,8 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.layout.views :as layout]))
+   [tubo.layout.views :as layout]
+   [tubo.modals.views :as modals]))
 
 (defn boolean-input
   [label keys value]
@@ -26,6 +27,48 @@
   [:<>
    [select-input "Theme" [:theme] theme #{:auto :light :dark}]
    [select-input "List view mode" [:items-layout] items-layout #{:grid :list}]])
+
+(defn add-peertube-instance
+  []
+  (let [!instance (r/atom {})]
+    (fn []
+      [modals/modal-content "Create New PeerTube Instance?"
+       [layout/text-field "URL" (:url @!instance)
+        #(swap! !instance assoc :url (.. % -target -value))
+        "Instance URL"]
+       [layout/secondary-button "Cancel"
+        #(rf/dispatch [:modals/close])]
+       [layout/primary-button "Create"
+        #(rf/dispatch [:peertube/create-instance @!instance])]])))
+
+(defn peertube-instances-modal
+  []
+  (let [instances @(rf/subscribe [:peertube/instances])]
+    [modals/modal-content "PeerTube instances"
+     [:fieldset.flex.gap-y-2.flex-col
+      (for [[i instance] (map-indexed vector instances)]
+        ^{:key i}
+        [:div.bg-neutral-300.dark:bg-neutral-800.flex.rounded.py-2.px-4.justify-between.flex.items-center
+         [:div.flex.flex-col
+          [:label.text-lg {:for (:name instance)} (:name instance)]
+          [:a.text-red-500
+           {:href (:url instance) :target "blank" :rel "noopener"}
+           (:url instance)]]
+         [:div.flex.gap-x-8
+          (when-not (:active? instance)
+            [:i.fa-solid.fa-trash.cursor-pointer
+             {:on-click #(rf/dispatch [:peertube/delete-instance instance])}])
+          [:input
+           {:type            "radio"
+            :id              (:name instance)
+            :name            "instance"
+            :on-change       #(rf/dispatch [:peertube/change-instance instance])
+            :default-checked (:active? instance)
+            :default-value   (:url instance)}]]])]
+     [layout/secondary-button "Cancel"
+      #(rf/dispatch [:modals/close])]
+     [layout/primary-button "Add"
+      #(rf/dispatch [:modals/open [add-peertube-instance]])]]))
 
 (defn content-settings
   [{:keys [default-service default-country default-kiosk default-filter
@@ -68,7 +111,10 @@
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
       (:content-filters service)]
-     [text-input "Instance" [:instance] instance]
+     [text-input "Backend instance" [:instance] instance]
+     [layout/generic-input "PeerTube instances"
+      [layout/primary-button "Edit"
+       #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
@@ -104,7 +150,7 @@
              :left-icon [:i.fa-solid.fa-globe]}]
            :selected-id @!active-tab
            :on-change #(reset! !active-tab %)]
-          [:form.flex.flex-wrap.py-4.gap-y-4
+          [:form.flex.flex-wrap.py-4.gap-y-4 {:on-submit #(.preventDefault %)}
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
