@@ -38,7 +38,8 @@
      :support-info       (.getSupportInfo info)
      :short?             (.isShortFormContent info)
      :license            (.getLicence info)
-     :subtitles          (j/from-java (.getSubtitles info))}))
+     :subtitles          (j/from-java-deep (.getSubtitles info)
+                                           {:exceptions :omit})}))
 
 (defn create-stream-handler
   [{{:keys [url]} :path-params}]
