@@ -4,6 +4,18 @@
    [nano-id.core :refer [nano-id]]))
 
 (rf/reg-event-fx
+ :notifications/success
+ (fn [_ [_ message]]
+   {:fx [[:dispatch
+          [:notifications/add {:status-text message :type :success}]]]}))
+
+(rf/reg-event-fx
+ :notifications/error
+ (fn [_ [_ message]]
+   {:fx [[:dispatch
+          [:notifications/add {:status-text message :type :error}]]]}))
+
+(rf/reg-event-fx
  :notifications/add
  (fn [{:keys [db]} [_ data time]]
    (let [id         (nano-id)

@@ -51,8 +51,7 @@
       :fx    (if notify?
                [[:dispatch
                  [:notifications/add
-                  {:status-text "Added stream to queue"
-                   :failure     :info}]]]
+                  {:status-text "Added stream to queue"}]]]
                [])})))
 
 (rf/reg-event-fx
@@ -71,8 +70,7 @@
                   [:notifications/add
                    {:status-text (str "Added "
                                       (count streams)
-                                      " streams to queue")
-                    :failure     :info}]])])}))
+                                      " streams to queue")}]])])}))
 
 (rf/reg-event-fx
  :queue/remove

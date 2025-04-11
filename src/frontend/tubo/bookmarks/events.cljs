@@ -26,10 +26,8 @@
       :fx    [[:dispatch [:modals/close]]
               (when notify?
                 [:dispatch
-                 [:notifications/add
-                  {:status-text
-                   (str "Added playlist \"" (:name bookmark) "\"")
-                   :failure :success}]])]})))
+                 [:notifications/success
+                  (str "Added playlist \"" (:name bookmark) "\"")]])]})))
 
 (rf/reg-event-fx
  :bookmarks/remove
@@ -46,10 +44,8 @@
       :store (assoc store :bookmarks (:bookmarks updated-db))
       :fx    (if notify?
                [[:dispatch
-                 [:notifications/add
-                  {:status-text
-                   (str "Removed playlist \"" (:name bookmark) "\"")
-                   :failure :success}]]]
+                 [:notifications/success
+                  (str "Removed playlist \"" (:name bookmark) "\"")]]]
                [])})))
 
 (rf/reg-event-fx
@@ -63,9 +59,7 @@
                       [:dispatch [:likes/remove item]])
                     (:items (first (:bookmarks db)))))
               [:dispatch
-               [:notifications/add
-                {:status-text "Cleared all playlists"
-                 :failure     :success}]])}))
+               [:notifications/success "Cleared all playlists"]])}))
 
 (rf/reg-event-fx
  :likes/add-n
@@ -75,11 +69,8 @@
                    items)
               (when notify?
                 [:dispatch
-                 [:notifications/add
-                  {:status-text (str "Added "
-                                     (count items)
-                                     " items to likes")
-                   :failure     :success}]]))}))
+                 [:notifications/suuccess
+                  (str "Added " (count items) " items to likes")]]))}))
 
 (rf/reg-event-fx
  :likes/add
@@ -102,10 +93,7 @@
        {:db    updated-db
         :store (assoc store :bookmarks (:bookmarks updated-db))
         :fx    (if notify?
-                 [[:dispatch
-                   [:notifications/add
-                    {:status-text "Added to favorites"
-                     :failure     :success}]]]
+                 [[:dispatch [:notifications/success "Added to favorites"]]]
                  [])}))))
 
 (rf/reg-event-fx
@@ -120,9 +108,7 @@
       :store (assoc store :bookmarks (:bookmarks updated-db))
       :fx    (if notify?
                [[:dispatch
-                 [:notifications/add
-                  {:status-text "Removed from favorites"
-                   :failure     :success}]]]
+                 [:notifications/success "Removed from favorites"]]]
                [])})))
 
 (rf/reg-event-fx
@@ -133,13 +119,12 @@
                    items)
               (when notify?
                 [:dispatch
-                 [:notifications/add
-                  {:status-text (str "Added "
-                                     (count items)
-                                     " items to playlist \""
-                                     (:name bookmark)
-                                     "\"")
-                   :failure     :success}]]))}))
+                 [:notifications/success
+                  (str "Added "
+                       (count items)
+                       " items to playlist \""
+                       (:name bookmark)
+                       "\"")]]))}))
 
 (rf/reg-event-fx
  :bookmark/add
@@ -160,11 +145,8 @@
       :fx    [[:dispatch [:modals/close]]
               (when notify?
                 [:dispatch
-                 [:notifications/add
-                  {:status-text (str "Added to playlist \""
-                                     (:name selected)
-                                     "\"")
-                   :failure     :success}]])]})))
+                 [:notifications/success
+                  (str "Added to playlist \"" (:name selected) "\"")]])]})))
 
 (rf/reg-event-fx
  :bookmark/remove
@@ -181,26 +163,21 @@
      {:db    updated-db
       :store (assoc store :bookmarks (:bookmarks updated-db))
       :fx    [[:dispatch
-               [:notifications/add
-                {:status-text (str "Removed from playlist \""
-                                   (:name selected)
-                                   "\"")
-                 :failure     :success}]]]})))
+               [:notifications/success
+                (str "Removed from playlist \"" (:name selected) "\"")]]]})))
 
 (rf/reg-event-fx
  :bookmarks/add-imported
  (fn [_ [_ bookmarks]]
-   {:fx (conj (map-indexed (fn [i bookmark]
-                             (if (= i 0)
-                               [:dispatch [:likes/add-n (:items bookmark)]]
-                               [:dispatch [:bookmarks/add bookmark]]))
-                           bookmarks)
-              [:dispatch
-               [:notifications/add
-                {:status-text (str "Imported "
-                                   (count bookmarks)
-                                   " playlists successfully")
-                 :failure     :success}]])}))
+   {:fx (conj
+         (map-indexed (fn [i bookmark]
+                        (if (= i 0)
+                          [:dispatch [:likes/add-n (:items bookmark)]]
+                          [:dispatch [:bookmarks/add bookmark]]))
+                      bookmarks)
+         [:dispatch
+          [:notifications/success
+           (str "Imported " (count bookmarks) " playlists successfully")]])}))
 
 (defn fetch-imported-bookmarks-items
   [bookmarks]
@@ -212,10 +189,8 @@
                        (p/then (fn [res] (.json res)))
                        (p/catch (fn []
                                   (rf/dispatch
-                                   [:notifications/add
-                                    {:status-text
-                                     (str "Error importing " stream)
-                                     :failure :error}])))))
+                                   [:notifications/error
+                                    (str "Error importing " stream)])))))
                  (:items %)))
            (p/then (fn [results]
                      (assoc %
@@ -251,9 +226,7 @@
              (throw (js/Error. "Format not supported")))))
        (p/catch js/Error
          (fn [error]
-           (rf/dispatch [:notifications/add
-                         {:status-text (.-message error)
-                          :failure     :error}]))))))
+           (rf/dispatch [:notifications/error (.-message error)]))))))
 
 (rf/reg-event-fx
  :bookmarks/import
@@ -276,9 +249,7 @@
                                    :items (map :url (:items bookmark))})
                                 (:bookmarks db))}))}
     :fx [[:dispatch
-          [:notifications/add
-           {:status-text "Exported playlists"
-            :failure     :success}]]]}))
+          [:notifications/success "Exported playlists"]]]}))
 
 (rf/reg-event-fx
  :bookmarks/fetch-page
