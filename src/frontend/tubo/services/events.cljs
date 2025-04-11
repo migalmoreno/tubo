@@ -68,7 +68,11 @@
                                           (if (= (:url it) (:url body))
                                             (assoc it :active? true)
                                             (assoc it :active? false)))
-                                        %)))]
+                                        (if (some (fn [it]
+                                                    (= (:url it) (:url body)))
+                                                  (:peertube/instances db))
+                                          %
+                                          (conj % body)))))]
      {:db    updated-db
       :store (assoc store
                     :peertube/instances
