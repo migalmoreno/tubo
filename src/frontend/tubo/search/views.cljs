@@ -5,6 +5,23 @@
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]))
 
+(defn suggestions-box
+  [suggestions]
+  [:div.bg-neutral-200.dark:bg-neutral-800.sm:py-2.md:rounded.w-full.lg:w-96.flex.flex-col.absolute.overflow-y-auto.top-full
+   {:class ["sm:w-11/12" "-translate-x-1/2" "left-1/2"
+            "sm:top-[110%]"
+            "sm:max-h-[87dvh]" "max-h-[calc(100dvh-56px)]"]}
+   (for [[i suggestion] (map-indexed vector suggestions)]
+     ^{:key i}
+     [:div.hover:bg-neutral-300.dark:hover:bg-neutral-700.cursor-pointer.flex.justify-between.items-center
+      [:div.flex.items-center.gap-x-4.w-full.py-2.px-4
+       {:on-click #(rf/dispatch [:search/submit suggestion])}
+       [:i.fa-solid.fa-search]
+       [:span.line-clamp-1 suggestion]]
+      [:div.py-2.px-4
+       {:on-click #(rf/dispatch [:search/fill-query suggestion])}
+       [:i.fa-solid.fa-arrow-up-long.-rotate-45]]])])
+
 (defn search-form
   []
   (let [service-query     @(rf/subscribe [:search/query])
@@ -37,18 +54,7 @@
          :class    (when (empty? service-query) :invisible)}
         [:i.fa-solid.fa-xmark]]]]
      (when (and (seq suggestions) show-suggestions?)
-       [:div.bg-neutral-200.dark:bg-neutral-800.min-h-full.py-2.md:my-2.md:rounded.w-full.lg:w-96.flex.flex-col.absolute.top-full
-        {:class ["md:w-11/12" "-translate-x-1/2" "left-1/2"]}
-        (for [[i suggestion] (map-indexed vector suggestions)]
-          ^{:key i}
-          [:div.hover:bg-neutral-300.dark:hover:bg-neutral-700.cursor-pointer.flex.justify-between.items-center
-           [:div.flex.items-center.gap-x-4.w-full.py-2.px-4
-            {:on-click #(rf/dispatch [:search/submit suggestion])}
-            [:i.fa-solid.fa-search]
-            [:span.line-clamp-1 suggestion]]
-           [:div.py-2.px-4
-            {:on-click #(rf/dispatch [:search/fill-query suggestion])}
-            [:i.fa-solid.fa-arrow-up-long.-rotate-45]]])])]))
+       [suggestions-box suggestions])]))
 
 (defn search
   []
