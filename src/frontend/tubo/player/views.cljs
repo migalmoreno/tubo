@@ -119,18 +119,17 @@
           [:div.block.sm:hidden {:slot "centered-chrome"}
            [:> MediaSeekBackwardButton
             {:seekoffset "15"
-             :style      {"--media-button-icon-height"       "50px"
-                          "--media-control-hover-background" "rgba(0 0 0 / .4)"}
+             :style      {"--media-button-icon-height"       "30px"
+                          "--media-control-hover-background" "transparent"}
              :notooltip  true}]
            [:> MediaPlayButton
-            {:style     {"--media-button-icon-height"       "50px"
-                         "--media-control-hover-background" "rgba(0 0 0 / .4)"}
+            {:style     {"--media-button-icon-height"       "30px"
+                         "--media-control-hover-background" "transparent"}
              :notooltip true}]
            [:> MediaSeekForwardButton
             {:seekoffset "15"
-             :style      {"--media-button-icon-height" "50px"
-                          "--media-control-hover-background"
-                          "rgba(0 0 0 / .4)"}
+             :style      {"--media-button-icon-height"       "30px"
+                          "--media-control-hover-background" "transparent"}
              :notooltip  true}]]
           [:> MediaSettingsMenu
            {:anchor "auto"
