@@ -169,6 +169,12 @@
    {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]]}))
 
 (rf/reg-event-fx
+ :bad-pagination-response
+ (fn [{:keys [db]} [_ res]]
+   {:fx [[:dispatch [:bad-response res]]]
+    :db (assoc db :show-pagination-loading false)}))
+
+(rf/reg-event-fx
  :bad-page-response
  (fn [{:keys [db]} [_ reload-cb res]]
    {:fx [[:dispatch

@@ -108,5 +108,5 @@
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch
             [:kiosks/fetch service-id kiosk-id
-             [:kiosks/load-paginated] [:bad-response]
+             [:kiosks/load-paginated] [:bad-pagination-response]
              {:nextPage (js/encodeURIComponent next-page-url)}]]]})))

@@ -26,7 +26,7 @@
      {:db (assoc db :show-pagination-loading false)}
      {:fx [[:dispatch
             [:playlist/fetch url
-             [:playlist/load-paginated] [:bad-response]
+             [:playlist/load-paginated] [:bad-pagination-response]
              {:nextPage (js/encodeURIComponent next-page-url)}]]]
       :db (assoc db :show-pagination-loading true)})))
 

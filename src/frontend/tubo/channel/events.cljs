@@ -104,13 +104,12 @@
                                     :channel
                                     :tabs)
                                 selected-tab)]
-     {:fx [[:dispatch [:bad-response res]]]
-      :db (-> db
-              (assoc-in (if tab-id
-                          [:channel :tabs tab-idx :next-page]
-                          [:channel :next-page])
-                        nil)
-              (assoc :show-pagination-loading false))})))
+     {:fx [[:dispatch [:bad-pagination-response res]]]
+      :db (assoc-in db
+           (if tab-id
+             [:channel :tabs tab-idx :next-page]
+             [:channel :next-page])
+           nil)})))
 
 (rf/reg-event-fx
  :channel/fetch-paginated

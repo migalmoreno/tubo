@@ -72,8 +72,7 @@
          (update-in [:search/results :items]
                     #(apply conj %1 %2)
                     (:items body))
-         (assoc-in [:search/results :next-page] (:next-page body))
-         (assoc :show-pagination-loading false)))))
+         (assoc-in [:search/results :next-page] (:next-page body))))))
 
 (rf/reg-event-fx
  :search/fetch-paginated
@@ -82,7 +81,7 @@
      {:db (assoc db :show-pagination-loading false)}
      {:fx [[:dispatch
             [:search/fetch id
-             [:search/load-paginated] [:bad-response]
+             [:search/load-paginated] [:bad-pagination-response]
              (into
               {:q        query
                :nextPage (js/encodeURIComponent next-page-url)}
