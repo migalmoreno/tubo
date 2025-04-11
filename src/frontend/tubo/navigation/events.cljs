@@ -50,7 +50,7 @@
      {:db            (-> db
                          (assoc :navigation/current-match match)
                          (assoc :navigation/show-mobile-menu false)
-                         (assoc :layout/show-pagination-loading false))
+                         (assoc :show-pagination-loading false))
       :scroll-to-top nil
       :body-overflow false
       :fx            [(when (:main-player/show db)
