@@ -172,3 +172,6 @@ Serves the same purpose as LibRedirect but is Manifest V3 compatible. Tubo is su
 
 ** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
 A user-script that redirects popular social media platforms to their privacy respecting front-ends. Tubo is supported by default for YouTube and SoundCloud.
+
+* Community
+Join the =#tubo= IRC channel at [[https://libera.chat/][Libera.Chat]] for general project support.
