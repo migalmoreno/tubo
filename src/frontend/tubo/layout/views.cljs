@@ -206,7 +206,9 @@
   (let [tooltip-id   (nano-id)
         tooltip-data (rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (fn [items &
-         {:keys [extra-classes tooltip-classes] :or {extra-classes ["p-3"]}}]
+         {:keys [extra-classes icon tooltip-classes]
+          :or   {extra-classes ["p-3"]
+                 icon          [:i.fa-solid.fa-ellipsis-vertical]}}]
       [:div.flex.items-center.tooltip-controller
        {:class (str "tooltip-controller-" tooltip-id)}
        [:button.focus:outline-none.relative.hidden.xs:block
@@ -214,14 +216,14 @@
                       (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
                       (rf/dispatch [:layout/register-tooltip {:id tooltip-id}]))
          :class    extra-classes}
-        [:i.fa-solid.fa-ellipsis-vertical]
+        icon
         (when @tooltip-data
           [tooltip items :extra-classes tooltip-classes])]
        [:button.focus:outline-none.relative.xs:hidden
         {:on-click #(rf/dispatch [:layout/show-mobile-tooltip
                                   {:items items :id tooltip-id}])
          :class    extra-classes}
-        [:i.fa-solid.fa-ellipsis-vertical]]])))
+        icon]])))
 
 (defn accordeon
   []
@@ -278,7 +280,7 @@
     (if page-loading?
       [loading-icon service-color "text-5xl"]
       [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
-       [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700
+       [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
         [:div.flex.items-center.gap-x-4.text-xl
          (cond type
                (case type
@@ -294,9 +296,18 @@
                 problem-message problem-message)]]
         (when-let [message (:message body)]
           [:span.break-words message])
+        [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
+         [:div.overflow-x-auto
+          [:span.font-mono.text-sm
+           (:trace body)]]]
         [:div.flex.justify-center.gap-x-6
-         [primary-button "Go Back" #(rf/dispatch [:navigation/history-go -1])]
-         [secondary-button "Retry" #(rf/dispatch cb)]]]])))
+         [primary-button "Go back" #(rf/dispatch [:navigation/history-go -1])
+          [:i.fa-solid.fa-arrow-left]]
+         [secondary-button "Copy strack trace"
+          #(rf/dispatch [:copy-to-clipboard (:trace body)])
+          [:i.fa-regular.fa-clipboard]]
+         [secondary-button "Retry" #(rf/dispatch cb)
+          [:i.fa-solid.fa-rotate-right]]]]])))
 
 (defn tabs
   [tabs]

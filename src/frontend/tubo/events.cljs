@@ -228,3 +228,11 @@
  :change-view
  (fn [{:keys [db]} [_ view]]
    {:db (assoc-in db [:navigation/current-match :data :view] view)}))
+
+(rf/reg-event-fx
+ :copy-to-clipboard
+ (fn [_ [_ text]]
+   {:promise {:call       #(.. js/navigator -clipboard (writeText text))
+              :on-success [:notifications/success "Copied to clipboard"]
+              :on-failure [:notifications/error
+                           "There was an error copying to clipboard"]}}))

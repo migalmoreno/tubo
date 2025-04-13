@@ -218,16 +218,17 @@
 
 (defn layout-switcher
   [!layout]
-  [:div.gap-x-5.text-lg.flex.items-center.justify-end
-   [:button.flex.items-center
-    {:on-click #(reset! !layout "list")
-     :title    "Switch to list layout"}
-    [:i.fa-solid.fa-list-ul
-     {:class (when-not (= @!layout "list")
-               ["dark:text-neutral-500" "text-neutral-400"])}]]
-   [:button.flex.items-center
-    {:on-click #(reset! !layout "grid")
-     :title    "Switch to grid layout"}
-    [:i.fa-solid.fa-border-all
-     {:class (when-not (= @!layout "grid")
-               ["dark:text-neutral-500" "text-neutral-400"])}]]])
+  [layout/popover
+   [{:label    "List"
+     :icon     [:i.fa-solid.fa-table-list]
+     :on-click #(reset! !layout "list")}
+    {:label    "Grid"
+     :icon     [:i.fa-solid.fa-table-cells-large]
+     :on-click #(reset! !layout "grid")}]
+   :extra-classes ["p-0"]
+   :tooltip-classes ["right-3" "top-10"]
+   :icon
+   [:button.flex.items-center.gap-x-3.text-neutral-500.hover:bg-neutral-300.dark:hover:bg-neutral-800.px-3.py-2.rounded-full.transition-all.ease-in-out
+    [:i.fa-solid
+     {:class (if (= @!layout "list") :fa-table-list :fa-table-cells-large)}]
+    [:i.fa-solid.fa-angle-down.text-sm]]])
