@@ -3,7 +3,8 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.layout.views :as layout]
-   [tubo.modals.views :as modals]))
+   [tubo.modals.views :as modals]
+   [tubo.utils :as utils]))
 
 (defn boolean-input
   [label keys value]
@@ -51,8 +52,11 @@
         [:div.bg-neutral-300.dark:bg-neutral-800.flex.rounded.py-2.px-4.justify-between.flex.items-center
          [:div.flex.flex-col
           [:label.text-lg {:for (:name instance)} (:name instance)]
-          [:a.text-red-500
-           {:href (:url instance) :target "blank" :rel "noopener"}
+          [:a
+           {:href   (:url instance)
+            :target "blank"
+            :rel    "noopener"
+            :style  {:color (utils/get-service-color 3)}}
            (:url instance)]]
          [:div.flex.gap-x-8
           (when-not (:active? instance)
