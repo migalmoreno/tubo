@@ -1,5 +1,6 @@
 (ns tubo.router
   (:require
+   [clojure.tools.logging :as log]
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
@@ -110,6 +111,7 @@
                            (merge exception/default-handlers
                                   {::exception/default
                                    (fn [ex _]
+                                     (log/error ex)
                                      {:status 500
                                       :body   {:message (ex-message ex)
                                                :trace   (->> ex
