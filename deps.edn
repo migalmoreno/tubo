@@ -38,4 +38,7 @@
                  babashka/fs                     {:mvn/version "0.5.23"}
                  day8/shadow-git-inject          {:mvn/version "0.0.5"}}
    :main-opts   ["-m" "shadow.cljs.devtools.cli"]}
-  :run {:main-opts ["-m" "tubo.core"]}}}
+  :run
+  {:main-opts ["-m" "tubo.core"]
+   :jvm-opts
+   ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/jul-factory"]}}}
