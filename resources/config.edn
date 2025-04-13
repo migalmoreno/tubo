@@ -1,4 +1,4 @@
-{:peertube {:instances [{:url "https://framatube.org" :name "FramaTube"}]}
+{:peertube {:instances [{:url "https://framatube.org" :name "Framatube"}]}
  :backend
  {:port #long #or [#env BACKEND_PORT 3000]
   :bg-helper-url
