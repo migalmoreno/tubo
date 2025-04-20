@@ -228,7 +228,7 @@
    :extra-classes ["p-0"]
    :tooltip-classes ["right-3" "top-10"]
    :icon
-   [:button.flex.items-center.gap-x-3.text-neutral-500.hover:bg-neutral-300.dark:hover:bg-neutral-800.px-3.py-2.rounded-full.transition-all.ease-in-out
+   [:div.flex.items-center.gap-x-3.text-neutral-500.rounded-full.transition-all.ease-in-out
     [:i.fa-solid
      {:class (if (= @!layout "list") :fa-table-list :fa-table-cells-large)}]
     [:i.fa-solid.fa-angle-down.text-sm]]])

@@ -2,8 +2,7 @@
   (:require
    [clojure.java.data :refer [from-java]]
    [ring.util.response :refer [response]]
-   [ring.util.codec :refer [url-decode]]
-   [ring.util.response :as res])
+   [ring.util.codec :refer [url-decode]])
   (:import
    org.schabi.newpipe.extractor.NewPipe
    org.schabi.newpipe.extractor.ServiceList

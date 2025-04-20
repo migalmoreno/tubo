@@ -57,7 +57,8 @@
         service-color     @(rf/subscribe [:service-color])
         services          @(rf/subscribe [:services])
         settings          @(rf/subscribe [:settings])
-        kiosks            @(rf/subscribe [:kiosks])]
+        kiosks            @(rf/subscribe [:kiosks])
+        user              @(rf/subscribe [:auth/user])]
     [:div.flex.flex-auto.justify-end.lg:justify-between
      {:class (when show-search-form? :hidden)}
      (when-not (or show-queue? show-main-player?)
@@ -96,7 +97,28 @@
        [:i.fa-solid.fa-bookmark]]
       [:a.px-3.hidden.lg:block
        {:href (rfe/href :about-page)}
-       [:i.fa-solid.fa-circle-info]]]]))
+       [:i.fa-solid.fa-circle-info]]
+      [layout/popover
+       (into (if-not user
+               [{:label "Sign Up"
+                 :icon  [:i.fa-solid.fa-user-plus]
+                 :link  {:route (rfe/href :signup-page)}}
+                {:label "Login"
+                 :icon  [:i.fa-solid.fa-right-to-bracket]
+                 :link  {:route (rfe/href :login-page)}}]
+               [])
+             (when user
+               [{:label    "Logout"
+                 :icon     [:i.fa-solid.fa-right-to-bracket
+                            {:class "rotate-180"}]
+                 :on-click #(rf/dispatch [:auth/logout])}]))
+       :extra-classes ["p-0" "px-3"]
+       :tooltip-classes ["right-3" "top-8"]
+       :icon
+       [:div.hidden.gap-x-2.hidden.lg:flex.items-center
+        [:i.fa-solid.fa-user]
+        [:span (when user (:username user))]
+        [:i.fa-solid.fa-angle-down.text-sm]]]]]))
 
 (defn navbar
   [match]
@@ -161,4 +183,6 @@
       [mobile-menu-item (rfe/href :settings-page) [:i.fa-solid.fa-cog]
        "Settings"]
       [mobile-menu-item (rfe/href :about-page) [:i.fa-solid.fa-circle-info]
-       "About & FAQ"]]]))
+       "About & FAQ"]
+      [mobile-menu-item (rfe/href :signup-page) [:i.fa-solid.fa-user]
+       "Sign In/Sign Up"]]]))

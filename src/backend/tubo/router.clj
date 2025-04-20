@@ -1,6 +1,7 @@
 (ns tubo.router
   (:require
    [clojure.tools.logging :as log]
+   [jdbc-ring-session.core :refer [jdbc-store]]
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
@@ -11,7 +12,9 @@
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
+   [ring.middleware.session :refer [wrap-session]]
    [ring.util.response :as res]
+   [tubo.handlers.auth :as auth]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
    [tubo.handlers.kiosks :as kiosks]
@@ -25,6 +28,12 @@
   [data opts]
   (if (keyword? data)
     (case data
+      :api/signup {:no-doc true
+                   :post   auth/create-signup-handler}
+      :api/login {:no-doc true
+                  :post   auth/create-login-handler}
+      :api/logout {:no-doc true
+                   :post   auth/create-logout-handler}
       :api/services {:get {:summary "returns all supported services"
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
@@ -121,11 +130,19 @@
                           wrap-params
                           rrc/coerce-request-middleware]}}))
 
-(def app
+(defn add-datasource
+  [handler datasource]
+  (fn [request]
+    (handler (assoc request :datasource datasource))))
+
+(defn create-app-handler
+  [datasource]
   (ring/ring-handler
    router
    (ring/routes
     (ring/create-resource-handler {:path "/"})
     (ring/redirect-trailing-slash-handler {:method :add})
     (ring/create-default-handler
-     {:not-found (constantly {:status 404 :body "Not found"})}))))
+     {:not-found (constantly {:status 404 :body "Not found"})}))
+   {:middleware [[wrap-session {:store (jdbc-store datasource)}]
+                 [add-datasource datasource]]}))

@@ -2,6 +2,7 @@ node_modules
 public
 target
 result
+data
 *.jar
 .cpcache
 .nrepl-port

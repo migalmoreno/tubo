@@ -5,6 +5,7 @@
    [re-frame.core :as rf]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
+   [tubo.auth.events]
    [tubo.bg-player.events]
    [tubo.bookmarks.events]
    [tubo.channel.events]

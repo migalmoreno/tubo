@@ -30,12 +30,15 @@
      {:name             (.getName info)
       :service-id       (.getServiceId info)
       :id               (.getId info)
+      :tags             (.getTags info)
+      :url              url
       :tabs             (from-java (.getTabs info))
       :verified?        (.isVerified info)
       :banners          (from-java (.getBanners info))
       :description      (.getDescription info)
       :avatars          (from-java (.getAvatars info))
       :subscriber-count (non-negative (.getSubscriberCount info))
+      :feed-url         (.getFeedUrl info)
       :donation-links   (.getDonationLinks info)
       :next-page        (from-java (.getNextPage tab-info))
       :related-streams  (when tab-info

@@ -212,7 +212,7 @@
     :fx [[:dispatch
           [:notifications/add
            {:status-text "Importing playlists"
-            :failure     :loading}
+            :type        :loading}
            false]]]}))
 
 (rf/reg-fx

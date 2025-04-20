@@ -2,6 +2,7 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
+   [tubo.auth.subs]
    [tubo.bg-player.subs]
    [tubo.bookmarks.subs]
    [tubo.channel.subs]

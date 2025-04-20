@@ -14,7 +14,12 @@
    ["/privacy" :web/privacy]
    ["/swagger.json" :api/swagger-spec]
    ["/api-docs/*" :api/swagger-ui]
+   ["/login" :web/login]
+   ["/signup" :web/signup]
    ["/api/v1"
+    ["/signup" :api/signup]
+    ["/login" :api/login]
+    ["/logout" :api/logout]
     ["/services"
      ["" :api/services]
      ["/:service-id"

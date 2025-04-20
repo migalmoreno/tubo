@@ -85,9 +85,9 @@
 
 (defn button
   [label on-click left-icon right-icon &
-   {:keys [button-classes label-classes icon-classes]}]
+   {:keys [button-classes label-classes icon-classes extra-button-args]}]
   [:button.flex.items-center.gap-x-2.px-4.py-2.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap
-   {:on-click on-click :class button-classes}
+   (merge {:on-click on-click :class button-classes} extra-button-args)
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
    [:span.font-bold.text-sm {:class label-classes} label]
@@ -95,8 +95,9 @@
      (conj right-icon {:class (or icon-classes label-classes)}))])
 
 (defn primary-button
-  [label on-click left-icon right-icon]
+  [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
+   :extra-button-args extra-button-args
    :button-classes ["bg-neutral-800" "dark:bg-neutral-200"]
    :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
@@ -113,18 +114,18 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn form-field
-  [{:keys [label orientation]} & children]
+  [{:keys [label orientation] :or {orientation :horizontal}} & children]
   [:div.w-full.flex.py-2.gap-x-4.gap-y-2
-   {:class (if (= orientation :horizontal)
-             [:flex-col]
-             [:justify-between :items-center])}
+   {:class (case orientation
+             :horizontal [:flex-col]
+             :vertical   [:justify-between :items-center])}
    [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn text-input
-  [value on-change placeholder]
+  [value on-change placeholder type]
   [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
-   {:type          "text"
+   {:type          (or type "text")
     :default-value value
     :on-change     on-change
     :placeholder   placeholder}])
@@ -132,6 +133,13 @@
 (defn text-field
   [label & args]
   [form-field {:label label :orientation :horizontal} (apply text-input args)])
+
+(defn input
+  [& {:keys [type] :or {type "text"} :as args}]
+  [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
+   (merge
+    {:type type}
+    args)])
 
 (defn boolean-input
   [label value on-change]
@@ -296,16 +304,18 @@
                 problem-message problem-message)]]
         (when-let [message (:message body)]
           [:span.break-words message])
-        [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
-         [:div.overflow-x-auto
-          [:span.font-mono.text-sm
-           (:trace body)]]]
+        (when (:trace body)
+          [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
+           [:code.overflow-x-auto
+            [:pre.font-mono.text-sm
+             (:trace body)]]])
         [:div.flex.justify-center.gap-x-6
-         [primary-button "Go back" #(rf/dispatch [:navigation/history-go -1])
+         [primary-button "Back" #(rf/dispatch [:navigation/history-go -1])
           [:i.fa-solid.fa-arrow-left]]
-         [secondary-button "Copy strack trace"
-          #(rf/dispatch [:copy-to-clipboard (:trace body)])
-          [:i.fa-regular.fa-clipboard]]
+         (when (:trace body)
+           [secondary-button "Copy"
+            #(rf/dispatch [:copy-to-clipboard (:trace body)])
+            [:i.fa-regular.fa-clipboard]])
          [secondary-button "Retry" #(rf/dispatch cb)
           [:i.fa-solid.fa-rotate-right]]]]])))
 

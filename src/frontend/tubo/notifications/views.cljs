@@ -30,7 +30,7 @@
         [:i.fa-solid.fa-close]]
        [:span.font-bold.break-all
         (str status (if status-text (str " " status-text) problem-message))]
-       (when-let [message (:message body)]
+       (when-let [message (or (:message body) body)]
          [:span.line-clamp-1 message])]]]))
 
 (defn notifications-panel

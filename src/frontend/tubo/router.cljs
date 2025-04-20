@@ -4,6 +4,7 @@
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
    [re-frame.core :as rf]
+   [tubo.auth.views :as auth]
    [tubo.about.views :as about]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
@@ -21,6 +22,10 @@
       :web/homepage  {:view        kiosk/kiosk
                       :name        :homepage
                       :controllers [{:start #(rf/dispatch [:fetch-homepage])}]}
+      :web/signup    {:view auth/signup
+                      :name :signup-page}
+      :web/login     {:view auth/login
+                      :name :login-page}
       :web/search    {:view        search/search
                       :name        :search-page
                       :controllers [{:parameters {:query [:q :serviceId
