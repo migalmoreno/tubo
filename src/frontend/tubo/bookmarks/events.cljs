@@ -12,41 +12,74 @@
                 :short-description :duration :view-count :uploaded]))
 
 (rf/reg-event-fx
+ :bookmarks/on-add-auth
+ (fn [{:keys [db]} [_ notify? {:keys [body]}]]
+   {:db (update db :user/bookmarks conj body)
+    :fx [[:dispatch [:modals/close]]
+         (when notify?
+           [:dispatch
+            [:notifications/success
+             (str "Added playlist \"" (:name body) "\"")]])]}))
+
+(rf/reg-event-fx
  :bookmarks/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark notify?]]
-   (let [updated-db (update db
-                            :bookmarks
-                            conj
-                            (if (:id bookmark)
-                              bookmark
-                              (assoc bookmark :id (nano-id))))]
-     {:db    updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))
-      :fx    [[:dispatch [:modals/close]]
-              (when notify?
-                [:dispatch
-                 [:notifications/success
-                  (str "Added playlist \"" (:name bookmark) "\"")]])]})))
+   (if (:auth/user db)
+     {:fx [[:dispatch
+            [:api/post-auth "user/playlists" bookmark
+             [:bookmarks/on-add-auth notify?]
+             [:bad-response]]]]}
+     (let [updated-db (update db
+                              :bookmarks
+                              conj
+                              (if (:id bookmark)
+                                bookmark
+                                (assoc bookmark :id (nano-id))))]
+       {:db    updated-db
+        :store (assoc store :bookmarks (:bookmarks updated-db))
+        :fx    [[:dispatch [:modals/close]]
+                (when notify?
+                  [:dispatch
+                   [:notifications/success
+                    (str "Added playlist \"" (:name bookmark) "\"")]])]}))))
+
+(rf/reg-event-fx
+ :bookmarks/on-delete-auth
+ (fn [{:keys [db]} [_ id {:keys [body]}]]
+   {:db (update db
+                :user/bookmarks
+                #(into []
+                       (remove (fn [bookmark]
+                                 (= (:id bookmark) id))
+                               %)))
+    :fx [[:dispatch [:modals/close]]
+         [:dispatch
+          [:notifications/success
+           (str "Removed playlist \"" (:name body) "\"")]]]}))
 
 (rf/reg-event-fx
  :bookmarks/remove
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ id notify?]]
-   (let [bookmark   (first (filter #(= (:id %) id) (:bookmarks db)))
-         updated-db (update db
-                            :bookmarks
-                            #(into []
-                                   (remove (fn [bookmark]
-                                             (= (:id bookmark) id))
-                                           %)))]
-     {:db    updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))
-      :fx    (if notify?
-               [[:dispatch
-                 [:notifications/success
-                  (str "Removed playlist \"" (:name bookmark) "\"")]]]
-               [])})))
+   (if (:auth/user db)
+     {:fx [[:dispatch
+            [:api/delete-auth (str "user/playlists/" id)
+             [:bookmarks/on-delete-auth id] [:bad-response]]]]}
+     (let [bookmark   (first (filter #(= (:id %) id) (:bookmarks db)))
+           updated-db (update db
+                              :bookmarks
+                              #(into []
+                                     (remove (fn [bookmark]
+                                               (= (:id bookmark) id))
+                                             %)))]
+       {:db    updated-db
+        :store (assoc store :bookmarks (:bookmarks updated-db))
+        :fx    (if notify?
+                 [[:dispatch
+                   [:notifications/success
+                    (str "Removed playlist \"" (:name bookmark) "\"")]]]
+                 [])}))))
 
 (rf/reg-event-fx
  :bookmarks/clear
@@ -127,26 +160,53 @@
                        "\"")]]))}))
 
 (rf/reg-event-fx
+ :bookmark/on-add-auth
+ (fn [{:keys [db]} [_ notify? {:keys [body]}]]
+   (let [selected (first (filter #(= (:id %) (:playlist-id body))
+                                 (:user/bookmarks db)))
+         pos      (.indexOf (:user/bookmarks db) selected)]
+     {:db (assoc-in db [:user/bookmarks pos] body)
+      :fx [[:dispatch [:modals/close]]
+           (when notify?
+             [:dispatch
+              [:notifications/success
+               (str "Added to playlist \"" (:name selected) "\"")]])]})))
+
+(rf/reg-event-fx
  :bookmark/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark item notify?]]
-   (let [selected   (first (filter #(= (:id %) (:id bookmark)) (:bookmarks db)))
-         pos        (.indexOf (:bookmarks db) selected)
-         updated-db (if (some #(= (:url %) (:url item)) (:items selected))
-                      db
-                      (update-in db
-                                 [:bookmarks pos :items]
-                                 #(into [] (conj (into [] %1) %2))
-                                 (assoc (get-stream-metadata item)
-                                        :bookmark-id
-                                        (:id bookmark))))]
-     {:db    updated-db
-      :store (assoc store :bookmarks (:bookmarks updated-db))
-      :fx    [[:dispatch [:modals/close]]
-              (when notify?
-                [:dispatch
-                 [:notifications/success
-                  (str "Added to playlist \"" (:name selected) "\"")]])]})))
+   (if (:auth/user db)
+     {:fx [[:dispatch
+            [:api/post-auth (str "user/playlists/" (:id bookmark))
+             (assoc item
+                    :thumbnail
+                    (-> (:thumbnails item)
+                        last
+                        :url)
+                    :uploader-avatar
+                    (-> (:uploader-avatars item)
+                        last
+                        :url))
+             [:bookmark/on-add-auth notify?] [:bad-response]]]]}
+     (let [selected   (first (filter #(= (:id %) (:id bookmark))
+                                     (:bookmarks db)))
+           pos        (.indexOf (:bookmarks db) selected)
+           updated-db (if (some #(= (:url %) (:url item)) (:items selected))
+                        db
+                        (update-in db
+                                   [:bookmarks pos :items]
+                                   #(into [] (conj (into [] %1) %2))
+                                   (assoc (get-stream-metadata item)
+                                          :bookmark-id
+                                          (:id bookmark))))]
+       {:db    updated-db
+        :store (assoc store :bookmarks (:bookmarks updated-db))
+        :fx    [[:dispatch [:modals/close]]
+                (when notify?
+                  [:dispatch
+                   [:notifications/success
+                    (str "Added to playlist \"" (:name selected) "\"")]])]}))))
 
 (rf/reg-event-fx
  :bookmark/remove
@@ -252,12 +312,48 @@
           [:notifications/success "Exported playlists"]]]}))
 
 (rf/reg-event-fx
+ :bookmarks/load-authenticated-playlists
+ (fn [{:keys [db]} [_ {:keys [body]}]]
+   {:db (assoc db :user/bookmarks body)}))
+
+(rf/reg-event-fx
+ :bookmarks/fetch-auth
+ (fn []
+   {:fx [[:dispatch
+          [:api/get-auth "user/playlists"
+           [:bookmarks/load-authenticated-playlists]
+           [:bad-response]]]]}))
+
+(rf/reg-event-fx
  :bookmarks/fetch-page
- (fn [_]
-   {:document-title "Bookmarked Playlists"}))
+ (fn [{:keys [db]}]
+   {:document-title "Bookmarked Playlists"
+    :fx             (if (:auth/user db)
+                      [[:dispatch [:bookmarks/fetch-auth]]]
+                      [])}))
+
+(rf/reg-event-fx
+ :bookmark/load-authenticated-playlist
+ (fn [{:keys [db]} [_ playlist-id {:keys [body]}]]
+   (let [selected (first (filter #(= (:id %) playlist-id) (:user/bookmarks db)))
+         pos      (.indexOf (:user/bookmarks db) selected)]
+     {:db (assoc-in db [:user/bookmarks pos] body)})))
 
 (rf/reg-event-fx
  :bookmark/fetch-page
  (fn [{:keys [db]} [_ playlist-id]]
    (let [playlist (first (filter #(= (:id %) playlist-id) (:bookmarks db)))]
-     {:document-title (:name playlist)})))
+     {:document-title (:name playlist)
+      :fx             (if (:auth/user db)
+                        [[:dispatch
+                          [:api/get-auth (str "user/playlists/" playlist-id)
+                           [:bookmark/load-authenticated-playlist playlist-id]
+                           [:bad-response]]]]
+                        [])})))
+
+(rf/reg-event-fx
+ :bookmarks/open-add-to-bookmark-modal
+ (fn [{:keys [db]} [_ modal]]
+   {:fx [(when (:auth/user db)
+           [:dispatch [:bookmarks/fetch-auth]])
+         [:dispatch [:modals/open modal]]]}))

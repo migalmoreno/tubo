@@ -214,23 +214,25 @@
   (let [tooltip-id   (nano-id)
         tooltip-data (rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (fn [items &
-         {:keys [extra-classes icon tooltip-classes]
+         {:keys [extra-classes icon tooltip-classes responsive?]
           :or   {extra-classes ["p-3"]
-                 icon          [:i.fa-solid.fa-ellipsis-vertical]}}]
+                 icon          [:i.fa-solid.fa-ellipsis-vertical]
+                 responsive?   true}}]
       [:div.flex.items-center.tooltip-controller
        {:class (str "tooltip-controller-" tooltip-id)}
-       [:button.focus:outline-none.relative.hidden.xs:block
+       [:button.focus:outline-none.relative
         {:on-click #(if @tooltip-data
                       (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
                       (rf/dispatch [:layout/register-tooltip {:id tooltip-id}]))
-         :class    extra-classes}
+         :class    (into extra-classes
+                         (if responsive? ["hidden" "xs:block"] ["block"]))}
         icon
         (when @tooltip-data
           [tooltip items :extra-classes tooltip-classes])]
-       [:button.focus:outline-none.relative.xs:hidden
+       [:button.focus:outline-none.relative
         {:on-click #(rf/dispatch [:layout/show-mobile-tooltip
                                   {:items items :id tooltip-id}])
-         :class    extra-classes}
+         :class    (conj extra-classes (if responsive? "xs:hidden" "hidden"))}
         icon]])))
 
 (defn accordeon

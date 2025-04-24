@@ -4,6 +4,18 @@
 
 (goog-define ^js/String version "unknown")
 
+(defn apply-streams-thumbnail
+  [body key]
+  (update body
+          key
+          #(map (fn [s]
+                  (assoc s
+                         :thumbnail
+                         (-> (:thumbnails s)
+                             last
+                             :url)))
+                %)))
+
 (defn get-service-color
   [id]
   (when id

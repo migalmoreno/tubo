@@ -1,7 +1,8 @@
 (ns tubo.channel.events
   (:require
    [re-frame.core :as rf]
-   [tubo.channel.views :as channel]))
+   [tubo.channel.views :as channel]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :channel/fetch
@@ -14,7 +15,9 @@
  :channel/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :channel           body
+               :channel           (utils/apply-streams-thumbnail
+                                   body
+                                   :related-streams)
                :show-page-loading false)
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))

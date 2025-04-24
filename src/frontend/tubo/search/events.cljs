@@ -1,6 +1,7 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
+   [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (defonce !timeouts (atom {}))
@@ -33,7 +34,7 @@
  :search/load-page
  (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
    {:db (assoc db
-               :search/results    body
+               :search/results    (utils/apply-streams-thumbnail body :items)
                :search/query      query
                :search/filter     filter
                :show-page-loading false)

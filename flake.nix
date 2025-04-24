@@ -46,7 +46,6 @@
                 enable = true;
                 socketDir = "/tmp";
                 superuser = dbUser;
-                createDatabase = false;
                 initialDatabases = [
                   {
                     name = dbName;

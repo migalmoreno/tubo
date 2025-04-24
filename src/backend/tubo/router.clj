@@ -1,7 +1,6 @@
 (ns tubo.router
   (:require
    [clojure.tools.logging :as log]
-   [jdbc-ring-session.core :refer [jdbc-store]]
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
@@ -12,8 +11,7 @@
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.session :refer [wrap-session]]
-   [ring.util.response :as res]
+   [ring.util.http-response :refer [ok]]
    [tubo.handlers.auth :as auth]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
@@ -22,18 +20,50 @@
    [tubo.handlers.search :as search]
    [tubo.handlers.services :as services]
    [tubo.handlers.stream :as stream]
+   [tubo.handlers.auth-playlists :as ap]
+   [tubo.middleware :as middleware]
    [tubo.routes :as routes]))
 
 (defn expand-routes
   [data opts]
   (if (keyword? data)
     (case data
+      :api/health {:no-doc true
+                   :get    (constantly (ok))}
       :api/signup {:no-doc true
-                   :post   auth/create-signup-handler}
+                   :post   {:parameters {:body {:username string?
+                                                :password string?}}
+                            :handler    auth/create-signup-handler}}
       :api/login {:no-doc true
-                  :post   auth/create-login-handler}
+                  :post   {:parameters {:body {:username string?
+                                               :password string?}}
+                           :handler    auth/create-login-handler}}
       :api/logout {:no-doc true
-                   :post   auth/create-logout-handler}
+                   :post   {:handler    auth/create-logout-handler
+                            :middleware [middleware/auth]}}
+      :api/user-playlists
+      {:get  {:summary
+              "returns all playlists for an authenticated user"
+              :handler ap/create-get-auth-playlists-handler
+              :middleware [middleware/auth]}
+       :post {:summary    "creates a new playlist for an authenticated user"
+              :handler    ap/create-post-auth-playlists-handler
+              :middleware [middleware/auth]}}
+      :api/user-playlist
+      {:get    {:summary    "returns a user playlist for an authenticated user"
+                :handler    ap/create-get-auth-playlist-handler
+                :middleware [middleware/auth]}
+       :post   {:summary
+                "adds a stream to a user playlist for an authenticated user"
+                :handler ap/create-post-auth-playlist-handler
+                :middleware [middleware/auth]}
+       :update {:summary    "updates a user playlist for an authenticated user"
+                :handler    ap/create-update-auth-playlist-handler
+                :middleware [middleware/auth]}
+       :delete {:summary    "deletes a user playlist for an authenticated user"
+                :parameters {:path {:id string?}}
+                :handler    ap/create-delete-auth-playlist-handler
+                :middleware [middleware/auth]}}
       :api/services {:get {:summary "returns all supported services"
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
@@ -92,27 +122,17 @@
                                   :handler (swagger/create-swagger-handler)}}
       :api/swagger-ui {:no-doc true
                        :get    (swagger-ui/create-swagger-ui-handler)}
-      nil)
+      {:status 200
+       :body   "ok"})
     (r/expand data opts)))
-
-(defn wrap-cors
-  [handler]
-  (fn [request]
-    ((comp
-      #(res/header % "Access-Control-Allow-Methods" "*")
-      #(res/header % "Access-Control-Allow-Headers" "Authorization, *")
-      #(res/header % "Access-Control-Allow-Origin" "*")
-      #(res/header % "Access-Control-Allow-Credentials" "true")
-      #(res/header % "Access-Control-Max-Age" "86400")
-      handler)
-     request)))
 
 (def router
   (ring/router
    routes/routes
    {:expand expand-routes
     :data   {:muuntaja   m/instance
-             :middleware [wrap-cors
+             :middleware [middleware/wrap-cors
+                          middleware/wrap-token-auth
                           rrc/coerce-exceptions-middleware
                           rrc/coerce-response-middleware
                           muuntaja/format-middleware
@@ -144,5 +164,4 @@
     (ring/redirect-trailing-slash-handler {:method :add})
     (ring/create-default-handler
      {:not-found (constantly {:status 404 :body "Not found"})}))
-   {:middleware [[wrap-session {:store (jdbc-store datasource)}]
-                 [add-datasource datasource]]}))
+   {:middleware [[add-datasource datasource]]}))

@@ -1,51 +1,50 @@
 (ns tubo.handlers.auth
   (:require
+   [buddy.auth :refer [authenticated?]]
+   [buddy.auth.backends.token :refer [token-backend]]
    [buddy.hashers :as bh]
-   [honey.sql :as sql]
-   [next.jdbc :as jdbc]
-   [next.jdbc.result-set :as rs]))
+   [nano-id.core :refer [nano-id]]
+   [ring.util.response :refer [response]]
+   [tubo.models.user :as user]))
+
+(defn gen-session-id [] (nano-id 36))
+
+(defn authenticate-token
+  [{:keys [datasource]} token]
+  (println "token" token)
+  (user/get-user-by-session token datasource))
+
+(def backend
+  (token-backend {:authfn authenticate-token}))
+
+(defn create-unauthorized-handler
+  [req _]
+  (if (authenticated? req)
+    (-> (response "Unauthorized request")
+        (assoc :status 403))
+    (-> (response "Unauthenticated request")
+        (assoc :status 401))))
 
 (defn create-signup-handler
   [{:keys [datasource body-params]}]
-  (if (jdbc/execute-one! datasource
-                         (-> {:select [:*]
-                              :from   [:users]
-                              :where  [:= :username (:username body-params)]}
-                             sql/format))
+  (if (user/get-user-by-username (:username body-params) datasource)
     {:status 500
      :body   "User with that username already exists"}
-    (let [account (jdbc/execute-one!
-                   datasource
-                   (-> {:insert-into :users
-                        :columns     [:username :password]
-                        :values      [[(:username body-params)
-                                       (bh/derive (:password body-params))]]}
-                       sql/format)
-                   {:return-keys true
-                    :builder-fn  rs/as-unqualified-kebab-maps})]
-      {:status  200
-       :body    account
-       :session (select-keys account [:username :created-at])})))
+    {:status 200
+     :body   (user/create-user body-params datasource)}))
 
 (defn create-logout-handler
-  [_]
-  {:status  200
-   :session nil})
+  [{:keys [identity datasource]}]
+  (if (user/invalidate-user-session-id (:session_id identity) datasource)
+    {:status 200}
+    {:status 500
+     :body   "There was a problem logging out"}))
 
 (defn create-login-handler
   [{:keys [datasource body-params]}]
-  (if-let [account (jdbc/execute-one!
-                    datasource
-                    (-> {:select [:*]
-                         :from   [:users]
-                         :where  [:= :username (:username body-params)]}
-                        sql/format)
-                    {:builder-fn rs/as-unqualified-kebab-maps})]
-    (if (:valid (bh/verify (:password body-params) (:password account)))
-      {:status  200
-       :body    account
-       :session (select-keys account [:username :created-at])}
+  (let [user (user/get-user-by-username (:username body-params) datasource)]
+    (if (and user (:valid (bh/verify (:password body-params) (:password user))))
+      {:status 200
+       :body   (dissoc user :password)}
       {:status 500
-       :body   "Wrong password for user"})
-    {:status 500
-     :body   "Couldn't find user with that username"}))
+       :body   "Invalid credentials"})))

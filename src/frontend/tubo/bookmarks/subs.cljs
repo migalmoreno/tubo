@@ -3,21 +3,28 @@
    [re-frame.core :as rf]))
 
 (rf/reg-sub
+ :user/bookmarks
+ (fn [db]
+   (:user/bookmarks db)))
+
+(rf/reg-sub
  :bookmarks
  (fn [db]
-   (:bookmarks db)))
+   (if (:auth/user db)
+     (:user/bookmarks db)
+     (:bookmarks db))))
 
 (rf/reg-sub
  :bookmarks/bookmarked
- (fn []
-   (rf/subscribe [:bookmarks]))
+ (fn [db]
+   (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
  (fn [bookmarks [_ id]]
    (some #(= (:id %) id) (rest bookmarks))))
 
 (rf/reg-sub
  :bookmarks/favorited
- (fn []
-   (rf/subscribe [:bookmarks]))
+ (fn [db]
+   (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
  (fn [bookmarks [_ url]]
    (some #(= (:url %) url)
          (-> bookmarks
@@ -26,8 +33,8 @@
 
 (rf/reg-sub
  :bookmarks/playlisted
- (fn []
-   (rf/subscribe [:bookmarks]))
+ (fn [db]
+   (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
  (fn [bookmarks [_ url playlist-id]]
    (some #(= (:url %) url)
          (->> bookmarks

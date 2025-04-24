@@ -1,7 +1,7 @@
 (ns tubo.kiosks.events
   (:require
    [re-frame.core :as rf]
-   [tubo.layout.views :as layout]))
+   [tubo.utils :as utils]))
 
 (rf/reg-event-db
  :kiosks/load
@@ -36,11 +36,11 @@
 (rf/reg-event-fx
  :kiosks/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
-   {:db (assoc db
-               :kiosk             body
-               :show-page-loading false)
-    :fx [[:dispatch [:services/fetch body]]
-         [:document-title (:id body)]]}))
+   {:db (-> (assoc db
+                   :kiosk
+                   (utils/apply-streams-thumbnail body :related-streams))
+            (assoc :show-page-loading false))
+    :fx [[:document-title (:id body)]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-page

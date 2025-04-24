@@ -17,9 +17,14 @@
    ["/login" :web/login]
    ["/signup" :web/signup]
    ["/api/v1"
+    ["/health" :api/health]
     ["/signup" :api/signup]
     ["/login" :api/login]
     ["/logout" :api/logout]
+    ["/user"
+     ["/playlists"
+      ["" :api/user-playlists]
+      ["/:id" :api/user-playlist]]]
     ["/services"
      ["" :api/services]
      ["/:service-id"

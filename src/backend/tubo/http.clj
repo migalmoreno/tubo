@@ -2,7 +2,7 @@
   (:require
    [org.httpkit.server :refer [run-server]]
    [tubo.config :as config]
-   [tubo.middlewares :refer [reloading-ring-handler]]
+   [tubo.middleware :refer [reloading-ring-handler]]
    [tubo.router :as router]))
 
 (defonce server (atom nil))

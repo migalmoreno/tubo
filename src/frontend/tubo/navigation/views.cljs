@@ -112,7 +112,7 @@
                  :icon     [:i.fa-solid.fa-right-to-bracket
                             {:class "rotate-180"}]
                  :on-click #(rf/dispatch [:auth/logout])}]))
-       :extra-classes ["p-0" "px-3"]
+       :extra-classes ["p-0" "lg:px-3"]
        :tooltip-classes ["right-3" "top-8"]
        :icon
        [:div.hidden.gap-x-2.hidden.lg:flex.items-center
@@ -153,7 +153,8 @@
         services         @(rf/subscribe [:services])
         show-mobile-nav? @(rf/subscribe [:navigation/show-mobile-menu])
         kiosks           @(rf/subscribe [:kiosks])
-        settings         @(rf/subscribe [:settings])]
+        settings         @(rf/subscribe [:settings])
+        user             @(rf/subscribe [:auth/user])]
     [:div.fixed.min-h-screen.w-60.top-0.bg-neutral-100.dark:bg-neutral-900.transition-all.ease-in-out.delay-75.z-30
      {:class [(if show-mobile-nav? "left-0" "left-[-245px]")]}
      [:div.flex.justify-center.items-center.py-8.gap-x-4
@@ -184,5 +185,28 @@
        "Settings"]
       [mobile-menu-item (rfe/href :about-page) [:i.fa-solid.fa-circle-info]
        "About & FAQ"]
-      [mobile-menu-item (rfe/href :signup-page) [:i.fa-solid.fa-user]
-       "Sign In/Sign Up"]]]))
+      [layout/popover
+       (into (if-not user
+               [{:label "Sign Up"
+                 :icon  [:i.fa-solid.fa-user-plus]
+                 :link  {:route (rfe/href :signup-page)}}
+                {:label "Login"
+                 :icon  [:i.fa-solid.fa-right-to-bracket]
+                 :link  {:route (rfe/href :login-page)}}]
+               [])
+             (when user
+               [{:label    "Logout"
+                 :icon     [:i.fa-solid.fa-right-to-bracket
+                            {:class "rotate-180"}]
+                 :on-click #(rf/dispatch [:auth/logout])}]))
+       :extra-classes ["p-0" "w-full"]
+       :responsive? false
+       :tooltip-classes ["right-3" "top-8"]
+       :icon
+       [:li.hover:bg-neutral-200.dark:hover:bg-neutral-800
+        [:div.flex.gap-x-4.p-4
+         [:div.w-6.flex.justify-center.items-center
+          (conj [:i.fa-solid.fa-user]
+                {:class ["text-neutral-600" "dark:text-neutral-300"]})]
+         [:span (if user (:username user) "Login/Sign Up")]
+         [:i.fa-solid.fa-angle-down.text-sm]]]]]]))

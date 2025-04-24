@@ -11,12 +11,14 @@
 
 (rf/reg-event-fx
  :auth/handle-signup-success
- (fn [{:keys [db]} [_ path {:keys [body]}]]
-   {:db (-> db
-            (fork/set-submitting path false)
-            (assoc :auth/user body))
-    :fx [[:dispatch [:notifications/success "Registration successful"]]
-         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ path {:keys [body]}]]
+   {:db    (-> db
+               (fork/set-submitting path false)
+               (assoc :auth/user body))
+    :store (assoc store :auth/user body)
+    :fx    [[:dispatch [:notifications/success "Registration successful"]]
+            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/signup
@@ -29,11 +31,13 @@
 
 (rf/reg-event-fx
  :auth/handle-logout-success
- (fn [{:keys [db]}]
-   {:db (assoc db :auth/user nil)
-    :fx [[:dispatch [:notifications/clear]]
-         [:dispatch [:notifications/success "Logged out"]]
-         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]}]
+   {:db    (assoc db :auth/user nil)
+    :store (assoc store :auth/user nil)
+    :fx    [[:dispatch [:notifications/clear]]
+            [:dispatch [:notifications/success "Logged out"]]
+            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/handle-logout-failure
@@ -43,6 +47,14 @@
 
 (rf/reg-event-fx
  :auth/logout
+ (fn [{:keys [db]}]
+   {:db (assoc db :auth/user nil)
+    :fx [[:dispatch [:notifications/clear]]
+         [:dispatch [:notifications/success "Logged out"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+
+(rf/reg-event-fx
+ :auth/invalidate-session
  (fn []
    {:fx [[:dispatch
           [:notifications/add
@@ -62,12 +74,14 @@
 
 (rf/reg-event-fx
  :auth/handle-login-success
- (fn [{:keys [db]} [_ path {:keys [body]}]]
-   {:db (-> db
-            (fork/set-submitting path false)
-            (assoc :auth/user body))
-    :fx [[:dispatch [:notifications/success "Login successful"]]
-         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ path {:keys [body]}]]
+   {:db    (-> db
+               (fork/set-submitting path false)
+               (assoc :auth/user body))
+    :store (assoc store :auth/user body)
+    :fx    [[:dispatch [:notifications/success "Login successful"]]
+            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/login

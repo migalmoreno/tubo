@@ -1,6 +1,7 @@
 (ns tubo.stream.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :stream/fetch
@@ -13,7 +14,9 @@
  :stream/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :stream            body
+               :stream            (utils/apply-streams-thumbnail
+                                   body
+                                   :related-streams)
                :show-page-loading false)
     :fx [(when (-> db
                    :settings

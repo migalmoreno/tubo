@@ -70,7 +70,7 @@ npm i
 To start a PostgreSQL development server, you'll need to invoke the following in the project root:
 
 #+begin_src sh
-nix run . -- -D
+nix run . # add -- -D if you want to detach the processes
 #+end_src
 
 You can now access the database like this:
@@ -78,6 +78,8 @@ You can now access the database like this:
 #+begin_src sh
 psql
 #+end_src
+
+Or by accessing a local =pgweb= instance in your browser at http://localhost:8081.
 
 ** CLI
 To start a front-end development server with hot-reload support, run:

@@ -11,6 +11,3 @@ DROP TABLE IF EXISTS streams CASCADE;
 
 --;;
 DROP TABLE IF EXISTS playlist_streams;
-
---;;
-DROP TABLE IF EXISTS session_store;

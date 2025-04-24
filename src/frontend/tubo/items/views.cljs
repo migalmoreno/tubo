@@ -28,7 +28,7 @@
                                      item true])}
            {:label    "Add to playlist"
             :icon     [:i.fa-solid.fa-plus]
-            :on-click #(rf/dispatch [:modals/open
+            :on-click #(rf/dispatch [:bookmarks/open-add-to-bookmark-modal
                                      [bookmarks/add-to-bookmark item]])}
            (when @(rf/subscribe [:bookmarks/playlisted url bookmark-id])
              {:label    "Remove from playlist"
@@ -51,14 +51,12 @@
        :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
-  [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration type]
+  [{:keys [url name uploader-url uploader-name uploader-verified?
+           subscriber-count view-count stream-count verified? thumbnail
+           duration type]
     :as   item} route]
   [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
-   [layout/thumbnail
-    (-> thumbnails
-        last
-        :url) route name duration
+   [layout/thumbnail thumbnail route name duration
     :classes [:py-2 :h-44 "xs:h-28"] :rounded? true]
    [:div
     (when name
@@ -78,7 +76,7 @@
        [:h1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.line-clamp-1.break-all
         {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
         uploader-name])
-      (when (and uploader-url verified?)
+      (when (and uploader-url uploader-verified?)
         [:i.fa-solid.fa-circle-check.text-xs])]
      [item-popover item]]
     (when (and (= type "channel") subscriber-count)
@@ -97,14 +95,12 @@
         [:p.pl-1.5 (utils/format-quantity view-count)]])]]])
 
 (defn list-item-content
-  [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration upload-date type]
+  [{:keys [url name uploader-url uploader-name uploader-verified?
+           subscriber-count view-count stream-count verified? thumbnail
+           duration upload-date type]
     :as   item} route]
   [:div.flex.gap-x-3.xs:gap-x-5
-   [layout/thumbnail
-    (-> thumbnails
-        last
-        :url) route name duration
+   [layout/thumbnail thumbnail route name duration
     :classes
     ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]" "sm:h-36" "sm:min-w-[250px]"
      "sm:max-w-[250px]"] :rounded?
@@ -133,7 +129,7 @@
           [:h1.font-semibold.line-clamp-1.break-all.text-xs.xs:text-sm
            {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
            uploader-name])
-         (when (and uploader-url verified?)
+         (when (and uploader-url uploader-verified?)
            [:i.fa-solid.fa-circle-check.text-xs])])
       (when (or view-count upload-date)
         [:div.flex.text-xs.xs:text-sm
@@ -225,6 +221,7 @@
     {:label    "Grid"
      :icon     [:i.fa-solid.fa-table-cells-large]
      :on-click #(reset! !layout "grid")}]
+   :responsive? false
    :extra-classes ["p-0"]
    :tooltip-classes ["right-3" "top-10"]
    :icon

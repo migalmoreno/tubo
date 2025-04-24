@@ -8,25 +8,25 @@
 
 (defn get-stream-item
   [stream]
-  {:type              :stream
-   :service-id        (.getServiceId stream)
-   :url               (.getUrl stream)
-   :name              (.getName stream)
-   :thumbnails        (j/from-java (.getThumbnails stream))
-   :uploader-name     (.getUploaderName stream)
-   :uploader-url      (.getUploaderUrl stream)
-   :uploader-avatars  (j/from-java (.getUploaderAvatars stream))
-   :upload-date       (.getTextualUploadDate stream)
-   :short-description (.getShortDescription stream)
-   :duration          (.getDuration stream)
-   :view-count        (non-negative (.getViewCount stream))
-   :uploaded          (when (.getUploadDate stream)
-                        (.. stream
-                            (getUploadDate)
-                            (offsetDateTime)
-                            (toInstant)
-                            (toEpochMilli)))
-   :verified?         (.isUploaderVerified stream)})
+  {:type               :stream
+   :service-id         (.getServiceId stream)
+   :url                (.getUrl stream)
+   :name               (.getName stream)
+   :thumbnails         (j/from-java (.getThumbnails stream))
+   :uploader-name      (.getUploaderName stream)
+   :uploader-url       (.getUploaderUrl stream)
+   :uploader-avatars   (j/from-java (.getUploaderAvatars stream))
+   :upload-date        (.getTextualUploadDate stream)
+   :short-description  (.getShortDescription stream)
+   :duration           (.getDuration stream)
+   :view-count         (non-negative (.getViewCount stream))
+   :uploaded           (when (.getUploadDate stream)
+                         (.. stream
+                             (getUploadDate)
+                             (offsetDateTime)
+                             (toInstant)
+                             (toEpochMilli)))
+   :uploader-verified? (.isUploaderVerified stream)})
 
 (defn get-channel-item
   [channel]
