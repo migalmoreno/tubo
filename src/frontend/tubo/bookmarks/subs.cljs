@@ -11,15 +11,28 @@
  :bookmarks
  (fn [db]
    (if (:auth/user db)
-     (:user/bookmarks db)
+     (map #(if (:thumbnail %)
+             %
+             (assoc % :thumbnail (:thumbnail (first (:items %)))))
+          (:user/bookmarks db))
      (:bookmarks db))))
+
+(rf/reg-sub
+ :bookmarks/get-by-id
+ (fn [db]
+   (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
+ (fn [bookmarks [_ id]]
+   (first (filter #(= (or (:playlist-id %)
+                          (:id %))
+                      id)
+                  bookmarks))))
 
 (rf/reg-sub
  :bookmarks/bookmarked
  (fn [db]
    (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
  (fn [bookmarks [_ id]]
-   (some #(= (:id %) id) (rest bookmarks))))
+   (some #(= (or (:playlist-id %) (:id %)) id) (rest bookmarks))))
 
 (rf/reg-sub
  :bookmarks/favorited
@@ -38,6 +51,6 @@
  (fn [bookmarks [_ url playlist-id]]
    (some #(= (:url %) url)
          (->> bookmarks
-              (filter #(= (:id %) playlist-id))
+              (filter #(= (or (:playlist-id %) (:id %)) playlist-id))
               first
               :items))))

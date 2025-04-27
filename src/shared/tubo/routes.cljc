@@ -15,10 +15,10 @@
    ["/swagger.json" :api/swagger-spec]
    ["/api-docs/*" :api/swagger-ui]
    ["/login" :web/login]
-   ["/signup" :web/signup]
+   ["/register" :web/register]
    ["/api/v1"
     ["/health" :api/health]
-    ["/signup" :api/signup]
+    ["/register" :api/register]
     ["/login" :api/login]
     ["/logout" :api/logout]
     ["/user"

@@ -76,12 +76,17 @@
 
 (defn content-settings
   [{:keys [default-service default-country default-kiosk default-filter
-           show-description show-comments show-related instance]}]
+           show-description show-comments show-related instance auth-instance
+           image-quality]}]
   (let [services   @(rf/subscribe [:services])
         service    @(rf/subscribe [:services/current])
         kiosks     @(rf/subscribe [:kiosks])
         service-id @(rf/subscribe [:service-id])
-        countries  (:supported-countries service)]
+        countries  (:supported-countries service)
+        qualities  {"none"   "Do not load images"
+                    "low"    "Low quality"
+                    "medium" "Medium quality"
+                    "high"   "High quality"}]
     [:<>
      [select-input "Default country" nil
       (or (:name (get default-country service-id)) (first countries))
@@ -115,14 +120,28 @@
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
       (:content-filters service)]
-     [text-input "Backend instance" [:instance] instance]
+     [text-input "API instance" [:instance] instance]
+     [text-input "Authentication instance" [:auth-instance] auth-instance]
      [layout/generic-input "PeerTube instances"
       [layout/primary-button "Edit"
        #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
+     [select-input "Image Quality" [:image-quality]
+      image-quality
+      (map (fn [[value label]] {:label label :value value})
+           (into [] qualities))]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
       show-related]]))
+
+(defn user-settings
+  []
+  [:<>
+   [layout/generic-input "Logout"
+    [:div.flex.gap-x-6
+     [layout/primary-button "From this device" #(rf/dispatch [:auth/logout])]
+     [layout/primary-button "From all devices"
+      #(rf/dispatch [:auth/invalidate-session])]]]])
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution]}]
@@ -136,14 +155,19 @@
 
 (defn settings
   []
-  (let [!active-tab (r/atom :video-audio)]
+  (let [user        @(rf/subscribe [:auth/user])
+        !active-tab (r/atom (if user :user :video-audio))]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
          [layout/content-header "Settings"]
          [:div.mt-4
           [layout/tabs
-           [{:id        :video-audio
+           [(when user
+              {:id        :user
+               :label     "User"
+               :left-icon [:i.fa-solid.fa-user]})
+            {:id        :video-audio
              :label     "Video and audio"
              :left-icon [:i.fa-solid.fa-headphones]}
             {:id        :appearance
@@ -158,4 +182,5 @@
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
+             :user        [user-settings settings]
              :video-audio [video-audio-settings settings])]]]))))

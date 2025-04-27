@@ -11,6 +11,7 @@
         jdbc-ring-session/jdbc-ring-session     {:mvn/version "1.5.5"}
         hiccup/hiccup                           {:mvn/version "2.0.0-RC5"}
         http-kit/http-kit                       {:mvn/version "2.8.0"}
+        metosin/malli                           {:mvn/version "0.17.0"}
         metosin/muuntaja                        {:mvn/version "0.6.11"}
         metosin/reitit-core                     {:mvn/version "0.8.0"}
         metosin/reitit-ring                     {:mvn/version "0.8.0"}
@@ -47,8 +48,7 @@
                  re-promise/re-promise           {:mvn/version "0.1.1"}
                  babashka/process                {:mvn/version "0.5.22"}
                  babashka/fs                     {:mvn/version "0.5.23"}
-                 day8/shadow-git-inject          {:mvn/version "0.0.5"}
-                 vlad/vlad                       {:mvn/version "3.3.2"}}
+                 day8/shadow-git-inject          {:mvn/version "0.0.5"}}
    :main-opts   ["-m" "shadow.cljs.devtools.cli"]}
   :migrate {:extra-deps {com.github.paulbutcher/clj-migratus
                          {:git/tag "v1.0.3" :git/sha "46a3ac1"}}

@@ -100,9 +100,9 @@
        [:i.fa-solid.fa-circle-info]]
       [layout/popover
        (into (if-not user
-               [{:label "Sign Up"
+               [{:label "Register"
                  :icon  [:i.fa-solid.fa-user-plus]
-                 :link  {:route (rfe/href :signup-page)}}
+                 :link  {:route (rfe/href :register-page)}}
                 {:label "Login"
                  :icon  [:i.fa-solid.fa-right-to-bracket]
                  :link  {:route (rfe/href :login-page)}}]
@@ -112,8 +112,8 @@
                  :icon     [:i.fa-solid.fa-right-to-bracket
                             {:class "rotate-180"}]
                  :on-click #(rf/dispatch [:auth/logout])}]))
-       :extra-classes ["p-0" "lg:px-3"]
-       :tooltip-classes ["right-3" "top-8"]
+       :extra-classes ["p-0" "lg:px-3" "z-30"]
+       :tooltip-classes ["right-5" "top-8"]
        :icon
        [:div.hidden.gap-x-2.hidden.lg:flex.items-center
         [:i.fa-solid.fa-user]
@@ -187,12 +187,12 @@
        "About & FAQ"]
       [layout/popover
        (into (if-not user
-               [{:label "Sign Up"
-                 :icon  [:i.fa-solid.fa-user-plus]
-                 :link  {:route (rfe/href :signup-page)}}
-                {:label "Login"
+               [{:label "Login"
                  :icon  [:i.fa-solid.fa-right-to-bracket]
-                 :link  {:route (rfe/href :login-page)}}]
+                 :link  {:route (rfe/href :login-page)}}
+                {:label "Register"
+                 :icon  [:i.fa-solid.fa-user-plus]
+                 :link  {:route (rfe/href :register-page)}}]
                [])
              (when user
                [{:label    "Logout"
@@ -208,5 +208,5 @@
          [:div.w-6.flex.justify-center.items-center
           (conj [:i.fa-solid.fa-user]
                 {:class ["text-neutral-600" "dark:text-neutral-300"]})]
-         [:span (if user (:username user) "Login/Sign Up")]
+         [:span (if user (:username user) "Login/Register")]
          [:i.fa-solid.fa-angle-down.text-sm]]]]]]))

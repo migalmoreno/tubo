@@ -117,8 +117,8 @@
     (fn [{:keys [related-streams]}]
       (let [show? (:show-related @(rf/subscribe [:settings]))]
         (when (and show? (seq related-streams))
-          [:div
-           [:div.flex.flex-wrap.items-center.justify-between.mt-8.min-w-full
+          [:div.flex.flex-col
+           [:div.flex.items-center.justify-between.mt-8.min-w-full
             [:div.flex.gap-x-4.items-center
              [:span.font-semibold.text-xl "Next Up"]
              [layout/popover
@@ -132,8 +132,8 @@
                 :on-click #(rf/dispatch [:modals/open
                                          [modals/add-to-bookmark
                                           related-streams]])}]]]
-            [items/layout-switcher !layout]
-            [items/related-streams related-streams nil !layout]]])))))
+            [items/layout-switcher !layout]]
+           [items/related-streams related-streams nil !layout]])))))
 
 (defn stream
   []

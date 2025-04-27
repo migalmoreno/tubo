@@ -4,26 +4,69 @@
    [next.jdbc :as jdbc]
    [next.jdbc.result-set :as rs]))
 
+(defn get-playlist-streams
+  [id ds]
+  (->> (jdbc/execute!
+        ds
+        (-> {:select  [:*]
+             :from    [:streams]
+             :join-by [:join
+                       [:channels
+                        [:= :channels.url :streams.uploader_url]]
+                       :join
+                       [:playlist_streams
+                        [:= :streams.id :playlist_streams.stream_id]]
+                       :join
+                       [:playlists
+                        [:= :playlists.id :playlist_streams.playlist_id]]]
+             :where   [:= :playlists.playlist_id (parse-uuid id)]}
+            sql/format))
+       (map (fn [e]
+              {:id                 (:streams/id e)
+               :name               (:streams/name e)
+               :url                (:streams/url e)
+               :duration           (:streams/duration e)
+               :thumbnail          (:streams/thumbnail e)
+               :uploader-verified? (:channels/verified e)
+               :uploader-name      (:channels/name e)
+               :uploader-url       (:channels/url e)
+               :uploader-avatar    (:channels/avatar e)}))))
+
 (defn get-playlists-by-owner
   [id ds]
   (into []
-        (map #(-> (dissoc % :playlist-id)
-                  (assoc :id (:playlist_id %))))
+        (map #(let [streams (get-playlist-streams (str (:playlist_id %)) ds)]
+                (assoc % :items streams)))
         (jdbc/plan ds
-                   (-> {:select [:playlist_id :name :thumbnail]
+                   (-> {:select [:*]
                         :from   [:playlists]
                         :where  [:= :owner id]}
                        sql/format)
                    {:builder-fn rs/as-unqualified-kebab-maps})))
 
+(defn get-playlist-by-id
+  [id ds]
+  (let [playlist (jdbc/execute-one! ds
+                                    (-> {:select [:*]
+                                         :from   [:playlists]
+                                         :where  [:= :id id]}
+                                        sql/format)
+                                    {:return-keys true
+                                     :builder-fn  rs/as-unqualified-kebab-maps})
+        streams  (get-playlist-streams (str (:playlist-id playlist)) ds)]
+    (assoc playlist :items streams)))
+
 (defn get-playlist-by-playlist-id
   [id ds]
-  (jdbc/execute-one! ds
-                     (-> {:select [:*]
-                          :from   [:playlists]
-                          :where  [:= :playlist_id (parse-uuid id)]}
-                         sql/format)
-                     {:builder-fn rs/as-unqualified-kebab-maps}))
+  (let [playlist (jdbc/execute-one! ds
+                                    (-> {:select [:*]
+                                         :from   [:playlists]
+                                         :where  [:= :playlist_id
+                                                  (parse-uuid id)]}
+                                        sql/format)
+                                    {:builder-fn rs/as-unqualified-kebab-maps})
+        streams  (get-playlist-streams (str (:playlist-id playlist)) ds)]
+    (assoc playlist :items streams)))
 
 (defn add-playlists
   [values ds]
@@ -45,20 +88,15 @@
                  {:return-keys true
                   :builder-fn  rs/as-unqualified-kebab-maps}))
 
-(defn get-playlist-streams
-  [id ds]
-  (jdbc/execute!
-   ds
-   (-> {:select  [:streams.*]
-        :from    [:streams]
-        :join-by [:join
-                  [:playlist_streams
-                   [:= :streams.id :playlist_streams.stream_id]]
-                  :join
-                  [:playlists [:= :playlists.id :playlist_streams.playlist_id]]]
-        :where   [:= :playlists.playlist_id (parse-uuid id)]}
-       sql/format)
-   {:builder-fn rs/as-unqualified-kebab-maps}))
+(defn delete-playlist-streams
+  [playlist-id stream-ids ds]
+  (jdbc/execute-one! ds
+                     (-> {:delete-from [:playlist_streams]
+                          :where       [:and [:= :playlist_id playlist-id]
+                                        [:in :stream_id stream-ids]]}
+                         sql/format)
+                     {:return-keys true
+                      :builder-fn  rs/as-unqualified-kebab-maps}))
 
 (defn update-playlist
   [id values ds]
@@ -66,7 +104,9 @@
                      (-> {:update [:playlists]
                           :set    values
                           :where  [:= :playlist_id (parse-uuid id)]}
-                         sql/format)))
+                         sql/format)
+                     {:return-keys true
+                      :builder-fn  rs/as-unqualified-kebab-maps}))
 
 (defn delete-playlist
   [id ds]

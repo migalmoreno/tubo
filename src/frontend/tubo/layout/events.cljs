@@ -63,14 +63,18 @@
       (some-> (.-parentNode node)
               (find-tooltip-controller-class))))
 
+(defn find-clicked-controller-id
+  [node]
+  (some->
+    (find-tooltip-controller-class node)
+    (str/split tooltip-controller-class-prefix)
+    (second)))
+
 (rf/reg-event-fx
  :layout/destroy-tooltips-on-click-out
  (fn [{:keys [db]} [_ clicked-node]]
    (when (seq (:layout/tooltips db))
-     (let [clicked-controller (some->
-                                (find-tooltip-controller-class clicked-node)
-                                (str/split tooltip-controller-class-prefix)
-                                (second))
+     (let [clicked-controller (find-clicked-controller-id clicked-node)
            tooltip-ids        (->> (:layout/tooltips db)
                                    (vals)
                                    (filter :destroy-on-click-out?)

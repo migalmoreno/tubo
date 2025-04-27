@@ -6,16 +6,11 @@
    [tubo.modals.views :as modals]))
 
 (defn bookmark-item
-  [{:keys [items name] :as bookmark} item]
+  [{:keys [items name thumbnail] :as bookmark} item]
   [:div.flex.gap-x-4.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
    {:on-click #(rf/dispatch [(if (vector? item) :bookmark/add-n :bookmark/add)
                              bookmark item true])}
-   [layout/thumbnail
-    (-> items
-        first
-        :thumbnails
-        last
-        :url) nil name nil
+   [layout/thumbnail thumbnail nil name nil
     :classes [:h-24 :py-2 "min-w-[125px]" "max-w-[125px]"] :rounded? true]
    [:div.flex.flex-col.py-2
     [:h1.line-clamp-1 {:title name} name]

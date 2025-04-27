@@ -66,9 +66,9 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn uploader-avatar
-  [{:keys [uploader-avatars uploader-name uploader-url]}
+  [{:keys [uploader-avatar uploader-name uploader-url]}
    & {:keys [classes] :or {classes ["w-12" "xs:w-16" "h-12" "xs:h-16"]}}]
-  (when (seq uploader-avatars)
+  (when (seq uploader-avatar)
     [:div.relative.flex-auto.flex.items-center.shrink-0.grow-0 {:class classes}
      (conj
       (when uploader-url
@@ -77,9 +77,7 @@
           :title uploader-name
           :key   uploader-url}])
       [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full
-       {:src (-> uploader-avatars
-                 last
-                 :url)
+       {:src uploader-avatar
         :alt uploader-name
         :key uploader-name}])]))
 
@@ -155,17 +153,18 @@
   [:select.focus:ring-transparent.bg-transparent.font-bold
    {:value     value
     :on-change on-change}
-   (for [[i option] (map-indexed vector options)]
+   (for [[i {:keys [label value] :as option}] (map-indexed vector options)]
      ^{:key i}
-     [:option.dark:bg-neutral-900.border-none {:value option :key i}
-      option])])
+     [:option.dark:bg-neutral-900.border-none {:value (or value option) :key i}
+      (or label option)])])
 
 (defn select-field
   [label & args]
   [generic-input label (apply select-input args)])
 
 (defn tooltip-item
-  [{:keys [label icon on-click link] :as item}]
+  [{:keys [label icon on-click link destroy-tooltip-on-click? custom-content]
+    :or   {destroy-tooltip-on-click? true}} tooltip-id]
   (let [content [:<>
                  (when icon
                    [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
@@ -177,22 +176,29 @@
                  "first:rounded-t" "last:rounded-b"]]
     (if link
       [:a
-       {:href   (:route link)
-        :target (when (:external? link) "_blank")
-        :class  (str/join " " classes)}
+       {:href     (:route link)
+        :target   (when (:external? link) "_blank")
+        :class    (str/join " " classes)
+        :on-click #(when destroy-tooltip-on-click?
+                     (rf/dispatch [:layout/destroy-tooltip-by-id
+                                   tooltip-id]))}
        content]
       [:li
-       {:on-click on-click
+       {:on-click #(do (when on-click
+                         (on-click %))
+                       (when destroy-tooltip-on-click?
+                         (rf/dispatch [:layout/destroy-tooltip-by-id
+                                       tooltip-id])))
         :class    (str/join " " classes)}
-       (if (vector? item) item content)])))
+       (or custom-content content)])))
 
 (defn tooltip
-  [items & {:keys [extra-classes]}]
+  [items tooltip-id & {:keys [extra-classes]}]
   (when-not (empty? (remove nil? items))
     [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30
      {:class (conj extra-classes)}
      (for [[i item] (map-indexed vector (remove nil? items))]
-       ^{:key i} [tooltip-item item])]))
+       ^{:key i} [tooltip-item item tooltip-id])]))
 
 (defn mobile-tooltip
   []
@@ -214,21 +220,25 @@
   (let [tooltip-id   (nano-id)
         tooltip-data (rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (fn [items &
-         {:keys [extra-classes icon tooltip-classes responsive?]
-          :or   {extra-classes ["p-3"]
-                 icon          [:i.fa-solid.fa-ellipsis-vertical]
-                 responsive?   true}}]
+         {:keys [extra-classes icon tooltip-classes responsive?
+                 destroy-on-click-out?]
+          :or   {extra-classes         ["p-3"]
+                 icon                  [:i.fa-solid.fa-ellipsis-vertical]
+                 responsive?           true
+                 destroy-on-click-out? true}}]
       [:div.flex.items-center.tooltip-controller
        {:class (str "tooltip-controller-" tooltip-id)}
        [:button.focus:outline-none.relative
-        {:on-click #(if @tooltip-data
-                      (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
-                      (rf/dispatch [:layout/register-tooltip {:id tooltip-id}]))
+        {:on-click (when-not @tooltip-data
+                     #(rf/dispatch [:layout/register-tooltip
+                                    {:id tooltip-id
+                                     :destroy-on-click-out?
+                                     destroy-on-click-out?}]))
          :class    (into extra-classes
                          (if responsive? ["hidden" "xs:block"] ["block"]))}
         icon
         (when @tooltip-data
-          [tooltip items :extra-classes tooltip-classes])]
+          [tooltip items tooltip-id :extra-classes tooltip-classes])]
        [:button.focus:outline-none.relative
         {:on-click #(rf/dispatch [:layout/show-mobile-tooltip
                                   {:items items :id tooltip-id}])
@@ -283,43 +293,50 @@
            [:button.font-bold {:on-click on-open}
             (str "show " (if open? "less" "more"))])])})))
 
+(defn error-field
+  [error]
+  (when error
+    [:div.bg-red-500.p-2.rounded error]))
+
 (defn error
   [{:keys [type body status status-text problem-message]} cb]
   (let [page-loading? @(rf/subscribe [:show-page-loading])
         service-color @(rf/subscribe [:service-color])]
-    (if page-loading?
-      [loading-icon service-color "text-5xl"]
-      [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
-       [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
-        [:div.flex.items-center.gap-x-4.text-xl
-         (cond type
-               (case type
-                 :success [:i.fa-solid.fa-circle-check]
-                 :error   [:i.fa-solid.fa-circle-exclamation]
-                 :loading [:div.grow-0 [loading-icon]]
-                 [:i.fa-solid.fa-circle-info])
-               problem-message [:i.fa-solid.fa-circle-exclamation]
-               :else [:i.fa-solid.fa-circle-info])
-         [:h3.font-bold
-          (cond (or status status-text)
-                (str status (when status-text (str " " status-text)))
-                problem-message problem-message)]]
-        (when-let [message (:message body)]
-          [:span.break-words message])
-        (when (:trace body)
-          [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
-           [:code.overflow-x-auto
-            [:pre.font-mono.text-sm
-             (:trace body)]]])
-        [:div.flex.justify-center.gap-x-6
-         [primary-button "Back" #(rf/dispatch [:navigation/history-go -1])
-          [:i.fa-solid.fa-arrow-left]]
+    [content-container
+     (if page-loading?
+       [loading-icon service-color "text-5xl"]
+       [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
+        [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
+         [:div.flex.items-center.gap-x-4.text-xl
+          {:class (when-not (:message body) :justify-center)}
+          (cond type
+                (case type
+                  :success [:i.fa-solid.fa-circle-check]
+                  :error   [:i.fa-solid.fa-circle-exclamation]
+                  :loading [:div.grow-0 [loading-icon]]
+                  [:i.fa-solid.fa-circle-info])
+                problem-message [:i.fa-solid.fa-circle-exclamation]
+                :else [:i.fa-solid.fa-circle-info])
+          [:h3.font-bold
+           (cond (or status status-text)
+                 (str status (when status-text (str " " status-text)))
+                 problem-message problem-message)]]
+         (when-let [message (:message body)]
+           [:span.break-words message])
          (when (:trace body)
-           [secondary-button "Copy"
-            #(rf/dispatch [:copy-to-clipboard (:trace body)])
-            [:i.fa-regular.fa-clipboard]])
-         [secondary-button "Retry" #(rf/dispatch cb)
-          [:i.fa-solid.fa-rotate-right]]]]])))
+           [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
+            [:pre.overflow-x-auto.font-mono.text-sm
+             (:trace body)]])
+         [:div.flex.justify-center.gap-x-6
+          [primary-button "Back" #(rf/dispatch [:navigation/history-go -1])
+           [:i.fa-solid.fa-arrow-left]]
+          (when (:trace body)
+            [secondary-button "Copy"
+             #(rf/dispatch [:copy-to-clipboard (:trace body)])
+             [:i.fa-regular.fa-clipboard]])
+          (when cb
+            [secondary-button "Retry" #(rf/dispatch cb)
+             [:i.fa-solid.fa-rotate-right]])]]])]))
 
 (defn tabs
   [tabs]

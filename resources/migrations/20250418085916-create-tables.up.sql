@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS streams (
 CREATE TABLE IF NOT EXISTS playlist_streams (
   stream_id bigserial NOT NULL,
   playlist_id bigserial NOT NULL,
-  CONSTRAINT fk_playlists FOREIGN KEY (playlist_id) REFERENCES playlists (id),
-  CONSTRAINT fk_streams FOREIGN KEY (stream_id) REFERENCES streams (id)
+  CONSTRAINT pk_playlist_streams PRIMARY KEY (stream_id, playlist_id),
+  CONSTRAINT fk_playlists FOREIGN KEY (playlist_id) REFERENCES playlists (id) ON DELETE CASCADE,
+  CONSTRAINT fk_streams FOREIGN KEY (stream_id) REFERENCES streams (id) ON DELETE CASCADE
 );

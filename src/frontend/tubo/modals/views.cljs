@@ -1,7 +1,6 @@
 (ns tubo.modals.views
   (:require
-   [re-frame.core :as rf]
-   [tubo.layout.views :as layout]))
+   [re-frame.core :as rf]))
 
 (defn modal-content
   [title body & extra-buttons]
@@ -11,10 +10,9 @@
     [:button {:on-click #(rf/dispatch [:modals/close])}
      [:i.fa-solid.fa-close]]]
    [:div.flex-auto.overflow-y-auto body]
-   [:div.flex.justify-end.gap-x-3
-    (if extra-buttons
-      (map-indexed #(with-meta %2 {:key %1}) extra-buttons)
-      [layout/primary-button "Ok" #(rf/dispatch [:modals/close])])]])
+   (when extra-buttons
+     [:div.flex.justify-end.gap-x-3
+      (map-indexed #(with-meta %2 {:key %1}) extra-buttons)])])
 
 (defn modal-panel
   [{:keys [child]}]

@@ -22,8 +22,8 @@
       :web/homepage  {:view        kiosk/kiosk
                       :name        :homepage
                       :controllers [{:start #(rf/dispatch [:fetch-homepage])}]}
-      :web/signup    {:view auth/signup
-                      :name :signup-page}
+      :web/register  {:view auth/register
+                      :name :register-page}
       :web/login     {:view auth/login
                       :name :login-page}
       :web/search    {:view        search/search

@@ -22,7 +22,7 @@
                    (-> {:insert-into :users
                         :columns     [:username :password :session_id]
                         :values      [[username (bh/derive password)
-                                       (nano-id 32)]]}
+                                       (nano-id 36)]]}
                        sql/format)
                    {:return-keys true
                     :builder-fn  rs/as-unqualified-kebab-maps})]
@@ -46,6 +46,6 @@
   [id datasource]
   (jdbc/execute-one! datasource
                      (-> {:update [:users]
-                          :set    [:session_id (nano-id 32)]
+                          :set    [:session_id (nano-id 36)]
                           :where  [:= :session_id id]}
                          sql/format)))

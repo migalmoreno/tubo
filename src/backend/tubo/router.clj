@@ -30,10 +30,10 @@
     (case data
       :api/health {:no-doc true
                    :get    (constantly (ok))}
-      :api/signup {:no-doc true
-                   :post   {:parameters {:body {:username string?
-                                                :password string?}}
-                            :handler    auth/create-signup-handler}}
+      :api/register {:no-doc true
+                     :post   {:parameters {:body {:username string?
+                                                  :password string?}}
+                              :handler    auth/create-register-handler}}
       :api/login {:no-doc true
                   :post   {:parameters {:body {:username string?
                                                :password string?}}
@@ -57,7 +57,7 @@
                 "adds a stream to a user playlist for an authenticated user"
                 :handler ap/create-post-auth-playlist-handler
                 :middleware [middleware/auth]}
-       :update {:summary    "updates a user playlist for an authenticated user"
+       :put    {:summary    "updates a user playlist for an authenticated user"
                 :handler    ap/create-update-auth-playlist-handler
                 :middleware [middleware/auth]}
        :delete {:summary    "deletes a user playlist for an authenticated user"

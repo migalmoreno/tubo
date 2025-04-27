@@ -70,7 +70,8 @@ npm i
 To start a PostgreSQL development server, you'll need to invoke the following in the project root:
 
 #+begin_src sh
-nix run . # add -- -D if you want to detach the processes
+# Add `-- -D` if you want to detach the processes
+nix run .
 #+end_src
 
 You can now access the database like this:

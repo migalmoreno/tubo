@@ -39,9 +39,9 @@
            [:div.hidden.xs:block
             [metadata-popover playlist]]]
           [:div.flex.items-center.justify-between.my-4.gap-x-4
-           [:div.flex.items-center
+           [:div.flex.gap-x-3.items-center
             [layout/uploader-avatar playlist]
-            [:a.line-clamp-1.mx-3
+            [:a.line-clamp-1
              {:href  (rfe/href :channel-page nil {:url uploader-url})
               :title uploader-name}
              uploader-name]]

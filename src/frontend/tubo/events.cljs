@@ -37,8 +37,14 @@
             [:services/fetch-all
              [:services/load] [:bad-response]]]
            [:dispatch
+            [:kiosks/fetch-all (:service-id store)
+             [:kiosks/load] [:bad-response]]]
+           [:dispatch
             [:api/get "services/3/instance" [:peertube/load-active-instance]
-             [:bad-response]]]]
+             [:bad-response]]]
+           (when (:auth/user store)
+             [:dispatch
+              [:bookmarks/fetch-authenticated-playlists]])]
       :db
       {:player/paused true
        :player/muted (:player/muted store)
@@ -100,6 +106,10 @@
                                                     :instance)
                                                 (config/get-in
                                                  [:frontend :auth-url]))
+                  :image-quality        (if-nil (-> store
+                                                    :settings
+                                                    :image-quality)
+                                                :medium)
                   :default-country      (if-nil (-> store
                                                     :settings
                                                     :default-country)
@@ -221,7 +231,7 @@
  :api/update-auth
  (fn [{:keys [db]} [_ path body on-success on-failure params]]
    {:fetch
-    {:method                 :update
+    {:method                 :put
      :url                    (str (get-in db [:settings :auth-instance])
                                   "/api/v1/"
                                   path)

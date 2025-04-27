@@ -21,16 +21,16 @@
             [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
- :auth/signup
+ :auth/register
  (fn [{:keys [db]} [_ {:keys [values path]}]]
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch
-          [:api/post "signup" values
+          [:api/post "register" values
            [:auth/handle-signup-success path]
            [:auth/handle-signup-failure path]]]]}))
 
 (rf/reg-event-fx
- :auth/handle-logout-success
+ :auth/handle-invalidate-session-success
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]}]
    {:db    (assoc db :auth/user nil)
@@ -40,18 +40,29 @@
             [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
- :auth/handle-logout-failure
+ :auth/handle-invalidate-session-failure
  (fn [_ [_ res]]
    {:fx [[:dispatch [:notifications/clear]]
          [:dispatch [:bad-response res]]]}))
 
 (rf/reg-event-fx
  :auth/logout
- (fn [{:keys [db]}]
-   {:db (assoc db :auth/user nil)
-    :fx [[:dispatch [:notifications/clear]]
-         [:dispatch [:notifications/success "Logged out"]]
-         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]}]
+   {:db    (assoc db :auth/user nil)
+    :store (assoc store :auth/user nil)
+    :fx    [[:dispatch [:notifications/clear]]
+            [:dispatch [:notifications/success "Logged out"]]
+            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+
+(rf/reg-event-fx
+ :auth/redirect-login
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]}]
+   {:db    (assoc db :auth/user nil)
+    :store (assoc store :auth/user nil)
+    :fx    [[:dispatch [:notifications/success "Logged out"]]
+            [:dispatch [:navigation/navigate {:name :login-page}]]]}))
 
 (rf/reg-event-fx
  :auth/invalidate-session
@@ -63,8 +74,8 @@
            false]]
          [:dispatch
           [:api/post "logout" nil
-           [:auth/handle-logout-success]
-           [:auth/handle-logout-failure]]]]}))
+           [:auth/handle-invalidate-session-success]
+           [:auth/handle-invalidate-session-failure]]]]}))
 
 (rf/reg-event-fx
  :auth/handle-login-failure
@@ -80,7 +91,8 @@
                (fork/set-submitting path false)
                (assoc :auth/user body))
     :store (assoc store :auth/user body)
-    :fx    [[:dispatch [:notifications/success "Login successful"]]
+    :fx    [[:dispatch [:bookmarks/fetch-authenticated-playlists]]
+            [:dispatch [:notifications/success "Login successful"]]
             [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx

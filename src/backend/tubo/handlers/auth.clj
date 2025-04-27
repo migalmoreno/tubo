@@ -3,15 +3,11 @@
    [buddy.auth :refer [authenticated?]]
    [buddy.auth.backends.token :refer [token-backend]]
    [buddy.hashers :as bh]
-   [nano-id.core :refer [nano-id]]
    [ring.util.response :refer [response]]
    [tubo.models.user :as user]))
 
-(defn gen-session-id [] (nano-id 36))
-
 (defn authenticate-token
   [{:keys [datasource]} token]
-  (println "token" token)
   (user/get-user-by-session token datasource))
 
 (def backend
@@ -25,7 +21,7 @@
     (-> (response "Unauthenticated request")
         (assoc :status 401))))
 
-(defn create-signup-handler
+(defn create-register-handler
   [{:keys [datasource body-params]}]
   (if (user/get-user-by-username (:username body-params) datasource)
     {:status 500

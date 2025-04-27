@@ -14,9 +14,20 @@
  :stream/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :stream            (utils/apply-streams-thumbnail
-                                   body
-                                   :related-streams)
+               :stream            (-> body
+                                      (utils/apply-thumbnails-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-avatars-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-image-quality
+                                       db
+                                       :uploader-avatar
+                                       :uploader-avatars)
+                                      (utils/apply-image-quality db
+                                                                 :thumbnail
+                                                                 :thumbnails))
                :show-page-loading false)
     :fx [(when (-> db
                    :settings

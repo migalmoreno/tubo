@@ -69,7 +69,7 @@
   []
   (let [!observer (atom nil)]
     (fn [{:keys [comments next-page]}
-         {:keys [uploader-name uploader-avatars url]}]
+         {:keys [uploader-name uploader-avatar url]}]
       (let [service-color       @(rf/subscribe [:service-color])
             next-page-url       (:url next-page)
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
@@ -102,9 +102,7 @@
                 [comment-item
                  (assoc comment
                         :author-name   uploader-name
-                        :author-avatar (-> uploader-avatars
-                                           last
-                                           :url))]]
+                        :author-avatar uploader-avatar)]]
                (when (and replies show-replies)
                  [:div {:style {:marginLeft "32px"}}
                   (for [[i reply] (map-indexed vector (:items replies))]
@@ -112,8 +110,6 @@
                     [comment-item
                      (assoc reply
                             :author-name   uploader-name
-                            :author-avatar (-> uploader-avatars
-                                               last
-                                               :url))])])])
+                            :author-avatar uploader-avatar)])])])
             (when (and pagination-loading? (seq next-page-url))
               [layout/loading-icon service-color :text-md])])]))))

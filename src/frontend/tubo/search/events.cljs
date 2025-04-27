@@ -34,7 +34,9 @@
  :search/load-page
  (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
    {:db (assoc db
-               :search/results    (utils/apply-streams-thumbnail body :items)
+               :search/results    (-> body
+                                      (utils/apply-thumbnails-quality db :items)
+                                      (utils/apply-avatars-quality db :items))
                :search/query      query
                :search/filter     filter
                :show-page-loading false)
@@ -72,7 +74,10 @@
      (-> db
          (update-in [:search/results :items]
                     #(apply conj %1 %2)
-                    (:items body))
+                    (-> body
+                        (utils/apply-thumbnails-quality db :items)
+                        (utils/apply-avatars-quality db :items)
+                        :items))
          (assoc-in [:search/results :next-page] (:next-page body))))))
 
 (rf/reg-event-fx

@@ -65,7 +65,7 @@
   (r/create-class
    {:component-did-mount on-mount
     :reagent-render
-    (fn [{:keys [thumbnails subtitles service-id]} !player video-args]
+    (fn [{:keys [thumbnail subtitles service-id]} !player video-args]
       (let [service-color (utils/get-service-color service-id)]
         [:div
          {:class "w-full h-80 md:h-[450px] lg:h-[600px]"}
@@ -81,9 +81,7 @@
                        "minHeight" "100%"
                        "minWidth"  "100%"
                        "maxWidth"  "100%"}
-             :poster  (-> thumbnails
-                          last
-                          :url)
+             :poster  thumbnail
              :ref     #(reset! !player %)
              :slot    "media"
              :preload "metadata"}

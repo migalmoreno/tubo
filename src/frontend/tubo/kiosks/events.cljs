@@ -38,9 +38,12 @@
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (-> (assoc db
                    :kiosk
-                   (utils/apply-streams-thumbnail body :related-streams))
+                   (-> body
+                       (utils/apply-thumbnails-quality db :related-streams)
+                       (utils/apply-avatars-quality db :related-streams)))
             (assoc :show-page-loading false))
-    :fx [[:document-title (:id body)]]}))
+    :fx [[:dispatch [:services/fetch body]]
+         [:document-title (:id body)]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-page
@@ -50,9 +53,7 @@
                              :default-country
                              (get (js/parseInt service-id))
                              :code)]
-     {:db (assoc db
-                 :show-page-loading true
-                 :kiosk             nil)
+     {:db (assoc db :show-page-loading true)
       :fx [[:dispatch
             (if kiosk-id
               [:kiosks/fetch service-id kiosk-id
@@ -96,7 +97,12 @@
  (fn [db [_ {:keys [body]}]]
    (->
      db
-     (update-in [:kiosk :related-streams] #(into %1 %2) (:related-streams body))
+     (update-in [:kiosk :related-streams]
+                #(into %1 %2)
+                (-> body
+                    (utils/apply-thumbnails-quality db :related-streams)
+                    (utils/apply-avatars-quality db :related-streams)
+                    :related-streams))
      (assoc-in [:kiosk :next-page] (:next-page body))
      (assoc :show-pagination-loading false))))
 
