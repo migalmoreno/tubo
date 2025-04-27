@@ -68,13 +68,11 @@
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
                          "returns search results for a given service"
-                         :coercion reitit.coercion.malli/coercion
                          :parameters {:path  {:service-id int?}
                                       :query {:q string?}}
                          :handler search/create-search-handler}}
       :api/suggestions {:get {:summary
                               "returns search suggestions for a given service"
-                              :coercion reitit.coercion.malli/coercion
                               :parameters {:path  {:service-id int?}
                                            :query {:q string?}}
                               :handler search/create-suggestions-handler}}
@@ -90,18 +88,15 @@
       :api/default-kiosk {:get
                           {:summary
                            "returns default kiosk entries for a given service"
-                           :coercion reitit.coercion.malli/coercion
                            :parameters {:path {:service-id int?}}
                            :handler kiosks/create-kiosk-handler}}
       :api/all-kiosks {:get {:summary
                              "returns all kiosks supported by a given service"
-                             :coercion reitit.coercion.malli/coercion
                              :parameters {:path {:service-id int?}}
                              :handler kiosks/create-kiosks-handler}}
       :api/kiosk {:get
                   {:summary
                    "returns kiosk entries for a given service and a kiosk ID"
-                   :coercion reitit.coercion.malli/coercion
                    :parameters {:path {:service-id int? :kiosk-id string?}}
                    :handler kiosks/create-kiosk-handler}}
       :api/stream {:get {:summary "returns stream data for a given URL"
@@ -130,7 +125,8 @@
   (ring/router
    routes/routes
    {:expand expand-routes
-    :data   {:muuntaja   m/instance
+    :data   {:coercion   reitit.coercion.malli/coercion
+             :muuntaja   m/instance
              :middleware [middleware/wrap-cors
                           middleware/wrap-token-auth
                           rrc/coerce-exceptions-middleware

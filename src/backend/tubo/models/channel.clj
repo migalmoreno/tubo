@@ -1,24 +1,30 @@
 (ns tubo.models.channel
   (:require
-   [honey.sql :as sql]
-   [next.jdbc :as jdbc]
-   [next.jdbc.result-set :as rs]))
+   [tubo.db :as db]))
 
 (defn add-channel
   [values ds]
-  (jdbc/execute! ds
-                 (-> {:insert-into [:channels]
-                      :columns     [:url :name :avatar :verified]
-                      :values      values}
-                     sql/format)
-                 {:return-keys true
-                  :builder-fn  rs/as-unqualified-kebab-maps}))
+  (db/execute! ds
+               {:insert-into [:channels]
+                :columns     [:url :name :avatar :verified]
+                :values      values}))
+
+(defn get-channel-by-id
+  [ds id]
+  (db/execute-one! ds
+                   {:select [:*]
+                    :from   [:channels]
+                    :where  [:= :id id]}))
 
 (defn get-channel-by-url
-  [url datasource]
-  (jdbc/execute-one! datasource
-                     (-> {:select [:*]
-                          :from   [:channels]
-                          :where  [:= :url url]}
-                         sql/format)
-                     {:builder-fn rs/as-unqualified-kebab-maps}))
+  [url ds]
+  (db/execute-one! ds
+                   {:select [:*]
+                    :from   [:channels]
+                    :where  [:= :url url]}))
+
+(defn delete-channels-by-ids
+  [ds ids]
+  (db/execute-one! ds
+                   {:delete-from [:channels]
+                    :where       [:in :id ids]}))

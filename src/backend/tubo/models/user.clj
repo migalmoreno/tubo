@@ -1,51 +1,36 @@
 (ns tubo.models.user
   (:require
    [buddy.hashers :as bh]
-   [honey.sql :as sql]
    [nano-id.core :refer [nano-id]]
-   [next.jdbc :as jdbc]
-   [next.jdbc.result-set :as rs]))
+   [tubo.db :as db]))
 
 (defn get-user-by-username
-  [username datasource]
-  (jdbc/execute-one! datasource
-                     (-> {:select [:*]
-                          :from   [:users]
-                          :where  [:= :username username]}
-                         sql/format)
-                     {:builder-fn rs/as-unqualified-kebab-maps}))
+  [username ds]
+  (db/execute-one! ds
+                   {:select [:*]
+                    :from   [:users]
+                    :where  [:= :username username]}))
 
 (defn create-user
-  [{:keys [username password]} datasource]
-  (when-let [user (jdbc/execute-one!
-                   datasource
-                   (-> {:insert-into :users
-                        :columns     [:username :password :session_id]
-                        :values      [[username (bh/derive password)
-                                       (nano-id 36)]]}
-                       sql/format)
-                   {:return-keys true
-                    :builder-fn  rs/as-unqualified-kebab-maps})]
+  [{:keys [username password]} ds]
+  (when-let [user (db/execute-one! ds
+                                   {:insert-into :users
+                                    :columns     [:username :password
+                                                  :session_id]
+                                    :values      [[username (bh/derive password)
+                                                   (nano-id 36)]]})]
     (dissoc user :password)))
 
 (defn get-user-by-session
   [session-id datasource]
-  (when-let [user (jdbc/execute-one! datasource
-                                     (-> {:select [:*]
-                                          :from   [:users]
-                                          :where  [:= :session_id
-                                                   (str session-id)]}
-                                         sql/format)
-                                     {:builder-fn rs/as-kebab-maps})]
-    {:id         (:users/id user)
-     :username   (:users/username user)
-     :created-at (:users/created-at user)
-     :session-id (:users/session-id user)}))
+  (db/execute-one! datasource
+                   {:select [:*]
+                    :from   [:users]
+                    :where  [:= :session_id (str session-id)]}))
 
 (defn invalidate-user-session-id
   [id datasource]
-  (jdbc/execute-one! datasource
-                     (-> {:update [:users]
-                          :set    [:session_id (nano-id 36)]
-                          :where  [:= :session_id id]}
-                         sql/format)))
+  (db/execute-one! datasource
+                   {:update [:users]
+                    :set    [:session_id (nano-id 36)]
+                    :where  [:= :session_id id]}))

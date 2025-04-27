@@ -16,8 +16,7 @@
 
 (defn create-get-auth-playlist-handler
   [{:keys [datasource path-params]}]
-  (ok (playlist/get-playlist-by-playlist-id (:id path-params)
-                                            datasource)))
+  (ok (playlist/get-playlist-by-playlist-id (:id path-params) datasource)))
 
 (defn create-post-auth-playlists-handler
   [{:keys [datasource body-params identity]}]
@@ -32,25 +31,21 @@
 
 (defn create-post-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
-  (let [channel  (or (channel/get-channel-by-url (:uploader-url
-                                                  body-params)
+  (let [channel  (or (channel/get-channel-by-url (:uploader-url body-params)
                                                  datasource)
                      (first (channel/add-channel
-                             [(into
-                               []
-                               (map body-params
-                                    [:uploader-url
-                                     :uploader-name
-                                     :uploader-avatar
-                                     :uploader-verified?]))]
+                             [(into []
+                                    (map body-params
+                                         [:uploader-url
+                                          :uploader-name
+                                          :uploader-avatar
+                                          :uploader-verified?]))]
                              datasource)))
         stream   (or (stream/get-stream-by-url (:url body-params)
                                                datasource)
                      (first (stream/add-stream
-                             [(into (map body-params
-                                         [:name :thumbnail :url])
-                                    [(:url channel)
-                                     (:duration body-params)])]
+                             [(into (map body-params [:name :thumbnail :url])
+                                    [(:id channel) (:duration body-params)])]
                              datasource)))
         playlist (playlist/get-playlist-by-playlist-id (:id path-params)
                                                        datasource)]
@@ -68,16 +63,28 @@
 
 (defn create-update-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
-  (let [streams           (playlist/get-playlist-streams (:id path-params)
-                                                         datasource)
-        diff-streams      (data/diff
-                           (into #{} (map :id streams))
-                           (into #{} (map :id (:items body-params))))
-        streams-to-delete (first diff-streams)]
-    (when (seq streams-to-delete)
-      (playlist/delete-playlist-streams (:id body-params)
-                                        streams-to-delete
-                                        datasource))
+  (let [streams              (playlist/get-playlist-streams (:id path-params)
+                                                            datasource)
+        diff-streams         (data/diff
+                              (into #{} (map :id streams))
+                              (into #{} (map :id (:items body-params))))
+        stream-ids-to-delete (first diff-streams)
+        unique-stream-ids    (->> (stream/get-unique-streams-for-playlist
+                                   datasource
+                                   (:id body-params)
+                                   stream-ids-to-delete)
+                                  (map :stream-id))]
+    (when (seq stream-ids-to-delete)
+      (playlist/delete-playlist-streams-by-ids (:id body-params)
+                                               stream-ids-to-delete
+                                               datasource))
+    (when (seq unique-stream-ids)
+      (let [unique-channel-ids
+            (map :channel-id
+                 (stream/get-unique-streams-channels datasource
+                                                     unique-stream-ids))]
+        (stream/delete-streams-by-ids datasource unique-stream-ids)
+        (channel/delete-channels-by-ids datasource unique-channel-ids)))
     (ok (assoc (playlist/update-playlist (:id path-params)
                                          (select-keys body-params
                                                       [:name :thumbnail])
