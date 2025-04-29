@@ -4,7 +4,8 @@
    [reagent.core :as r]
    [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [tubo.auth.views :as auth]))
 
 (defn boolean-input
   [label keys value]
@@ -140,8 +141,14 @@
    [layout/generic-input "Logout"
     [:div.flex.gap-x-6
      [layout/primary-button "From this device" #(rf/dispatch [:auth/logout])]
-     [layout/primary-button "From all devices"
-      #(rf/dispatch [:auth/invalidate-session])]]]])
+     [layout/secondary-button "From all devices"
+      #(rf/dispatch [:auth/invalidate-session])]]]
+   [layout/generic-input "Password Reset"
+    [layout/primary-button "Reset"
+     #(rf/dispatch [:modals/open [auth/password-reset-modal]])]]
+   [layout/generic-input "Delete User"
+    [layout/primary-button "Delete"
+     #(rf/dispatch [:modals/open [auth/user-deletion-modal]])]]])
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution]}]
@@ -156,13 +163,13 @@
 (defn settings
   []
   (let [user        @(rf/subscribe [:auth/user])
-        !active-tab (r/atom (if user :user :video-audio))]
+        !active-tab (r/atom nil)]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
          [layout/content-header "Settings"]
-         [:div.mt-4
-          [layout/tabs
+         [:div.mt-4.flex.gap-y-4.gap-x-12.md:flex-nowrap.flex-wrap
+          [layout/horizontal-tabs
            [(when user
               {:id        :user
                :label     "User"
@@ -178,9 +185,12 @@
              :left-icon [:i.fa-solid.fa-globe]}]
            :selected-id @!active-tab
            :on-change #(reset! !active-tab %)]
-          [:form.flex.flex-wrap.py-4.gap-y-4 {:on-submit #(.preventDefault %)}
+          [:form.flex.flex-wrap.gap-y-4.w-full.h-full
+           {:on-submit #(.preventDefault %)}
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
              :user        [user-settings settings]
-             :video-audio [video-audio-settings settings])]]]))))
+             :video-audio [video-audio-settings settings]
+             [:div.hidden.md:block.w-full
+              (if user [user-settings] [appearance-settings])])]]]))))

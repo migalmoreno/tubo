@@ -1,6 +1,20 @@
-(ns tubo.schemas
-  (:require
-   [malli.core :as m]))
+(ns tubo.schemas)
+
+(def ValidUsername
+  [:and
+   [:string {:min 3 :max 22}]
+   [:re
+    {:error/message
+     "should be alphanumeric or contain the characters '.', '_', '-'"}
+    #"^[a-zA-Z0-9._-]+$"]])
+
+(def ValidPassword
+  [:and
+   [:string {:min 8 :max 32}]
+   [:re {:error/message "should contain one number"} #"[0-9]+"]
+   [:re {:error/message "should contain one upper case letter"} #"[A-Z]+"]
+   [:re {:error/message "should contain one lower case letter"} #"[a-z]+"]
+   [:re {:error/message "should contain one special character"} #"[^\w\s]+"]])
 
 (def Image
   [:map
@@ -181,11 +195,11 @@
 
 (def UserPlaylistStream
   [:map
-   [:id int?]
+   [:id {:optional true} [:maybe int?]]
    [:name string?]
    [:duration int?]
-   [:uploader-avatar uri?]
-   [:thumbnail uri?]
+   [:uploader-avatar [:maybe uri?]]
+   [:thumbnail [:maybe uri?]]
    [:uploader-url uri?]
    [:uploader-verified? boolean?]
    [:uploader-name string?]

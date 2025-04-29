@@ -11,31 +11,23 @@
    [tubo.utils :as utils]))
 
 (defn metadata-popover
-  [{:keys [service-id url] :as stream}]
-  (let [favorited? @(rf/subscribe [:bookmarks/favorited url])]
-    [layout/popover
-     [{:label    "Add to queue"
-       :icon     [:i.fa-solid.fa-headphones]
-       :on-click #(rf/dispatch [:bg-player/show stream true])}
-      {:label    "Start radio"
-       :icon     [:i.fa-solid.fa-tower-cell]
-       :on-click #(rf/dispatch [:bg-player/start-radio stream])}
-      {:label    (if favorited? "Remove favorite" "Favorite")
-       :icon     (if favorited?
-                   [:i.fa-solid.fa-heart
-                    {:style {:color (utils/get-service-color service-id)}}]
-                   [:i.fa-solid.fa-heart])
-       :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add) stream
-                                true])}
-      {:label "Original"
-       :link  {:route url :external? true}
-       :icon  [:i.fa-solid.fa-external-link-alt]}
-      {:label    "Add to playlist"
-       :icon     [:i.fa-solid.fa-plus]
-       :on-click #(rf/dispatch [:modals/open
-                                [modals/add-to-bookmark stream]])}]
-     :tooltip-classes ["right-5" "top-5"]
-     :extra-classes ["p-3" "xs:py-2" "xs:px-4"]]))
+  [{:keys [url] :as stream}]
+  [layout/popover
+   [{:label    "Add to queue"
+     :icon     [:i.fa-solid.fa-headphones]
+     :on-click #(rf/dispatch [:bg-player/show stream true])}
+    {:label    "Start radio"
+     :icon     [:i.fa-solid.fa-tower-cell]
+     :on-click #(rf/dispatch [:bg-player/start-radio stream])}
+    {:label "Original"
+     :link  {:route url :external? true}
+     :icon  [:i.fa-solid.fa-external-link-alt]}
+    {:label    "Add to playlist"
+     :icon     [:i.fa-solid.fa-plus]
+     :on-click #(rf/dispatch [:modals/open
+                              [modals/add-to-bookmark stream]])}]
+   :tooltip-classes ["right-5" "top-5"]
+   :extra-classes ["p-3" "xs:py-2" "xs:px-4"]])
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]

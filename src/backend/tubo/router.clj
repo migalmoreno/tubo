@@ -4,14 +4,14 @@
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
-   [reitit.ring.coercion :as rrc]
+   [reitit.ring.coercion :as coercion]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.exception :as exception]
    [reitit.coercion.malli]
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.util.http-response :refer [ok]]
+   [ring.util.http-response :refer [ok internal-server-error]]
    [tubo.handlers.auth :as auth]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
@@ -22,7 +22,8 @@
    [tubo.handlers.stream :as stream]
    [tubo.handlers.auth-playlists :as ap]
    [tubo.middleware :as middleware]
-   [tubo.routes :as routes]))
+   [tubo.routes :as routes]
+   [tubo.schemas :as s]))
 
 (defn expand-routes
   [data opts]
@@ -30,31 +31,45 @@
     (case data
       :api/health {:no-doc true
                    :get    (constantly (ok))}
-      :api/register {:no-doc true
-                     :post   {:parameters {:body {:username string?
-                                                  :password string?}}
-                              :handler    auth/create-register-handler}}
-      :api/login {:no-doc true
-                  :post   {:parameters {:body {:username string?
-                                               :password string?}}
-                           :handler    auth/create-login-handler}}
-      :api/logout {:no-doc true
-                   :post   {:handler    auth/create-logout-handler
-                            :middleware [middleware/auth]}}
+      :api/register {:post {:summary    "registers a user"
+                            :parameters {:body {:username s/ValidUsername
+                                                :password s/ValidPassword}}
+                            :handler    auth/create-register-handler}}
+      :api/login {:post {:summary    "logs in a user"
+                         :parameters {:body {:username s/ValidUsername
+                                             :password s/ValidPassword}}
+                         :handler    auth/create-login-handler}}
+      :api/logout {:post {:summary    "logs out an authenticated user"
+                          :handler    auth/create-logout-handler
+                          :middleware [middleware/auth]}}
+      :api/delete-user
+      {:post {:summary    "deletes an authenticated user"
+              :middleware [middleware/auth]
+              :parameters {:body {:password s/ValidPassword}}
+              :handler    auth/create-delete-user-handler}}
+      :api/password-reset
+      {:post {:summary    "resets the password for an authenticated user"
+              :middleware [middleware/auth]
+              :parameters {:body {:current-password s/ValidPassword
+                                  :new-password     s/ValidPassword}}
+              :handler    auth/create-password-reset-handler}}
       :api/user-playlists
-      {:get  {:summary
-              "returns all playlists for an authenticated user"
-              :handler ap/create-get-auth-playlists-handler
-              :middleware [middleware/auth]}
-       :post {:summary    "creates a new playlist for an authenticated user"
-              :handler    ap/create-post-auth-playlists-handler
-              :middleware [middleware/auth]}}
+      {:get    {:summary    "returns all playlists for an authenticated user"
+                :handler    ap/create-get-auth-playlists-handler
+                :middleware [middleware/auth]}
+       :post   {:summary    "creates a new playlist for an authenticated user"
+                :handler    ap/create-post-auth-playlists-handler
+                :middleware [middleware/auth]}
+       :delete {:summary    "deletes all playlists for an authenticated user"
+                :handler    ap/create-delete-auth-playlists-handler
+                :middleware [middleware/auth]}}
       :api/user-playlist
       {:get    {:summary    "returns a user playlist for an authenticated user"
                 :handler    ap/create-get-auth-playlist-handler
                 :middleware [middleware/auth]}
        :post   {:summary
                 "adds a stream to a user playlist for an authenticated user"
+                :parameters {:body s/UserPlaylistStream}
                 :handler ap/create-post-auth-playlist-handler
                 :middleware [middleware/auth]}
        :put    {:summary    "updates a user playlist for an authenticated user"
@@ -117,8 +132,7 @@
                                   :handler (swagger/create-swagger-handler)}}
       :api/swagger-ui {:no-doc true
                        :get    (swagger-ui/create-swagger-ui-handler)}
-      {:status 200
-       :body   "ok"})
+      (ok))
     (r/expand data opts)))
 
 (def router
@@ -129,22 +143,22 @@
              :muuntaja   m/instance
              :middleware [middleware/wrap-cors
                           middleware/wrap-token-auth
-                          rrc/coerce-exceptions-middleware
-                          rrc/coerce-response-middleware
                           muuntaja/format-middleware
                           (exception/create-exception-middleware
                            (merge exception/default-handlers
                                   {::exception/default
                                    (fn [ex _]
                                      (log/error ex)
-                                     {:status 500
-                                      :body   {:message (ex-message ex)
-                                               :trace   (->> ex
-                                                             (.getStackTrace)
-                                                             (interpose "\n")
-                                                             (apply str))}})}))
+                                     (internal-server-error
+                                      {:message (ex-message ex)
+                                       :trace   (->> ex
+                                                     (.getStackTrace)
+                                                     (interpose "\n")
+                                                     (apply str))}))}))
                           wrap-params
-                          rrc/coerce-request-middleware]}}))
+                          coercion/coerce-exceptions-middleware
+                          coercion/coerce-request-middleware
+                          coercion/coerce-response-middleware]}}))
 
 (defn add-datasource
   [handler datasource]

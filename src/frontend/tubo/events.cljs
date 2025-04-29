@@ -1,7 +1,7 @@
 (ns tubo.events
   (:require
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
-   [nano-id.core :refer [nano-id]]
+   [fork.re-frame :as fork]
    [re-frame.core :as rf]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
@@ -59,8 +59,7 @@
        :auth/user (:auth/user store)
        :peertube/instances (if-nil (:peertube/instances store)
                                    (config/get-in [:peertube :instances]))
-       :bookmarks (if-nil (:bookmarks store)
-                          [{:id (nano-id) :name "Liked Streams"}])
+       :bookmarks (if-nil (:bookmarks store) [])
        :settings {:theme                (if-nil (-> store
                                                     :settings
                                                     :theme)
@@ -330,3 +329,9 @@
               :on-success [:notifications/success "Copied to clipboard"]
               :on-failure [:notifications/error
                            "There was an error copying to clipboard"]}}))
+
+(rf/reg-event-fx
+ :on-form-submit-failure
+ (fn [{:keys [db]} [_ path res]]
+   {:db (fork/set-submitting db path false)
+    :fx [[:dispatch [:bad-response res]]]}))

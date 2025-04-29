@@ -1,9 +1,9 @@
 (ns tubo.handlers.auth
   (:require
-   [buddy.auth :refer [authenticated?]]
    [buddy.auth.backends.token :refer [token-backend]]
    [buddy.hashers :as bh]
-   [ring.util.response :refer [response]]
+   [ring.util.http-response :refer [bad-request internal-server-error ok]]
+   [tubo.models.playlist :as playlist]
    [tubo.models.user :as user]))
 
 (defn authenticate-token
@@ -13,34 +13,43 @@
 (def backend
   (token-backend {:authfn authenticate-token}))
 
-(defn create-unauthorized-handler
-  [req _]
-  (if (authenticated? req)
-    (-> (response "Unauthorized request")
-        (assoc :status 403))
-    (-> (response "Unauthenticated request")
-        (assoc :status 401))))
-
 (defn create-register-handler
   [{:keys [datasource body-params]}]
   (if (user/get-user-by-username (:username body-params) datasource)
-    {:status 500
-     :body   "User with that username already exists"}
-    {:status 200
-     :body   (user/create-user body-params datasource)}))
+    (internal-server-error "User with that username already exists")
+    (ok (user/create-user body-params datasource))))
 
 (defn create-logout-handler
   [{:keys [identity datasource]}]
-  (if (user/invalidate-user-session-id (:session_id identity) datasource)
-    {:status 200}
-    {:status 500
-     :body   "There was a problem logging out"}))
+  (if (user/invalidate-user-session-id (:session-id identity) datasource)
+    (ok)
+    (internal-server-error "There was a problem logging out")))
+
+(defn verify-password
+  [user password]
+  (and user (:valid (bh/verify password (:password user)))))
 
 (defn create-login-handler
   [{:keys [datasource body-params]}]
   (let [user (user/get-user-by-username (:username body-params) datasource)]
-    (if (and user (:valid (bh/verify (:password body-params) (:password user))))
-      {:status 200
-       :body   (dissoc user :password)}
-      {:status 500
-       :body   "Invalid credentials"})))
+    (if (verify-password user (:password body-params))
+      (ok (dissoc user :password))
+      (bad-request "Invalid credentials"))))
+
+(defn create-password-reset-handler
+  [{:keys [datasource body-params identity]}]
+  (let [user (user/get-user-by-session (:session-id identity) datasource)]
+    (if (verify-password user (:current-password body-params))
+      (ok (user/update-user-password datasource
+                                     (:id user)
+                                     (:new-password body-params)))
+      (bad-request "There was a problem updating the user password"))))
+
+(defn create-delete-user-handler
+  [{:keys [datasource body-params identity]}]
+  (let [user (user/get-user-by-session (:session-id identity) datasource)]
+    (if (verify-password user (:password body-params))
+      (do
+        (playlist/delete-owner-playlists datasource (:id user))
+        (ok (user/delete-user-by-id datasource (:id user))))
+      (bad-request "There was a problem removing the user"))))

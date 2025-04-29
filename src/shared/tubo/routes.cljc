@@ -21,6 +21,8 @@
     ["/register" :api/register]
     ["/login" :api/login]
     ["/logout" :api/logout]
+    ["/password-reset" :api/password-reset]
+    ["/delete-user" :api/delete-user]
     ["/user"
      ["/playlists"
       ["" :api/user-playlists]

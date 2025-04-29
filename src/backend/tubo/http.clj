@@ -3,7 +3,8 @@
    [org.httpkit.server :refer [run-server]]
    [tubo.config :as config]
    [tubo.middleware :refer [reloading-ring-handler]]
-   [tubo.router :as router]))
+   [tubo.router :as router]
+   [clojure.tools.logging :as log]))
 
 (defonce server (atom nil))
 
@@ -16,6 +17,6 @@
                                  (handler-fn)
                                  (reloading-ring-handler handler-fn))
                                {:port port}))
-    (println "Backend server running on port" port)))
+    (log/info "Backend server running on port" port)))
 
 (defn stop-server! [] (when @server (@server :timeout 100) (reset! server nil)))

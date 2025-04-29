@@ -25,7 +25,7 @@
  (fn [{:keys [db]} [_ {:keys [values path]}]]
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch
-          [:api/post "register" values
+          [:api/post-auth "register" values
            [:auth/handle-signup-success path]
            [:auth/handle-signup-failure path]]]]}))
 
@@ -73,7 +73,7 @@
             :type        :loading}
            false]]
          [:dispatch
-          [:api/post "logout" nil
+          [:api/post-auth "logout" nil
            [:auth/handle-invalidate-session-success]
            [:auth/handle-invalidate-session-failure]]]]}))
 
@@ -100,6 +100,49 @@
  (fn [{:keys [db]} [_ {:keys [values path]}]]
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch
-          [:api/post "login" values
+          [:api/post-auth "login" values
            [:auth/handle-login-success path]
            [:auth/handle-login-failure path]]]]}))
+
+(rf/reg-event-fx
+ :auth/handle-password-reset-success
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ path {:keys [body]}]]
+   {:db    (-> db
+               (fork/set-submitting path false)
+               (assoc :auth/user body))
+    :store (assoc store :auth/user body)
+    :fx    [[:dispatch [:modals/close]]
+            [:dispatch
+             [:notifications/success "Password reset"]]]}))
+
+(rf/reg-event-fx
+ :auth/password-reset
+ (fn [{:keys [db]} [_ {:keys [values path]}]]
+   {:db (fork/set-submitting db path true)
+    :fx [[:dispatch
+          [:api/post-auth "password-reset" values
+           [:auth/handle-password-reset-success path]
+           [:on-form-submit-failure path]]]]}))
+
+(rf/reg-event-fx
+ :auth/handle-delete-user-success
+ [(rf/inject-cofx :store)]
+ (fn [{:keys [db store]} [_ path {:keys [body]}]]
+   {:db    (-> db
+               (fork/set-submitting path false)
+               (assoc :auth/user body))
+    :store (assoc store :auth/user body)
+    :fx    [[:dispatch [:modals/close]]
+            [:dispatch [:auth/logout]]
+            [:dispatch [:notifications/success "Removed user"]]
+            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+
+(rf/reg-event-fx
+ :auth/delete-user
+ (fn [{:keys [db]} [_ {:keys [values path]}]]
+   {:db (fork/set-submitting db path true)
+    :fx [[:dispatch
+          [:api/post-auth "delete-user" values
+           [:auth/handle-delete-user-success path]
+           [:on-form-submit-failure path]]]]}))

@@ -1,6 +1,9 @@
 (ns tubo.layout.views
   (:require
    [clojure.string :as str]
+   [fork.re-frame :as fork]
+   [malli.core :as m]
+   [malli.error :as error]
    [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
@@ -338,6 +341,40 @@
             [secondary-button "Retry" #(rf/dispatch cb)
              [:i.fa-solid.fa-rotate-right]])]]])]))
 
+(defn horizontal-tabs
+  [tabs]
+  (let [!current (r/atom (and (seq tabs) (nth tabs 0)))]
+    (fn [tabs & {:keys [on-change selected-id]}]
+      [:<>
+       [:button.py-2.pr-2
+        {:on-click #(on-change nil)
+         :class    (if selected-id "block md:hidden" "hidden")}
+        [:i.fa-solid.fa-arrow-left]]
+       [:div.min-w-fit.w-full.md:w-auto
+        {:class (when selected-id "hidden md:block")}
+        (into
+         [:ul.w-full.flex.flex-col.gap-x-4.justify-center.items-center]
+         (when (seq tabs)
+           (for [[i tab] (map-indexed vector tabs)]
+             (let [selected? (= (:id tab) (or selected-id (:id @!current)))]
+               (when tab
+                 [:li.flex-auto.flex.items-center.w-full
+                  {:key i}
+                  [:button.flex.flex-auto.md:px-4.py-4.items-center.gap-6.flex-shrink-0.flex-auto.rounded
+                   {:class
+                    (if selected?
+                      "md:bg-neutral-800 md:dark:bg-neutral-100 md:text-neutral-100 md:dark:text-neutral-600"
+                      "md:!bg-transparent")
+                    :on-click (fn []
+                                (reset! !current tab)
+                                (on-change (:id @!current)))}
+                   (:left-icon tab)
+                   [:span.pr-6
+                    (if (:label-fn tab)
+                      ((:label-fn tab) (:label tab))
+                      (:label tab))]
+                   (:right-icon tab)]])))))]])))
+
 (defn tabs
   [tabs]
   (let [!current (r/atom (and (seq tabs) (nth tabs 0)))]
@@ -367,3 +404,61 @@
                      ((:label-fn tab) (:label tab))
                      (:label tab))]
                   (:right-icon tab)]])))))])))
+
+(defn password-input
+  []
+  (let [!show-password? (r/atom nil)]
+    (fn [{:keys [placeholder name] :as field} common-args {:keys [values]}]
+      [:div.w-full.relative.flex-auto.flex.flex-col
+       [input
+        (merge field
+               {:type        (if @!show-password? :text :password)
+                :placeholder placeholder}
+               common-args)]
+       [:button.absolute.h-full.right-3
+        {:on-click #(reset! !show-password? (not @!show-password?))
+         :type     :button
+         :class    (when-not (seq (values name)) :hidden)}
+        [:i.fa-solid {:class (if @!show-password? :fa-eye :fa-eye-slash)}]]])))
+
+(defn form
+  [{:keys [validation on-submit submit-text extra-btns extra-opts]} schema]
+  [fork/form
+   (merge
+    {:path             [(keyword (str (nano-id) "-form"))]
+     :validation       #(-> (m/explain validation %)
+                            (error/humanize))
+     :keywordize-keys  true
+     :prevent-default? true
+     :clean-on-unmount true
+     :on-submit        #(rf/dispatch (conj on-submit %))}
+    extra-opts)
+   (fn [{:keys [values handle-change handle-blur handle-submit errors touched
+                submitting? normalize-name]
+         :as   fork-args}]
+     [:form.flex.flex-col.gap-y-4 {:on-submit handle-submit}
+      [:div
+       (doall
+        (for [[i {:keys [label name] :as field}]
+              (map-indexed vector (remove nil? schema))
+              :let [common-args {:name      (normalize-name name)
+                                 :value     (values name)
+                                 :on-change handle-change
+                                 :on-blur   handle-blur}]]
+
+          (if (fn? field)
+            (field fork-args)
+            ^{:key i}
+            [form-field {:label label}
+             (case (:type field)
+               :text     [input
+                          (merge {:type :text} field common-args)]
+               :password [password-input field common-args fork-args])
+             (when (touched name)
+               [error-field (first (get errors name))])])))]
+      [:div.flex.justify-center.gap-x-2
+       extra-btns
+       [primary-button submit-text nil nil
+        (when submitting?
+          [loading-icon nil :text-neutral-300 :dark:text-neutral-900])
+        {:disabed (when submitting? "true")}]]])])

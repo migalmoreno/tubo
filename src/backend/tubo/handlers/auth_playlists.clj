@@ -8,11 +8,7 @@
 
 (defn create-get-auth-playlists-handler
   [{:keys [datasource identity]}]
-  (let [playlists (playlist/get-playlists-by-owner (:id identity) datasource)]
-    (if (seq playlists)
-      (ok playlists)
-      (ok (playlist/add-playlists [["Liked Streams" (:id identity)]]
-                                  datasource)))))
+  (ok (playlist/get-playlists-by-owner (:id identity) datasource)))
 
 (defn create-get-auth-playlist-handler
   [{:keys [datasource path-params]}]
@@ -25,9 +21,13 @@
                                                       datasource))]
     (ok (assoc added-playlist :id (:playlist-id added-playlist)))))
 
+(defn create-delete-auth-playlists-handler
+  [{:keys [datasource identity]}]
+  (ok (playlist/delete-owner-playlists datasource (:id identity))))
+
 (defn create-delete-auth-playlist-handler
   [{:keys [datasource path-params]}]
-  (ok (playlist/delete-playlist (:id path-params) datasource)))
+  (ok (playlist/delete-playlist-by-id datasource (:id path-params))))
 
 (defn create-post-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
@@ -69,11 +69,12 @@
                               (into #{} (map :id streams))
                               (into #{} (map :id (:items body-params))))
         stream-ids-to-delete (first diff-streams)
-        unique-stream-ids    (->> (stream/get-unique-streams-for-playlist
-                                   datasource
-                                   (:id body-params)
-                                   stream-ids-to-delete)
-                                  (map :stream-id))]
+        unique-stream-ids    (when stream-ids-to-delete
+                               (->> (stream/get-unique-streams-for-playlist
+                                     datasource
+                                     (:id body-params)
+                                     stream-ids-to-delete)
+                                    (map :stream-id)))]
     (when (seq stream-ids-to-delete)
       (playlist/delete-playlist-streams-by-ids (:id body-params)
                                                stream-ids-to-delete

@@ -82,11 +82,11 @@
                     :where       [:and [:= :playlist_id playlist-id]
                                   [:in :stream_id stream-ids]]}))
 
-(defn delete-playlist-streams-by-playlist-id
-  [playlist-id ds]
+(defn delete-playlist-streams-by-playlist-ids
+  [playlist-ids ds]
   (db/execute-one! ds
                    {:delete-from [:playlist_streams]
-                    :where       [:= :playlist_id playlist-id]}))
+                    :where       [:in :playlist_id playlist-ids]}))
 
 (defn update-playlist
   [id values ds]
@@ -95,21 +95,43 @@
                     :set    values
                     :where  [:= :playlist_id (parse-uuid id)]}))
 
-(defn delete-playlist
-  [id ds]
-  (let [playlist          (get-playlist-by-playlist-id id ds)
-        unique-stream-ids (->> (stream/get-all-unique-streams-for-playlist
+(defn delete-unique-streams-by-ids
+  [ds ids]
+  (when (seq ids)
+    (let [channel-ids (map :channel-id
+                           (stream/get-unique-streams-channels ds ids))]
+      (stream/delete-streams-by-ids ds ids)
+      (channel/delete-channels-by-ids ds channel-ids))))
+
+(defn delete-playlist-by-id
+  [ds playlist-id]
+  (let [playlist          (get-playlist-by-playlist-id playlist-id ds)
+        unique-stream-ids (->> (stream/get-all-unique-streams-for-playlists
                                 ds
-                                (:id playlist))
+                                [(:id playlist)])
                                (map :stream-id))]
-    (println "channels")
-    (delete-playlist-streams-by-playlist-id (:id playlist) ds)
-    (when (seq unique-stream-ids)
-      (let [unique-channel-ids
-            (map :channel-id
-                 (stream/get-unique-streams-channels ds unique-stream-ids))]
-        (stream/delete-streams-by-ids ds unique-stream-ids)
-        (channel/delete-channels-by-ids ds unique-channel-ids)))
+    (delete-playlist-streams-by-playlist-ids [(:id playlist)] ds)
+    (delete-unique-streams-by-ids ds unique-stream-ids)
     (db/execute-one! ds
                      {:delete-from [:playlists]
                       :where       [:= :id (:id playlist)]})))
+
+(defn delete-playlists-by-owner
+  [ds id]
+  (db/execute! ds
+               {:delete-from [:playlists]
+                :where       [:= :owner id]}))
+
+(defn delete-owner-playlists
+  [ds owner-id]
+  (let [playlists-ids     (map :id (get-playlists-by-owner owner-id ds))
+        unique-stream-ids (when (seq playlists-ids)
+                            (->> (stream/get-all-unique-streams-for-playlists
+                                  ds
+                                  playlists-ids)
+                                 (map :stream-id)))]
+    (when (seq playlists-ids)
+      (delete-playlist-streams-by-playlist-ids playlists-ids ds))
+    (when unique-stream-ids
+      (delete-unique-streams-by-ids ds unique-stream-ids))
+    (delete-playlists-by-owner ds owner-id)))

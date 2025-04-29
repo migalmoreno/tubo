@@ -1,15 +1,12 @@
 (ns tubo.bookmarks.views
   (:require
-   [fork.re-frame :as fork]
    [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [tubo.modals.views :as ms]
-   [malli.core :as m]
-   [malli.error :as error]))
+   [tubo.modals.views :as ms]))
 
 (defn bookmarks
   []
@@ -65,20 +62,15 @@
 (defn playlist-edit-modal
   [id]
   (let [bookmark @(rf/subscribe [:bookmarks/get-by-id id])]
-    [fork/form
-     {:path              [:edit-playlist-form]
-      :validation        #(-> (m/explain edit-playlist-validation %)
-                              (error/humanize))
-      :initial-values    (select-keys bookmark [:thumbnail :name])
-      :keywordize-keys   true
-      :prevent-default?  true?
-      :clean-on-unmount? true?
-      :on-submit         #(rf/dispatch [:bookmark/edit bookmark %])}
-     (fn [{:keys [values handle-change handle-blur handle-submit errors touched
-                  submitting? normalize-name set-values]}]
-       [ms/modal-content "Edit playlist"
-        [:form {:on-submit handle-submit}
-         [layout/form-field {:label "Thumbnail"}
+    [ms/modal-content "Edit playlist"
+     [layout/form
+      {:validation  edit-playlist-validation
+       :on-submit   [:bookmark/edit bookmark]
+       :submit-text "Update"
+       :extra-opts  {:initial-values (select-keys bookmark [:thumbnail :name])}}
+      [(fn [{:keys [values errors normalize-name handle-change handle-blur
+                    touched set-values]}]
+         [layout/form-field {:label "Thumbnail" :key :thumbnail}
           [:div.flex.justify-center.w-full.py-2
            [:div.relative
             (when (and (seq (values :thumbnail))
@@ -103,21 +95,11 @@
            :on-blur handle-blur
            :placeholder "URL"]
           (when (touched :thumbnail)
-            [layout/error-field (first (:thumbnail errors))])]
-         [layout/form-field {:label "Name"}
-          [layout/input
-           :name (normalize-name :name)
-           :value (values :name)
-           :on-change handle-change
-           :on-blur handle-blur
-           :placeholder "Name"]
-          (when (touched :name)
-            [layout/error-field (first (:name errors))])]
-         [:div.mt-4.flex.justify-end
-          [layout/primary-button (if submitting? "Loading..." "Update")
-           nil nil
-           (when submitting? [layout/loading-icon])
-           {:disabled submitting?}]]]])]))
+            [layout/error-field (first (:thumbnail errors))])])
+       {:name        :name
+        :label       "Name"
+        :type        :text
+        :placeholder "name"}]]]))
 
 (defn bookmark
   []
@@ -129,20 +111,21 @@
                                                          id])]
         [layout/content-container
          [layout/content-header name
-          (when-not (empty? items)
-            [:div.flex.flex-auto
-             [layout/popover
-              [{:label    "Edit playlist"
-                :icon     [:i.fa-solid.fa-pencil]
-                :on-click #(rf/dispatch [:modals/open
-                                         [playlist-edit-modal id]])}
-               {:label    "Add streams to queue"
-                :icon     [:i.fa-solid.fa-headphones]
-                :on-click #(rf/dispatch [:queue/add-n items true])}
-               {:label    "Add streams to playlist"
-                :icon     [:i.fa-solid.fa-plus]
-                :on-click #(rf/dispatch [:modals/open
-                                         [modals/add-to-bookmark items]])}]]])
+          [:div.flex.flex-auto
+           [layout/popover
+            (into
+             [{:label    "Edit playlist"
+               :icon     [:i.fa-solid.fa-pencil]
+               :on-click #(rf/dispatch [:modals/open
+                                        [playlist-edit-modal id]])}]
+             (when (seq items)
+               [{:label    "Add streams to queue"
+                 :icon     [:i.fa-solid.fa-headphones]
+                 :on-click #(rf/dispatch [:queue/add-n items true])}
+                {:label    "Add streams to playlist"
+                 :icon     [:i.fa-solid.fa-plus]
+                 :on-click #(rf/dispatch [:modals/open
+                                          [modals/add-to-bookmark items]])}]))]]
           [items/layout-switcher !layout]]
          [items/related-streams
           (map #(assoc % :type "stream" :bookmark-id id) items) nil

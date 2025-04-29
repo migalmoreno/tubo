@@ -32,5 +32,18 @@
   [id datasource]
   (db/execute-one! datasource
                    {:update [:users]
-                    :set    [:session_id (nano-id 36)]
+                    :set    {:session_id (nano-id 36)}
                     :where  [:= :session_id id]}))
+
+(defn update-user-password
+  [ds id password]
+  (db/execute-one! ds
+                   {:update [:users]
+                    :set    {:password (bh/derive password)}
+                    :where  [:= :id id]}))
+
+(defn delete-user-by-id
+  [ds id]
+  (db/execute-one! ds
+                   {:delete-from [:users]
+                    :where       [:= :id id]}))

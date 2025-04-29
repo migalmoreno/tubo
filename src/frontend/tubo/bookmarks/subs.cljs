@@ -32,17 +32,7 @@
  (fn [db]
    (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
  (fn [bookmarks [_ id]]
-   (some #(= (or (:playlist-id %) (:id %)) id) (rest bookmarks))))
-
-(rf/reg-sub
- :bookmarks/favorited
- (fn [db]
-   (rf/subscribe (if (:auth/user db) [:user/bookmarks] [:bookmarks])))
- (fn [bookmarks [_ url]]
-   (some #(= (:url %) url)
-         (-> bookmarks
-             first
-             :items))))
+   (some #(= (or (:playlist-id %) (:id %)) id) bookmarks)))
 
 (rf/reg-sub
  :bookmarks/playlisted

@@ -16,7 +16,7 @@
        :on-click #(rf/dispatch [:queue/add-n related-streams true])}
       {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
-       :on-click #(rf/dispatch [:bookmarks/open-add-to-bookmark-modal
+       :on-click #(rf/dispatch [:modals/open
                                 [modals/add-to-bookmark related-streams]])}]
      :tooltip-classes ["right-7" "top-0"]]))
 

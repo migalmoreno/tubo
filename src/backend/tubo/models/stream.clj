@@ -56,8 +56,8 @@
                {:delete-from [:streams]
                 :where       [:in :id stream-ids]}))
 
-(defn get-all-unique-streams-for-playlist
-  [ds id]
+(defn get-all-unique-streams-for-playlists
+  [ds playlist-ids]
   (db/execute!
    ds
    {:select  [:stream-id]
@@ -69,12 +69,12 @@
               [:playlists
                [:= :playlists.id :playlist_streams.playlist_id]]]
     :where   [:and
-              [:= :playlists.id id]
+              [:in :playlists.id playlist-ids]
               [:not-in
                :streams.id
                {:select [:stream_id]
                 :from   [:playlist_streams]
-                :where  [:<> :playlist_id id]}]]}))
+                :where  [:not-in :playlist_id playlist-ids]}]]}))
 
 (defn get-unique-streams-channels
   [ds ids]

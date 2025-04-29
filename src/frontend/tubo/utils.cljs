@@ -10,7 +10,8 @@
   (assoc
    body
    new-image-key
-   (when-not (= (get-in db [:settings :image-quality]) "none")
+   (when (and (not= (get-in db [:settings :image-quality]) "none")
+              (seq (get db old-image-key)))
      (or (some-> (filter (fn [t]
                            (= (:estimatedResolutionLevel t)
                               (-> db
