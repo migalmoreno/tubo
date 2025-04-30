@@ -206,10 +206,13 @@
    [:url uri?]])
 
 (def UserPlaylist
-  [:map
-   [:id int?]
-   [:playlist-id uuid?]
-   [:name string?]
-   [:thumbnail uri?]
-   [:owner int?]
-   [:items [:vector UserPlaylistStream]]])
+  [:or
+   [:map
+    [:id {:optional true} int?]
+    [:playlist-id uuid?]
+    [:name string?]
+    [:thumbnail uri?]
+    [:owner {:optional true} int?]
+    [:items [:vector UserPlaylistStream]]]
+   [:map
+    [:items [:vector UserPlaylistStream]]]])

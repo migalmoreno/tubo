@@ -4,7 +4,8 @@
    [buddy.hashers :as bh]
    [ring.util.http-response :refer [bad-request internal-server-error ok]]
    [tubo.models.playlist :as playlist]
-   [tubo.models.user :as user]))
+   [tubo.models.user :as user]
+   [tubo.config :as config]))
 
 (defn authenticate-token
   [{:keys [datasource]} token]
@@ -15,9 +16,11 @@
 
 (defn create-register-handler
   [{:keys [datasource body-params]}]
-  (if (user/get-user-by-username (:username body-params) datasource)
-    (internal-server-error "User with that username already exists")
-    (ok (user/create-user body-params datasource))))
+  (if (config/get-in [:backend :registrations?])
+    (if (user/get-user-by-username (:username body-params) datasource)
+      (bad-request "User with that username already exists")
+      (ok (user/create-user body-params datasource)))
+    (bad-request "Instance has disabled registrations")))
 
 (defn create-logout-handler
   [{:keys [identity datasource]}]

@@ -65,14 +65,12 @@
                 :middleware [middleware/auth]}}
       :api/user-playlist
       {:get    {:summary    "returns a user playlist for an authenticated user"
+                :parameters {:path {:id string?}}
                 :handler    ap/create-get-auth-playlist-handler
                 :middleware [middleware/auth]}
-       :post   {:summary
-                "adds a stream to a user playlist for an authenticated user"
-                :parameters {:body s/UserPlaylistStream}
-                :handler ap/create-post-auth-playlist-handler
-                :middleware [middleware/auth]}
        :put    {:summary    "updates a user playlist for an authenticated user"
+                :parameters {:path {:id string?}
+                             :body s/UserPlaylist}
                 :handler    ap/create-update-auth-playlist-handler
                 :middleware [middleware/auth]}
        :delete {:summary    "deletes a user playlist for an authenticated user"

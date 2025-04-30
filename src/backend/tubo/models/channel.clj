@@ -2,19 +2,12 @@
   (:require
    [tubo.db :as db]))
 
-(defn add-channel
+(defn add-channels
   [values ds]
   (db/execute! ds
                {:insert-into [:channels]
                 :columns     [:url :name :avatar :verified]
                 :values      values}))
-
-(defn get-channel-by-id
-  [ds id]
-  (db/execute-one! ds
-                   {:select [:*]
-                    :from   [:channels]
-                    :where  [:= :id id]}))
 
 (defn get-channel-by-url
   [url ds]

@@ -18,7 +18,7 @@
     [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
-       {:src thumbnail :class (when rounded? :rounded)}]
+       {:src thumbnail :class (when rounded? :rounded-md)}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when duration
@@ -103,8 +103,9 @@
    :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
 (defn secondary-button
-  [label on-click left-icon right-icon]
+  [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
+   :extra-button-args extra-button-args
    :button-classes ["bg-neutral-200" "dark:bg-neutral-800"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
 
@@ -415,7 +416,7 @@
                {:type        (if @!show-password? :text :password)
                 :placeholder placeholder}
                common-args)]
-       [:button.absolute.h-full.right-3
+       [:button.absolute.h-full.right-3.text-sm
         {:on-click #(reset! !show-password? (not @!show-password?))
          :type     :button
          :class    (when-not (seq (values name)) :hidden)}

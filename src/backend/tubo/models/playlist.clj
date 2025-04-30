@@ -34,23 +34,15 @@
 
 (defn get-playlists-by-owner
   [id ds]
-  (into []
-        (map #(assoc % :items (get-playlist-streams (str (:playlist_id %)) ds)))
-        (db/plan ds
-                 {:select [:*]
-                  :from   [:playlists]
-                  :where  [:= :owner id]})))
+  (into
+   []
+   (map #(-> (assoc % :items (get-playlist-streams (str (:playlist_id %)) ds))))
+   (db/plan ds
+            {:select [:*]
+             :from   [:playlists]
+             :where  [:= :owner id]})))
 
-(defn get-playlist-by-id
-  [id ds]
-  (let [playlist (db/execute-one! ds
-                                  {:select [:*]
-                                   :from   [:playlists]
-                                   :where  [:= :id id]})
-        streams  (get-playlist-streams (str (:playlist-id playlist)) ds)]
-    (assoc playlist :items streams)))
-
-(defn get-playlist-by-playlist-id
+(defn get-full-playlist-by-playlist-id
   [id ds]
   (when-let [playlist (db/execute-one! ds
                                        {:select [:*]
@@ -60,6 +52,13 @@
     (assoc playlist
            :items
            (get-playlist-streams (str (:playlist-id playlist)) ds))))
+
+(defn get-playlist-by-playlist-id
+  [id ds]
+  (db/execute-one! ds
+                   {:select [:*]
+                    :from   [:playlists]
+                    :where  [:= :playlist_id (parse-uuid id)]}))
 
 (defn add-playlists
   [values ds]
@@ -89,19 +88,22 @@
                     :where       [:in :playlist_id playlist-ids]}))
 
 (defn update-playlist
-  [id values ds]
+  [ds id values]
   (db/execute-one! ds
                    {:update [:playlists]
                     :set    values
-                    :where  [:= :playlist_id (parse-uuid id)]}))
+                    :where  [:= :playlist_id id]}))
 
 (defn delete-unique-streams-by-ids
   [ds ids]
   (when (seq ids)
-    (let [channel-ids (map :channel-id
-                           (stream/get-unique-streams-channels ds ids))]
+    (let [channel-ids (map
+                       :channel-id
+                       (stream/get-unique-streams-channels-for-non-ids ds
+                                                                       ids))]
       (stream/delete-streams-by-ids ds ids)
-      (channel/delete-channels-by-ids ds channel-ids))))
+      (when (seq channel-ids)
+        (channel/delete-channels-by-ids ds channel-ids)))))
 
 (defn delete-playlist-by-id
   [ds playlist-id]
@@ -132,6 +134,6 @@
                                  (map :stream-id)))]
     (when (seq playlists-ids)
       (delete-playlist-streams-by-playlist-ids playlists-ids ds))
-    (when unique-stream-ids
+    (when (seq unique-stream-ids)
       (delete-unique-streams-by-ids ds unique-stream-ids))
     (delete-playlists-by-owner ds owner-id)))

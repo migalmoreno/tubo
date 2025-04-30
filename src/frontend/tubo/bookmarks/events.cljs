@@ -51,7 +51,8 @@
  :bookmarks/handle-add-form
  (fn [{:keys [db]} [_ notify? {:keys [path values]}]]
    {:db (fork/set-submitting db path true)
-    :fx [[:dispatch [:bookmarks/add values notify? path]]]}))
+    :fx [[:dispatch [:modals/close]]
+         [:dispatch [:bookmarks/add values notify? path]]]}))
 
 (rf/reg-event-fx
  :bookmarks/on-delete-auth
@@ -93,31 +94,26 @@
                  [])}))))
 
 (rf/reg-event-fx
- :bookmarks/clear
+ :bookmarks/on-clear-auth
  (fn [{:keys [db]}]
-   {:fx (conj (into
-               (map (fn [bookmark]
-                      [:dispatch
-                       [:bookmarks/remove
-                        (or (:playlist-id bookmark) (:id bookmark))]])
-                    (if (:auth/user db) (:user/bookmarks db) (:bookmarks db))))
-              [:dispatch
-               [:notifications/success "Cleared all playlists"]])}))
+   {:db (assoc db :user/bookmarks nil)
+    :fx [[:dispatch [:notifications/success "Cleared all playlists"]]]}))
 
 (rf/reg-event-fx
- :bookmark/add-n
- (fn [_ [_ bookmark items notify?]]
-   {:fx (conj (map (fn [item]
-                     [:dispatch [:bookmark/add bookmark item]])
-                   items)
-              (when notify?
+ :bookmarks/clear
+ (fn [{:keys [db]}]
+   (if (:auth/user db)
+     {:fx [[:dispatch
+            [:api/delete-auth "user/playlists"
+             [:bookmarks/on-clear-auth] [:bad-response]]]]}
+     {:fx (conj (into
+                 (map (fn [bookmark]
+                        [:dispatch
+                         [:bookmarks/remove
+                          (or (:playlist-id bookmark) (:id bookmark))]])
+                      (:bookmarks db)))
                 [:dispatch
-                 [:notifications/success
-                  (str "Added "
-                       (count items)
-                       " items to playlist \""
-                       (:name bookmark)
-                       "\"")]]))}))
+                 [:notifications/success "Cleared all playlists"]])})))
 
 (rf/reg-event-fx
  :bookmark/on-add-auth
@@ -131,15 +127,43 @@
                           (if (= (:playlist-id bookmark) (:playlist-id body))
                             body
                             bookmark))
-                        bookmarks)))
-         selected   (first (filter #(= (:playlist-id %) (:playlist-id body))
-                                   (:user/bookmarks updated-db)))]
+                        bookmarks)))]
      {:db updated-db
       :fx [[:dispatch [:modals/close]]
            (when notify?
              [:dispatch
               [:notifications/success
-               (str "Added to playlist \"" (:name selected) "\"")]])]})))
+               (str "Added to playlist \"" (:name body) "\"")]])]})))
+
+(rf/reg-event-fx
+ :bookmark/add-n
+ (fn [{:keys [db]} [_ bookmark items notify?]]
+   {:fx (if (:auth/user db)
+          [[:dispatch
+            [:api/update-auth (str "user/playlists/" (:playlist-id bookmark))
+             {:items
+              (map (fn [item]
+                     (-> item
+                         (utils/apply-image-quality db :thumbnail :thumbnails)
+                         (utils/apply-image-quality db
+                                                    :uploader-avatar
+                                                    :uploader-avatars)
+                         (select-keys [:duration :name :thumbnail
+                                       :uploader-avatar :uploader-verified?
+                                       :uploader-name :uploader-url :url])))
+                   items)}
+             [:bookmark/on-add-auth true] [:bad-response]]]]
+          (conj (map (fn [item]
+                       [:dispatch [:bookmark/add bookmark item]])
+                     items)
+                (when notify?
+                  [:dispatch
+                   [:notifications/success
+                    (str "Added "
+                         (count items)
+                         " items to playlist \""
+                         (:name bookmark)
+                         "\"")]])))}))
 
 (rf/reg-event-fx
  :bookmark/add
@@ -148,10 +172,16 @@
    (if (:auth/user db)
      {:fx
       [[:dispatch
-        [:api/post-auth (str "user/playlists/" (:playlist-id bookmark))
-         (-> item
-             (utils/apply-image-quality db :thumbnail :thumbnails)
-             (utils/apply-image-quality db :uploader-avatar :uploader-avatars))
+        [:api/update-auth (str "user/playlists/" (:playlist-id bookmark))
+         {:items (conj (:items bookmark)
+                       (-> item
+                           (utils/apply-image-quality db :thumbnail :thumbnails)
+                           (utils/apply-image-quality db
+                                                      :uploader-avatar
+                                                      :uploader-avatars)
+                           (select-keys [:duration :name :thumbnail
+                                         :uploader-avatar :uploader-verified?
+                                         :uploader-name :uploader-url :url])))}
          [:bookmark/on-add-auth notify?] [:bad-response]]]]}
      (let [selected   (first (filter #(= (:id %) (:id bookmark))
                                      (:bookmarks db)))

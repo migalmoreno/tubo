@@ -1,9 +1,9 @@
 (ns tubo.handlers.auth-playlists
   (:require
    [clojure.data :as data]
-   [ring.util.http-response :refer [ok bad-request]]
-   [tubo.models.playlist :as playlist]
+   [ring.util.http-response :refer [bad-request ok]]
    [tubo.models.channel :as channel]
+   [tubo.models.playlist :as playlist]
    [tubo.models.stream :as stream]))
 
 (defn create-get-auth-playlists-handler
@@ -12,7 +12,7 @@
 
 (defn create-get-auth-playlist-handler
   [{:keys [datasource path-params]}]
-  (ok (playlist/get-playlist-by-playlist-id (:id path-params) datasource)))
+  (ok (playlist/get-full-playlist-by-playlist-id (:id path-params) datasource)))
 
 (defn create-post-auth-playlists-handler
   [{:keys [datasource body-params identity]}]
@@ -29,66 +29,71 @@
   [{:keys [datasource path-params]}]
   (ok (playlist/delete-playlist-by-id datasource (:id path-params))))
 
-(defn create-post-auth-playlist-handler
-  [{:keys [datasource body-params path-params]}]
-  (let [channel  (or (channel/get-channel-by-url (:uploader-url body-params)
-                                                 datasource)
-                     (first (channel/add-channel
+(defn add-playlist-streams
+  [ds item playlist-id]
+  (let [channel  (or (channel/get-channel-by-url (:uploader-url item)
+                                                 ds)
+                     (first (channel/add-channels
                              [(into []
-                                    (map body-params
+                                    (map item
                                          [:uploader-url
                                           :uploader-name
                                           :uploader-avatar
                                           :uploader-verified?]))]
-                             datasource)))
-        stream   (or (stream/get-stream-by-url (:url body-params)
-                                               datasource)
-                     (first (stream/add-stream
-                             [(into (map body-params [:name :thumbnail :url])
-                                    [(:id channel) (:duration body-params)])]
-                             datasource)))
-        playlist (playlist/get-playlist-by-playlist-id (:id path-params)
-                                                       datasource)]
-    (try
-      (some->
-        (first (playlist/add-playlist-streams [[(:id stream)
-                                                (:id
-                                                 playlist)]]
-                                              datasource))
-        :playlist-id
-        (playlist/get-playlist-by-id datasource)
-        ok)
-      (catch Exception _
-        (bad-request "There was a problem adding stream to playlist")))))
+                             ds)))
+        stream   (or (stream/get-stream-by-url (:url item) ds)
+                     (first (stream/add-streams
+                             [(into (map item [:name :thumbnail :url])
+                                    [(:id channel) (:duration item)])]
+                             ds)))
+        playlist (playlist/get-playlist-by-playlist-id playlist-id ds)]
+    (playlist/add-playlist-streams [[(:id stream) (:id playlist)]] ds)))
 
 (defn create-update-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
-  (let [streams              (playlist/get-playlist-streams (:id path-params)
+  (let [playlist-streams     (playlist/get-playlist-streams (:id path-params)
                                                             datasource)
         diff-streams         (data/diff
-                              (into #{} (map :id streams))
-                              (into #{} (map :id (:items body-params))))
-        stream-ids-to-delete (first diff-streams)
-        unique-stream-ids    (when stream-ids-to-delete
-                               (->> (stream/get-unique-streams-for-playlist
+                              (into #{}
+                                    (map :url playlist-streams))
+                              (into #{} (map :url (:items body-params))))
+        streams-to-add       (when (second diff-streams)
+                               (into []
+                                     (map (fn [url]
+                                            (first (filter #(= (:url %) url)
+                                                           (:items
+                                                            body-params))))
+                                          (second diff-streams))))
+        stream-ids-to-delete (when (first diff-streams)
+                               (map :id
+                                    (stream/get-streams-by-urls
                                      datasource
-                                     (:id body-params)
-                                     stream-ids-to-delete)
-                                    (map :stream-id)))]
-    (when (seq stream-ids-to-delete)
-      (playlist/delete-playlist-streams-by-ids (:id body-params)
-                                               stream-ids-to-delete
-                                               datasource))
-    (when (seq unique-stream-ids)
-      (let [unique-channel-ids
-            (map :channel-id
-                 (stream/get-unique-streams-channels datasource
-                                                     unique-stream-ids))]
-        (stream/delete-streams-by-ids datasource unique-stream-ids)
-        (channel/delete-channels-by-ids datasource unique-channel-ids)))
-    (ok (assoc (playlist/update-playlist (:id path-params)
-                                         (select-keys body-params
-                                                      [:name :thumbnail])
-                                         datasource)
-               :items
-               (:items body-params)))))
+                                     (first
+                                      diff-streams))))
+        unique-stream-ids    (when (seq stream-ids-to-delete)
+                               (->>
+                                 (stream/get-unique-streams-for-playlist
+                                  datasource
+                                  (:id body-params)
+                                  stream-ids-to-delete)
+                                 (map :stream-id)))]
+    (try
+      (when (seq streams-to-add)
+        (doseq [item streams-to-add]
+          (add-playlist-streams datasource item (:id path-params))))
+      (when (seq stream-ids-to-delete)
+        (playlist/delete-playlist-streams-by-ids (:id body-params)
+                                                 stream-ids-to-delete
+                                                 datasource)
+        (playlist/delete-unique-streams-by-ids datasource
+                                               unique-stream-ids))
+      (ok (merge (if (seq (select-keys body-params [:name :thumbnail]))
+                   (playlist/update-playlist datasource
+                                             (:id path-params)
+                                             (select-keys body-params
+                                                          [:name :thumbnail]))
+                   (playlist/get-playlist-by-playlist-id (:id path-params)
+                                                         datasource))
+                 {:items (:items body-params)}))
+      (catch Exception e
+        (bad-request (ex-message e))))))

@@ -49,7 +49,9 @@
  :auth/logout
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]}]
-   {:db    (assoc db :auth/user nil)
+   {:db    (-> db
+               (assoc :auth/user nil)
+               (assoc :user/bookmarks nil))
     :store (assoc store :auth/user nil)
     :fx    [[:dispatch [:notifications/clear]]
             [:dispatch [:notifications/success "Logged out"]]

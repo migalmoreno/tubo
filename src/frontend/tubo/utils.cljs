@@ -10,22 +10,23 @@
   (assoc
    body
    new-image-key
-   (when (and (not= (get-in db [:settings :image-quality]) "none")
-              (seq (get db old-image-key)))
-     (or (some-> (filter (fn [t]
-                           (= (:estimatedResolutionLevel t)
-                              (-> db
-                                  (get-in [:settings
-                                           :image-quality])
-                                  str
-                                  s/upper-case)))
-                         (get body old-image-key))
-                 first
+   (or (get body new-image-key)
+       (when (and (not= (get-in db [:settings :image-quality]) "none")
+                  (seq (get body old-image-key)))
+         (or (some-> (filter (fn [t]
+                               (= (:estimatedResolutionLevel t)
+                                  (-> db
+                                      (get-in [:settings
+                                               :image-quality])
+                                      str
+                                      s/upper-case)))
+                             (get body old-image-key))
+                     first
+                     :url)
+             (-> (get body old-image-key)
+                 last
                  :url)
-         (-> (get body old-image-key)
-             last
-             :url)
-         (get body old-image-key)))))
+             (get body old-image-key))))))
 
 (defn apply-image-quality-n
   [body db key new-image-key old-image-key]

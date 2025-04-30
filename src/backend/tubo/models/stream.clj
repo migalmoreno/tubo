@@ -2,7 +2,7 @@
   (:require
    [tubo.db :as db]))
 
-(defn add-stream
+(defn add-streams
   [values ds]
   (db/execute! ds
                {:insert-into [:streams]
@@ -16,12 +16,12 @@
                     :from   [:streams]
                     :where  [:= :url url]}))
 
-(defn get-streams-by-ids
-  [ds ids]
-  (db/execute-one! ds
-                   {:select [:*]
-                    :from   [:streams]
-                    :where  [:in :id ids]}))
+(defn get-streams-by-urls
+  [ds urls]
+  (db/execute! ds
+               {:select [:*]
+                :from   [:streams]
+                :where  [:in :url urls]}))
 
 (defn get-streams-by-channel-id
   [ds id]
@@ -76,19 +76,20 @@
                 :from   [:playlist_streams]
                 :where  [:not-in :playlist_id playlist-ids]}]]}))
 
-(defn get-unique-streams-channels
+(defn get-unique-streams-channels-for-non-ids
   [ds ids]
   (db/execute!
    ds
    {:select [:*]
     :from   [:streams]
     :where  [:and
+             [:in :id ids]
              [:not-in :channel_id
               {:select [:channel_id]
                :from   [[:streams :st]]
                :where  [:>
                         {:select [:%count.*]
                          :from   [[:streams :s]]
-                         :where  [:= :s.channel_id :st.channel_id]}
-                        1]}]
-             [:in :id ids]]}))
+                         :where  [:and [:= :s.channel_id :st.channel_id]
+                                  [:not-in :st.id ids]]}
+                        1]}]]}))

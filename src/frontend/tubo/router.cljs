@@ -1,11 +1,11 @@
 (ns tubo.router
   (:require
+   [re-frame.core :as rf]
    [reitit.core :as r]
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
-   [re-frame.core :as rf]
-   [tubo.auth.views :as auth]
    [tubo.about.views :as about]
+   [tubo.auth.views :as auth]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosk]

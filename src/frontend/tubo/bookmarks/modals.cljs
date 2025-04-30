@@ -24,7 +24,7 @@
      :on-submit   [:bookmarks/handle-add-form true]
      :submit-text "Create playlist"
      :extra-btns  [layout/secondary-button "Back"
-                   #(rf/dispatch [:modals/close])]}
+                   #(rf/dispatch [:modals/close]) nil nil {:type :button}]}
     [{:name        :name
       :label       "Name"
       :type        :text

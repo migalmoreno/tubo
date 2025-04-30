@@ -86,7 +86,7 @@
                                               [:comments/fetch-paginated url
                                                (:url next-page)])))))
                                       %)))]
-        [:div.flex.flex-col.py-4
+        [:div.flex.flex-col
          (if (empty? comments)
            [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4.h-44
             [:i.fa-solid.fa-ghost.text-3xl]

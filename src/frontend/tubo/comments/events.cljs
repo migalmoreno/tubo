@@ -61,8 +61,10 @@
  (fn [db [_ {:keys [body]}]]
    (-> db
        (update-in [:stream :comments-page :comments]
-                  #(apply conj %1 %2)
-                  (:comments body))
+                  #(into (into [] %1) (into [] %2))
+                  (-> body
+                      (utils/apply-avatars-quality db :comments)
+                      :comments))
        (assoc-in [:stream :comments-page :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 
