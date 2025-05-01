@@ -13,13 +13,15 @@
    :url                (.getUrl stream)
    :name               (.getName stream)
    :thumbnails         (j/from-java (.getThumbnails stream))
+   :short?             (.isShortFormContent stream)
    :uploader-name      (.getUploaderName stream)
    :uploader-url       (.getUploaderUrl stream)
    :uploader-avatars   (j/from-java (.getUploaderAvatars stream))
    :upload-date        (.getTextualUploadDate stream)
    :short-description  (.getShortDescription stream)
-   :duration           (.getDuration stream)
+   :duration           (non-negative (.getDuration stream))
    :view-count         (non-negative (.getViewCount stream))
+   :stream-type        (.getStreamType stream)
    :uploaded           (when (.getUploadDate stream)
                          (.. stream
                              (getUploadDate)
@@ -48,6 +50,9 @@
    :name          (.getName playlist)
    :thumbnails    (j/from-java (.getThumbnails playlist))
    :uploader-name (.getUploaderName playlist)
+   :uploader-url  (.getUploaderUrl playlist)
+   :description   (.getDescription playlist)
+   :playlist-type (.getPlaylistType playlist)
    :stream-count  (non-negative (.getStreamCount playlist))})
 
 (defn get-items

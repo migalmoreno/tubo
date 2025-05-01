@@ -117,7 +117,7 @@
 
 (rf/reg-event-fx
  :bookmark/on-add-auth
- (fn [{:keys [db]} [_ notify? {:keys [body]}]]
+ (fn [{:keys [db]} [_ items notify? {:keys [body]}]]
    (let [updated-db (update
                      db
                      :user/bookmarks
@@ -133,7 +133,12 @@
            (when notify?
              [:dispatch
               [:notifications/success
-               (str "Added to playlist \"" (:name body) "\"")]])]})))
+               (str "Added"
+                    (when (> (count items) 1)
+                      (str " " (count items) " items"))
+                    " to playlist \""
+                    (:name body)
+                    "\"")]])]})))
 
 (rf/reg-event-fx
  :bookmark/add-n
@@ -142,17 +147,25 @@
           [[:dispatch
             [:api/update-auth (str "user/playlists/" (:playlist-id bookmark))
              {:items
-              (map (fn [item]
-                     (-> item
-                         (utils/apply-image-quality db :thumbnail :thumbnails)
-                         (utils/apply-image-quality db
-                                                    :uploader-avatar
-                                                    :uploader-avatars)
-                         (select-keys [:duration :name :thumbnail
-                                       :uploader-avatar :uploader-verified?
-                                       :uploader-name :uploader-url :url])))
-                   items)}
-             [:bookmark/on-add-auth true] [:bad-response]]]]
+              (into
+               (into []
+                     (->> (:user/bookmarks db)
+                          (filter #(= (:playlist-id %) (:playlist-id bookmark)))
+                          first
+                          :items))
+               (into
+                []
+                (map (fn [item]
+                       (-> item
+                           (utils/apply-image-quality db :thumbnail :thumbnails)
+                           (utils/apply-image-quality db
+                                                      :uploader-avatar
+                                                      :uploader-avatars)
+                           (select-keys [:duration :name :thumbnail
+                                         :uploader-avatar :uploader-verified?
+                                         :uploader-name :uploader-url :url])))
+                     items)))}
+             [:bookmark/on-add-auth items true] [:bad-response]]]]
           (conj (map (fn [item]
                        [:dispatch [:bookmark/add bookmark item]])
                      items)
@@ -182,7 +195,7 @@
                            (select-keys [:duration :name :thumbnail
                                          :uploader-avatar :uploader-verified?
                                          :uploader-name :uploader-url :url])))}
-         [:bookmark/on-add-auth notify?] [:bad-response]]]]}
+         [:bookmark/on-add-auth (conj [] item) notify?] [:bad-response]]]]}
      (let [selected   (first (filter #(= (:id %) (:id bookmark))
                                      (:bookmarks db)))
            pos        (.indexOf (:bookmarks db) selected)

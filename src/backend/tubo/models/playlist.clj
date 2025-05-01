@@ -8,18 +8,19 @@
   [id ds]
   (->> (db/execute!
         ds
-        {:select  [:*]
-         :from    [:streams]
-         :join-by [:join
-                   [:channels
-                    [:= :channels.id :streams.channel_id]]
-                   :join
-                   [:playlist_streams
-                    [:= :streams.id :playlist_streams.stream_id]]
-                   :join
-                   [:playlists
-                    [:= :playlists.id :playlist_streams.playlist_id]]]
-         :where   [:= :playlists.playlist_id (parse-uuid id)]}
+        {:select   [:*]
+         :from     [:streams]
+         :join-by  [:join
+                    [:channels
+                     [:= :channels.id :streams.channel_id]]
+                    :join
+                    [:playlist_streams
+                     [:= :streams.id :playlist_streams.stream_id]]
+                    :join
+                    [:playlists
+                     [:= :playlists.id :playlist_streams.playlist_id]]]
+         :where    [:= :playlists.playlist_id (parse-uuid id)]
+         :order-by [:playlist_streams.playlist_stream_order]}
         {})
        (map (fn [e]
               {:id                 (:streams/id e)
@@ -71,7 +72,7 @@
   [values ds]
   (db/execute! ds
                {:insert-into [:playlist_streams]
-                :columns     [:stream_id :playlist_id]
+                :columns     [:stream_id :playlist_id :playlist_stream_order]
                 :values      values}))
 
 (defn delete-playlist-streams-by-ids
@@ -92,7 +93,7 @@
   (db/execute-one! ds
                    {:update [:playlists]
                     :set    values
-                    :where  [:= :playlist_id id]}))
+                    :where  [:= :playlist_id (parse-uuid id)]}))
 
 (defn delete-unique-streams-by-ids
   [ds ids]

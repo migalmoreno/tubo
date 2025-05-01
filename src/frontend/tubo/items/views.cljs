@@ -43,8 +43,7 @@
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name uploader-verified?
-           subscriber-count view-count stream-count verified? thumbnail
-           duration type]
+           subscriber-count view-count stream-count verified? type]
     :as   item}]
   (let [route (case (:type item)
                 "stream"   (rfe/href :stream-page
@@ -58,8 +57,8 @@
                                      {:url (:url item)})
                 (:url item))]
     [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
-     [layout/thumbnail thumbnail route name duration
-      :classes [:py-2 :h-44 "xs:h-28"] :rounded? true]
+     [layout/thumbnail item route :classes [:py-2 :h-44 "xs:h-28"] :rounded?
+      true]
      [:div
       (when name
         [:div.flex.items-center.my-2
@@ -98,13 +97,11 @@
 
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name uploader-verified?
-           subscriber-count view-count stream-count verified? thumbnail
-           duration upload-date type]
+           subscriber-count view-count stream-count verified? upload-date type]
     :as   item} &
    {:keys [author-classes title-classes thumbnail-classes metadata-classes]
     :or   {thumbnail-classes ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]"
-                              "sm:h-36" "sm:min-w-[250px]"
-                              "sm:max-w-[250px]"]
+                              "sm:h-36" "sm:min-w-[250px]" "sm:max-w-[250px]"]
            title-classes     ["[overflow-wrap:anywhere]" "line-clamp-1"
                               "text-sm" "xs:text-xl" "mt-2"]
            author-classes    ["[overflow-wrap:anywhere]" "font-semibold"
@@ -123,7 +120,7 @@
                                      {:url (:url item)})
                 (:url item))]
     [:div.flex.gap-x-3.xs:gap-x-5
-     [layout/thumbnail thumbnail route name duration :classes thumbnail-classes
+     [layout/thumbnail item route :classes thumbnail-classes
       :rounded? true]
      [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
       [:div.flex.items-center.justify-between

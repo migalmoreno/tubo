@@ -12,22 +12,27 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [thumbnail route name duration & {:keys [classes rounded?]}]
+  [{:keys [duration thumbnail stream-type short?]} route &
+   {:keys [classes rounded?]}]
   [:div.flex.box-border {:class classes}
    [:div.relative.min-w-full
-    [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
+    [:a.absolute.min-w-full.min-h-full {:href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
-       {:src thumbnail :class (when rounded? :rounded-md)}]
+       {:src thumbnail :class (when rounded? "rounded-md")}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
-    (when duration
-      [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
-       {:class "bg-[rgba(0,0,0,.7)]"}
-       [:p.text-white.text-xs
-        (if (= duration 0)
-          "LIVE"
-          (utils/format-duration duration))]])]])
+    [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
+     {:class
+      (cond
+        (= stream-type "LIVE_STREAM") "bg-red-600/80"
+        (or short? duration)          "bg-black/70"
+        :else                         "hidden")}
+     [:p.text-white.text-xs
+      (cond
+        (= stream-type "LIVE_STREAM") "LIVE"
+        short?                        "SHORTS"
+        duration                      (utils/format-duration duration))]]]])
 
 (defn logo
   [& {:keys [height width]}]
@@ -309,7 +314,7 @@
     [content-container
      (if page-loading?
        [loading-icon service-color "text-5xl"]
-       [:div.flex.flex-auto.h-full.items-center.justify-center.p-8
+       [:div.flex.flex-auto.h-full.items-center.justify-center.py-4
         [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
          [:div.flex.items-center.gap-x-4.text-xl
           {:class (when-not (:message body) :justify-center)}

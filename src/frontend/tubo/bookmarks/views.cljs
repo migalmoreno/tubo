@@ -81,13 +81,11 @@
                 :type     "button"}
                [:i.fa-solid.fa-trash]])
             [layout/thumbnail
-             (when (and (seq (values :thumbnail))
-                        (nil? (first (:thumbnail errors))))
-               (values :thumbnail))
-             nil
-             nil
-             nil :classes
-             [:h-44 "w-[250px]"] :rounded? true]]]
+             {:thumbnail
+              (when (and (seq (values :thumbnail))
+                         (nil? (first (:thumbnail errors))))
+                (values :thumbnail))}
+             nil :classes [:h-44 "w-[250px]"] :rounded? true]]]
           [layout/input
            :name (normalize-name :thumbnail)
            :value (values :thumbnail)

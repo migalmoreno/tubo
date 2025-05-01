@@ -68,13 +68,12 @@
     (fn [{:keys [thumbnail subtitles service-id]} !player video-args]
       (let [service-color (utils/get-service-color service-id)]
         [:> MediaController
-         {:autohideovercontrols true
-          :style                {"--media-secondary-color" "transparent"
-                                 "--media-primary-color"   "white"
-                                 "aspectRatio"             "16/9"
-                                 "height"                  "100%"
-                                 "width"                   "100%"}
-          :class                "rounded-xl"}
+         {:style {"--media-secondary-color" "transparent"
+                  "--media-primary-color"   "white"
+                  "aspectRatio"             "16/9"
+                  "height"                  "100%"
+                  "width"                   "100%"}
+          :class "md:rounded-xl"}
          [:video
           (into
            {:style   {"maxHeight" "100%"
@@ -85,7 +84,7 @@
             :ref     #(reset! !player %)
             :slot    "media"
             :preload "metadata"
-            :class   "rounded-xl"}
+            :class   "md:rounded-xl"}
            video-args)
           [:track
            {:label   (:displayLanguageName (first subtitles))
@@ -98,7 +97,7 @@
             "height" "170px"
             "backgroundImage"
             "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAACqCAYAAABsziWkAAAAAXNSR0IArs4c6QAAAQVJREFUOE9lyNdHBQAAhfHb3nvvuu2997jNe29TJJEkkkgSSSSJJJJEEkkiifRH5jsP56Xz8PM5gcC/xfDEmjhKxEOCSaREEiSbFEqkQppJpzJMJiWyINvkUCIX8kw+JQqg0BRRxaaEEqVQZsopUQGVpooS1VBjglStqaNEPTSYRko0QbNpoUQrtJl2qsN0UqILuk0PJXqhz/RTYgAGzRA1bEYoMQpjZpwSExAyk5SYgmkzQ82aOUqEIWKilJiHBbNIiSVYhhVYhTVYhw3YhC3Yhh3YhT3YhwM4hCM4hhM4hTM4hwu4hCu4hhu4hTu4hwd4hCd4hhd4hTd4hw/4hC/4hh/4/QM2/id28uIEJAAAAABJRU5ErkJggg==')"}
-           :class "rounded-b-xl"}]
+           :class "md:rounded-b-xl"}]
          [:> MediaTimeRange
           {:class ["w-full" "h-[5px]"]
            :style

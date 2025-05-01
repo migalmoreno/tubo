@@ -47,29 +47,32 @@
                                     [(:id channel) (:duration item)])]
                              ds)))
         playlist (playlist/get-playlist-by-playlist-id playlist-id ds)]
-    (playlist/add-playlist-streams [[(:id stream) (:id playlist)]] ds)))
+    (playlist/add-playlist-streams [[(:id stream) (:id playlist)
+                                     (:order item)]]
+                                   ds)))
 
 (defn create-update-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
   (let [playlist-streams     (playlist/get-playlist-streams (:id path-params)
                                                             datasource)
+        items                (map-indexed (fn [i item]
+                                            (assoc item :order (inc i)))
+                                          (:items body-params))
         diff-streams         (data/diff
                               (into #{}
                                     (map :url playlist-streams))
-                              (into #{} (map :url (:items body-params))))
+                              (into #{} (map :url items)))
         streams-to-add       (when (second diff-streams)
                                (into []
                                      (map (fn [url]
                                             (first (filter #(= (:url %) url)
-                                                           (:items
-                                                            body-params))))
+                                                           items)))
                                           (second diff-streams))))
         stream-ids-to-delete (when (first diff-streams)
                                (map :id
                                     (stream/get-streams-by-urls
                                      datasource
-                                     (first
-                                      diff-streams))))
+                                     (first diff-streams))))
         unique-stream-ids    (when (seq stream-ids-to-delete)
                                (->>
                                  (stream/get-unique-streams-for-playlist
@@ -84,9 +87,9 @@
       (when (seq stream-ids-to-delete)
         (playlist/delete-playlist-streams-by-ids (:id body-params)
                                                  stream-ids-to-delete
-                                                 datasource)
-        (playlist/delete-unique-streams-by-ids datasource
-                                               unique-stream-ids))
+                                                 datasource))
+      (when (seq unique-stream-ids)
+        (playlist/delete-unique-streams-by-ids datasource unique-stream-ids))
       (ok (merge (if (seq (select-keys body-params [:name :thumbnail]))
                    (playlist/update-playlist datasource
                                              (:id path-params)

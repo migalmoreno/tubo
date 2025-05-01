@@ -51,7 +51,7 @@
       :title uploader-name}
      uploader-name]
     (when subscriber-count
-      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
+      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm
        [:span {:title subscriber-count}
         (str (utils/format-quantity subscriber-count) " subscribers")]])]])
 
@@ -128,7 +128,7 @@
            :title-classes ["font-semibold" "line-clamp-2" "text-xs"]
            :metadata-classes ["text-xs"]
            :thumbnail-classes
-           ["h-30" "min-w-[150px]" "max-w-[150px]"]])]])))
+           ["h-[5.5rem]" "min-w-[150px]" "max-w-[150px]"]])]])))
 
 (defn stream
   []
@@ -140,18 +140,21 @@
             service-color @(rf/subscribe [:service-color])]
         (if page-loading?
           [layout/loading-icon service-color :text-5xl]
-          [:div.flex.flex-col.flex-auto.items-center.my-4
-           [:div.flex.gap-x-6 {:class ["w-[95%] xl:w-11/12"]}
+          [:div.flex.flex-col.flex-auto.items-center.md:my-4
+           [:div.flex.gap-x-6.w-full {:class ["md:w-[95%] xl:w-11/12"]}
             [:div.flex.flex-col.w-full.flex-1
-             [:div.flex.flex-col.justify-center.items-center
+             [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
+              {:class ["top-[56px]"]}
               [player/video-player stream !player {}
                #(rf/dispatch [:player/set-stream stream !player])]]
-             [:div.flex.flex-col.py-4.w-full
+             [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
               [metadata stream]
-              [:div.hidden.lg:flex.flex-col
+              [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
                [description stream]
-               [comments stream]]
-              [:div.fixed.right-0.bg-neutral-900.z-10.w-full.md:hidden
+               [:div
+                [:h1.text-2xl.font-bold.pb-2 "Comments"]
+                [comments stream]]]
+              [:div.fixed.right-0.bg-neutral-100.dark:bg-neutral-900.z-10.w-full.md:hidden
                {:class
                 (if @(rf/subscribe [:bg-player/show])
                   "!bottom-[80px]"

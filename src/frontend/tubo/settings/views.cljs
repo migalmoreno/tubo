@@ -139,9 +139,9 @@
   []
   [:<>
    [layout/generic-input "Logout"
-    [:div.flex.gap-x-6
-     [layout/primary-button "From this device" #(rf/dispatch [:auth/logout])]
-     [layout/secondary-button "From all devices"
+    [:div.flex.gap-x-4
+     [layout/primary-button "This device" #(rf/dispatch [:auth/logout])]
+     [layout/secondary-button "All devices"
       #(rf/dispatch [:auth/invalidate-session])]]]
    [layout/generic-input "Password Reset"
     [layout/primary-button "Reset"
