@@ -22,7 +22,23 @@ services:
       - ./resources/config.edn:/app/resources/config.edn
     ports:
       - 3000:3000
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=tubo
+      - DB_USER=tubo
+      - DB_PASSWORD=tubo
     restart: always
+  db:
+    container_name: tubo-db
+    image: postgres:16-alpine
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=tubo
+      - POSTGRES_USER=tubo
+      - POSTGRES_PASSWORD=tubo
   bg-helper:
     container_name: tubo-bg-helper
     build:

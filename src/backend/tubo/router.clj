@@ -121,11 +121,18 @@
                           wrap-params
                           rrc/coerce-request-middleware]}}))
 
-(def app
+(defn add-datasource
+  [handler datasource]
+  (fn [request]
+    (handler (assoc request :datasource datasource))))
+
+(defn create-app-handler
+  [datasource]
   (ring/ring-handler
    router
    (ring/routes
     (ring/create-resource-handler {:path "/"})
     (ring/redirect-trailing-slash-handler {:method :add})
     (ring/create-default-handler
-     {:not-found (constantly {:status 404 :body "Not found"})}))))
+     {:not-found (constantly {:status 404 :body "Not found"})}))
+   {:middleware [[add-datasource datasource]]}))

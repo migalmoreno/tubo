@@ -2,30 +2,21 @@
   (:require
    [org.httpkit.server :refer [run-server]]
    [tubo.config :as config]
-   [tubo.downloader :as downloader]
-   [tubo.potoken :as potoken]
-   [tubo.router :as router])
-  (:import
-   org.schabi.newpipe.extractor.NewPipe
-   org.schabi.newpipe.extractor.localization.Localization
-   org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
-   org.schabi.newpipe.extractor.ServiceList
-   org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor))
+   [tubo.middleware :refer [reloading-ring-handler]]
+   [tubo.router :as router]
+   [clojure.tools.logging :as log]))
 
 (defonce server (atom nil))
 
 (defn start-server!
-  ([]
-   (start-server! (config/get-in [:backend :port])))
-  ([port]
-   (NewPipe/init (downloader/create-downloader-impl) (Localization. "en" "US"))
-   (when (config/get-in [:backend :bg-helper-url])
-     (YoutubeStreamExtractor/setPoTokenProvider
-      (potoken/create-po-token-provider)))
-   (when-let [instance (first (config/get-in [:peertube :instances]))]
-     (.setInstance ServiceList/PeerTube
-                   (PeertubeInstance. (:url instance) (:name instance))))
-   (reset! server (run-server #'router/app {:port port}))
-   (println "Backend server running on port" port)))
+  [datasource]
+  (let [port       (config/get-in [:backend :port])
+        prod?      (System/getProperty "prod")
+        handler-fn #(router/create-app-handler datasource)]
+    (reset! server (run-server (if prod?
+                                 (handler-fn)
+                                 (reloading-ring-handler handler-fn))
+                               {:port port}))
+    (log/info "Backend server running on port" port)))
 
 (defn stop-server! [] (when @server (@server :timeout 100) (reset! server nil)))
