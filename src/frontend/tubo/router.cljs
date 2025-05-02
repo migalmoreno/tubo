@@ -1,10 +1,11 @@
 (ns tubo.router
   (:require
+   [re-frame.core :as rf]
    [reitit.core :as r]
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
-   [re-frame.core :as rf]
    [tubo.about.views :as about]
+   [tubo.auth.views :as auth]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosk]
@@ -21,6 +22,10 @@
       :web/homepage  {:view        kiosk/kiosk
                       :name        :homepage
                       :controllers [{:start #(rf/dispatch [:fetch-homepage])}]}
+      :web/register  {:view auth/register
+                      :name :register-page}
+      :web/login     {:view auth/login
+                      :name :login-page}
       :web/search    {:view        search/search
                       :name        :search-page
                       :controllers [{:parameters {:query [:q :serviceId

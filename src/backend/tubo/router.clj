@@ -4,7 +4,7 @@
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
-   [reitit.ring.coercion :as rrc]
+   [reitit.ring.coercion :as coercion]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.exception :as exception]
    [reitit.coercion.malli]
@@ -12,6 +12,7 @@
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
    [ring.util.http-response :refer [ok internal-server-error]]
+   [tubo.handlers.auth :as auth]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
    [tubo.handlers.kiosks :as kiosks]
@@ -19,7 +20,9 @@
    [tubo.handlers.search :as search]
    [tubo.handlers.services :as services]
    [tubo.handlers.stream :as stream]
-   [tubo.routes :as routes]))
+   [tubo.middleware :as middleware]
+   [tubo.routes :as routes]
+   [tubo.schemas :as s]))
 
 (defn expand-routes
   [data opts]
@@ -27,17 +30,37 @@
     (case data
       :api/health {:no-doc true
                    :get    (constantly (ok))}
+      :api/register {:post {:summary    "registers a user"
+                            :parameters {:body {:username s/ValidUsername
+                                                :password s/ValidPassword}}
+                            :handler    auth/create-register-handler}}
+      :api/login {:post {:summary    "logs in a user"
+                         :parameters {:body {:username s/ValidUsername
+                                             :password s/ValidPassword}}
+                         :handler    auth/create-login-handler}}
+      :api/logout {:post {:summary    "logs out an authenticated user"
+                          :handler    auth/create-logout-handler
+                          :middleware [middleware/auth]}}
+      :api/delete-user
+      {:post {:summary    "deletes an authenticated user"
+              :middleware [middleware/auth]
+              :parameters {:body {:password s/ValidPassword}}
+              :handler    auth/create-delete-user-handler}}
+      :api/password-reset
+      {:post {:summary    "resets the password for an authenticated user"
+              :middleware [middleware/auth]
+              :parameters {:body {:current-password s/ValidPassword
+                                  :new-password     s/ValidPassword}}
+              :handler    auth/create-password-reset-handler}}
       :api/services {:get {:summary "returns all supported services"
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
                          "returns search results for a given service"
-                         :coercion reitit.coercion.malli/coercion
                          :parameters {:path  {:service-id int?}
                                       :query {:q string?}}
                          :handler search/create-search-handler}}
       :api/suggestions {:get {:summary
                               "returns search suggestions for a given service"
-                              :coercion reitit.coercion.malli/coercion
                               :parameters {:path  {:service-id int?}
                                            :query {:q string?}}
                               :handler search/create-suggestions-handler}}
@@ -53,18 +76,15 @@
       :api/default-kiosk {:get
                           {:summary
                            "returns default kiosk entries for a given service"
-                           :coercion reitit.coercion.malli/coercion
                            :parameters {:path {:service-id int?}}
                            :handler kiosks/create-kiosk-handler}}
       :api/all-kiosks {:get {:summary
                              "returns all kiosks supported by a given service"
-                             :coercion reitit.coercion.malli/coercion
                              :parameters {:path {:service-id int?}}
                              :handler kiosks/create-kiosks-handler}}
       :api/kiosk {:get
                   {:summary
                    "returns kiosk entries for a given service and a kiosk ID"
-                   :coercion reitit.coercion.malli/coercion
                    :parameters {:path {:service-id int? :kiosk-id string?}}
                    :handler kiosks/create-kiosk-handler}}
       :api/stream {:get {:summary "returns stream data for a given URL"
@@ -88,26 +108,14 @@
       (ok))
     (r/expand data opts)))
 
-(defn wrap-cors
-  [handler]
-  (fn [request]
-    ((comp
-      #(res/header % "Access-Control-Allow-Methods" "*")
-      #(res/header % "Access-Control-Allow-Headers" "Authorization, *")
-      #(res/header % "Access-Control-Allow-Origin" "*")
-      #(res/header % "Access-Control-Allow-Credentials" "true")
-      #(res/header % "Access-Control-Max-Age" "86400")
-      handler)
-     request)))
-
 (def router
   (ring/router
    routes/routes
    {:expand expand-routes
-    :data   {:muuntaja   m/instance
-             :middleware [wrap-cors
-                          rrc/coerce-exceptions-middleware
-                          rrc/coerce-response-middleware
+    :data   {:coercion   reitit.coercion.malli/coercion
+             :muuntaja   m/instance
+             :middleware [middleware/wrap-cors
+                          middleware/wrap-token-auth
                           muuntaja/format-middleware
                           (exception/create-exception-middleware
                            (merge exception/default-handlers
@@ -121,7 +129,9 @@
                                                      (interpose "\n")
                                                      (apply str))}))}))
                           wrap-params
-                          rrc/coerce-request-middleware]}}))
+                          coercion/coerce-exceptions-middleware
+                          coercion/coerce-request-middleware
+                          coercion/coerce-response-middleware]}}))
 
 (defn add-datasource
   [handler datasource]

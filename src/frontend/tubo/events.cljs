@@ -5,6 +5,7 @@
    [re-frame.core :as rf]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
+   [tubo.auth.events]
    [tubo.bg-player.events]
    [tubo.bookmarks.events]
    [tubo.channel.events]
@@ -49,69 +50,77 @@
        :queue/position     (if-nil (:queue/position store) 0)
        :queue/unshuffled   (:queue/unshuffled store)
        :service-id         (if-nil (:service-id store) 0)
+       :auth/user (:auth/user store)
        :peertube/instances (if-nil (:peertube/instances store)
                                    (config/get-in [:peertube :instances]))
-       :bookmarks          (if-nil (:bookmarks store)
-                                   [{:id (nano-id) :name "Liked Streams"}])
-       :settings           {:theme                (if-nil (-> store
-                                                              :settings
-                                                              :theme)
-                                                          "auto")
-                            :show-comments        (if-nil (-> store
-                                                              :settings
-                                                              :show-comments)
-                                                          true)
-                            :show-related         (if-nil (-> store
-                                                              :settings
-                                                              :show-related)
-                                                          true)
-                            :show-description     (if-nil (-> store
-                                                              :settings
-                                                              :show-description)
-                                                          true)
-                            :items-layout         (if-nil (-> store
-                                                              :settings
-                                                              :items-layout)
-                                                          "list")
-                            :default-resolution   (if-nil
-                                                   (-> store
-                                                       :settings
-                                                       :default-resolution)
-                                                   "720p")
-                            :default-video-format (if-nil
-                                                   (-> store
-                                                       :settings
-                                                       :default-video-format)
-                                                   "MPEG-4")
-                            :default-audio-format (if-nil
-                                                   (-> store
-                                                       :settings
-                                                       :default-audio-format)
-                                                   "m4a")
-                            :instance             (if-nil (-> store
-                                                              :settings
-                                                              :instance)
-                                                          (config/get-in
-                                                           [:frontend
-                                                            :backend-url]))
-                            :default-country      (if-nil (-> store
-                                                              :settings
-                                                              :default-country)
-                                                          {0 {:name
-                                                              "United States"
-                                                              :code "US"}})
-                            :default-kiosk        (if-nil (-> store
-                                                              :settings
-                                                              :default-kiosk)
-                                                          {0 "Trending"})
-                            :default-filter       (if-nil (-> store
-                                                              :settings
-                                                              :default-filter)
-                                                          {0 "all"})
-                            :default-service      (if-nil (-> store
-                                                              :settings
-                                                              :default-service)
-                                                          0)}}})))
+       :bookmarks (if-nil (:bookmarks store) [])
+       :settings {:theme                (if-nil (-> store
+                                                    :settings
+                                                    :theme)
+                                                "auto")
+                  :show-comments        (if-nil (-> store
+                                                    :settings
+                                                    :show-comments)
+                                                true)
+                  :show-related         (if-nil (-> store
+                                                    :settings
+                                                    :show-related)
+                                                true)
+                  :show-description     (if-nil (-> store
+                                                    :settings
+                                                    :show-description)
+                                                true)
+                  :items-layout         (if-nil (-> store
+                                                    :settings
+                                                    :items-layout)
+                                                "list")
+                  :default-resolution   (if-nil
+                                         (-> store
+                                             :settings
+                                             :default-resolution)
+                                         "720p")
+                  :default-video-format (if-nil
+                                         (-> store
+                                             :settings
+                                             :default-video-format)
+                                         "MPEG-4")
+                  :default-audio-format (if-nil
+                                         (-> store
+                                             :settings
+                                             :default-audio-format)
+                                         "m4a")
+                  :instance             (if-nil (-> store
+                                                    :settings
+                                                    :instance)
+                                                (config/get-in
+                                                 [:frontend :api-url]))
+                  :auth-instance        (if-nil (-> store
+                                                    :settings
+                                                    :instance)
+                                                (config/get-in
+                                                 [:frontend :auth-url]))
+                  :image-quality        (if-nil (-> store
+                                                    :settings
+                                                    :image-quality)
+                                                :high)
+                  :default-country      (if-nil (-> store
+                                                    :settings
+                                                    :default-country)
+                                                {0 {:name
+                                                    "United States"
+                                                    :code "US"}})
+                  :default-kiosk        (if-nil (-> store
+                                                    :settings
+                                                    :default-kiosk)
+                                                {0 "Trending"})
+                  :default-filter       (if-nil (-> store
+                                                    :settings
+                                                    :default-filter)
+                                                {0 "all"})
+                  :default-service      (if-nil (-> store
+                                                    :settings
+                                                    :default-service)
+                                                0)}}})))
 
 (rf/reg-fx
  :scroll-to-top
@@ -156,6 +165,25 @@
      :on-failure             on-failure}}))
 
 (rf/reg-event-fx
+ :api/get-auth
+ (fn [{:keys [db]} [_ path on-success on-failure params]]
+   {:fetch
+    {:method                 :get
+     :url                    (str (get-in db [:settings :auth-instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :request-content-type   :json
+     :response-content-types {#"application/.*json" :json}
+     :headers                {"Authorization" (str "Token "
+                                                   (:session-id (:auth/user
+                                                                 db)))}
+     :mode                   :cors
+     :credentials            :omit
+     :on-success             on-success
+     :on-failure             on-failure}}))
+
+(rf/reg-event-fx
  :api/post
  (fn [{:keys [db]} [_ path body on-success on-failure params]]
    {:fetch
@@ -166,9 +194,68 @@
      :params                 (or params {})
      :body                   body
      :request-content-type   :json
-     :response-content-types {#"application/.*json" :json}
      :mode                   :cors
      :credentials            :omit
+     :response-content-types {#"application/.*json" :json}
+     :on-success             on-success
+     :on-failure             on-failure}}))
+
+(rf/reg-event-fx
+ :api/post-auth
+ (fn [{:keys [db]} [_ path body on-success on-failure params]]
+   {:fetch
+    {:method                 :post
+     :url                    (str (get-in db [:settings :auth-instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :body                   body
+     :request-content-type   :json
+     :mode                   :cors
+     :credentials            :omit
+     :response-content-types {#"application/.*json" :json}
+     :headers                {"Authorization" (str "Token "
+                                                   (:session-id (:auth/user
+                                                                 db)))}
+     :on-success             on-success
+     :on-failure             on-failure}}))
+
+(rf/reg-event-fx
+ :api/update-auth
+ (fn [{:keys [db]} [_ path body on-success on-failure params]]
+   {:fetch
+    {:method                 :put
+     :url                    (str (get-in db [:settings :auth-instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :body                   body
+     :request-content-type   :json
+     :mode                   :cors
+     :credentials            :omit
+     :response-content-types {#"application/.*json" :json}
+     :headers                {"Authorization" (str "Token "
+                                                   (:session-id (:auth/user
+                                                                 db)))}
+     :on-success             on-success
+     :on-failure             on-failure}}))
+
+(rf/reg-event-fx
+ :api/delete-auth
+ (fn [{:keys [db]} [_ path on-success on-failure params]]
+   {:fetch
+    {:method                 :delete
+     :url                    (str (get-in db [:settings :auth-instance])
+                                  "/api/v1/"
+                                  path)
+     :params                 (or params {})
+     :request-content-type   :json
+     :mode                   :cors
+     :credentials            :omit
+     :response-content-types {#"application/.*json" :json}
+     :headers                {"Authorization" (str "Token "
+                                                   (:session-id (:auth/user
+                                                                 db)))}
      :on-success             on-success
      :on-failure             on-failure}}))
 

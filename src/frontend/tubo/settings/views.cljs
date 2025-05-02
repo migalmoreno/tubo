@@ -4,7 +4,8 @@
    [reagent.core :as r]
    [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [tubo.auth.views :as auth]))
 
 (defn boolean-input
   [label keys value]
@@ -76,12 +77,17 @@
 
 (defn content-settings
   [{:keys [default-service default-country default-kiosk default-filter
-           show-description show-comments show-related instance]}]
+           show-description show-comments show-related instance auth-instance
+           image-quality]}]
   (let [services   @(rf/subscribe [:services])
         service    @(rf/subscribe [:services/current])
         kiosks     @(rf/subscribe [:kiosks])
         service-id @(rf/subscribe [:service-id])
-        countries  (:supported-countries service)]
+        countries  (:supported-countries service)
+        qualities  {"none"   "Do not load images"
+                    "low"    "Low quality"
+                    "medium" "Medium quality"
+                    "high"   "High quality"}]
     [:<>
      [select-input "Default country" nil
       (or (:name (get default-country service-id)) (first countries))
@@ -115,14 +121,34 @@
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
       (:content-filters service)]
-     [text-input "Backend instance" [:instance] instance]
+     [text-input "API instance" [:instance] instance]
+     [text-input "Authentication instance" [:auth-instance] auth-instance]
      [layout/generic-input "PeerTube instances"
       [layout/primary-button "Edit"
        #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
+     [select-input "Image Quality" [:image-quality]
+      image-quality
+      (map (fn [[value label]] {:label label :value value})
+           (into [] qualities))]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
      [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
       show-related]]))
+
+(defn user-settings
+  []
+  [:<>
+   [layout/generic-input "Logout"
+    [:div.flex.gap-x-4
+     [layout/primary-button "This device" #(rf/dispatch [:auth/logout])]
+     [layout/secondary-button "All devices"
+      #(rf/dispatch [:auth/invalidate-session])]]]
+   [layout/generic-input "Password Reset"
+    [layout/primary-button "Reset"
+     #(rf/dispatch [:modals/open [auth/password-reset-modal]])]]
+   [layout/generic-input "Delete User"
+    [layout/primary-button "Delete"
+     #(rf/dispatch [:modals/open [auth/user-deletion-modal]])]]])
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution]}]
@@ -136,7 +162,8 @@
 
 (defn settings
   []
-  (let [!active-tab (r/atom :video-audio)]
+  (let [user        @(rf/subscribe [:auth/user])
+        !active-tab (r/atom nil)]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
