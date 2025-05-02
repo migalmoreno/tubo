@@ -1,6 +1,9 @@
 (ns tubo.layout.views
   (:require
    [clojure.string :as str]
+   [fork.re-frame :as fork]
+   [malli.core :as m]
+   [malli.error :as error]
    [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
@@ -113,18 +116,18 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn form-field
-  [{:keys [label orientation]} & children]
+  [{:keys [label orientation] :or {orientation :horizontal}} & children]
   [:div.w-full.flex.py-2.gap-x-4.gap-y-2
-   {:class (if (= orientation :horizontal)
-             [:flex-col]
-             [:justify-between :items-center])}
+   {:class (case orientation
+             :horizontal [:flex-col]
+             :vertical   [:justify-between :items-center])}
    [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn text-input
-  [value on-change placeholder]
+  [value on-change placeholder type]
   [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
-   {:type          "text"
+   {:type          (or type "text")
     :default-value value
     :on-change     on-change
     :placeholder   placeholder}])
@@ -132,6 +135,13 @@
 (defn text-field
   [label & args]
   [form-field {:label label :orientation :horizontal} (apply text-input args)])
+
+(defn input
+  [& {:keys [type] :or {type "text"} :as args}]
+  [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
+   (merge
+    {:type type}
+    args)])
 
 (defn boolean-input
   [label value on-change]
@@ -147,10 +157,10 @@
   [:select.focus:ring-transparent.bg-transparent.font-bold
    {:value     value
     :on-change on-change}
-   (for [[i option] (map-indexed vector options)]
+   (for [[i {:keys [label value] :as option}] (map-indexed vector options)]
      ^{:key i}
-     [:option.dark:bg-neutral-900.border-none {:value option :key i}
-      option])])
+     [:option.dark:bg-neutral-900.border-none {:value (or value option) :key i}
+      (or label option)])])
 
 (defn select-field
   [label & args]
@@ -273,6 +283,11 @@
            [:button.font-bold {:on-click on-open}
             (str "show " (if open? "less" "more"))])])})))
 
+(defn error-field
+  [error]
+  (when error
+    [:div.bg-red-500.p-2.rounded error]))
+
 (defn error
   [{:keys [type body status status-text problem-message]} cb]
   (let [page-loading? @(rf/subscribe [:show-page-loading])
@@ -371,3 +386,61 @@
                      ((:label-fn tab) (:label tab))
                      (:label tab))]
                   (:right-icon tab)]])))))])))
+
+(defn password-input
+  []
+  (let [!show-password? (r/atom nil)]
+    (fn [{:keys [placeholder name] :as field} common-args {:keys [values]}]
+      [:div.w-full.relative.flex-auto.flex.flex-col
+       [input
+        (merge field
+               {:type        (if @!show-password? :text :password)
+                :placeholder placeholder}
+               common-args)]
+       [:button.absolute.h-full.right-3.text-sm
+        {:on-click #(reset! !show-password? (not @!show-password?))
+         :type     :button
+         :class    (when-not (seq (values name)) :hidden)}
+        [:i.fa-solid {:class (if @!show-password? :fa-eye :fa-eye-slash)}]]])))
+
+(defn form
+  [{:keys [validation on-submit submit-text extra-btns extra-opts]} schema]
+  [fork/form
+   (merge
+    {:path             [(keyword (str (nano-id) "-form"))]
+     :validation       #(-> (m/explain validation %)
+                            (error/humanize))
+     :keywordize-keys  true
+     :prevent-default? true
+     :clean-on-unmount true
+     :on-submit        #(rf/dispatch (conj on-submit %))}
+    extra-opts)
+   (fn [{:keys [values handle-change handle-blur handle-submit errors touched
+                submitting? normalize-name]
+         :as   fork-args}]
+     [:form.flex.flex-col.gap-y-4 {:on-submit handle-submit}
+      [:div
+       (doall
+        (for [[i {:keys [label name] :as field}]
+              (map-indexed vector (remove nil? schema))
+              :let [common-args {:name      (normalize-name name)
+                                 :value     (values name)
+                                 :on-change handle-change
+                                 :on-blur   handle-blur}]]
+
+          (if (fn? field)
+            (field fork-args)
+            ^{:key i}
+            [form-field {:label label}
+             (case (:type field)
+               :text     [input
+                          (merge {:type :text} field common-args)]
+               :password [password-input field common-args fork-args])
+             (when (touched name)
+               [error-field (first (get errors name))])])))]
+      [:div.flex.justify-center.gap-x-2
+       extra-btns
+       [primary-button submit-text nil nil
+        (when submitting?
+          [loading-icon nil :text-neutral-300 :dark:text-neutral-900])
+        {:disabed (when submitting? "true")}]]])])

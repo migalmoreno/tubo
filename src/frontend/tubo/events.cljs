@@ -1,7 +1,7 @@
 (ns tubo.events
   (:require
    [akiroz.re-frame.storage :refer [reg-co-fx!]]
-   [nano-id.core :refer [nano-id]]
+   [fork.re-frame :as fork]
    [re-frame.core :as rf]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
@@ -323,3 +323,9 @@
               :on-success [:notifications/success "Copied to clipboard"]
               :on-failure [:notifications/error
                            "There was an error copying to clipboard"]}}))
+
+(rf/reg-event-fx
+ :on-form-submit-failure
+ (fn [{:keys [db]} [_ path res]]
+   {:db (fork/set-submitting db path false)
+    :fx [[:dispatch [:bad-response res]]]}))
