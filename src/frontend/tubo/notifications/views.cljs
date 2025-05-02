@@ -30,13 +30,14 @@
         [:i.fa-solid.fa-close]]
        [:span.font-bold.break-all
         (str status (if status-text (str " " status-text) problem-message))]
-       (when-let [message (:message body)]
+       (when-let [message (or (:message body) body)]
          [:span.line-clamp-1 message])]]]))
 
 (defn notifications-panel
   []
   (fn []
     (let [notifications @(rf/subscribe [:notifications])]
-      [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-30.w-full.py-1.px-2
-       (for [[i notification] (map-indexed vector notifications)]
-         ^{:key i} [notification-content notification])])))
+      (when (seq notifications)
+        [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-30.w-full.py-1.px-2
+         (for [[i notification] (map-indexed vector notifications)]
+           ^{:key i} [notification-content notification])]))))
