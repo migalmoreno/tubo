@@ -15,6 +15,7 @@
    ["/swagger.json" :api/swagger-spec]
    ["/api-docs/*" :api/swagger-ui]
    ["/api/v1"
+    ["/health" :api/health]
     ["/services"
      ["" :api/services]
      ["/:service-id"

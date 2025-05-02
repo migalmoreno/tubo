@@ -1,9 +1,9 @@
 (ns tubo.handlers.services
   (:require
    [clojure.java.data :refer [from-java]]
+   [ring.util.http-response :refer [ok internal-server-error]]
    [ring.util.response :refer [response]]
-   [ring.util.codec :refer [url-decode]]
-   [ring.util.response :as res])
+   [ring.util.codec :refer [url-decode]])
   (:import
    org.schabi.newpipe.extractor.NewPipe
    org.schabi.newpipe.extractor.ServiceList
@@ -49,12 +49,12 @@
 
 (defn create-change-instance-handler
   [{:keys [body-params]}]
-  (if body-params
-    (do
-      (fetch-instance-metadata (:url body-params))
-      (.setInstance ServiceList/PeerTube
-                    (PeertubeInstance. (:url body-params)
-                                       (:name body-params)))
-      (response (str "PeerTube instanced changed to "
-                     (:name body-params))))
-    (throw (ex-info "There was a problem changing PeerTube instance" {}))))
+  (try
+    (fetch-instance-metadata (:url body-params))
+    (.setInstance ServiceList/PeerTube
+                  (PeertubeInstance. (:url body-params)
+                                     (:name body-params)))
+    (ok (str "PeerTube instanced changed to " (:name body-params)))
+    (catch Exception _
+      (internal-server-error
+       "There was a problem changing PeerTube instance"))))

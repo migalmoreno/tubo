@@ -11,7 +11,7 @@
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.util.response :as res]
+   [ring.util.http-response :refer [ok internal-server-error]]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
    [tubo.handlers.kiosks :as kiosks]
@@ -25,6 +25,8 @@
   [data opts]
   (if (keyword? data)
     (case data
+      :api/health {:no-doc true
+                   :get    (constantly (ok))}
       :api/services {:get {:summary "returns all supported services"
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
@@ -83,7 +85,7 @@
                                   :handler (swagger/create-swagger-handler)}}
       :api/swagger-ui {:no-doc true
                        :get    (swagger-ui/create-swagger-ui-handler)}
-      nil)
+      (ok))
     (r/expand data opts)))
 
 (defn wrap-cors
@@ -112,12 +114,12 @@
                                   {::exception/default
                                    (fn [ex _]
                                      (log/error ex)
-                                     {:status 500
-                                      :body   {:message (ex-message ex)
-                                               :trace   (->> ex
-                                                             (.getStackTrace)
-                                                             (interpose "\n")
-                                                             (apply str))}})}))
+                                     (internal-server-error
+                                      {:message (ex-message ex)
+                                       :trace   (->> ex
+                                                     (.getStackTrace)
+                                                     (interpose "\n")
+                                                     (apply str))}))}))
                           wrap-params
                           rrc/coerce-request-middleware]}}))
 

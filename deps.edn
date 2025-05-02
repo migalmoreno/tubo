@@ -15,6 +15,7 @@
         metosin/reitit-malli                    {:mvn/version "0.8.0"}
         metosin/reitit-swagger                  {:mvn/version "0.8.0"}
         metosin/reitit-swagger-ui               {:mvn/version "0.8.0"}
+        metosin/ring-http-response              {:mvn/version "0.9.5"}
         mhuebert/shadow-env                     {:mvn/version "0.1.6"}
         migratus/migratus                       {:mvn/version "1.6.3"}
         org.clojure/data.json                   {:mvn/version "2.5.1"}
