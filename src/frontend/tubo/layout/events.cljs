@@ -24,7 +24,9 @@
  :layout/show-mobile-tooltip
  (fn [{:keys [db]} [_ data]]
    {:db (assoc db :layout/mobile-tooltip (assoc data :show? true))
-    :fx [[:dispatch [:layout/register-tooltip {:id (:id data)}]]
+    :fx [[:dispatch
+          [:layout/register-tooltip
+           (select-keys data [:id :destroy-on-click-out?])]]
          [:dispatch [:layout/show-bg-overlay {:extra-classes ["z-30"]}]]]}))
 
 (defn default-tooltip-data
@@ -63,14 +65,18 @@
       (some-> (.-parentNode node)
               (find-tooltip-controller-class))))
 
+(defn find-clicked-controller-id
+  [node]
+  (some->
+    (find-tooltip-controller-class node)
+    (str/split tooltip-controller-class-prefix)
+    (second)))
+
 (rf/reg-event-fx
  :layout/destroy-tooltips-on-click-out
  (fn [{:keys [db]} [_ clicked-node]]
    (when (seq (:layout/tooltips db))
-     (let [clicked-controller (some->
-                                (find-tooltip-controller-class clicked-node)
-                                (str/split tooltip-controller-class-prefix)
-                                (second))
+     (let [clicked-controller (find-clicked-controller-id clicked-node)
            tooltip-ids        (->> (:layout/tooltips db)
                                    (vals)
                                    (filter :destroy-on-click-out?)

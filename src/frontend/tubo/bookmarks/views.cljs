@@ -31,18 +31,19 @@
             [{:label    "Add New"
               :icon     [:i.fa-solid.fa-plus]
               :on-click #(rf/dispatch [:modals/open [modals/add-bookmark]])}
-             [:<>
-              [:input.hidden
-               {:id        "file-selector"
-                :type      "file"
-                :multiple  "multiple"
-                :on-change #(rf/dispatch [:bookmarks/import
-                                          (.. % -target -files)])}]
-              [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
-               {:for "file-selector"}]
-              [:span.text-xs.w-10.min-w-4.w-4.flex.items-center
-               [:i.fa-solid.fa-file-import]]
-              [:span "Import"]]
+             {:destroy-tooltip-on-click? false
+              :custom-content
+              [:<>
+               [:input.hidden
+                {:id        "file-selector"
+                 :type      "file"
+                 :multiple  true
+                 :on-change #(rf/dispatch [:bookmarks/import %])}]
+               [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
+                {:for "file-selector"}]
+               [:span.text-xs.w-10.min-w-4.w-4.flex.items-center
+                [:i.fa-solid.fa-file-import]]
+               [:span "Import"]]}
              {:label    "Export"
               :icon     [:i.fa-solid.fa-file-export]
               :on-click #(rf/dispatch [:bookmarks/export])}
