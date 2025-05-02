@@ -12,22 +12,27 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [thumbnail route name duration & {:keys [classes rounded?]}]
+  [{:keys [duration thumbnail stream-type short? name]} route &
+   {:keys [classes rounded?]}]
   [:div.flex.box-border {:class classes}
    [:div.relative.min-w-full
-    [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
+    [:a.absolute.min-w-full.min-h-full {:href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
-       {:src thumbnail :class (when rounded? :rounded)}]
+       {:src thumbnail :class (when rounded? "rounded-md")}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
-    (when duration
-      [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
-       {:class "bg-[rgba(0,0,0,.7)]"}
-       [:p.text-white.text-xs
-        (if (= duration 0)
-          "LIVE"
-          (utils/format-duration duration))]])]])
+    [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
+     {:class
+      (cond
+        (= stream-type "LIVE_STREAM") "bg-red-600/80"
+        (or short? duration)          "bg-black/70"
+        :else                         "hidden")}
+     [:p.text-white.text-xs
+      (cond
+        (= stream-type "LIVE_STREAM") "LIVE"
+        short?                        "SHORTS"
+        duration                      (utils/format-duration duration))]]]])
 
 (defn logo
   [& {:keys [height width]}]
@@ -69,9 +74,9 @@
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn uploader-avatar
-  [{:keys [uploader-avatars uploader-name uploader-url]}
+  [{:keys [uploader-avatar uploader-name uploader-url]}
    & {:keys [classes] :or {classes ["w-12" "xs:w-16" "h-12" "xs:h-16"]}}]
-  (when (seq uploader-avatars)
+  (when (seq uploader-avatar)
     [:div.relative.flex-auto.flex.items-center.shrink-0.grow-0 {:class classes}
      (conj
       (when uploader-url
@@ -80,9 +85,7 @@
           :title uploader-name
           :key   uploader-url}])
       [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full
-       {:src (-> uploader-avatars
-                 last
-                 :url)
+       {:src uploader-avatar
         :alt uploader-name
         :key uploader-name}])]))
 

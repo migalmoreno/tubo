@@ -1,7 +1,8 @@
 (ns tubo.channel.events
   (:require
    [re-frame.core :as rf]
-   [tubo.channel.views :as channel]))
+   [tubo.channel.views :as channel]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :channel/fetch
@@ -14,7 +15,19 @@
  :channel/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :channel           body
+               :channel           (-> body
+                                      (utils/apply-thumbnails-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-avatars-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-image-quality db
+                                                                 :avatar
+                                                                 :avatars)
+                                      (utils/apply-image-quality db
+                                                                 :banner
+                                                                 :banners))
                :show-page-loading false)
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
@@ -44,7 +57,10 @@
                                 selected-tab)]
      {:db (-> db
               (assoc-in [:channel :tabs tab-idx :related-streams]
-                        (:related-streams body))
+                        (-> body
+                            (utils/apply-thumbnails-quality db :related-streams)
+                            (utils/apply-avatars-quality db :related-streams)
+                            :related-streams))
               (assoc-in [:channel :tabs tab-idx :next-page]
                         (:next-page body)))})))
 
@@ -79,11 +95,15 @@
                      nil)
            (assoc :show-pagination-loading false))
        (-> db
-           (update-in (if tab-id
-                        [:channel :tabs tab-idx :related-streams]
-                        [:channel :related-streams])
-                      #(apply conj %1 %2)
-                      (:related-streams body))
+           (update-in
+            (if tab-id
+              [:channel :tabs tab-idx :related-streams]
+              [:channel :related-streams])
+            #(apply conj %1 %2)
+            (-> body
+                (utils/apply-thumbnails-quality db :related-streams)
+                (utils/apply-avatars-quality db :related-streams)
+                :related-streams))
            (assoc-in (if tab-id
                        [:channel :tabs tab-idx :next-page]
                        [:channel :next-page])

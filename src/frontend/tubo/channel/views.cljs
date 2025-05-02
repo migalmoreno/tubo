@@ -2,9 +2,9 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
+   [tubo.bookmarks.modals :as modals]
    [tubo.utils :as utils]))
 
 (defn metadata-popover
@@ -17,17 +17,16 @@
       {:label    "Add streams to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
-                                [modals/add-to-bookmark
-                                 related-streams]])}]
+                                [modals/add-to-bookmark related-streams]])}]
      :tooltip-classes ["right-7" "top-0"]]))
 
 (defn metadata
-  [{:keys [avatars name subscriber-count] :as channel}]
+  [{:keys [avatar name subscriber-count] :as channel}]
   [:div.flex.items-center.justify-between
    [:div.flex.items-center.my-4.gap-x-4
     [layout/uploader-avatar
-     {:uploader-avatars avatars
-      :uploader-name    name}]
+     {:uploader-avatar avatar
+      :uploader-name   name}]
     [:div
      [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
      (when subscriber-count
@@ -43,7 +42,7 @@
         !layout            (r/atom (:items-layout @(rf/subscribe [:settings])))
         !active-tab-id     (r/atom nil)]
     (fn [{{:keys [url]} :query-params}]
-      (let [{:keys [banners description next-page related-streams] :as channel}
+      (let [{:keys [banner description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
             page-loading? @(rf/subscribe [:show-page-loading])
             active-tab (first (filter #(= @!active-tab-id
@@ -58,12 +57,10 @@
                             (:url next-page))]
         [:<>
          (when-not page-loading?
-           (when banners
+           (when banner
              [:div.flex.justify-center.h-24
               [:img.min-w-full.min-h-full.object-cover
-               {:src (-> banners
-                         last
-                         :url)}]]))
+               {:src banner}]]))
          [layout/content-container
           [metadata channel]
           (when-not (empty? description)

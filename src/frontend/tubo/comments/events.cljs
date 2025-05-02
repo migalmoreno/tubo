@@ -1,6 +1,7 @@
 (ns tubo.comments.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :comments/fetch
@@ -13,7 +14,25 @@
  :comments/load-page
  (fn [db [_ {:keys [body]}]]
    (-> db
-       (assoc-in [:stream :comments-page] body)
+       (assoc-in
+        [:stream :comments-page]
+        (-> (utils/apply-avatars-quality body db :comments)
+            (update :comments
+                    #(map
+                      (fn [c]
+                        (if (seq (:replies c))
+                          (update-in c
+                                     [:replies :items]
+                                     (fn [items]
+                                       (map (fn [i]
+                                              (utils/apply-image-quality
+                                               i
+                                               db
+                                               :uploader-avatar
+                                               :uploader-avatars))
+                                            items)))
+                          c))
+                      %))))
        (assoc-in [:stream :show-comments-loading] false))))
 
 (rf/reg-event-fx
@@ -42,8 +61,10 @@
  (fn [db [_ {:keys [body]}]]
    (-> db
        (update-in [:stream :comments-page :comments]
-                  #(apply conj %1 %2)
-                  (:comments body))
+                  #(into (into [] %1) (into [] %2))
+                  (-> body
+                      (utils/apply-avatars-quality db :comments)
+                      :comments))
        (assoc-in [:stream :comments-page :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 

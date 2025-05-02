@@ -1,14 +1,16 @@
 (ns tubo.queue.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (defn get-stream-metadata
   [stream]
-  (select-keys stream
-               [:type :service-id :url :name :thumbnails :audio-streams
-                :video-streams :verified? :uploader-name :uploader-url
-                :uploader-avatars :upload-date :short-description :duration
-                :view-count :bookmark-id]))
+  (select-keys
+   stream
+   [:type :service-id :url :name :thumbnail :thumbnails :audio-streams
+    :video-streams :verified? :uploader-name :uploader-url
+    :uploader-verified? :uploader-avatar :uploader-avatars :upload-date
+    :short-description :duration :view-count :playlist-id]))
 
 (rf/reg-event-fx
  :queue/show
@@ -45,7 +47,16 @@
  :queue/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream notify?]]
-   (let [updated-db (update db :queue conj (get-stream-metadata stream))]
+   (let [updated-db (update
+                     db
+                     :queue
+                     conj
+                     (-> stream
+                         (get-stream-metadata)
+                         (utils/apply-image-quality db :thumbnail :thumbnails)
+                         (utils/apply-image-quality db
+                                                    :uploader-avatar
+                                                    :uploader-avatars)))]
      {:db    updated-db
       :store (assoc store :queue (:queue updated-db))
       :fx    (if notify?
@@ -114,11 +125,19 @@
  :queue/change-stream
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream idx]]
-   (let [update-entry (fn [x]
-                        (update-in
-                         x
-                         [:queue idx]
-                         #(merge % (get-stream-metadata stream))))]
+   (let [update-entry
+         (fn [x]
+           (update-in
+            x
+            [:queue idx]
+            #(merge %
+                    (-> stream
+                        (get-stream-metadata)
+                        (utils/apply-image-quality db :thumbnail :thumbnails)
+                        (utils/apply-image-quality db
+                                                   :uploader-avatar
+                                                   :uploader-avatars)))))]
+
      {:db    (assoc (update-entry db) :queue/position idx)
       :store (assoc (update-entry store) :queue/position idx)
       :fx    [[:dispatch

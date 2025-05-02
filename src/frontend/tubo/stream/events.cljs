@@ -1,6 +1,7 @@
 (ns tubo.stream.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :stream/fetch
@@ -13,7 +14,20 @@
  :stream/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :stream            body
+               :stream            (-> body
+                                      (utils/apply-thumbnails-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-avatars-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-image-quality
+                                       db
+                                       :uploader-avatar
+                                       :uploader-avatars)
+                                      (utils/apply-image-quality db
+                                                                 :thumbnail
+                                                                 :thumbnails))
                :show-page-loading false)
     :fx [(when (-> db
                    :settings

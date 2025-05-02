@@ -1,6 +1,7 @@
 (ns tubo.playlist.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :playlist/fetch
@@ -15,7 +16,10 @@
    (-> db
        (update-in [:playlist :related-streams]
                   #(apply conj %1 %2)
-                  (:related-streams body))
+                  (-> body
+                      (utils/apply-thumbnails-quality db :related-streams)
+                      (utils/apply-avatars-quality db :related-streams)
+                      :related-streams))
        (assoc-in [:playlist :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 
@@ -34,7 +38,17 @@
  :playlist/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :playlist          body
+               :playlist          (-> body
+                                      (utils/apply-image-quality
+                                       db
+                                       :uploader-avatar
+                                       :uploader-avatars)
+                                      (utils/apply-thumbnails-quality
+                                       db
+                                       :related-streams)
+                                      (utils/apply-avatars-quality
+                                       db
+                                       :related-streams))
                :show-page-loading false)
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))

@@ -76,14 +76,12 @@
            :value    volume-level}])])))
 
 (defn metadata
-  [{:keys [thumbnails url name uploader-url uploader-name]}]
+  [{:keys [url name uploader-url uploader-name] :as stream}]
   [:div.flex.items-center.lg:flex-1
    [:div
-    [layout/thumbnail
-     (-> thumbnails
-         last
-         :url) (rfe/href :stream-page nil {:url url})
-     name nil :classes [:h-14 :py-2 "w-[70px]"]]]
+    [layout/thumbnail (dissoc stream :duration)
+     (rfe/href :stream-page nil {:url url}) :classes
+     [:h-14 :py-2 "w-[70px]"]]]
    [:div.flex.flex-col.pl-2.pr-4
     [:a.text-xs.line-clamp-1
      {:href  (rfe/href :stream-page nil {:url url})
@@ -267,10 +265,7 @@
                           ","
                           bg-color
                           "),url("
-                          (-> stream
-                              :thumbnails
-                              last
-                              :url)
+                          (:thumbnail stream)
                           ")")]
     (when show-player?
       [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative

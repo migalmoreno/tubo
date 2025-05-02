@@ -1,8 +1,49 @@
 (ns tubo.utils
   (:require
-   ["timeago.js" :as timeago]))
+   ["timeago.js" :as timeago]
+   [clojure.string :as s]))
 
 (goog-define ^js/String version "unknown")
+
+(defn apply-image-quality
+  [body db new-image-key old-image-key]
+  (assoc
+   body
+   new-image-key
+   (or (get body new-image-key)
+       (when (and (not= (get-in db [:settings :image-quality]) "none")
+                  (seq (get body old-image-key)))
+         (or (some-> (filter (fn [t]
+                               (= (:estimatedResolutionLevel t)
+                                  (-> db
+                                      (get-in [:settings
+                                               :image-quality])
+                                      str
+                                      s/upper-case)))
+                             (get body old-image-key))
+                     first
+                     :url)
+             (-> (get body old-image-key)
+                 last
+                 :url)
+             (get body old-image-key))))))
+
+(defn apply-image-quality-n
+  [body db key new-image-key old-image-key]
+  (update body
+          key
+          #(into []
+                 (map (fn [n]
+                        (apply-image-quality n db new-image-key old-image-key))
+                      %))))
+
+(defn apply-thumbnails-quality
+  [body db key]
+  (apply-image-quality-n body db key :thumbnail :thumbnails))
+
+(defn apply-avatars-quality
+  [body db key]
+  (apply-image-quality-n body db key :uploader-avatar :uploader-avatars))
 
 (defn get-service-color
   [id]
