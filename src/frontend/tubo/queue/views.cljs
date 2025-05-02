@@ -31,36 +31,26 @@
         [:span (utils/get-service-name service-id)]])]]])
 
 (defn popover
-  [{:keys [url service-id uploader-url] :as item} i bookmarks]
-  (let [liked? (some #(= (:url %) url)
-                     (-> bookmarks
-                         first
-                         :items))]
-    [:div.absolute.right-0.top-0.min-h-full.flex.items-center
-     [layout/popover
-      [{:label    (if liked? "Remove favorite" "Favorite")
-        :icon     [:i.fa-solid.fa-heart
-                   (when liked?
-                     {:style {:color (utils/get-service-color service-id)}})]
-        :on-click #(rf/dispatch [(if liked? :likes/remove :likes/add) item
-                                 true])}
-       {:label    "Start radio"
-        :icon     [:i.fa-solid.fa-tower-cell]
-        :on-click #(rf/dispatch [:bg-player/start-radio item])}
-       {:label    "Add to playlist"
-        :icon     [:i.fa-solid.fa-plus]
-        :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark item]])}
-       {:label    "Remove from queue"
-        :icon     [:i.fa-solid.fa-trash]
-        :on-click #(rf/dispatch [:queue/remove i])}
-       {:label    "Show channel details"
-        :icon     [:i.fa-solid.fa-user]
-        :on-click #(rf/dispatch [:navigation/navigate
-                                 {:name   :channel-page
-                                  :params {}
-                                  :query  {:url uploader-url}}])}]
-      :tooltip-classes ["right-5" "top-0" "z-20"]
-      :extra-classes [:px-7 :py-2]]]))
+  [{:keys [uploader-url] :as item} i]
+  [:div.absolute.right-0.top-0.min-h-full.flex.items-center
+   [layout/popover
+    [{:label    "Start radio"
+      :icon     [:i.fa-solid.fa-tower-cell]
+      :on-click #(rf/dispatch [:bg-player/start-radio item])}
+     {:label    "Add to playlist"
+      :icon     [:i.fa-solid.fa-plus]
+      :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark item]])}
+     {:label    "Remove from queue"
+      :icon     [:i.fa-solid.fa-trash]
+      :on-click #(rf/dispatch [:queue/remove i])}
+     {:label    "Show channel details"
+      :icon     [:i.fa-solid.fa-user]
+      :on-click #(rf/dispatch [:navigation/navigate
+                               {:name   :channel-page
+                                :params {}
+                                :query  {:url uploader-url}}])}]
+    :tooltip-classes ["right-5" "top-0" "z-20"]
+    :extra-classes [:px-7 :py-2]]])
 
 (defn queue-item
   [item queue queue-pos i bookmarks]

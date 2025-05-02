@@ -143,23 +143,13 @@
          "--:--")]]]))
 
 (defn popover
-  [{:keys [uploader-url url] :as stream}]
-  (let [queue      @(rf/subscribe [:queue])
-        queue-pos  @(rf/subscribe [:queue/position])
-        favorited? @(rf/subscribe [:bookmarks/favorited url])
-        bookmark   #(rf/dispatch [:modals/open
-                                  [modals/add-to-bookmark %]])]
+  [{:keys [uploader-url] :as stream}]
+  (let [queue     @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue/position])
+        bookmark  #(rf/dispatch [:modals/open
+                                 [modals/add-to-bookmark %]])]
     [layout/popover
-     [{:label    (if favorited? "Remove favorite" "Favorite")
-       :icon     [:i.fa-solid.fa-heart
-                  (when favorited?
-                    {:style {:color (-> stream
-                                        :service-id
-                                        utils/get-service-color)}})]
-       :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add)
-                                stream
-                                true])}
-      {:label    "Start radio"
+     [{:label    "Start radio"
        :icon     [:i.fa-solid.fa-tower-cell]
        :on-click #(rf/dispatch [:bg-player/start-radio
                                 stream])}

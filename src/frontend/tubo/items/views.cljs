@@ -7,11 +7,9 @@
    [tubo.utils :as utils]))
 
 (defn item-popover
-  [{:keys [service-id audio-streams video-streams type url bookmark-id
-           uploader-url]
+  [{:keys [audio-streams video-streams type url playlist-id uploader-url]
     :as   item}]
-  (let [favorited? @(rf/subscribe [:bookmarks/favorited url])
-        items
+  (let [items
         (if (or (= type "stream") audio-streams video-streams)
           [{:label    "Add to queue"
             :icon     [:i.fa-solid.fa-headphones]
@@ -19,18 +17,11 @@
            {:label    "Start radio"
             :icon     [:i.fa-solid.fa-tower-cell]
             :on-click #(rf/dispatch [:bg-player/start-radio item])}
-           {:label    (if favorited? "Remove favorite" "Favorite")
-            :icon     [:i.fa-solid.fa-heart
-                       (when (and favorited? service-id)
-                         {:style {:color (utils/get-service-color
-                                          service-id)}})]
-            :on-click #(rf/dispatch [(if favorited? :likes/remove :likes/add)
-                                     item true])}
            {:label    "Add to playlist"
             :icon     [:i.fa-solid.fa-plus]
             :on-click #(rf/dispatch [:modals/open
                                      [bookmarks/add-to-bookmark item]])}
-           (when @(rf/subscribe [:bookmarks/playlisted url bookmark-id])
+           (when @(rf/subscribe [:bookmarks/playlisted url playlist-id])
              {:label    "Remove from playlist"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmark/remove item])})
@@ -40,10 +31,10 @@
                                      {:name   :channel-page
                                       :params {}
                                       :query  {:url uploader-url}}])}]
-          [(when @(rf/subscribe [:bookmarks/bookmarked bookmark-id])
+          [(when @(rf/subscribe [:bookmarks/bookmarked playlist-id])
              {:label    "Remove playlist"
               :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
+              :on-click #(rf/dispatch [:bookmarks/remove playlist-id
                                        true])})])]
     (when (not-empty (remove nil? items))
       [layout/popover items

@@ -1,6 +1,5 @@
 (ns tubo.bookmarks.modals
   (:require
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]))
@@ -18,17 +17,18 @@
      (str (count items) " streams")]]])
 
 (defn add-bookmark
-  [item]
-  (let [!bookmark-name (r/atom "")]
-    (fn []
-      [modals/modal-content "Create New Playlist?"
-       [layout/text-field "Title" @!bookmark-name
-        #(reset! !bookmark-name (.. % -target -value)) "Playlist name"]
-       [layout/secondary-button "Back"
-        #(rf/dispatch [:modals/close])]
-       [layout/primary-button "Create Playlist"
-        #(rf/dispatch [:bookmarks/add {:name @!bookmark-name} item true])
-        [:i.fa-solid.fa-plus]]])))
+  []
+  [modals/modal-content "Create New Playlist?"
+   [layout/form
+    {:validation  [:map [:name string?]]
+     :on-submit   [:bookmarks/handle-add-form true]
+     :submit-text "Create playlist"
+     :extra-btns  [layout/secondary-button "Back"
+                   #(rf/dispatch [:modals/close]) nil nil {:type :button}]}
+    [{:name        :name
+      :label       "Name"
+      :type        :text
+      :placeholder "Playlist name"}]]])
 
 (defn add-to-bookmark
   [item]
@@ -37,7 +37,7 @@
      [:div.flex-auto
       [:div.flex.justify-center.items-center.pb-4
        [layout/primary-button "Create New Playlist"
-        #(rf/dispatch [:modals/open [add-bookmark item]])
+        #(rf/dispatch [:modals/open [add-bookmark]])
         [:i.fa-solid.fa-plus]]]
       [:div.flex.flex-col.gap-y-2.pr-2
        (for [[i bookmark] (map-indexed vector bookmarks)]

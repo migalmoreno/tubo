@@ -37,19 +37,25 @@
             [:services/fetch-all
              [:services/load] [:bad-response]]]
            [:dispatch
+            [:kiosks/fetch-all (:service-id store)
+             [:kiosks/load] [:bad-response]]]
+           [:dispatch
             [:api/get "services/3/instance" [:peertube/load-active-instance]
-             [:bad-response]]]]
+             [:bad-response]]]
+           (when (:auth/user store)
+             [:dispatch
+              [:bookmarks/fetch-authenticated-playlists]])]
       :db
-      {:player/paused      true
-       :player/muted       (:player/muted store)
-       :player/shuffled    (:player/shuffled store)
-       :player/loop        (if-nil (:player/loop store) :playlist)
-       :player/volume      (if-nil (:player/volume store) 100)
-       :bg-player/show     (:bg-player/show store)
-       :queue              (if-nil (:queue store) [])
-       :queue/position     (if-nil (:queue/position store) 0)
-       :queue/unshuffled   (:queue/unshuffled store)
-       :service-id         (if-nil (:service-id store) 0)
+      {:player/paused true
+       :player/muted (:player/muted store)
+       :player/shuffled (:player/shuffled store)
+       :player/loop (if-nil (:player/loop store) :playlist)
+       :player/volume (if-nil (:player/volume store) 100)
+       :bg-player/show (:bg-player/show store)
+       :queue (if-nil (:queue store) [])
+       :queue/position (if-nil (:queue/position store) 0)
+       :queue/unshuffled (:queue/unshuffled store)
+       :service-id (if-nil (:service-id store) 0)
        :auth/user (:auth/user store)
        :peertube/instances (if-nil (:peertube/instances store)
                                    (config/get-in [:peertube :instances]))

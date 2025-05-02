@@ -20,6 +20,7 @@
    [tubo.handlers.search :as search]
    [tubo.handlers.services :as services]
    [tubo.handlers.stream :as stream]
+   [tubo.handlers.auth-playlists :as ap]
    [tubo.middleware :as middleware]
    [tubo.routes :as routes]
    [tubo.schemas :as s]))
@@ -52,6 +53,41 @@
               :parameters {:body {:current-password s/ValidPassword
                                   :new-password     s/ValidPassword}}
               :handler    auth/create-password-reset-handler}}
+      :api/user-playlists
+      {:get    {:summary    "returns all playlists for an authenticated user"
+                :handler    ap/create-get-auth-playlists-handler
+                :middleware [middleware/auth]}
+       :post   {:summary    "creates a new playlist for an authenticated user"
+                :handler    ap/create-post-auth-playlists-handler
+                :middleware [middleware/auth]
+                :parameters {:body s/UserPlaylist}}
+       :delete {:summary    "deletes all playlists for an authenticated user"
+                :handler    ap/create-delete-auth-playlists-handler
+                :middleware [middleware/auth]}}
+      :api/add-user-playlist-streams
+      {:post {:summary    "adds new playlist streams for a given user playlist"
+              :handler    ap/create-post-auth-playlist-add-streams-handler
+              :middleware [middleware/auth]
+              :parameters {:body [:vector s/UserPlaylistStream]}}}
+      :api/delete-user-playlist-stream
+      {:post {:summary    "deletes playlist stream for a given user playlist"
+              :handler    ap/create-post-auth-playlist-delete-stream-handler
+              :middleware [middleware/auth]
+              :parameters {:body s/UserPlaylistStream}}}
+      :api/user-playlist
+      {:get    {:summary    "returns a user playlist for an authenticated user"
+                :parameters {:path {:id string?}}
+                :handler    ap/create-get-auth-playlist-handler
+                :middleware [middleware/auth]}
+       :put    {:summary    "updates a user playlist for an authenticated user"
+                :parameters {:path {:id string?}
+                             :body s/UserPlaylist}
+                :handler    ap/create-update-auth-playlist-handler
+                :middleware [middleware/auth]}
+       :delete {:summary    "deletes a user playlist for an authenticated user"
+                :parameters {:path {:id string?}}
+                :handler    ap/create-delete-auth-playlist-handler
+                :middleware [middleware/auth]}}
       :api/services {:get {:summary "returns all supported services"
                            :handler services/create-services-handler}}
       :api/search {:get {:summary
