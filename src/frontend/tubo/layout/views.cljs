@@ -88,9 +88,9 @@
 
 (defn button
   [label on-click left-icon right-icon &
-   {:keys [button-classes label-classes icon-classes]}]
+   {:keys [button-classes label-classes icon-classes extra-button-args]}]
   [:button.flex.items-center.gap-x-2.px-4.py-2.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap
-   {:on-click on-click :class button-classes}
+   (merge {:on-click on-click :class button-classes} extra-button-args)
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
    [:span.font-bold.text-sm {:class label-classes} label]
@@ -98,14 +98,16 @@
      (conj right-icon {:class (or icon-classes label-classes)}))])
 
 (defn primary-button
-  [label on-click left-icon right-icon]
+  [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
+   :extra-button-args extra-button-args
    :button-classes ["bg-neutral-800" "dark:bg-neutral-200"]
    :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
 (defn secondary-button
-  [label on-click left-icon right-icon]
+  [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
+   :extra-button-args extra-button-args
    :button-classes ["bg-neutral-200" "dark:bg-neutral-800"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
 
