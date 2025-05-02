@@ -23,10 +23,12 @@
     [:h1.line-clamp-1.w-fit.text-sm.xs:text-lg {:title name} name]
     [:div.text-neutral-600.dark:text-neutral-400.text-xs.xs:text-sm.flex.flex-col.xs:flex-row
      [:span.line-clamp-1 {:title uploader-name} uploader-name]
-     [:span.px-2.hidden.xs:inline-block
-      {:dangerouslySetInnerHTML {:__html "&bull;"}
-       :style                   {:font-size "0.5rem"}}]
-     [:span (utils/get-service-name service-id)]]]])
+     (when service-id
+       [:<>
+        [:span.px-2.hidden.xs:inline-block
+         {:dangerouslySetInnerHTML {:__html "&bull;"}
+          :style                   {:font-size "0.5rem"}}]
+        [:span (utils/get-service-name service-id)]])]]])
 
 (defn popover
   [{:keys [uploader-url] :as item} i]

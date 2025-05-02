@@ -5,7 +5,6 @@
    [re-frame.core :as rf]
    [tubo.layout.events :as le]
    [tubo.utils :as utils]
-   [tubo.bookmarks.modals :as modals]
    [fork.re-frame :as fork]))
 
 (defn apply-playlist-stream-transforms
@@ -15,16 +14,10 @@
       (utils/apply-image-quality db
                                  :uploader-avatar
                                  :uploader-avatars)
-      (select-keys [:duration :name :thumbnail
-                    :uploader-avatar :uploader-verified?
-                    :uploader-name :uploader-url :url])))
-
-(defn get-stream-metadata
-  [stream]
-  (select-keys stream
-               [:type :service-id :url :name :thumbnails :verified?
-                :uploader-name :uploader-url :uploader-avatars :upload-date
-                :short-description :duration :view-count :uploaded]))
+      (select-keys
+       [:type :service-id :url :name :thumbnail :verified?
+        :uploader-name :uploader-url :uploader-avatar :uploader-verified?
+        :upload-date :short-description :duration :view-count :uploaded])))
 
 (rf/reg-event-fx
  :bookmarks/on-add-auth
@@ -130,35 +123,33 @@
 (rf/reg-event-fx
  :bookmark/on-add-auth
  (fn [{:keys [db]} [_ playlist notify? {:keys [body]}]]
-   (let [updated-db         (update
-                             db
-                             :user/bookmarks
-                             (fn [bookmarks]
-                               (map
-                                (fn [bookmark]
-                                  (if (= (:playlist-id bookmark)
-                                         (:playlist-id playlist))
-                                    (update bookmark
-                                            :items
-                                            #(into (into [] %1) (into [] %2))
-                                            body)
-                                    bookmark))
-                                bookmarks)))
-         selected           (first (filter #(= (:playlist-id %)
-                                               (:playlist-id playlist))
-                                           (:user/bookmarks db)))
-         added-stream-count (- (count body) (count (:items selected)))]
+   (let [updated-db (update
+                     db
+                     :user/bookmarks
+                     (fn [bookmarks]
+                       (map
+                        (fn [bookmark]
+                          (if (= (:playlist-id bookmark)
+                                 (:playlist-id playlist))
+                            (update bookmark
+                                    :items
+                                    #(into (into [] %1) (into [] %2))
+                                    body)
+                            bookmark))
+                        bookmarks)))]
      {:db updated-db
       :fx [[:dispatch [:modals/close]]
            (when notify?
              [:dispatch
-              [:notifications/success
-               (str "Added"
-                    (when (> added-stream-count 1)
-                      (str " " added-stream-count " items"))
-                    " to playlist \""
-                    (:name playlist)
-                    "\"")]])]})))
+              (if (= (count body) 0)
+                [:notifications/error "Could not add to playlist"]
+                [:notifications/success
+                 (str "Added"
+                      (when (> (count body) 1)
+                        (str " " (count body) " items"))
+                      " to playlist \""
+                      (:name playlist)
+                      "\"")])])]})))
 
 (rf/reg-event-fx
  :bookmark/add-n
@@ -200,9 +191,10 @@
                         (update-in db
                                    [:bookmarks pos :items]
                                    #(into [] (conj (into [] %1) %2))
-                                   (assoc (get-stream-metadata item)
-                                          :bookmark-id
-                                          (:id bookmark))))]
+                                   (assoc
+                                    (apply-playlist-stream-transforms db item)
+                                    :playlist-id
+                                    (:id bookmark))))]
        {:db    updated-db
         :store (assoc store :bookmarks (:bookmarks updated-db))
         :fx    [[:dispatch [:modals/close]]
@@ -230,7 +222,6 @@
                             bookmarks)))
          selected   (first (filter #(= (:playlist-id %) (:playlist-id playlist))
                                    (:user/bookmarks updated-db)))]
-     (.log js/console (clj->js (:user/bookmarks updated-db)))
      {:db updated-db
       :fx [[:dispatch
             [:notifications/success
@@ -241,15 +232,15 @@
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ bookmark]]
    (if (:auth/user db)
-     (let [playlist (first (filter #(= (:playlist-id %) (:bookmark-id bookmark))
+     (let [playlist (first (filter #(= (:playlist-id %) (:playlist-id bookmark))
                                    (:user/bookmarks db)))]
        {:fx [[:dispatch
               [:api/post-auth
-               (str "user/playlists/" (:bookmark-id bookmark) "/delete-stream")
+               (str "user/playlists/" (:playlist-id bookmark) "/delete-stream")
                (apply-playlist-stream-transforms db bookmark)
                [:bookmark/on-remove-streams-auth playlist]
                [:bad-response]]]]})
-     (let [selected   (first (filter #(= (:id %) (:bookmark-id bookmark))
+     (let [selected   (first (filter #(= (:id %) (:playlist-id bookmark))
                                      (:bookmarks db)))
            pos        (.indexOf (:bookmarks db) selected)
            updated-db (update-in db
@@ -276,32 +267,48 @@
 
 (defn fetch-imported-bookmarks-items
   [db bookmarks]
-  (-> #(-> (p/all
-            (map (fn [stream]
-                   (-> (js/fetch
-                        (str (get-in db [:settings :instance])
-                             "/api/v1/streams/"
-                             (js/encodeURIComponent stream)))
-                       (p/then (fn [res] (.json res)))
-                       (p/catch (fn []
-                                  (rf/dispatch
-                                   [:notifications/error
-                                    (str "Error importing " stream)])))))
-                 (:items %)))
-           (p/then (fn [results]
-                     (assoc %
-                            :items
-                            (map-indexed
-                             (fn [i item]
-                               (assoc
-                                (->> (js->clj item :keywordize-keys true)
-                                     (get-stream-metadata)
-                                     (apply-playlist-stream-transforms db))
-                                :order
-                                i))
-                             (remove nil? results))))))
+  (-> (fn [bookmark]
+        (-> (p/all
+             (map (fn [stream]
+                    (-> (js/fetch
+                         (str (get-in db [:settings :instance])
+                              "/api/v1/streams/"
+                              (js/encodeURIComponent stream)))
+                        (p/then (fn [res]
+                                  (if (= (.-status res) 200)
+                                    (.json res)
+                                    (throw (js/Error. (str "Error importing "
+                                                           stream))))))
+                        (p/catch (fn [error]
+                                   (rf/dispatch
+                                    [:notifications/error
+                                     (.-message error)])))))
+                  (:items bookmark)))
+            (p/then (fn [results]
+                      (if (= (count (remove nil? results)) 0)
+                        (throw (js/Error. "Error importing playlist "
+                                          (:name bookmark)))
+                        (assoc bookmark
+                               :items
+                               (map
+                                (fn [item]
+                                  (->> (js->clj item :keywordize-keys true)
+                                       (apply-playlist-stream-transforms db)))
+                                (remove nil? results))))))
+            (p/catch (fn [error]
+                       (rf/dispatch
+                        [:notifications/error (.-message error)])))))
       (map bookmarks)
-      p/all))
+      p/all
+      (p/then (fn [bookmarks]
+                (if (= (count (remove nil? bookmarks)) 0)
+                  (throw (js/Error. "There was a problem importing playlists"))
+                  bookmarks)))))
+
+(rf/reg-event-fx
+ :bookmarks/handle-import-failure
+ (fn [_ [_ error]]
+   {:fx [[:dispatch [:notifications/error (.-message error)]]]}))
 
 (rf/reg-event-fx
  :bookmarks/process-import
@@ -310,7 +317,12 @@
     {:call         #(fetch-imported-bookmarks-items db bookmarks)
      :on-success-n [[:notifications/clear]
                     [:bookmarks/add-imported]
-                    [:layout/destroy-tooltip-by-id tooltip-id]]}
+                    [:layout/destroy-tooltip-by-id tooltip-id]
+                    [:layout/hide-bg-overlay]]
+     :on-failure-n [[:notifications/clear]
+                    [:bookmarks/handle-import-failure]
+                    [:layout/destroy-tooltip-by-id tooltip-id]
+                    [:layout/hide-bg-overlay]]}
     :fx [[:dispatch
           [:notifications/add
            {:status-text "Importing playlists"
@@ -444,13 +456,6 @@
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch
           [:api/update-auth (str "user/playlists/" (:playlist-id playlist))
-           (into playlist values)
+           values
            [:bookmark/on-update-info-auth-success path]
            [:on-form-submit-failure path]]]]}))
-
-(rf/reg-event-fx
- :bookmark/open-add-modal
- (fn [_ [_ item]]
-   {:fx [[:dispatch
-          [:bookmarks/fetch-authenticated-playlists
-           [:modals/open [modals/add-to-bookmark item]]]]]}))

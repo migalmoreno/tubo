@@ -10,12 +10,10 @@
 (rf/reg-sub
  :bookmarks
  (fn [db]
-   (if (:auth/user db)
-     (map #(if (:thumbnail %)
-             %
-             (assoc % :thumbnail (:thumbnail (first (:items %)))))
-          (:user/bookmarks db))
-     (:bookmarks db))))
+   (map #(if (:thumbnail %)
+           %
+           (assoc % :thumbnail (:thumbnail (first (:items %)))))
+        (get db (if (:auth/user db) :user/bookmarks :bookmarks)))))
 
 (rf/reg-sub
  :bookmarks/get-by-id

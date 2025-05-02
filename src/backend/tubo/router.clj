@@ -59,7 +59,8 @@
                 :middleware [middleware/auth]}
        :post   {:summary    "creates a new playlist for an authenticated user"
                 :handler    ap/create-post-auth-playlists-handler
-                :middleware [middleware/auth]}
+                :middleware [middleware/auth]
+                :parameters {:body s/UserPlaylistStream}}
        :delete {:summary    "deletes all playlists for an authenticated user"
                 :handler    ap/create-delete-auth-playlists-handler
                 :middleware [middleware/auth]}}
@@ -106,8 +107,9 @@
       {:get {:summary "returns instance metadata for a given service"
              :handler services/create-instance-metadata-handler}}
       :api/change-instance
-      {:post {:summary "changes the instance for a given service"
-              :handler services/create-change-instance-handler}}
+      {:post {:summary    "changes the instance for a given service"
+              :handler    services/create-change-instance-handler
+              :parameters {:body s/PeerTubeInstance}}}
       :api/default-kiosk {:get
                           {:summary
                            "returns default kiosk entries for a given service"
@@ -122,18 +124,23 @@
                    "returns kiosk entries for a given service and a kiosk ID"
                    :parameters {:path {:service-id int? :kiosk-id string?}}
                    :handler kiosks/create-kiosk-handler}}
-      :api/stream {:get {:summary "returns stream data for a given URL"
-                         :handler stream/create-stream-handler}}
-      :api/channel {:get {:summary "returns channel data for a given URL"
-                          :handler channel/create-channel-handler}}
+      :api/stream {:get {:summary    "returns stream data for a given URL"
+                         :parameters {:path {:url uri?}}
+                         :handler    stream/create-stream-handler}}
+      :api/channel {:get {:summary    "returns channel data for a given URL"
+                          :parameters {:path {:url uri?}}
+                          :handler    channel/create-channel-handler}}
       :api/channel-tab {:get
                         {:summary
                          "returns channel tab data for a given URL and a tab ID"
+                         :parameters {:path {:url uri? :tab-id string?}}
                          :handler channel/create-channel-tabs-handler}}
-      :api/playlist {:get {:summary "returns playlist data for a given URL"
-                           :handler playlist/create-playlist-handler}}
-      :api/comments {:get {:summary "returns comments data for a given URL"
-                           :handler comments/create-comments-handler}}
+      :api/playlist {:get {:summary    "returns playlist data for a given URL"
+                           :parameters {:path {:url uri?}}
+                           :handler    playlist/create-playlist-handler}}
+      :api/comments {:get {:summary    "returns comments data for a given URL"
+                           :parameters {:path {:url uri?}}
+                           :handler    comments/create-comments-handler}}
       :api/swagger-spec {:no-doc true
                          :get    {:swagger {:info     {:title "Tubo API"}
                                             :basePath "/"}

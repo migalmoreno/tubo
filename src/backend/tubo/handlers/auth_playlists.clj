@@ -1,7 +1,7 @@
 (ns tubo.handlers.auth-playlists
   (:require
    [clojure.data :as data]
-   [ring.util.http-response :refer [bad-request ok]]
+   [ring.util.http-response :refer [ok]]
    [tubo.models.channel :as channel]
    [tubo.models.playlist :as playlist]
    [tubo.models.stream :as stream]))
@@ -24,8 +24,7 @@
                                     [(:id channel) (:duration item)])]
                              ds)))
         playlist (playlist/get-playlist-by-playlist-id playlist-id ds)]
-    (playlist/add-playlist-streams [[(:id stream) (:id playlist)
-                                     (:order item)]]
+    (playlist/add-playlist-streams [[(:id stream) (:id playlist) (:order item)]]
                                    ds)))
 
 (defn create-get-auth-playlists-handler
@@ -44,9 +43,13 @@
                                          (:thumbnail body-params)]]
                                        datasource))]
     (when (seq (:items body-params))
-      (doseq [item (:items body-params)]
+      (doseq [item (map-indexed (fn [i item] (assoc item :order (inc i)))
+                                (:items body-params))]
         (add-playlist-streams datasource item (str playlist-id))))
-    (ok (assoc added-playlist :id playlist-id))))
+    (ok (assoc added-playlist
+               :id    playlist-id
+               :items (playlist/get-playlist-streams (str playlist-id)
+                                                     datasource)))))
 
 (defn create-delete-auth-playlists-handler
   [{:keys [datasource identity]}]
@@ -113,22 +116,4 @@
 
 (defn create-update-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
-  (let [items (map-indexed
-               (fn [i item]
-                 (assoc (first (filter #(= item (:url %))
-                                       (:items body-params)))
-                        :order
-                        (inc i)))
-               (distinct (into []
-                               (map :url (:items body-params)))))]
-    (try
-      (ok (merge (if (seq (select-keys body-params [:name :thumbnail]))
-                   (playlist/update-playlist datasource
-                                             (:id path-params)
-                                             (select-keys body-params
-                                                          [:name :thumbnail]))
-                   (playlist/get-playlist-by-playlist-id (:id path-params)
-                                                         datasource))
-                 {:items items}))
-      (catch Exception e
-        (bad-request (ex-message e))))))
+  (ok (playlist/update-playlist datasource (:id path-params) body-params)))

@@ -197,32 +197,32 @@
                          (on-click %))
                        (when destroy-tooltip-on-click?
                          (rf/dispatch [:layout/destroy-tooltip-by-id
-                                       tooltip-id])))
+                                       tooltip-id])
+                         (rf/dispatch [:layout/hide-bg-overlay])))
         :class    (str/join " " classes)}
        (or custom-content content)])))
 
 (defn tooltip
   [items tooltip-id & {:keys [extra-classes]}]
   (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30
+    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30.cursor-pointer
      {:class (conj extra-classes)}
      (for [[i item] (map-indexed vector (remove nil? items))]
        ^{:key i} [tooltip-item item tooltip-id])]))
 
 (defn mobile-tooltip
   []
-  (let [{:keys [id items show?]} @(rf/subscribe [:layout/mobile-tooltip])
-        tooltip-data             (rf/subscribe [:layout/tooltip-by-id id])]
+  (let [{:keys [id items show?]}
+        @(rf/subscribe [:layout/mobile-tooltip])
+        tooltip-data (rf/subscribe [:layout/tooltip-by-id id])]
     (when @tooltip-data
       [:div.xs:hidden
-       {:class    (str "tooltip-controller-" id)
-        :on-click #(do (rf/dispatch [:layout/destroy-tooltip-by-id id])
-                       (rf/dispatch [:layout/hide-bg-overlay]))}
+       {:class (str "tooltip-controller-" id)}
        (when-not (empty? (remove nil? items))
          [:ul.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-30.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-4.left-2.right-2.fixed
           {:class (when-not show? "hidden")}
           (for [[i item] (map-indexed vector (remove nil? items))]
-            ^{:key i} [tooltip-item item])])])))
+            ^{:key i} [tooltip-item item id])])])))
 
 (defn popover
   []
@@ -237,20 +237,28 @@
                  destroy-on-click-out? true}}]
       [:div.flex.items-center.tooltip-controller
        {:class (str "tooltip-controller-" tooltip-id)}
-       [:button.focus:outline-none.relative
-        {:on-click (when-not @tooltip-data
-                     #(rf/dispatch [:layout/register-tooltip
-                                    {:id tooltip-id
-                                     :destroy-on-click-out?
-                                     destroy-on-click-out?}]))
-         :class    (into extra-classes
-                         (if responsive? ["hidden" "xs:block"] ["block"]))}
-        icon
+       [:div.relative
+        {:class (into ["w-full"]
+                      (if responsive? ["hidden" "xs:block"] ["block"]))}
+        [:button.focus:outline-none.w-full
+         {:class    extra-classes
+          :on-click (if @tooltip-data
+                      #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+                      #(rf/dispatch [:layout/register-tooltip
+                                     {:id tooltip-id
+                                      :destroy-on-click-out?
+                                      destroy-on-click-out?}]))}
+         icon]
         (when @tooltip-data
           [tooltip items tooltip-id :extra-classes tooltip-classes])]
        [:button.focus:outline-none.relative
-        {:on-click #(rf/dispatch [:layout/show-mobile-tooltip
-                                  {:items items :id tooltip-id}])
+        {:on-click (if @tooltip-data
+                     #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+                     #(rf/dispatch [:layout/show-mobile-tooltip
+                                    {:items items
+                                     :id tooltip-id
+                                     :destroy-on-click-out?
+                                     destroy-on-click-out?}]))
          :class    (conj extra-classes (if responsive? "xs:hidden" "hidden"))}
         icon]])))
 

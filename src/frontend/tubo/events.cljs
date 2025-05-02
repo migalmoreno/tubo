@@ -108,7 +108,7 @@
                   :image-quality        (if-nil (-> store
                                                     :settings
                                                     :image-quality)
-                                                :medium)
+                                                :high)
                   :default-country      (if-nil (-> store
                                                     :settings
                                                     :default-country)

@@ -7,7 +7,7 @@
    [tubo.utils :as utils]))
 
 (defn item-popover
-  [{:keys [audio-streams video-streams type url bookmark-id uploader-url]
+  [{:keys [audio-streams video-streams type url playlist-id uploader-url]
     :as   item}]
   (let [items
         (if (or (= type "stream") audio-streams video-streams)
@@ -21,7 +21,7 @@
             :icon     [:i.fa-solid.fa-plus]
             :on-click #(rf/dispatch [:modals/open
                                      [bookmarks/add-to-bookmark item]])}
-           (when @(rf/subscribe [:bookmarks/playlisted url bookmark-id])
+           (when @(rf/subscribe [:bookmarks/playlisted url playlist-id])
              {:label    "Remove from playlist"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmark/remove item])})
@@ -31,10 +31,10 @@
                                      {:name   :channel-page
                                       :params {}
                                       :query  {:url uploader-url}}])}]
-          [(when @(rf/subscribe [:bookmarks/bookmarked bookmark-id])
+          [(when @(rf/subscribe [:bookmarks/bookmarked playlist-id])
              {:label    "Remove playlist"
               :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/remove bookmark-id
+              :on-click #(rf/dispatch [:bookmarks/remove playlist-id
                                        true])})])]
     (when (not-empty (remove nil? items))
       [layout/popover items

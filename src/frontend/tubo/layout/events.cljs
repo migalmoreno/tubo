@@ -24,7 +24,9 @@
  :layout/show-mobile-tooltip
  (fn [{:keys [db]} [_ data]]
    {:db (assoc db :layout/mobile-tooltip (assoc data :show? true))
-    :fx [[:dispatch [:layout/register-tooltip {:id (:id data)}]]
+    :fx [[:dispatch
+          [:layout/register-tooltip
+           (select-keys data [:id :destroy-on-click-out?])]]
          [:dispatch [:layout/show-bg-overlay {:extra-classes ["z-30"]}]]]}))
 
 (defn default-tooltip-data

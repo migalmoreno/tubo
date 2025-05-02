@@ -199,11 +199,11 @@
                  :icon     [:i.fa-solid.fa-right-to-bracket
                             {:class "rotate-180"}]
                  :on-click #(rf/dispatch [:auth/logout])}]))
-       :extra-classes ["p-0" "w-full"]
+       :extra-classes ["p-0"]
        :responsive? false
        :tooltip-classes ["right-3" "top-8"]
        :icon
-       [:li.hover:bg-neutral-200.dark:hover:bg-neutral-800
+       [:li.hover:bg-neutral-200.dark:hover:bg-neutral-800.w-full
         [:div.flex.gap-x-4.p-4
          [:div.w-6.flex.justify-center.items-center
           (conj [:i.fa-solid.fa-user]

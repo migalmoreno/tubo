@@ -209,10 +209,15 @@
   [:or
    [:map
     [:id {:optional true} int?]
-    [:playlist-id uuid?]
+    [:playlist-id {:optional true} uuid?]
     [:name string?]
     [:thumbnail uri?]
     [:owner {:optional true} int?]
-    [:items [:vector UserPlaylistStream]]]
+    [:items {:optional true} [:vector UserPlaylistStream]]]
    [:map
     [:items [:vector UserPlaylistStream]]]])
+
+(def PeerTubeInstance
+  [:map
+   [:name string?]
+   [:url uri?]])

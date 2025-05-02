@@ -16,7 +16,7 @@
             items     (map
                        #(assoc %
                                :stream-count (count (:items %))
-                               :bookmark-id  (or (:playlist-id %) (:id %))
+                               :playlist-id  (or (:playlist-id %) (:id %))
                                :url          (rfe/href :bookmark-page
                                                        nil
                                                        {:id (or (:playlist-id %)
@@ -47,7 +47,8 @@
               :on-click #(rf/dispatch [:bookmarks/export])}
              {:label    "Clear All"
               :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/clear])}]]]
+              :on-click #(rf/dispatch [:bookmarks/clear])}]
+           ]]
           [items/layout-switcher !layout]]
          [items/related-streams items nil !layout]]))))
 
@@ -126,5 +127,5 @@
                                           [modals/add-to-bookmark items]])}]))]]
           [items/layout-switcher !layout]]
          [items/related-streams
-          (map #(assoc % :type "stream" :bookmark-id id) items) nil
+          (map #(assoc % :type "stream" :playlist-id id) items) nil
           !layout]]))))

@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS playlist_streams (
   stream_id bigserial NOT NULL,
   playlist_id bigserial NOT NULL,
   playlist_stream_order bigint NOT NULL,
-  CONSTRAINT pk_playlist_streams PRIMARY KEY (stream_id, playlist_id, playlist_stream_order),
+  CONSTRAINT pk_playlist_streams PRIMARY KEY (playlist_id, playlist_stream_order),
   CONSTRAINT fk_playlists FOREIGN KEY (playlist_id) REFERENCES playlists (id),
   CONSTRAINT fk_streams FOREIGN KEY (stream_id) REFERENCES streams (id)
 );
