@@ -1,14 +1,15 @@
 (ns tubo.queue.events
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.utils :as utils]))
 
 (defn get-stream-metadata
   [stream]
   (select-keys stream
-               [:type :service-id :url :name :thumbnails :audio-streams
+               [:type :service-id :url :name :thumbnail :audio-streams
                 :video-streams :verified? :uploader-name :uploader-url
-                :uploader-avatars :upload-date :short-description :duration
-                :view-count :bookmark-id]))
+                :uploader-verified? :uploader-avatar :upload-date
+                :short-description :duration :view-count :bookmark-id]))
 
 (rf/reg-event-fx
  :queue/show
@@ -45,7 +46,16 @@
  :queue/add
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ stream notify?]]
-   (let [updated-db (update db :queue conj (get-stream-metadata stream))]
+   (let [updated-db (update
+                     db
+                     :queue
+                     conj
+                     (-> stream
+                         (utils/apply-image-quality db :thumbnail :thumbnails)
+                         (utils/apply-image-quality db
+                                                    :uploader-avatar
+                                                    :uploader-avatars)
+                         (get-stream-metadata)))]
      {:db    updated-db
       :store (assoc store :queue (:queue updated-db))
       :fx    (if notify?

@@ -23,13 +23,6 @@
                 :from   [:streams]
                 :where  [:in :url urls]}))
 
-(defn get-streams-by-channel-id
-  [ds id]
-  (db/execute! ds
-               {:select [:*]
-                :from   [:streams]
-                :where  [:= :channel-id id]}))
-
 (defn get-unique-streams-for-playlist
   [ds id stream-ids]
   (db/execute! ds

@@ -63,6 +63,16 @@
        :delete {:summary    "deletes all playlists for an authenticated user"
                 :handler    ap/create-delete-auth-playlists-handler
                 :middleware [middleware/auth]}}
+      :api/add-user-playlist-streams
+      {:post {:summary    "adds new playlist streams for a given user playlist"
+              :handler    ap/create-post-auth-playlist-add-streams-handler
+              :middleware [middleware/auth]
+              :parameters {:body [:vector s/UserPlaylistStream]}}}
+      :api/delete-user-playlist-stream
+      {:post {:summary    "deletes playlist stream for a given user playlist"
+              :handler    ap/create-post-auth-playlist-delete-stream-handler
+              :middleware [middleware/auth]
+              :parameters {:body s/UserPlaylistStream}}}
       :api/user-playlist
       {:get    {:summary    "returns a user playlist for an authenticated user"
                 :parameters {:path {:id string?}}

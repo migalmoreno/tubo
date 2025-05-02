@@ -26,7 +26,10 @@
     ["/user"
      ["/playlists"
       ["" :api/user-playlists]
-      ["/:id" :api/user-playlist]]]
+      ["/:id"
+       ["" :api/user-playlist]
+       ["/add-streams" :api/add-user-playlist-streams]
+       ["/delete-stream" :api/delete-user-playlist-stream]]]]
     ["/services"
      ["" :api/services]
      ["/:service-id"

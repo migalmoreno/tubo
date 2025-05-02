@@ -2,7 +2,6 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
@@ -16,9 +15,7 @@
        :on-click #(rf/dispatch [:queue/add-n related-streams true])}
       {:label    "Add streams to playlist"
        :icon     [:i.fa-solid.fa-plus]
-       :on-click #(rf/dispatch [:modals/open
-                                [modals/add-to-bookmark
-                                 related-streams]])}]
+       :on-click #(rf/dispatch [:bookmark/open-add-modal related-streams])}]
      :tooltip-classes ["right-7" "top-0"]]))
 
 (defn metadata

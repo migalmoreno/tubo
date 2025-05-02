@@ -12,7 +12,7 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [{:keys [duration thumbnail stream-type short?]} route &
+  [{:keys [duration thumbnail stream-type short? name]} route &
    {:keys [classes rounded?]}]
   [:div.flex.box-border {:class classes}
    [:div.relative.min-w-full

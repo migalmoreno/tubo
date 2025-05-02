@@ -65,7 +65,7 @@
   [values ds]
   (db/execute! ds
                {:insert-into [:playlists]
-                :columns     [:name :owner]
+                :columns     [:name :owner :thumbnail]
                 :values      values}))
 
 (defn add-playlist-streams
@@ -138,3 +138,12 @@
     (when (seq unique-stream-ids)
       (delete-unique-streams-by-ids ds unique-stream-ids))
     (delete-playlists-by-owner ds owner-id)))
+
+(defn update-playlist-streams-order
+  [ds playlist-id idx]
+  (db/execute! ds
+               {:update [:playlist_streams]
+                :set    {:playlist_stream_order [:- :playlist_stream_order 1]}
+                :where  [:and
+                         [:= :playlist_id playlist-id]
+                         [:> :playlist_stream_order idx]]}))
