@@ -308,6 +308,39 @@
           [:i.fa-regular.fa-clipboard]]
          [secondary-button "Retry" #(rf/dispatch cb)
           [:i.fa-solid.fa-rotate-right]]]]])))
+(defn horizontal-tabs
+  [tabs]
+  (let [!current (r/atom (and (seq tabs) (nth tabs 0)))]
+    (fn [tabs & {:keys [on-change selected-id]}]
+      [:<>
+       [:button.py-2.pr-2
+        {:on-click #(on-change nil)
+         :class    (if selected-id "block md:hidden" "hidden")}
+        [:i.fa-solid.fa-arrow-left]]
+       [:div.min-w-fit.w-full.md:w-auto
+        {:class (when selected-id "hidden md:block")}
+        (into
+         [:ul.w-full.flex.flex-col.gap-x-4.justify-center.items-center]
+         (when (seq tabs)
+           (for [[i tab] (map-indexed vector tabs)]
+             (let [selected? (= (:id tab) (or selected-id (:id @!current)))]
+               (when tab
+                 [:li.flex-auto.flex.items-center.w-full
+                  {:key i}
+                  [:button.flex.flex-auto.md:px-4.py-4.items-center.gap-6.flex-shrink-0.flex-auto.rounded
+                   {:class
+                    (if selected?
+                      "md:bg-neutral-800 md:dark:bg-neutral-100 md:text-neutral-100 md:dark:text-neutral-600"
+                      "md:!bg-transparent")
+                    :on-click (fn []
+                                (reset! !current tab)
+                                (on-change (:id @!current)))}
+                   (:left-icon tab)
+                   [:span.pr-6
+                    (if (:label-fn tab)
+                      ((:label-fn tab) (:label tab))
+                      (:label tab))]
+                   (:right-icon tab)]])))))]])))
 
 (defn tabs
   [tabs]

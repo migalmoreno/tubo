@@ -168,9 +168,13 @@
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
          [layout/content-header "Settings"]
-         [:div.mt-4
-          [layout/tabs
-           [{:id        :video-audio
+         [:div.mt-4.flex.gap-y-4.gap-x-12.md:flex-nowrap.flex-wrap
+          [layout/horizontal-tabs
+           [(when user
+              {:id        :user
+               :label     "User"
+               :left-icon [:i.fa-solid.fa-user]})
+            {:id        :video-audio
              :label     "Video and audio"
              :left-icon [:i.fa-solid.fa-headphones]}
             {:id        :appearance
@@ -181,8 +185,12 @@
              :left-icon [:i.fa-solid.fa-globe]}]
            :selected-id @!active-tab
            :on-change #(reset! !active-tab %)]
-          [:form.flex.flex-wrap.py-4.gap-y-4 {:on-submit #(.preventDefault %)}
+          [:form.flex.flex-wrap.gap-y-4.w-full.h-full
+           {:on-submit #(.preventDefault %)}
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
-             :video-audio [video-audio-settings settings])]]]))))
+             :user        [user-settings settings]
+             :video-audio [video-audio-settings settings]
+             [:div.hidden.md:block.w-full
+              (if user [user-settings] [appearance-settings])])]]]))))
