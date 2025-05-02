@@ -51,116 +51,138 @@
        :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
-  [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration type]
-    :as   item} route]
-  [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
-   [layout/thumbnail
-    (-> thumbnails
-        last
-        :url) route name duration
-    :classes [:py-2 :h-44 "xs:h-28"] :rounded? true]
-   [:div
-    (when name
-      [:div.flex.items-center.my-2
-       [:a {:href route :title name}
-        [:h1.line-clamp-2.my-1 {:class "[overflow-wrap:anywhere]"} name]]
-       (when (and verified? (not uploader-url))
-         [:i.fa-solid.fa-circle-check.pl-2.text-sm])])
-    [:div.flex.justify-between
-     [:div.flex.items-center.my-2
-      (conj
-       (when uploader-url
-         [:a
-          {:href  (rfe/href :channel-page nil {:url uploader-url})
-           :title uploader-name
-           :key   url}])
-       [:h1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.line-clamp-1.break-all
-        {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
-        uploader-name])
-      (when (and uploader-url verified?)
-        [:i.fa-solid.fa-circle-check.text-xs])]
-     [item-popover item]]
-    (when (and (= type "channel") subscriber-count)
-      [:div.flex.items-center
-       [:i.fa-solid.fa-users.text-xs]
-       [:span.mx-2 (utils/format-quantity subscriber-count)]])
-    (when stream-count
-      [:div.flex.items-center
-       [:i.fa-solid.fa-video.text-xs]
-       [:span.mx-2 (utils/format-quantity stream-count)]])
-    [:div.flex.my-1.justify-between
-     [:span (utils/format-date-ago (:upload-date item))]
-     (when view-count
-       [:div.flex.items-center.h-full.pl-2
-        [:i.fa-solid.fa-eye.text-xs]
-        [:p.pl-1.5 (utils/format-quantity view-count)]])]]])
+  [{:keys [url name uploader-url uploader-name uploader-verified?
+           subscriber-count view-count stream-count verified? type]
+    :as   item}]
+  (let [route (case (:type item)
+                "stream"   (rfe/href :stream-page
+                                     nil
+                                     {:url (:url item)})
+                "channel"  (rfe/href :channel-page
+                                     nil
+                                     {:url (:url item)})
+                "playlist" (rfe/href :playlist-page
+                                     nil
+                                     {:url (:url item)})
+                (:url item))]
+    [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
+     [layout/thumbnail item route :classes [:py-2 :h-44 "xs:h-28"] :rounded?
+      true]
+     [:div
+      (when name
+        [:div.flex.items-center.my-2
+         [:a {:href route :title name}
+          [:h1.line-clamp-2.my-1 {:class "[overflow-wrap:anywhere]"} name]]
+         (when (and verified? (not uploader-url))
+           [:i.fa-solid.fa-circle-check.pl-2.text-sm])])
+      [:div.flex.justify-between
+       [:div.flex.items-center.my-2
+        (conj
+         (when uploader-url
+           [:a
+            {:href  (rfe/href :channel-page nil {:url uploader-url})
+             :title uploader-name
+             :key   url}])
+         [:h1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.line-clamp-1.break-all
+          {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
+          uploader-name])
+        (when (and uploader-url uploader-verified?)
+          [:i.fa-solid.fa-circle-check.text-xs])]
+       [item-popover item]]
+      (when (and (= type "channel") subscriber-count)
+        [:div.flex.items-center
+         [:i.fa-solid.fa-users.text-xs]
+         [:span.mx-2 (utils/format-quantity subscriber-count)]])
+      (when stream-count
+        [:div.flex.items-center
+         [:i.fa-solid.fa-video.text-xs]
+         [:span.mx-2 (utils/format-quantity stream-count)]])
+      [:div.flex.my-1.justify-between
+       [:span (utils/format-date-ago (:upload-date item))]
+       (when view-count
+         [:div.flex.items-center.h-full.pl-2
+          [:i.fa-solid.fa-eye.text-xs]
+          [:p.pl-1.5 (utils/format-quantity view-count)]])]]]))
 
 (defn list-item-content
-  [{:keys [url name uploader-url uploader-name subscriber-count view-count
-           stream-count verified? thumbnails duration upload-date type]
-    :as   item} route]
-  [:div.flex.gap-x-3.xs:gap-x-5
-   [layout/thumbnail
-    (-> thumbnails
-        last
-        :url) route name duration
-    :classes
-    ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]" "sm:h-36" "sm:min-w-[250px]"
-     "sm:max-w-[250px]"] :rounded?
-    true]
-   [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
-    (when name
-      [:div.flex.items-center.justify-between.mt-2
-       [:a {:href route :title name}
-        [:h1.line-clamp-1.text-sm.xs:text-xl
-         {:class "[overflow-wrap:anywhere]"}
-         name
-         (when (and verified? (not uploader-url))
-           [:i.fa-solid.fa-circle-check.pl-3.text-sm])]]
-       [item-popover item]])
-    [:div.flex.items-center.justify-between.gap-y-2
-     [:div.flex.flex-col.justify-center.gap-y-2.text-neutral-600.dark:text-neutral-400
-      (when (or uploader-url uploader-name)
-        [:div.flex.gap-2.items-center
-         [layout/uploader-avatar item :classes ["w-6" "h-6"]]
-         (conj
-          (when uploader-url
-            [:a
-             {:href  (rfe/href :channel-page nil {:url uploader-url})
-              :title uploader-name
-              :key   url}])
-          [:h1.font-semibold.line-clamp-1.break-all.text-xs.xs:text-sm
-           {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
-           uploader-name])
-         (when (and uploader-url verified?)
-           [:i.fa-solid.fa-circle-check.text-xs])])
-      (when (or view-count upload-date)
-        [:div.flex.text-xs.xs:text-sm
-         (when view-count
-           [:<>
-            [:div.flex.items-center.h-full.whitespace-nowrap
-             [:p (str (utils/format-quantity view-count) " views")]]
-            (when upload-date
-              [:span.px-2
-               {:dangerouslySetInnerHTML {:__html "&bull;"}
-                :style                   {:font-size "0.5rem"}}])])
-         (when upload-date
-           [:span.line-clamp-1 (utils/format-date-ago upload-date)])])
-      (when (or subscriber-count stream-count)
-        [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
-         (when (and (= type "channel") subscriber-count)
-           [:<>
-            [:div.flex.items-center.h-full
-             [:p
-              (str (utils/format-quantity subscriber-count) " subscribers")]]
-            (when stream-count
-              [:span.px-2.hidden.xs:inline-block
-               {:dangerouslySetInnerHTML {:__html "&bull;"}
-                :style                   {:font-size "0.5rem"}}])])
-         (when stream-count
-           [:span
-            (str (utils/format-quantity stream-count) " streams")])])]]]])
+  [{:keys [url name uploader-url uploader-name uploader-verified?
+           subscriber-count view-count stream-count verified? upload-date type]
+    :as   item} &
+   {:keys [author-classes title-classes thumbnail-classes metadata-classes]
+    :or   {thumbnail-classes ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]"
+                              "sm:h-36" "sm:min-w-[250px]" "sm:max-w-[250px]"]
+           title-classes     ["[overflow-wrap:anywhere]" "line-clamp-1"
+                              "text-sm" "xs:text-xl" "mt-2"]
+           author-classes    ["[overflow-wrap:anywhere]" "font-semibold"
+                              "line-clamp-1" "break-all" "text-xs"
+                              "xs:text-sm"]
+           metadata-classes  ["text-xs" "xs:text-sm"]}}]
+  (let [route (case (:type item)
+                "stream"   (rfe/href :stream-page
+                                     nil
+                                     {:url (:url item)})
+                "channel"  (rfe/href :channel-page
+                                     nil
+                                     {:url (:url item)})
+                "playlist" (rfe/href :playlist-page
+                                     nil
+                                     {:url (:url item)})
+                (:url item))]
+    [:div.flex.gap-x-3.xs:gap-x-5
+     [layout/thumbnail item route :classes thumbnail-classes
+      :rounded? true]
+     [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
+      [:div.flex.items-center.justify-between
+       (when name
+         [:a {:href route :title name}
+          [:h1 {:class title-classes} name
+           (when (and verified? (not uploader-url))
+             [:i.fa-solid.fa-circle-check.pl-3.text-sm])]])
+       [item-popover item]]
+      [:div.flex.items-center.justify-between.gap-y-2
+       [:div.flex.flex-col.justify-center.gap-y-2.text-neutral-600.dark:text-neutral-400
+        (when (or uploader-url uploader-name)
+          [:div.flex.gap-2.items-center
+           [layout/uploader-avatar item :classes ["w-6" "h-6"]]
+           (conj
+            (when uploader-url
+              [:a
+               {:href  (rfe/href :channel-page nil {:url uploader-url})
+                :title uploader-name
+                :key   url}])
+            [:h1
+             {:class author-classes :title uploader-name :key url}
+             uploader-name])
+           (when (and uploader-url uploader-verified?)
+             [:i.fa-solid.fa-circle-check.text-xs])])
+        (when (or view-count upload-date)
+          [:div.flex
+           (when view-count
+             [:<>
+              [:div.flex.items-center.h-full.whitespace-nowrap
+               [:p {:class metadata-classes}
+                (str (utils/format-quantity view-count) " views")]]
+              (when upload-date
+                [:span.px-2
+                 {:dangerouslySetInnerHTML {:__html "&bull;"}
+                  :style                   {:font-size "0.5rem"}}])])
+           (when upload-date
+             [:span.line-clamp-1 {:class metadata-classes}
+              (utils/format-date-ago upload-date)])])
+        (when (or subscriber-count stream-count)
+          [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
+           (when (and (= type "channel") subscriber-count)
+             [:<>
+              [:div.flex.items-center.h-full
+               [:p
+                (str (utils/format-quantity subscriber-count) " subscribers")]]
+              (when stream-count
+                [:span.px-2.hidden.xs:inline-block
+                 {:dangerouslySetInnerHTML {:__html "&bull;"}
+                  :style                   {:font-size "0.5rem"}}])])
+           (when stream-count
+             [:span
+              (str (utils/format-quantity stream-count) " streams")])])]]]]))
 
 (defn related-streams
   []
@@ -168,17 +190,6 @@
     (fn [related-streams next-page-url !layout pagination-fn]
       (let [service-color       @(rf/subscribe [:service-color])
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
-            item-url            #(case (:type %)
-                                   "stream"   (rfe/href :stream-page
-                                                        nil
-                                                        {:url (:url %)})
-                                   "channel"  (rfe/href :channel-page
-                                                        nil
-                                                        {:url (:url %)})
-                                   "playlist" (rfe/href :playlist-page
-                                                        nil
-                                                        {:url (:url %)})
-                                   (:url %))
             last-item-ref       #(when-not pagination-loading?
                                    (when @!observer (.disconnect @!observer))
                                    (when %
@@ -204,15 +215,15 @@
                  {:ref (when (and (seq next-page-url)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
-                 [grid-item-content item (item-url item)]])]
-             [:div.flex.flex-wrap.w-full.gap-x-10.gap-y-6
+                 [grid-item-content item]])]
+             [:div.flex.flex-col.gap-x-10.gap-y-4
               (for [[i item] (map-indexed vector related-streams)]
                 ^{:key i}
-                [:div.w-full
+                [:div
                  {:ref (when (and (seq next-page-url)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
-                 [list-item-content item (item-url item)]])]))
+                 [list-item-content item]])]))
          (when (and pagination-loading? (seq next-page-url))
            [layout/loading-icon service-color :text-md])]))))
 
@@ -225,10 +236,11 @@
     {:label    "Grid"
      :icon     [:i.fa-solid.fa-table-cells-large]
      :on-click #(reset! !layout "grid")}]
+   :responsive? false
    :extra-classes ["p-0"]
    :tooltip-classes ["right-3" "top-10"]
    :icon
-   [:button.flex.items-center.gap-x-3.text-neutral-500.hover:bg-neutral-300.dark:hover:bg-neutral-800.px-3.py-2.rounded-full.transition-all.ease-in-out
+   [:div.flex.items-center.gap-x-3.text-neutral-500.rounded-full.transition-all.ease-in-out
     [:i.fa-solid
      {:class (if (= @!layout "list") :fa-table-list :fa-table-cells-large)}]
     [:i.fa-solid.fa-angle-down.text-sm]]])
