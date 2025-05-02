@@ -211,7 +211,7 @@
     [:id {:optional true} int?]
     [:playlist-id {:optional true} uuid?]
     [:name string?]
-    [:thumbnail uri?]
+    [:thumbnail [:maybe uri?]]
     [:owner {:optional true} int?]
     [:items {:optional true} [:vector UserPlaylistStream]]]
    [:map
@@ -221,3 +221,15 @@
   [:map
    [:name string?]
    [:url uri?]])
+
+(def PlaylistsConfigFile
+  [:map
+   [:format
+    [:fn {:error/fn "Format is not supported"} (fn [format] (= format "Tubo"))]]
+   [:version int?]
+   [:playlists
+    [:vector
+     [:map
+      [:name string?]
+      [:thumbnail {:optional true} [:maybe uri?]]
+      [:items [:vector string?]]]]]])

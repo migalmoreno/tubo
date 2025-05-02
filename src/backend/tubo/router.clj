@@ -60,7 +60,7 @@
        :post   {:summary    "creates a new playlist for an authenticated user"
                 :handler    ap/create-post-auth-playlists-handler
                 :middleware [middleware/auth]
-                :parameters {:body s/UserPlaylistStream}}
+                :parameters {:body s/UserPlaylist}}
        :delete {:summary    "deletes all playlists for an authenticated user"
                 :handler    ap/create-delete-auth-playlists-handler
                 :middleware [middleware/auth]}}

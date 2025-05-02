@@ -5,7 +5,10 @@
    [re-frame.core :as rf]
    [tubo.layout.events :as le]
    [tubo.utils :as utils]
-   [fork.re-frame :as fork]))
+   [fork.re-frame :as fork]
+   [malli.core :as m]
+   [malli.error :as me]
+   [tubo.schemas :as s]))
 
 (defn apply-playlist-stream-transforms
   [db item]
@@ -18,6 +21,12 @@
        [:type :service-id :url :name :thumbnail :verified?
         :uploader-name :uploader-url :uploader-avatar :uploader-verified?
         :upload-date :short-description :duration :view-count :uploaded])))
+
+(defn apply-auth-playlist-stream-transforms
+  [db item]
+  (-> (apply-playlist-stream-transforms db item)
+      (select-keys [:url :name :thumbnail :duration :uploader-avatar
+                    :uploader-url :uploader-verified? :uploader-name])))
 
 (rf/reg-event-fx
  :bookmarks/on-add-auth
@@ -36,7 +45,12 @@
  (fn [{:keys [db store]} [_ bookmark notify? path]]
    (if (:auth/user db)
      {:fx [[:dispatch
-            [:api/post-auth "user/playlists" bookmark
+            [:api/post-auth "user/playlists"
+             (update bookmark
+                     :items
+                     (fn [items]
+                       (map #(apply-auth-playlist-stream-transforms db %)
+                            items)))
              [:bookmarks/on-add-auth notify? path]
              (if path [:on-form-submit-failure] [:bad-response])]]]}
      (let [updated-db (update db
@@ -158,7 +172,7 @@
           [[:dispatch
             [:api/post-auth
              (str "user/playlists/" (:playlist-id bookmark) "/add-streams")
-             (map #(apply-playlist-stream-transforms db %) items)
+             (map #(apply-auth-playlist-stream-transforms db %) items)
              [:bookmark/on-add-auth bookmark true] [:bad-response]]]]
           (conj (map (fn [item]
                        [:dispatch [:bookmark/add bookmark item]])
@@ -181,7 +195,7 @@
       [[:dispatch
         [:api/post-auth
          (str "user/playlists/" (:playlist-id bookmark) "/add-streams")
-         [(apply-playlist-stream-transforms db item)]
+         [(apply-auth-playlist-stream-transforms db item)]
          [:bookmark/on-add-auth bookmark notify?] [:bad-response]]]]}
      (let [selected   (first (filter #(= (:id %) (:id bookmark))
                                      (:bookmarks db)))
@@ -237,7 +251,7 @@
        {:fx [[:dispatch
               [:api/post-auth
                (str "user/playlists/" (:playlist-id bookmark) "/delete-stream")
-               (apply-playlist-stream-transforms db bookmark)
+               (apply-auth-playlist-stream-transforms db bookmark)
                [:bookmark/on-remove-streams-auth playlist]
                [:bad-response]]]]})
      (let [selected   (first (filter #(= (:id %) (:playlist-id bookmark))
@@ -286,8 +300,9 @@
                   (:items bookmark)))
             (p/then (fn [results]
                       (if (= (count (remove nil? results)) 0)
-                        (throw (js/Error. "Error importing playlist "
-                                          (:name bookmark)))
+                        (throw (js/Error. (str "Error importing playlist \""
+                                               (:name bookmark)
+                                               "\"")))
                         (assoc bookmark
                                :items
                                (map
@@ -312,17 +327,13 @@
 
 (rf/reg-event-fx
  :bookmarks/process-import
- (fn [{:keys [db]} [_ bookmarks tooltip-id]]
+ (fn [{:keys [db]} [_ bookmarks]]
    {:promise
     {:call         #(fetch-imported-bookmarks-items db bookmarks)
      :on-success-n [[:notifications/clear]
-                    [:bookmarks/add-imported]
-                    [:layout/destroy-tooltip-by-id tooltip-id]
-                    [:layout/hide-bg-overlay]]
+                    [:bookmarks/add-imported]]
      :on-failure-n [[:notifications/clear]
-                    [:bookmarks/handle-import-failure]
-                    [:layout/destroy-tooltip-by-id tooltip-id]
-                    [:layout/hide-bg-overlay]]}
+                    [:bookmarks/handle-import-failure]]}
     :fx [[:dispatch
           [:notifications/add
            {:status-text "Importing playlists"
@@ -331,14 +342,15 @@
 
 (rf/reg-fx
  :bookmarks/import!
- (fn [{:keys [file tooltip-id]}]
+ (fn [file]
    (-> (.text file)
        (p/then
         #(let [res (js->clj (.parse js/JSON %) :keywordize-keys true)]
-           (if (= (:format res) "Tubo")
-             (rf/dispatch [:bookmarks/process-import (:playlists res)
-                           tooltip-id])
-             (throw (js/Error. "Format not supported")))))
+           (if-let [error (me/humanize (m/explain s/PlaylistsConfigFile res))]
+             (throw (js/Error. (str (name (first (keys error)))
+                                    ": "
+                                    (first (vals error)))))
+             (rf/dispatch [:bookmarks/process-import (:playlists res)]))))
        (p/catch js/Error
          (fn [error]
            (rf/dispatch [:notifications/error (.-message error)]))))))
@@ -347,9 +359,10 @@
  :bookmarks/import
  (fn [_ [_ event]]
    (let [tooltip-id (le/find-clicked-controller-id (.-target event))]
-     {:fx (map (fn [file] [:bookmarks/import!
-                           {:file file :tooltip-id tooltip-id}])
-               (.. event -target -files))})))
+     {:fx (into (map (fn [file] [:bookmarks/import! file])
+                     (.. event -target -files))
+                [[:dispatch [:layout/destroy-tooltip-by-id tooltip-id]]
+                 [:dispatch [:layout/hide-bg-overlay]]])})))
 
 (rf/reg-event-fx
  :bookmarks/export
