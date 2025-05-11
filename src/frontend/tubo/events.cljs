@@ -37,7 +37,7 @@
             [:services/fetch-all
              [:services/load] [:bad-response]]]
            [:dispatch
-            [:kiosks/fetch-all (:service-id store)
+            [:kiosks/fetch-all (or (:service-id store) 0)
              [:kiosks/load] [:bad-response]]]
            [:dispatch
             [:api/get "services/3/instance" [:peertube/load-active-instance]
@@ -227,7 +227,7 @@
      :on-failure             on-failure}}))
 
 (rf/reg-event-fx
- :api/update-auth
+ :api/put-auth
  (fn [{:keys [db]} [_ path body on-success on-failure params]]
    {:fetch
     {:method                 :put

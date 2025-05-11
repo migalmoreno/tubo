@@ -468,7 +468,7 @@
  (fn [{:keys [db]} [_ playlist {:keys [values path]}]]
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch
-          [:api/update-auth (str "user/playlists/" (:playlist-id playlist))
+          [:api/put-auth (str "user/playlists/" (:playlist-id playlist))
            values
            [:bookmark/on-update-info-auth-success path]
            [:on-form-submit-failure path]]]]}))
