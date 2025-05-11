@@ -46,16 +46,20 @@
 
 (defn add-peertube-instance
   []
-  (let [!instance (r/atom {})]
-    (fn []
-      [modals/modal-content "Create New PeerTube Instance?"
-       [layout/text-field "URL" (:url @!instance)
-        #(swap! !instance assoc :url (.. % -target -value))
-        "Instance URL"]
-       [layout/secondary-button "Cancel"
-        #(rf/dispatch [:modals/close])]
-       [layout/primary-button "Create"
-        #(rf/dispatch [:peertube/create-instance @!instance])]])))
+  [modals/modal-content "Create New PeerTube Instance?"
+   [layout/form
+    {:validation  [:map
+                   [:url
+                    [:fn
+                     {:error/fn (constantly "should be a URL")}
+                     (fn [value]
+                       (if (seq value) (.canParse js/URL value) true))]]]
+     :on-submit   [:peertube/create-instance]
+     :submit-text "Create"}
+    [{:name        :url
+      :label       "Instance URL"
+      :placeholder "URL"
+      :type        :text}]]])
 
 (defn peertube-instances-modal
   []
@@ -64,7 +68,7 @@
      [:fieldset.flex.gap-y-2.flex-col
       (for [[i instance] (map-indexed vector instances)]
         ^{:key i}
-        [:div.bg-neutral-300.dark:bg-neutral-800.flex.rounded.py-2.px-4.justify-between.flex.items-center
+        [:div.bg-neutral-200.dark:bg-neutral-900.flex.rounded.py-2.px-4.justify-between.flex.items-center
          [:div.flex.flex-col
           [:label.text-lg {:for (:name instance)} (:name instance)]
           [:a
@@ -78,7 +82,8 @@
             [:i.fa-solid.fa-trash.cursor-pointer
              {:on-click #(rf/dispatch [:peertube/delete-instance instance])}])
           [:input
-           {:type            "radio"
+           {:style           {:color (utils/get-service-color 3)}
+            :type            "radio"
             :id              (:name instance)
             :name            "instance"
             :on-change       #(rf/dispatch [:peertube/change-instance instance])
@@ -137,7 +142,7 @@
       (:content-filters service)]
      [text-input "API instance" [:instance] instance]
      [text-input "Authentication instance" [:auth-instance] auth-instance]
-     [layout/generic-input "PeerTube instances"
+     [generic-input "PeerTube instances"
       [layout/primary-button "Edit"
        #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
      [select-input "Image Quality" [:image-quality]

@@ -1,5 +1,6 @@
 (ns tubo.services.events
   (:require
+   [fork.re-frame :as fork]
    [re-frame.core :as rf]))
 
 (rf/reg-event-fx
@@ -44,10 +45,12 @@
 (rf/reg-event-fx
  :peertube/add-instance
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [body]}]]
+ (fn [{:keys [db store]} [_ path {:keys [body]}]]
    (if (some #(= (:url %) (:url body)) (:peertube/instances db))
-     {:fx [[:dispatch [:notifications/error "Instance already exists"]]]}
-     {:db    (update db :peertube/instances conj body)
+     {:fx [[:dispatch [:notifications/error "Instance already exists"]]]
+      :db (fork/set-submitting db path false)}
+     {:db    (-> (fork/set-submitting db path false)
+                 (update :peertube/instances conj body))
       :store (update store :peertube/instances conj body)
       :fx    [[:dispatch [:modals/close]]]})))
 
@@ -88,10 +91,11 @@
 
 (rf/reg-event-fx
  :peertube/create-instance
- (fn [{:keys [db]} [_ instance]]
-   {:fx [[:dispatch
+ (fn [{:keys [db]} [_ {:keys [values path]}]]
+   {:db (fork/set-submitting db path true)
+    :fx [[:dispatch
           [:api/get
            (str "services/3/instance-metadata/"
-                (js/encodeURIComponent (:url instance)))
-           [:peertube/add-instance]
-           [:bad-response]]]]}))
+                (js/encodeURIComponent (:url values)))
+           [:peertube/add-instance path]
+           [:on-form-submit-failure path]]]]}))
