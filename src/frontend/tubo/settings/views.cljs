@@ -182,7 +182,10 @@
 (defn settings
   []
   (let [user        @(rf/subscribe [:auth/user])
-        !active-tab (r/atom nil)]
+        breakpoint  @(rf/subscribe [:layout/breakpoint])
+        !active-tab (r/atom (cond (and user (= breakpoint :md)) :user
+                                  (= breakpoint :md)            :video-audio
+                                  :else                         nil))]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
@@ -204,12 +207,11 @@
              :left-icon [:i.fa-solid.fa-globe]}]
            :selected-id @!active-tab
            :on-change #(reset! !active-tab %)]
-          [:form.flex.flex-wrap.gap-y-4.w-full.h-full
+          [:form.flex.flex-wrap.gap-y-4.w-full.h-fit.items-start
            {:on-submit #(.preventDefault %)}
            (case @!active-tab
              :appearance  [appearance-settings settings]
              :content     [content-settings settings]
              :user        [user-settings settings]
              :video-audio [video-audio-settings settings]
-             [:div.hidden.md:block.w-full
-              (if user [user-settings] [appearance-settings])])]]]))))
+             nil)]]]))))

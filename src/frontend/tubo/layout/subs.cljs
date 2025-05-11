@@ -1,6 +1,24 @@
 (ns tubo.layout.subs
   (:require
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [reagent.core :as r]))
+
+(defonce !breakpoint
+  (let [state (r/atom
+               (if (and (.-matchMedia js/window)
+                        (.-matches (.matchMedia js/window
+                                                "(min-width: 768px)")))
+                 :md
+                 :sm))]
+    (.addEventListener (.matchMedia js/window "(max-width: 768px)")
+                       "change"
+                       #(reset! state (if (.-matches %) :sm :md)))
+    state))
+
+(rf/reg-sub
+ :layout/breakpoint
+ (fn [_]
+   @!breakpoint))
 
 (rf/reg-sub
  :layout/bg-overlay

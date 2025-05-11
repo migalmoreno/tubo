@@ -347,18 +347,18 @@
        [:div.min-w-fit.w-full.md:w-auto
         {:class (when selected-id "hidden md:block")}
         (into
-         [:ul.w-full.flex.flex-col.gap-x-4.justify-center.items-center]
+         [:ul.w-full.flex.flex-col.gap-x-4.justify-center.items-center.gap-y-2]
          (when (seq tabs)
            (for [[i tab] (map-indexed vector tabs)]
              (let [selected? (= (:id tab) (or selected-id (:id @!current)))]
                (when tab
                  [:li.flex-auto.flex.items-center.w-full
                   {:key i}
-                  [:button.flex.flex-auto.md:px-4.py-4.items-center.gap-6.flex-shrink-0.flex-auto.rounded
+                  [:button.flex.flex-auto.items-center.gap-6.p-4.flex-shrink-0.flex-auto.rounded-xl.transition-all.ease-in-out.delay-50
                    {:class
                     (if selected?
-                      "md:bg-neutral-800 md:dark:bg-neutral-100 md:text-neutral-100 md:dark:text-neutral-600"
-                      "md:!bg-transparent")
+                      "md:bg-neutral-200 md:dark:bg-neutral-900"
+                      "md:bg-transparent hover:md:bg-neutral-200 hover:dark:md:bg-neutral-900")
                     :on-click (fn []
                                 (reset! !current tab)
                                 (on-change (:id @!current)))}
@@ -385,7 +385,7 @@
                            "border-neutral-700 dark:border-neutral-100"
                            "!border-transparent")
                   :key   i}
-                 [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center
+                 [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center.text-sm.sm:text-base
                   {:on-click (when (not selected?)
                                (fn []
                                  (reset! !current tab)
