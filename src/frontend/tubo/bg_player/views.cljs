@@ -97,6 +97,7 @@
   (let [queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])
         loading?         @(rf/subscribe [:bg-player/loading])
+        waiting?         @(rf/subscribe [:bg-player/waiting])
         loop-playback    @(rf/subscribe [:player/loop])
         shuffle?         @(rf/subscribe [:player/shuffled])
         paused?          @(rf/subscribe [:player/paused])
@@ -114,7 +115,9 @@
        :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])]
       [player/button
        :icon
-       (if (and (not loading?) (or (nil? bg-player-ready?) @!player))
+       (if (and (not loading?)
+                (not waiting?)
+                (or (nil? bg-player-ready?) @!player))
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
@@ -207,8 +210,8 @@
 
 (defn on-update
   [!player !buffered !elapsed]
-  (when @(rf/subscribe [:bg-player/loading])
-    (rf/dispatch [:bg-player/set-loading false]))
+  (when @(rf/subscribe [:bg-player/waiting])
+    (rf/dispatch [:bg-player/set-waiting false]))
   (on-progress !player !buffered)
   (reset! !elapsed (.-currentTime @!player)))
 
@@ -226,7 +229,7 @@
         [:audio
          {:ref            #(reset! !player %)
           :preload        "metadata"
-          :on-waiting     #(rf/dispatch [:bg-player/set-loading true])
+          :on-waiting     #(rf/dispatch [:bg-player/set-waiting true])
           :loop           (= @(rf/subscribe [:player/loop]) :stream)
           :muted          @(rf/subscribe [:player/muted])
           :on-can-play    #(rf/dispatch [:bg-player/ready true])

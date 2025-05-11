@@ -23,9 +23,9 @@
                    :player  bg-player}}))
 
 (rf/reg-event-db
- :bg-player/set-loading
+ :bg-player/set-waiting
  (fn [db [_ val]]
-   (assoc db :bg-player/loading val)))
+   (assoc db :bg-player/waiting val)))
 
 (rf/reg-event-fx
  :bg-player/set-src
@@ -121,7 +121,7 @@
            [:dispatch
             [:notifications/add
              {:status-text "Started stream radio"
-              :failure     :info}]]]})))
+              :type        :info}]]]})))
 
 (rf/reg-event-fx
  :bg-player/switch-to-main

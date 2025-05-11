@@ -21,6 +21,11 @@
    (:bg-player/loading db)))
 
 (rf/reg-sub
+ :bg-player/waiting
+ (fn [db]
+   (:bg-player/waiting db)))
+
+(rf/reg-sub
  :bg-player
  (fn []
    !player))

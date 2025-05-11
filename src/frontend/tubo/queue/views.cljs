@@ -77,6 +77,7 @@
         shuffle?         @(rf/subscribe [:player/shuffled])
         !player          @(rf/subscribe [:bg-player])
         loading?         @(rf/subscribe [:bg-player/loading])
+        waiting?         @(rf/subscribe [:bg-player/waiting])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
         paused?          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
@@ -108,7 +109,9 @@
        :show-on-mobile? true]
       [player/button
        :icon
-       (if (and (not loading?) (or (nil? bg-player-ready?) @!player))
+       (if (and (not loading?)
+                (not waiting?)
+                (or (nil? bg-player-ready?) @!player))
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
