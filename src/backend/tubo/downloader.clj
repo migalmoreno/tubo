@@ -1,61 +1,38 @@
 (ns tubo.downloader
   (:require
-   [clojure.tools.logging :as log])
+   [clojure.tools.logging :as log]
+   [org.httpkit.client :as http]
+   [clojure.java.data :as j]
+   [clojure.string :as str])
   (:import
    [org.schabi.newpipe.extractor.downloader Downloader Response]
-   [org.schabi.newpipe.extractor.exceptions ReCaptchaException]
-   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody]))
+   [org.schabi.newpipe.extractor.exceptions ReCaptchaException]))
 
 (defonce user-agent
   "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0")
 
-(defn create-request-builder
-  [request]
-  (let [http-method     (.httpMethod request)
-        url             (.url request)
-        data-to-send    (.dataToSend request)
-        request-body    (and data-to-send
-                             (RequestBody/create nil data-to-send))
-        request-builder (.. (Request$Builder.)
-                            (method http-method request-body)
-                            (url url)
-                            (addHeader "User-Agent" user-agent))]
-    (doseq [pair (.entrySet (.headers request))]
-      (let [header-name       (.getKey pair)
-            header-value-list (.getValue pair)]
-        (if (> (.size header-value-list) 1)
-          (do
-            (.removeHeader request-builder header-name)
-            (doseq [header-value header-value-list]
-              (.addHeader request-builder header-name header-value)))
-          (when (= (.size header-value-list) 1)
-            (.header request-builder
-                     header-name
-                     (.get header-value-list 0))))))
-    request-builder))
-
 (defn create-downloader-impl
   []
-  (let [client (.. (OkHttpClient$Builder.)
-                   (readTimeout 30 java.util.concurrent.TimeUnit/SECONDS)
-                   (build))]
-    (proxy [Downloader] []
-      (execute [request]
-        (try (let [response (.. client
-                                (newCall (.build (create-request-builder
-                                                  request)))
-                                (execute))
-                   body     (.body response)]
-               (when (= (.code response) 429)
-                 (throw (ReCaptchaException. "reCaptcha Challenge requested"
-                                             (.-url request))))
-               (Response. (.code response)
-                          (.message response)
-                          (.. response (headers) (toMultimap))
-                          (and body (.string body))
-                          (.. response
-                              (request)
-                              (url)
-                              (toString))))
-             (catch ReCaptchaException e
-               (log/error e)))))))
+  (proxy [Downloader] []
+    (execute [request]
+      (try
+        (let [req-headers (reduce-kv #(assoc %1 %2 (str/join ", " %3))
+                                     {}
+                                     (j/from-java-deep (.headers request)
+                                                       {:exceptions :omit}))
+              {:keys [status headers body opts]}
+              @(http/request
+                {:url        (.url request)
+                 :method     (keyword (str/lower-case (.httpMethod request)))
+                 :body       (.dataToSend request)
+                 :as         :text
+                 :headers    req-headers
+                 :timeout    30000
+                 :user-agent user-agent})
+              res-headers (reduce-kv #(assoc %1 (name %2) [%3]) {} headers)]
+          (when (= status 429)
+            (throw (ReCaptchaException. "reCaptcha Challenge requested"
+                                        (.-url request))))
+          (Response. status nil res-headers body (:url opts)))
+        (catch ReCaptchaException e
+          (log/error e))))))
