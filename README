@@ -60,6 +60,8 @@ server {
 | https://tubo.reallyaweso.me   | 🇩🇪    |
 | https://tubo.ducks.party      | 🇩🇪    |
 
+A Swagger UI instance is also available at [[https://api.tubo.media/api-docs]]
+
 * Development Setup
 To get a development environment set up, first install the front-end dependencies.
 
@@ -80,7 +82,7 @@ You can now access the database like this:
 psql
 #+end_src
 
-Or by accessing a local =pgweb= instance in your browser at http://localhost:8081.
+Or by accessing a local =pgweb= instance in your browser at [[http://localhost:8081]]
 
 ** CLI
 To start a front-end development server with hot-reload support, run:
