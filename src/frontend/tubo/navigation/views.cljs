@@ -21,6 +21,29 @@
    [layout/logo :height 20 :width 20]
    [:h3.text-xl.font-extrabold "Tubo"]])
 
+(defn media-ccc-logo
+  []
+  (r/create-element
+   (svg/embed "./resources/public/icons"
+              "media_gadse"
+              nil)
+   (js-obj "className" "fill-neutral-600 dark:fill-neutral-300"
+           "height"    "15px"
+           "width"     "15px")))
+
+(defn peertube-logo
+  [service-id i]
+  (r/create-element
+   (svg/embed "./resources/public/icons"
+              "peertube"
+              nil)
+   (js-obj "className" (when (not= service-id i)
+                         "fill-neutral-600 dark:fill-neutral-300")
+           "fill"      (when (= service-id i)
+                         (utils/get-service-color i))
+           "height"    "15px"
+           "width"     "15px")))
+
 (defn nav-left-content
   [title]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
@@ -205,23 +228,8 @@
          (case (:id service)
            0 [:i.fa-brands.fa-youtube]
            1 [:i.fa-brands.fa-soundcloud]
-           2 (r/create-element
-              (svg/embed "./resources/public/icons"
-                         "media_gadse"
-                         nil)
-              (js-obj "className" "fill-neutral-600 dark:fill-neutral-300"
-                      "height"    "15px"
-                      "width"     "15px"))
-           3 (r/create-element
-              (svg/embed "./resources/public/icons"
-                         "peertube"
-                         nil)
-              (js-obj "className" (when (not= service-id i)
-                                    "fill-neutral-600 dark:fill-neutral-300")
-                      "fill"      (when (= service-id i)
-                                    (utils/get-service-color i))
-                      "height"    "15px"
-                      "width"     "15px"))
+           2 [media-ccc-logo]
+           3 [peertube-logo service-id i]
            4 [:i.fa-brands.fa-bandcamp])
          (get-in service [:info :name])
          :on-click #(rf/dispatch [:kiosks/change-page i])
