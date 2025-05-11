@@ -59,18 +59,20 @@
 
 (defn content-container
   [& children]
-  (let [page-loading? @(rf/subscribe [:show-page-loading])
-        service-color @(rf/subscribe [:service-color])]
-    [:div.flex.flex-col.flex-auto.items-center.px-5.py-4
+  (let [page-loading?     @(rf/subscribe [:show-page-loading])
+        service-color     @(rf/subscribe [:service-color])
+        sidebar-minimized @(rf/subscribe [:navigation/sidebar-minimized])]
+    [:div.flex.flex-col.flex-auto.items-center.px-5.md:p-0.py-4
      (if page-loading?
        [loading-icon service-color "text-5xl"]
-       [:div.flex.flex-col.flex-auto.w-full {:class ["lg:w-4/5" "xl:w-3/5"]}
+       [:div.flex.flex-col.flex-auto.w-full
+        {:class [(if sidebar-minimized "md:w-4/5" "md:w-11/12")]}
         (map-indexed #(with-meta %2 {:key %1}) children)])]))
 
 (defn content-header
   [heading & children]
-  [:div.flex.items-center.justify-between.mt-6
-   [:h1.text-3xl.line-clamp-1.mr-6.font-semibold {:title heading} heading]
+  [:div.flex.items-center.justify-between
+   [:h1.text-3xl.line-clamp-1.mr-6.font-extrabold {:title heading} heading]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn uploader-avatar

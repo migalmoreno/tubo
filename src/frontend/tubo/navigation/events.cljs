@@ -28,7 +28,8 @@
  :navigation/hide-mobile-menu
  (fn [{:keys [db]}]
    {:db            (assoc db :navigation/show-mobile-menu false)
-    :body-overflow false}))
+    :body-overflow false
+    :fx            [[:dispatch [:layout/hide-bg-overlay]]]}))
 
 (rf/reg-event-fx
  :navigation/show-mobile-menu
@@ -40,6 +41,18 @@
                       {:extra-classes ["z-30"]
                        :on-click      #(rf/dispatch
                                         [:navigation/hide-mobile-menu])}]]]}))
+
+(rf/reg-event-fx
+ :navigation/show-sidebar
+ (fn [{:keys [db]} [_ value]]
+   (when (and (not (false? (:navigation/show-sidebar db)))
+              (or (not= value :minimized) (not= value :expanded)))
+     {:db (assoc db :navigation/show-sidebar value)})))
+
+(rf/reg-event-fx
+ :navigation/change-show-sidebar-value
+ (fn [{:keys [db]} [_ value]]
+   {:db (assoc db :navigation/show-sidebar value)}))
 
 (rf/reg-event-fx
  :navigation/navigated

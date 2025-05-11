@@ -43,10 +43,24 @@
       :web/stream    {:view        stream/stream
                       :name        :stream-page
                       :controllers [{:parameters {:query [:url]}
-                                     :start      (fn [{{:keys [url]} :query}]
-                                                   (rf/dispatch
-                                                    [:stream/fetch-page
-                                                     url]))}]}
+                                     :start (fn [{{:keys [url]} :query}]
+                                              (rf/dispatch
+                                               [:stream/fetch-page
+                                                url])
+                                              (rf/dispatch
+                                               [:navigation/show-sidebar
+                                                false]))
+                                     :stop
+                                     #(rf/dispatch
+                                       [:navigation/change-show-sidebar-value
+                                        (if (and
+                                             (.-matchMedia js/window)
+                                             (.-matches
+                                              (.matchMedia
+                                               js/window
+                                               "(max-width: 1280px)")))
+                                          :minimized
+                                          :expanded)])}]}
       :web/channel   {:view        channel/channel
                       :name        :channel-page
                       :controllers [{:parameters {:query [:url]}

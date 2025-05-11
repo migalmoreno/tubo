@@ -2,7 +2,6 @@
   (:require
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [reitit.frontend.easy :as rfe]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]))
 
@@ -16,20 +15,6 @@
       (and (or (= path "/") (= path "/kiosk"))
            (not kiosk-id)
            (= default-kiosk kiosk))))
-
-(defn kiosks-menu
-  [& {:keys [kiosks service-id] :as kiosk-args}]
-  [:ul.flex.items-center.px-4.text-white
-   (for [kiosk kiosks]
-     [:li.px-3 {:key kiosk}
-      [:a
-       {:href  (rfe/href :kiosk-page
-                         nil
-                         {:serviceId service-id
-                          :kioskId   kiosk})
-        :class (when (kiosk-active? (assoc kiosk-args :kiosk kiosk))
-                 :font-bold)}
-       kiosk]])])
 
 (defn kiosk
   []
