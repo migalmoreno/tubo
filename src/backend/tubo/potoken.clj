@@ -26,7 +26,7 @@
     (when body
       (PoTokenResult. visitor-data (get (json/read-str body) "poToken") nil))))
 
-(defonce valid-po-tokens (atom ()))
+(defonce valid-po-tokens (atom []))
 
 (defn get-po-token
   []
