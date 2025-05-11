@@ -72,37 +72,36 @@
     [metadata-popover stream]]])
 
 (defn metadata
-  [{:keys [name view-count upload-date] :as stream}]
+  [{:keys [name view-count upload-date tags] :as stream}]
   [:div
    [:div.flex.items-center.justify-between
     [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]]
-   [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1
+   [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1.items-center
     [:span {:title view-count}
      (str (utils/format-quantity view-count) " views")]
     [:span
      {:dangerouslySetInnerHTML {:__html "&bull;"} :style {:font-size "0.5rem"}}]
-    [:span {:title upload-date} (utils/format-date-ago upload-date)]]
+    [:span {:title upload-date} (utils/format-date-ago upload-date)]
+    (when-not (empty? tags)
+      [:span.px-2.py-1.text-xs.flex.gap-x-1.items-center.line-clamp-1.flex-auto.max-w-24.sm:max-w-96
+       (for [[i tag] (map-indexed vector tags)]
+         ^{:key i}
+         [:<>
+          [:span.whitespace-nowrap (str "#" tag)]])])]
    [:div.flex.justify-between.py-4.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
 (defn description
-  [{:keys [description show-description tags]}]
+  [{:keys [description show-description]}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [:div.bg-neutral-200.dark:bg-neutral-800.p-4.rounded-lg.break-words.flex.flex-col.gap-y-2
+      [:div.rounded-lg.break-words.flex.flex-col.gap-y-2
        [layout/show-more-container show-description description
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
                          :stream/toggle-layout)
-                       :show-description])]
-       (when-not (empty? tags)
-         [:div.flex.gap-2.py-2.flex-wrap
-          (for [[i tag] (map-indexed vector tags)]
-            ^{:key i}
-            [:span.bg-neutral-300.dark:bg-neutral-700.rounded-lg.px-2.py-1.text-xs.text-neutral-700.dark:text-neutral-300.flex.gap-x-1.items-center
-             [:i.fa-solid.fa-tag]
-             [:span.line-clamp-1 tag]])])])))
+                       :show-description])]])))
 
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading] :as stream}]
