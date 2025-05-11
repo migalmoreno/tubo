@@ -39,7 +39,7 @@
                                  [modals/add-to-bookmark
                                   related-streams]])}]))
    :tooltip-classes ["right-5" "top-5"]
-   :extra-classes ["p-3" "xs:py-2" "xs:px-4"]])
+   :extra-classes ["px-5" "xs:py-2" "xs:px-4"]])
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
@@ -59,7 +59,7 @@
   [{:keys [like-count dislike-count] :as stream}]
   [:div.flex.items-center.justify-end.gap-x-2
    (when (or like-count dislike-count)
-     [:div.flex.bg-neutral-200.dark:bg-neutral-800.px-4.py-2.rounded-full.sm:text-base.text-sm.gap-x-4
+     [:div.flex.bg-neutral-200.dark:bg-neutral-900.px-4.py-2.rounded-full.sm:text-base.text-sm.gap-x-4
       (when like-count
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-up]
@@ -68,7 +68,7 @@
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-down]
          [:span dislike-count]])])
-   [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-800.rounded-full
+   [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
     [metadata-popover stream]]])
 
 (defn metadata

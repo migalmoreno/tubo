@@ -181,7 +181,7 @@
        :icon     [:i.fa-solid.fa-close]
        :on-click #(rf/dispatch [:bg-player/dispose])}]
      :tooltip-classes ["right-5" "bottom-5"]
-     :extra-classes [:!pl-4 :px-3]]))
+     :extra-classes ["px-5" "xs:p-3"]]))
 
 (defn extra-controls
   [!player stream color]
@@ -251,7 +251,7 @@
                          :service-id
                          utils/get-service-color)
         bg-color     (str "rgba("
-                          (if dark-theme? "23,23,23" "255,255,255")
+                          (if dark-theme? "10,10,10" "255,255,255")
                           ",0.95)")
         bg-image     (str "linear-gradient("
                           bg-color

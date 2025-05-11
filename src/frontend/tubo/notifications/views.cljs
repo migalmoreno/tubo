@@ -6,17 +6,18 @@
 (defn notification-content
   [{:keys [type status status-text body problem-message] :as notification}]
   (when notification
-    [:div.relative.flex.justify-center.pl-4.pr-8.py-5.rounded.shadow.dark:shadow-neutral-900.shadow-neutral-400
-     {:class (cond type
-                   (case type
-                     :success ["bg-green-600/90" :text-white]
-                     :error   ["bg-red-600/90" :text-white]
-                     ["dark:bg-neutral-800" "dark:text-white" :bg-neutral-100
-                      :text-neutral-800])
-                   problem-message ["bg-red-600/90"]
-                   :else ["dark:bg-neutral-800" "dark:text-white"
-                          :bg-neutral-100
-                          :text-neutral-800])}
+    [:div.relative.flex.justify-center.pl-4.pr-8.py-4.rounded-xl.shadow.dark:shadow-neutral-900.shadow-neutral-400
+     {:class    (cond type
+                      (case type
+                        :success ["bg-green-600/90" :text-white]
+                        :error   ["bg-red-600/90" :text-white]
+                        ["dark:bg-neutral-900" "dark:text-white" :bg-neutral-100
+                         :text-neutral-800])
+                      problem-message ["bg-red-600/90"]
+                      :else ["dark:bg-neutral-900" "dark:text-white"
+                             :bg-neutral-100
+                             :text-neutral-800])
+      :on-click #(rf/dispatch [:notifications/remove (:id notification)])}
      [:div.flex.items-center.gap-x-4
       (case type
         :success [:i.fa-solid.fa-circle-check]
@@ -24,10 +25,6 @@
         :loading [:div.grow-0 [layout/loading-icon]]
         [:i.fa-solid.fa-circle-info])
       [:div.flex.flex-col
-       [:button.absolute.top-1.right-2
-        {:on-click
-         #(rf/dispatch [:notifications/remove (:id notification)])}
-        [:i.fa-solid.fa-close]]
        [:span.font-bold.break-all
         (str status (if status-text (str " " status-text) problem-message))]
        (when-let [message (or (:message body) body)]

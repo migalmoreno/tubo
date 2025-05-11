@@ -11,9 +11,9 @@
 (defn item-metadata
   [{:keys [uploader-name name service-id] :as item} queue-pos i]
   [:div.flex.cursor-pointer.py-2
-   {:class    (when (= i queue-pos) ["bg-neutral-300" "dark:bg-neutral-800"])
+   {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-neutral-900"])
     :on-click #(rf/dispatch [:queue/change-pos i])}
-   [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-28.xs:w-28
+   [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24
     [:span.font-bold.text-neutral-400.text-sm
      (if (= i queue-pos) [:i.fa-solid.fa-play] (inc i))]]
    [:div.flex.items-center.shrink-0.grow-0
@@ -143,14 +143,14 @@
         color      (-> stream
                        :service-id
                        utils/get-service-color)]
-    [:div.fixed.flex.flex-col.items-center.min-w-full.w-full.backdrop-blur.z-10
-     {:class ["dark:bg-neutral-900/90" "bg-neutral-100/90"
+    [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0
+     {:class ["dark:bg-neutral-950/90" "bg-neutral-100/90"
               "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
               (when-not show-queue "invisible")
               (if show-queue "opacity-1" "opacity-0")]}
-     [:div.w-full.flex.flex-col.flex-auto.h-full.lg:pt-5
+     [:div.flex.flex-col.flex-auto.h-full.lg:pt-5.w-full
       {:class ["lg:w-4/5" "xl:w-3/5"]}
-      [:div.flex.flex-col.overflow-y-auto.flex-auto.gap-y-1.relative.scroll-smooth
+      [:div.flex.flex-col.overflow-y-auto.scrollbar-none.flex-auto.gap-y-1.relative.scroll-smooth
        (for [[i item] (map-indexed vector queue)]
          ^{:key i}
          [queue-item item queue queue-pos i bookmarks])]
