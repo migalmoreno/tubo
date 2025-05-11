@@ -103,8 +103,7 @@
                           :data
                           :name)
                       :search-page)
-           [:dispatch [:search/activate false]])
-         [:dispatch [:search/change-filter nil]]]}))
+           [:dispatch [:search/activate false]])]}))
 
 (rf/reg-fx
  :focus-input!
@@ -178,7 +177,8 @@
  (fn [{:keys [db]} [_ query]]
    {:fx (into [[:dispatch
                 [:layout/show-bg-overlay
-                 {:extra-classes ["z-10"]
+                 {:transparent?  true
+                  :extra-classes ["z-10"]
                   :on-click      #(rf/dispatch [:search/hide-suggestions])}]]]
               (if (seq query)
                 [[:dispatch [:search/show-suggestions true]]
@@ -248,7 +248,12 @@
                          :params {}
                          :query  (into {:q         query
                                         :serviceId (:service-id db)}
-                                       (when (seq (:search/filter db))
+                                       (when (and (seq (:search/filter db))
+                                                  (some #{(:search/filter db)}
+                                                        (:content-filters
+                                                         (get (:services db)
+                                                              (:service-id
+                                                               db)))))
                                          {:filter (:search/filter db)}))}]]]})))
 
 (rf/reg-event-fx

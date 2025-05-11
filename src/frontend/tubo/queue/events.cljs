@@ -16,7 +16,9 @@
  :queue/show
  (fn [{:keys [db]} [_ show?]]
    {:db            (assoc db :queue/show show?)
-    :fx            [(when show? [:dispatch [:search/activate false]])]
+    :fx            (if show?
+                     [[:dispatch [:search/activate false]]]
+                     [])
     :body-overflow show?}))
 
 (rf/reg-event-fx
