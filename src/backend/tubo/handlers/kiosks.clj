@@ -51,11 +51,10 @@
                        (.getKioskList service))
                      kiosk-id
                      nil)
-         url        (url-decode page-url)
          kiosk-info (KioskInfo/getInfo extractor)
          info       (KioskInfo/getMoreItems service
                                             (.getUrl kiosk-info)
-                                            (Page. url))]
+                                            (Page. (url-decode page-url)))]
      {:next-page       (j/from-java (.getNextPage info))
       :related-streams (get-items (.getItems info))})))
 

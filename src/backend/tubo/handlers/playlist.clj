@@ -27,8 +27,16 @@
       :next-page        (j/from-java (.getNextPage info))}))
   ([url page-url]
    (let [service (NewPipe/getServiceByUrl (url-decode url))
+         playlist-info (PlaylistInfo/getInfo service (url-decode url))
+         next-page (.getNextPage playlist-info)
          info
-         (PlaylistInfo/getMoreItems service url (Page. (url-decode page-url)))]
+         (PlaylistInfo/getMoreItems service
+                                    url
+                                    (Page. (url-decode page-url)
+                                           (.getId next-page)
+                                           (.getIds next-page)
+                                           (.getCookies next-page)
+                                           (.getBody next-page)))]
      {:next-page       (j/from-java (.getNextPage info))
       :related-streams (get-items (.getItems info))})))
 

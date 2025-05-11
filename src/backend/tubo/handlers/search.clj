@@ -31,13 +31,19 @@
       :search-suggestion (.getSearchSuggestion info)
       :corrected-search? (.isCorrectedSearch info)}))
   ([service-id query {:keys [filter sort]} page-url]
-   (let [service (NewPipe/getService service-id)
-         url (url-decode page-url)
-         query-handler
-         (.. service
-             (getSearchQHFactory)
-             (fromQuery query (or filter '()) (or sort "")))
-         info (SearchInfo/getMoreItems service query-handler (Page. url))]
+   (let [service       (NewPipe/getService service-id)
+         query-handler (.. service
+                           (getSearchQHFactory)
+                           (fromQuery query (or filter '()) (or sort "")))
+         search-info   (SearchInfo/getInfo service query-handler)
+         next-page     (.getNextPage search-info)
+         info          (SearchInfo/getMoreItems service
+                                                query-handler
+                                                (Page. (url-decode page-url)
+                                                       (.getId next-page)
+                                                       (.getIds next-page)
+                                                       (.getCookies next-page)
+                                                       (.getBody next-page)))]
      {:items     (get-items (.getItems info))
       :next-page (from-java (.getNextPage info))})))
 

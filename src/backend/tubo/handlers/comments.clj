@@ -47,10 +47,16 @@
       :next-page (from-java (.getNextPage info))
       :disabled? (.isCommentsDisabled info)}))
   ([url page-url]
-   (let [service (NewPipe/getServiceByUrl (url-decode url))
-         info    (CommentsInfo/getMoreItems service
-                                            (url-decode url)
-                                            (Page. (url-decode page-url)))]
+   (let [service       (NewPipe/getServiceByUrl (url-decode url))
+         comments-info (CommentsInfo/getInfo (url-decode url))
+         next-page     (.getNextPage comments-info)
+         info          (CommentsInfo/getMoreItems service
+                                                  (url-decode url)
+                                                  (Page. (url-decode page-url)
+                                                         (.getId next-page)
+                                                         (.getIds next-page)
+                                                         (.getCookies next-page)
+                                                         (.getBody next-page)))]
      {:comments  (map #(get-comment-item % nil info) (.getItems info))
       :next-page (from-java (.getNextPage info))
       :disabled? false})))

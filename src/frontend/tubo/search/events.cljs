@@ -78,7 +78,8 @@
                         (utils/apply-thumbnails-quality db :items)
                         (utils/apply-avatars-quality db :items)
                         :items))
-         (assoc-in [:search/results :next-page] (:next-page body))))))
+         (assoc-in [:search/results :next-page] (:next-page body))
+         (assoc :show-pagination-loading false)))))
 
 (rf/reg-event-fx
  :search/fetch-paginated
