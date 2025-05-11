@@ -152,8 +152,10 @@
       (or label option)])])
 
 (defn tooltip-item
-  [{:keys [label icon on-click link destroy-tooltip-on-click? custom-content]
-    :or   {destroy-tooltip-on-click? true}} tooltip-id]
+  [{:keys [label icon on-click link destroy-tooltip-on-click? custom-content
+           subschema hide-bg-overlay-on-click?]
+    :or   {destroy-tooltip-on-click? true
+           hide-bg-overlay-on-click? true}} tooltip-id]
   (let [content [:<>
                  (when icon
                    [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
@@ -161,7 +163,7 @@
                  [:span.whitespace-nowrap label]]
         classes ["relative" "flex" "items-center" "gap-x-3"
                  "hover:bg-neutral-200"
-                 "dark:hover:bg-neutral-700" "py-2.5" "px-4"
+                 "dark:hover:bg-neutral-800/50" "py-2.5" "px-4"
                  "first:rounded-t" "last:rounded-b"]]
     (if link
       [:a
@@ -173,33 +175,39 @@
                                    tooltip-id]))}
        content]
       [:li
-       {:on-click #(do (when on-click
-                         (on-click %))
-                       (when destroy-tooltip-on-click?
-                         (rf/dispatch [:layout/destroy-tooltip-by-id
-                                       tooltip-id])
-                         (rf/dispatch [:layout/hide-bg-overlay])))
+       {:on-click #(if subschema
+                     (rf/dispatch [:layout/change-tooltip-items tooltip-id
+                                   subschema])
+                     (do (when on-click
+                           (on-click %))
+                         (when destroy-tooltip-on-click?
+                           (rf/dispatch [:layout/destroy-tooltip-by-id
+                                         tooltip-id]))
+                         (when hide-bg-overlay-on-click?
+                           (rf/dispatch [:layout/hide-bg-overlay]))))
         :class    (str/join " " classes)}
        (or custom-content content)])))
 
 (defn tooltip
-  [items tooltip-id & {:keys [extra-classes]}]
-  (when-not (empty? (remove nil? items))
-    [:ul.absolute.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30.cursor-pointer
-     {:class (conj extra-classes)}
-     (for [[i item] (map-indexed vector (remove nil? items))]
-       ^{:key i} [tooltip-item item tooltip-id])]))
+  [tooltip-id & {:keys [extra-classes]}]
+  (let [{:keys [items]} @(rf/subscribe [:layout/tooltip-by-id tooltip-id])]
+    (when-not (empty? (remove nil? items))
+      [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30.cursor-pointer
+       {:class (conj extra-classes)}
+       (for [[i item] (map-indexed vector (remove nil? items))]
+         ^{:key i} [tooltip-item item tooltip-id])])))
 
 (defn mobile-tooltip
   []
-  (let [{:keys [id items show?]}
+  (let [{:keys [id show?]}
         @(rf/subscribe [:layout/mobile-tooltip])
-        tooltip-data (rf/subscribe [:layout/tooltip-by-id id])]
-    (when @tooltip-data
+        {:keys [items] :as tooltip-data} @(rf/subscribe [:layout/tooltip-by-id
+                                                         id])]
+    (when tooltip-data
       [:div.xs:hidden
        {:class (str "tooltip-controller-" id)}
        (when-not (empty? (remove nil? items))
-         [:ul.bg-neutral-100.dark:bg-neutral-800.rounded-t.rounded-b.z-30.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-4.left-2.right-2.fixed
+         [:ul.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.z-30.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-4.left-2.right-2.fixed
           {:class (when-not show? "hidden")}
           (for [[i item] (map-indexed vector (remove nil? items))]
             ^{:key i} [tooltip-item item id])])])))
@@ -222,15 +230,17 @@
                       (if responsive? ["hidden" "xs:block"] ["block"]))}
         [:button.focus:outline-none.w-full
          {:class    extra-classes
+          :type     "button"
           :on-click (if @tooltip-data
                       #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
                       #(rf/dispatch [:layout/register-tooltip
-                                     {:id tooltip-id
+                                     {:items items
+                                      :id tooltip-id
                                       :destroy-on-click-out?
                                       destroy-on-click-out?}]))}
          icon]
         (when @tooltip-data
-          [tooltip items tooltip-id :extra-classes tooltip-classes])]
+          [tooltip tooltip-id :extra-classes tooltip-classes])]
        [:button.focus:outline-none.relative
         {:on-click (if @tooltip-data
                      #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
@@ -239,6 +249,7 @@
                                      :id tooltip-id
                                      :destroy-on-click-out?
                                      destroy-on-click-out?}]))
+         :type     "button"
          :class    (conj extra-classes (if responsive? "xs:hidden" "hidden"))}
         icon]])))
 

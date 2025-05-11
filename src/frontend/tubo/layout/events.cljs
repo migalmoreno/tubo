@@ -25,8 +25,7 @@
  (fn [{:keys [db]} [_ data]]
    {:db (assoc db :layout/mobile-tooltip (assoc data :show? true))
     :fx [[:dispatch
-          [:layout/register-tooltip
-           (select-keys data [:id :destroy-on-click-out?])]]
+          [:layout/register-tooltip data]]
          [:dispatch [:layout/show-bg-overlay {:extra-classes ["z-30"]}]]]}))
 
 (defn default-tooltip-data
@@ -44,6 +43,11 @@
  :layout/destroy-tooltip-by-id
  (fn [{:keys [db]} [_ id]]
    {:db (update db :layout/tooltips dissoc id)}))
+
+(rf/reg-event-fx
+ :layout/change-tooltip-items
+ (fn [{:keys [db]} [_ id items]]
+   {:db (update-in db [:layout/tooltips id] #(assoc %1 :items %2) items)}))
 
 (rf/reg-event-db
  :layout/destroy-tooltips-by-ids
