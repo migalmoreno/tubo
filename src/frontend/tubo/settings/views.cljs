@@ -9,20 +9,34 @@
 
 (defn boolean-input
   [label keys value]
-  [layout/boolean-input label value
-   #(rf/dispatch [:settings/change keys (not value)])])
+  (let [service-color @(rf/subscribe [:service-color])]
+    [layout/form-field {:label label :orientation :vertical}
+     [layout/input
+      :type :checkbox
+      :class ["rounded"]
+      :style {:color service-color}
+      :checked value
+      :value value
+      :on-change
+      #(rf/dispatch [:settings/change keys (.. % -target -value)])]]))
 
 (defn text-input
   [label keys value]
   [layout/form-field {:label label :orientation :vertical}
-   [layout/text-input value
-    #(rf/dispatch [:settings/change keys (.. % -target -value)])]])
+   [layout/input
+    :value value
+    :on-change #(rf/dispatch [:settings/change keys (.. % -target -value)])]])
 
 (defn select-input
   [label keys value options on-change]
-  [layout/select-field label value options
-   (or on-change
-       #(rf/dispatch [:settings/change keys (.. % -target -value)]))])
+  [layout/form-field {:label label :orientation :vertical}
+   [layout/select value options
+    (or on-change
+        #(rf/dispatch [:settings/change keys (.. % -target -value)]))]])
+
+(defn generic-input
+  [label children]
+  [layout/form-field {:label label :orientation :vertical} children])
 
 (defn appearance-settings
   [{:keys [theme items-layout]}]
@@ -138,15 +152,15 @@
 (defn user-settings
   []
   [:<>
-   [layout/generic-input "Logout"
+   [generic-input "Logout"
     [:div.flex.gap-x-4
      [layout/primary-button "This device" #(rf/dispatch [:auth/logout])]
      [layout/secondary-button "All devices"
       #(rf/dispatch [:auth/invalidate-session])]]]
-   [layout/generic-input "Password Reset"
+   [generic-input "Password Reset"
     [layout/primary-button "Reset"
      #(rf/dispatch [:modals/open [auth/password-reset-modal]])]]
-   [layout/generic-input "Delete User"
+   [generic-input "Delete User"
     [layout/primary-button "Delete"
      #(rf/dispatch [:modals/open [auth/user-deletion-modal]])]]])
 

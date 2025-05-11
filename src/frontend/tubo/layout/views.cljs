@@ -113,14 +113,8 @@
   [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
    :extra-button-args extra-button-args
-   :button-classes ["bg-neutral-200" "dark:bg-neutral-800"]
+   :button-classes ["bg-neutral-200" "dark:bg-neutral-900"]
    :label-classes ["text-neutral-500" "dark:text-white"]])
-
-(defn generic-input
-  [label & children]
-  [:div.w-full.flex.justify-between.items-center.py-2.gap-x-4
-   [:label label]
-   (map-indexed #(with-meta %2 {:key %1}) children)])
 
 (defn form-field
   [{:keys [label orientation] :or {orientation :horizontal}} & children]
@@ -131,47 +125,31 @@
    [:label label]
    (map-indexed #(with-meta %2 {:key %1}) children)])
 
-(defn text-input
-  [value on-change placeholder type]
-  [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
-   {:type          (or type "text")
-    :default-value value
-    :on-change     on-change
-    :placeholder   placeholder}])
-
-(defn text-field
-  [label & args]
-  [form-field {:label label :orientation :horizontal} (apply text-input args)])
-
 (defn input
-  [& {:keys [type] :or {type "text"} :as args}]
-  [:input.bg-neutral-200.text-neutral-600.dark:text-neutral-300.dark:bg-neutral-950.rounded
+  [&
+   {:keys [type class]
+    :or   {type  "text"
+           class ["rounded" "bg-neutral-200" "text-neutral-600"
+                  "border-neutral-300"
+                  "dark:text-neutral-300" "dark:bg-neutral-900"
+                  "dark:border-neutral-800"]}
+    :as   args}]
+  [:input
    (merge
-    {:type type}
+    {:type  type
+     :class class}
     args)])
 
-(defn boolean-input
-  [label value on-change]
-  [generic-input label
-   [:input
-    {:type      "checkbox"
-     :checked   value
-     :value     value
-     :on-change on-change}]])
-
-(defn select-input
+(defn select
   [value options on-change]
-  [:select.focus:ring-transparent.bg-transparent.font-bold
+  [:select.focus:ring-transparent.border-neutral-300.dark:border-neutral-800.rounded-xl.bg-neutral-200.dark:bg-neutral-900
    {:value     value
     :on-change on-change}
    (for [[i {:keys [label value] :as option}] (map-indexed vector options)]
      ^{:key i}
-     [:option.dark:bg-neutral-900.border-none {:value (or value option) :key i}
+     [:option
+      {:value (or value option) :key i}
       (or label option)])])
-
-(defn select-field
-  [label & args]
-  [generic-input label (apply select-input args)])
 
 (defn tooltip-item
   [{:keys [label icon on-click link destroy-tooltip-on-click? custom-content]
