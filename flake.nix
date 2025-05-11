@@ -42,7 +42,7 @@
               imports = [
                 inputs.services-flake.processComposeModules.default
               ];
-              services.postgres."pg1" = {
+              services.postgres.tubo-db = {
                 enable = true;
                 socketDir = "/tmp";
                 superuser = dbUser;
@@ -56,12 +56,12 @@
               cli.options.no-server = false;
               settings.processes.pgweb =
                 let
-                  pgcfg = config.services.postgres.pg1;
+                  pgcfg = config.services.postgres.tubo-db;
                 in
                 {
                   environment.PGWEB_DATABASE_URL = pgcfg.connectionURI { inherit dbName; };
                   command = pkgs.pgweb;
-                  depends_on."pg1".condition = "process_healthy";
+                  depends_on.tubo-db.condition = "process_healthy";
                 };
             };
         };
