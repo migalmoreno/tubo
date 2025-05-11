@@ -18,6 +18,7 @@
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
                                 [modals/add-to-bookmark related-streams]])}]
+     :extra-classes ["px-5" "xs:p-3"]
      :tooltip-classes ["right-7" "top-0"]]))
 
 (defn metadata
@@ -44,7 +45,6 @@
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banner description next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
-            page-loading? @(rf/subscribe [:show-page-loading])
             active-tab (first (filter #(= @!active-tab-id
                                           (-> %
                                               :contentFilters
@@ -55,34 +55,32 @@
                                 :next-page
                                 :url)
                             (:url next-page))]
-        [:<>
-         (when-not page-loading?
-           (when banner
-             [:div.flex.justify-center.h-24
-              [:img.min-w-full.min-h-full.object-cover
-               {:src banner}]]))
-         [layout/content-container
-          [metadata channel]
-          (when-not (empty? description)
-            [layout/show-more-container @!show-description? description
-             #(reset! !show-description? (not @!show-description?))])
-          [:div.flex.justify-between
-           [layout/tabs
-            (map (fn [tab]
-                   {:id    (-> tab
-                               :contentFilters
-                               first)
-                    :label (-> tab
-                               :contentFilters
-                               first)})
-                 (:tabs channel))
-            :selected-id @!active-tab-id
-            :on-change
-            #(do (reset! !active-tab-id %)
-                 (rf/dispatch [:channel/fetch-tab url %]))]
-           [items/layout-switcher !layout]]
-          [items/related-streams
-           (or (:related-streams active-tab) related-streams) next-page-url
-           !layout
-           #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
-                          next-page-url])]]]))))
+        [layout/content-container
+         (when banner
+           [:div.flex.justify-center.h-24
+            [:img.min-w-full.min-h-full.object-cover.rounded-xl
+             {:src banner}]])
+         [metadata channel]
+         (when-not (empty? description)
+           [layout/show-more-container @!show-description? description
+            #(reset! !show-description? (not @!show-description?))])
+         [:div.flex.justify-between
+          [layout/tabs
+           (map (fn [tab]
+                  {:id    (-> tab
+                              :contentFilters
+                              first)
+                   :label (-> tab
+                              :contentFilters
+                              first)})
+                (:tabs channel))
+           :selected-id @!active-tab-id
+           :on-change
+           #(do (reset! !active-tab-id %)
+                (rf/dispatch [:channel/fetch-tab url %]))]
+          [items/layout-switcher !layout]]
+         [items/related-streams
+          (or (:related-streams active-tab) related-streams) next-page-url
+          !layout
+          #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
+                         next-page-url])]]))))
