@@ -103,7 +103,7 @@
     :or   {thumbnail-classes ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]"
                               "sm:h-36" "sm:min-w-[250px]" "sm:max-w-[250px]"]
            title-classes     ["[overflow-wrap:anywhere]" "line-clamp-1"
-                              "text-sm" "xs:text-xl" "mt-2"]
+                              "text-sm" "sm:text-xl" "mt-2" "font-semibold"]
            author-classes    ["[overflow-wrap:anywhere]" "font-semibold"
                               "line-clamp-1" "break-all" "text-xs"
                               "xs:text-sm"]
@@ -161,7 +161,8 @@
              [:span.line-clamp-1 {:class metadata-classes}
               (utils/format-date-ago upload-date)])])
         (when (or subscriber-count stream-count)
-          [:div.flex.text-xs.xs:text-sm.flex-col.xs:flex-row
+          [:div.flex.flex-col.xs:flex-row
+           {:class metadata-classes}
            (when (and (= type "channel") subscriber-count)
              [:<>
               [:div.flex.items-center.h-full
@@ -231,7 +232,7 @@
    :extra-classes ["p-0"]
    :tooltip-classes ["right-3" "top-10"]
    :icon
-   [:div.flex.items-center.gap-x-3.text-neutral-500.rounded-full.transition-all.ease-in-out
+   [:div.flex.items-center.gap-x-3.rounded-full.transition-all.ease-in-out.text-sm.text-neutral-500
     [:i.fa-solid
      {:class (if (= @!layout "list") :fa-table-list :fa-table-cells-large)}]
     [:i.fa-solid.fa-angle-down.text-sm]]])
