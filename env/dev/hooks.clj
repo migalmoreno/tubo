@@ -18,7 +18,7 @@
 (defn webpack-watch
   {:shadow.build/stage :configure}
   [build-state]
-  (proc/process {:extra-env {"NODE_ENV" "development"} :out *out* :err :out}
+  (proc/process {:extra-env {"NODE_ENV" "development"}}
                 "./node_modules/.bin/webpack --watch")
   build-state)
 
