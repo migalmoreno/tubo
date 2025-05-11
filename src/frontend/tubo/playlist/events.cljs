@@ -41,6 +41,10 @@
                :playlist          (-> body
                                       (utils/apply-image-quality
                                        db
+                                       :thumbnail
+                                       :thumbnails)
+                                      (utils/apply-image-quality
+                                       db
                                        :uploader-avatar
                                        :uploader-avatars)
                                       (utils/apply-thumbnails-quality
