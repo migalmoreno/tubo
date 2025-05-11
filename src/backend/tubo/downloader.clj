@@ -27,7 +27,7 @@
                  :body       (.dataToSend request)
                  :as         :text
                  :headers    req-headers
-                 :timeout    30000
+                 :keepalive  -1
                  :user-agent user-agent})
               res-headers (reduce-kv #(assoc %1 (name %2) [%3]) {} headers)]
           (when (= status 429)
