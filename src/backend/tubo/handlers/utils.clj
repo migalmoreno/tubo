@@ -1,10 +1,29 @@
 (ns tubo.handlers.utils
   (:require
-   [clojure.java.data :as j]))
+   [clojure.data.json :as json]
+   [clojure.java.data :as j])
+  (:import
+   org.schabi.newpipe.extractor.Page))
 
 (defn non-negative
   [val]
   (when-not (= val -1) val))
+
+(defn get-next-page
+  [info]
+  (when (.hasNextPage info)
+    (update (j/from-java (.getNextPage info))
+            :body
+            #(slurp (byte-array %)))))
+
+(defn create-page
+  [next-page]
+  (let [page (json/read-str next-page :key-fn keyword)]
+    (Page. (:url page)
+           (:id page)
+           (:ids page)
+           (:cookies page)
+           (.getBytes (:body page)))))
 
 (defn get-stream-item
   [stream]

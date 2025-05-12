@@ -179,7 +179,7 @@
 (defn related-streams
   []
   (let [!observer (atom nil)]
-    (fn [related-streams next-page-url !layout pagination-fn]
+    (fn [related-streams next-page !layout pagination-fn]
       (let [service-color       @(rf/subscribe [:service-color])
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
             last-item-ref       #(when-not pagination-loading?
@@ -204,7 +204,7 @@
               (for [[i item] (map-indexed vector related-streams)]
                 ^{:key i}
                 [:div.w-full
-                 {:ref (when (and (seq next-page-url)
+                 {:ref (when (and (seq next-page)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
                  [grid-item-content item]])]
@@ -212,11 +212,11 @@
               (for [[i item] (map-indexed vector related-streams)]
                 ^{:key i}
                 [:div
-                 {:ref (when (and (seq next-page-url)
+                 {:ref (when (and (seq next-page)
                                   (= (+ i 1) (count related-streams)))
                          last-item-ref)}
                  [list-item-content item]])]))
-         (when (and pagination-loading? (seq next-page-url))
+         (when (and pagination-loading? (seq next-page))
            [layout/loading-icon service-color :text-md])]))))
 
 (defn layout-switcher

@@ -20,12 +20,11 @@
   []
   (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [serviceId]} :query-params}]
-      (let [{:keys [id related-streams next-page]}
-            @(rf/subscribe [:kiosk])
-            next-page-url (:url next-page)
-            service-id (or @(rf/subscribe [:service-id]) serviceId)]
+      (let [{:keys [id related-streams next-page]} @(rf/subscribe [:kiosk])
+            service-id                             (or @(rf/subscribe
+                                                         [:service-id])
+                                                       serviceId)]
         [layout/content-container
          [layout/content-header id [items/layout-switcher !layout]]
-         [items/related-streams related-streams next-page-url !layout
-          #(rf/dispatch [:kiosks/fetch-paginated service-id id
-                         next-page-url])]]))))
+         [items/related-streams related-streams next-page !layout
+          #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))))

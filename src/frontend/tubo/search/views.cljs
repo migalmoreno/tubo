@@ -100,7 +100,6 @@
   (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
     (fn [{{:keys [q serviceId]} :query-params}]
       (let [{:keys [items next-page]} @(rf/subscribe [:search/results])
-            next-page-url             (:url next-page)
             service-id                (or @(rf/subscribe [:service-id])
                                           serviceId)
             filter                    @(rf/subscribe [:search/filter])
@@ -118,11 +117,11 @@
                 (:content-filters service))
            #(rf/dispatch [:search/set-filter (.. % -target -value)])]
           [items/layout-switcher !layout]]
-         [items/related-streams items next-page-url !layout
+         [items/related-streams items next-page !layout
           #(rf/dispatch
             [:search/fetch-paginated
-             {:query         q
-              :id            service-id
-              :filter        (or filter
-                                 (get (:default-filter settings) service-id))
-              :next-page-url next-page-url}])]]))))
+             {:query     q
+              :id        service-id
+              :filter    (or filter
+                             (get (:default-filter settings) service-id))
+              :next-page next-page}])]]))))

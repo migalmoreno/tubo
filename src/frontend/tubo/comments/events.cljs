@@ -70,11 +70,11 @@
 
 (rf/reg-event-fx
  :comments/fetch-paginated
- (fn [{:keys [db]} [_ url next-page-url]]
-   (if (empty? next-page-url)
-     {:db (assoc db :show-pagination-loading false)}
+ (fn [{:keys [db]} [_ url next-page]]
+   (if (seq next-page)
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch
             [:comments/fetch url
              [:comments/load-paginated] [:bad-pagination-response]
-             {:nextPage (js/encodeURIComponent next-page-url)}]]]})))
+             {:nextPage (.stringify js/JSON (clj->js next-page))}]]]}
+     {:db (assoc db :show-pagination-loading false)})))

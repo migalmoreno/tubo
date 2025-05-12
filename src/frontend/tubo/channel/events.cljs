@@ -133,14 +133,14 @@
 
 (rf/reg-event-fx
  :channel/fetch-paginated
- (fn [{:keys [db]} [_ uri tab-id next-page-url]]
-   (if (empty? next-page-url)
-     {:db (assoc db :show-pagination-loading false)}
+ (fn [{:keys [db]} [_ uri tab-id next-page]]
+   (if (seq next-page)
      {:fx [[:dispatch
             [:api/get
              (str "channels/" (js/encodeURIComponent uri)
                   "/tabs/"    (or tab-id "default"))
              [:channel/load-paginated tab-id]
              [:channel/bad-paginated-response tab-id]
-             {:nextPage (js/encodeURIComponent next-page-url)}]]]
-      :db (assoc db :show-pagination-loading true)})))
+             {:nextPage (.stringify js/JSON (clj->js next-page))}]]]
+      :db (assoc db :show-pagination-loading true)}
+     {:db (assoc db :show-pagination-loading false)})))

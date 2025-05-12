@@ -83,18 +83,18 @@
 
 (rf/reg-event-fx
  :search/fetch-paginated
- (fn [{:keys [db]} [_ {:keys [query id next-page-url filter]}]]
-   (if (empty? next-page-url)
-     {:db (assoc db :show-pagination-loading false)}
+ (fn [{:keys [db]} [_ {:keys [query id next-page filter]}]]
+   (if (seq next-page)
      {:fx [[:dispatch
             [:search/fetch id
              [:search/load-paginated] [:bad-pagination-response]
              (into
               {:q        query
-               :nextPage (js/encodeURIComponent next-page-url)}
+               :nextPage (.stringify js/JSON (clj->js next-page))}
               (when filter
                 {:filter filter}))]]]
-      :db (assoc db :show-pagination-loading true)})))
+      :db (assoc db :show-pagination-loading true)}
+     {:db (assoc db :show-pagination-loading false)})))
 
 (rf/reg-event-fx
  :search/leave-page

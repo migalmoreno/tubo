@@ -108,11 +108,11 @@
 
 (rf/reg-event-fx
  :kiosks/fetch-paginated
- (fn [{:keys [db]} [_ service-id kiosk-id next-page-url]]
-   (if (empty? next-page-url)
-     {:db (assoc db :show-pagination-loading false)}
+ (fn [{:keys [db]} [_ service-id kiosk-id next-page]]
+   (if (seq next-page)
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch
             [:kiosks/fetch service-id kiosk-id
              [:kiosks/load-paginated] [:bad-pagination-response]
-             {:nextPage (js/encodeURIComponent next-page-url)}]]]})))
+             {:nextPage (.stringify js/JSON (clj->js next-page))}]]]}
+     {:db (assoc db :show-pagination-loading false)})))

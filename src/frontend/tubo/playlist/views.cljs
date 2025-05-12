@@ -28,8 +28,7 @@
       (let [{:keys [name next-page uploader-name uploader-url related-streams
                     stream-count]
              :as   playlist}
-            @(rf/subscribe [:playlist])
-            next-page-url (:url next-page)]
+            @(rf/subscribe [:playlist])]
         [layout/content-container
          [:div.flex.w-full.flex-auto.items-start.py-4.flex-wrap.md:flex-nowrap.gap-8
           [:div.flex.items-center.justify-center.md:justify-start.flex-auto.lg:flex-none
@@ -49,5 +48,5 @@
                :title uploader-name}
               uploader-name]]
             [items/layout-switcher !layout]]]]
-         [items/related-streams related-streams next-page-url !layout
-          #(rf/dispatch [:playlist/fetch-paginated url next-page-url])]]))))
+         [items/related-streams related-streams next-page !layout
+          #(rf/dispatch [:playlist/fetch-paginated url next-page])]]))))

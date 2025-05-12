@@ -2,7 +2,6 @@
   (:require
    [clojure.java.data :refer [from-java]]
    [ring.util.http-response :refer [ok internal-server-error]]
-   [ring.util.response :refer [response]]
    [ring.util.codec :refer [url-decode]])
   (:import
    org.schabi.newpipe.extractor.NewPipe
@@ -32,7 +31,7 @@
 
 (defn create-services-handler
   [_]
-  (response (map get-service (NewPipe/getServices))))
+  (ok (map get-service (NewPipe/getServices))))
 
 (defn fetch-instance-metadata
   [url]
@@ -41,11 +40,11 @@
 
 (defn create-instance-handler
   [_]
-  (response (from-java (.getInstance ServiceList/PeerTube))))
+  (ok (from-java (.getInstance ServiceList/PeerTube))))
 
 (defn create-instance-metadata-handler
   [{{:keys [url]} :path-params}]
-  (response (fetch-instance-metadata url)))
+  (ok (fetch-instance-metadata url)))
 
 (defn create-change-instance-handler
   [{:keys [body-params]}]

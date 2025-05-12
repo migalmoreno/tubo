@@ -50,11 +50,9 @@
                                               :contentFilters
                                               first))
                                       (:tabs channel)))
-            next-page-url (if active-tab
-                            (-> active-tab
-                                :next-page
-                                :url)
-                            (:url next-page))]
+            next-page-info (if active-tab
+                             (:next-page active-tab)
+                             next-page)]
         [layout/content-container
          (when banner
            [:div.flex.justify-center.h-24
@@ -80,7 +78,7 @@
                 (rf/dispatch [:channel/fetch-tab url %]))]
           [items/layout-switcher !layout]]
          [items/related-streams
-          (or (:related-streams active-tab) related-streams) next-page-url
+          (or (:related-streams active-tab) related-streams) next-page-info
           !layout
           #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
-                         next-page-url])]]))))
+                         next-page-info])]]))))

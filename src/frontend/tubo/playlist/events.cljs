@@ -25,14 +25,14 @@
 
 (rf/reg-event-fx
  :playlist/fetch-paginated
- (fn [{:keys [db]} [_ url next-page-url]]
-   (if (empty? next-page-url)
-     {:db (assoc db :show-pagination-loading false)}
+ (fn [{:keys [db]} [_ url next-page]]
+   (if (seq next-page)
      {:fx [[:dispatch
             [:playlist/fetch url
              [:playlist/load-paginated] [:bad-pagination-response]
-             {:nextPage (js/encodeURIComponent next-page-url)}]]]
-      :db (assoc db :show-pagination-loading true)})))
+             {:nextPage (.stringify js/JSON (clj->js next-page))}]]]
+      :db (assoc db :show-pagination-loading true)}
+     {:db (assoc db :show-pagination-loading false)})))
 
 (rf/reg-event-fx
  :playlist/load-page

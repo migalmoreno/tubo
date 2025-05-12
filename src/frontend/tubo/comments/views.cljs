@@ -71,7 +71,6 @@
     (fn [{:keys [comments next-page]}
          {:keys [uploader-name uploader-avatar url]}]
       (let [service-color       @(rf/subscribe [:service-color])
-            next-page-url       (:url next-page)
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
             last-item-ref       #(when-not pagination-loading?
                                    (when @!observer (.disconnect @!observer))
@@ -84,7 +83,7 @@
                                                                     entries))
                                              (rf/dispatch
                                               [:comments/fetch-paginated url
-                                               (:url next-page)])))))
+                                               next-page])))))
                                       %)))]
         [:div.flex.flex-col
          (if (empty? comments)
@@ -96,7 +95,8 @@
                   (map-indexed vector comments)]
               ^{:key i}
               [:div.flex.flex-col
-               {:ref (when (and next-page-url (= (+ i 1) (count comments)))
+               {:ref (when (and (seq next-page)
+                                (= (+ i 1) (count comments)))
                        last-item-ref)}
                [:div.flex
                 [comment-item
@@ -111,5 +111,5 @@
                      (assoc reply
                             :author-name   uploader-name
                             :author-avatar uploader-avatar)])])])
-            (when (and pagination-loading? (seq next-page-url))
+            (when (and pagination-loading? (seq next-page))
               [layout/loading-icon service-color :text-md])])]))))
