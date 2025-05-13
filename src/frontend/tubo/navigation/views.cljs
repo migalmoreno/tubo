@@ -325,7 +325,7 @@
 (defn mobile-menu
   [match]
   (let [show-mobile-menu? @(rf/subscribe [:navigation/show-mobile-menu])]
-    [:div.fixed.h-screen.w-80.top-0.bg-neutral-100.dark:bg-neutral-950.transition-all.ease-in-out.delay-75.z-30.flex.flex-col
+    [:div.fixed.h-dvh.w-80.top-0.bg-neutral-100.dark:bg-neutral-950.transition-all.ease-in-out.delay-75.z-30.flex.flex-col
      {:class [(if show-mobile-menu? "left-0" "-left-80")]}
      [:div.flex.items-center.h-14.pl-8.gap-x-6
       [:button.text-lg
