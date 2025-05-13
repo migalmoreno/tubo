@@ -4,7 +4,7 @@
   (:import
    [org.schabi.newpipe.extractor.downloader Downloader Response]
    [org.schabi.newpipe.extractor.exceptions ReCaptchaException]
-   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody]))
+   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody ConnectionSpec]))
 
 (defonce user-agent
   "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0")
@@ -30,6 +30,7 @@
 (def client
   (.. (OkHttpClient$Builder.)
       (readTimeout 30 java.util.concurrent.TimeUnit/SECONDS)
+      (connectionSpecs (list ConnectionSpec/RESTRICTED_TLS))
       (build)))
 
 (defn create-downloader-impl
@@ -52,5 +53,5 @@
                             (request)
                             (url)
                             (toString))))
-           (catch Exception e
+           (catch ReCaptchaException e
              (log/error e))))))
