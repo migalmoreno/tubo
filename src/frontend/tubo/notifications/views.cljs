@@ -35,6 +35,6 @@
   (fn []
     (let [notifications @(rf/subscribe [:notifications])]
       (when (seq notifications)
-        [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-30.w-full.py-1.px-2
+        [:div.fixed.flex.flex-col.items-end.gap-2.top-16.z-30.py-1.px-2.right-0
          (for [[i notification] (map-indexed vector notifications)]
            ^{:key i} [notification-content notification])]))))
