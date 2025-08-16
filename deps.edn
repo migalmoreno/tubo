@@ -4,7 +4,7 @@
         buddy/buddy-sign                        {:mvn/version "3.6.1-359"}
         com.github.seancorfield/honeysql        {:mvn/version "2.7.1295"}
         com.github.seancorfield/next.jdbc       {:mvn/version "1.3.1002"}
-        com.github.TeamNewPipe/NewpipeExtractor {:mvn/version "0.24.6"}
+        com.github.TeamNewPipe/NewpipeExtractor {:mvn/version "0.24.8"}
         com.squareup.okhttp3/okhttp             {:mvn/version "4.12.0"}
         com.zaxxer/HikariCP                     {:mvn/version "6.3.0"}
         funcool/promesa                         {:mvn/version "11.0.678"}
