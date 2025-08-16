@@ -18,6 +18,7 @@
                     (.fetchPage))
         info      (KioskInfo/getInfo extractor)]
     {:id              (.getId info)
+     :name            (.getName info)
      :url             (.getUrl info)
      :service-id      service-id
      :next-page       (utils/get-next-page info)
@@ -37,6 +38,7 @@
           (.fetchPage))
         info (KioskInfo/getInfo extractor)]
     {:id              (.getId info)
+     :name            (.getName info)
      :url             (.getUrl info)
      :service-id      service-id
      :next-page       (utils/get-next-page info)

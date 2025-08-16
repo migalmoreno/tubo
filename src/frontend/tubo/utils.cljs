@@ -1,7 +1,7 @@
 (ns tubo.utils
   (:require
    ["timeago.js" :as timeago]
-   [clojure.string :as s]))
+   [clojure.string :as str]))
 
 (goog-define ^js/String version "unknown")
 
@@ -19,7 +19,7 @@
                                       (get-in [:settings
                                                :image-quality])
                                       str
-                                      s/upper-case)))
+                                      str/upper-case)))
                              (get body old-image-key))
                      first
                      :url)
@@ -98,3 +98,9 @@
           (.toISOString)
           slice)
       "--:--")))
+
+(defn titleize
+  [str]
+  (str/join " "
+            (map #(if (not= % "and") (str/capitalize %) %)
+                 (str/split str #"[\s_]+"))))

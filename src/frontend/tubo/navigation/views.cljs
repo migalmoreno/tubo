@@ -177,7 +177,8 @@
                :data
                :name)
        :channel-page  (:name @(rf/subscribe [:channel]))
-       :kiosk-page    (:id @(rf/subscribe [:kiosk]))
+       :kiosk-page    (:name @(rf/subscribe [:kiosk]))
+       :homepage      (:name @(rf/subscribe [:kiosk]))
        :stream-page   (:name @(rf/subscribe [:stream]))
        :playlist-page (:name @(rf/subscribe [:playlist]))
        nil)]
@@ -260,7 +261,7 @@
              [sidebar-item
               (rfe/href :kiosk-page nil {:serviceId service-id :kioskId kiosk})
               [:i.fa-solid.fa-fire]
-              kiosk
+              (utils/titleize kiosk)
               :icon-attrs
               {:style (when (and active? (not= i 2))
                         {:color (utils/get-service-color i)})}

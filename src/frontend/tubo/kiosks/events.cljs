@@ -43,7 +43,7 @@
                        (utils/apply-avatars-quality db :related-streams)))
             (assoc :show-page-loading false))
     :fx [[:dispatch [:services/fetch body]]
-         [:document-title (:id body)]]}))
+         [:document-title (:name body)]]}))
 
 (rf/reg-event-fx
  :kiosks/fetch-page

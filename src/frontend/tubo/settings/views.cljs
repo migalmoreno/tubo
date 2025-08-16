@@ -136,7 +136,8 @@
                            :id)]))]
      [select-input "Default kiosk" [:default-kiosk service-id]
       (or (get default-kiosk service-id) (:default-kiosk kiosks))
-      (:available-kiosks kiosks)]
+      (map (fn [kiosk] {:label (utils/titleize kiosk) :value kiosk})
+           (:available-kiosks kiosks))]
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
       (:content-filters service)]
