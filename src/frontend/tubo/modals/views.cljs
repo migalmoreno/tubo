@@ -6,9 +6,9 @@
   [title body & extra-buttons]
   [:div.bg-neutral-100.dark:bg-neutral-950.flex.flex-col.flex-auto.gap-y-5.rounded.p-5.border.dark:border-neutral-900
    [:div.flex.justify-between
-    [:h1.text-xl.font-semibold title]
+    [:h1.text-xl.font-extrabold title]
     [:button {:on-click #(rf/dispatch [:modals/close])}
-     [:i.fa-solid.fa-close]]]
+     [:i.fa-solid.fa-close.text-neutral-600.dark:text-neutral-400.text-xl]]]
    [:div.flex-auto.overflow-y-auto body]
    (when extra-buttons
      [:div.flex.justify-end.gap-x-3
