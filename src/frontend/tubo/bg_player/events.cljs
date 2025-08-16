@@ -125,9 +125,21 @@
 
 (rf/reg-event-fx
  :bg-player/switch-to-main
- [(rf/inject-cofx :store)]
- (fn [{:keys [db]}]
-   {:fx            [[:dispatch [:main-player/show true]]]
+ [(rf/inject-cofx ::inject/sub [:queue/current])]
+ (fn [{:keys [db] :as cofx}]
+   {:fx            [[:dispatch [:main-player/show true]]
+                    (when-not (seq (get-in db
+                                           [:queue (:queue/position db)
+                                            :comments-page]))
+                      [:dispatch
+                       [:comments/fetch-page (:url (:queue/current cofx))
+                        [:queue (:queue/position db)]]])
+                    (when-not (seq (get-in db
+                                           [:queue (:queue/position db)
+                                            :related-streams]))
+                      [:dispatch
+                       [:bg-player/fetch-stream (:url (:queue/current cofx))
+                        (:queue/position db) false]])]
     :db            (assoc db :bg-player/show false)
     :scroll-to-top nil}))
 
@@ -147,20 +159,19 @@
                   :bg-player/show    (not (:main-player/show db))
                   :bg-player/loading false)
     :store (assoc store :bg-player/show (not (:main-player/show db)))
-    :fx    (apply conj
-                  [(when play?
-                     [:dispatch [:queue/change-stream body idx]])]
-                  (when (and (:bg-player/ready db) play?)
-                    [[:media-session-metadata
-                      {:title   (:name body)
-                       :artist  (:uploader-name body)
-                       :artwork [{:src (-> body
-                                           :thumbnails
-                                           last
-                                           :url)}]}]
-                     [:media-session-handlers
-                      {:current-pos idx
-                       :player      bg-player}]]))}))
+    :fx    (into
+            [[:dispatch [:queue/change-stream body idx play?]]]
+            (when play?
+              [[:media-session-metadata
+                {:title   (:name body)
+                 :artist  (:uploader-name body)
+                 :artwork [{:src (-> body
+                                     :thumbnails
+                                     last
+                                     :url)}]}]
+               [:media-session-handlers
+                {:current-pos idx
+                 :player      bg-player}]]))}))
 
 (rf/reg-event-fx
  :bg-player/bad-response

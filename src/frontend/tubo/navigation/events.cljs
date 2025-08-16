@@ -67,7 +67,9 @@
                          (assoc :show-pagination-loading false))
       :scroll-to-top nil
       :body-overflow false
-      :fx            [(when (:main-player/show db)
+      :fx            [(when (or (and (seq (:queue db))
+                                     (not (:main-player/show db)))
+                                (:main-player/show db))
                         [:dispatch [:bg-player/switch-from-main]])
                       (when (:layout/bg-overlay db)
                         [:dispatch [:layout/hide-bg-overlay]])

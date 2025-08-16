@@ -1,8 +1,8 @@
 (ns tubo.main-player.views
   (:require
    [re-frame.core :as rf]
+   [reagent.core :as r]
    [tubo.bg-player.views :as bg-player]
-   [tubo.layout.views :as layout]
    [tubo.player.views :as player]
    [tubo.queue.views :as queue]
    [tubo.stream.views :as stream]
@@ -15,8 +15,10 @@
      :on-can-play    #(rf/dispatch [:main-player/ready true])
      :on-play        #(rf/dispatch [:main-player/play])
      :on-loaded-data #(rf/dispatch [:main-player/start])
-     :on-time-update #(reset! !elapsed (.-currentTime @!player))
-     :on-seeked      #(reset! !elapsed (.-currentTime @!player))
+     :on-time-update #(when @!player
+                        (reset! !elapsed (.-currentTime @!player)))
+     :on-seeked      #(when @!player
+                        (reset! !elapsed (.-currentTime @!player)))
      :loop           (= @(rf/subscribe [:player/loop]) :stream)}))
 
 (defn stream-queue

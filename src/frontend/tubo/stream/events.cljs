@@ -32,7 +32,7 @@
     :fx [(when (-> db
                    :settings
                    :show-comments)
-           [:dispatch [:comments/fetch-page (:url body)]])
+           [:dispatch [:comments/fetch-page (:url body) [:stream]]])
          [:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
 

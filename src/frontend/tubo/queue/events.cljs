@@ -126,23 +126,43 @@
 (rf/reg-event-fx
  :queue/change-stream
  [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ stream idx]]
-   (let [update-entry
-         (fn [x]
-           (update-in
-            x
-            [:queue idx]
-            #(merge %
+ (fn [{:keys [db store]} [_ stream idx play?]]
+   {:db    (let [updated-db
+                 (update-in
+                  db
+                  [:queue idx]
+                  #(merge
+                    %
+                    (-> stream
+                        (utils/apply-image-quality db :thumbnail :thumbnails)
+                        (utils/apply-image-quality db
+                                                   :uploader-avatar
+                                                   :uploader-avatars)
+                        (utils/apply-thumbnails-quality
+                         db
+                         :related-streams)
+                        (utils/apply-avatars-quality
+                         db
+                         :related-streams))))]
+             (if play? (assoc updated-db :queue/position idx) updated-db))
+    :store (let [updated-store
+                 (update-in
+                  store
+                  [:queue idx]
+                  #(merge
+                    %
                     (-> stream
                         (get-stream-metadata)
                         (utils/apply-image-quality db :thumbnail :thumbnails)
                         (utils/apply-image-quality db
                                                    :uploader-avatar
-                                                   :uploader-avatars)))))]
-
-     {:db    (assoc (update-entry db) :queue/position idx)
-      :store (assoc (update-entry store) :queue/position idx)
-      :fx    [[:dispatch
+                                                   :uploader-avatars))))]
+             (if play? (assoc updated-store :queue/position idx) updated-store))
+    :fx    [(when play?
+              [:dispatch
                [(if (:main-player/show db)
                   :main-player/set-stream
-                  :bg-player/set-stream) stream idx]]]})))
+                  :bg-player/set-stream) stream idx]])
+            (when (and (:main-player/show db)
+                       (not (seq (get-in db [:queue idx :comments-page]))))
+              [:dispatch [:comments/fetch-page (:url stream) [:queue idx]]])]}))
