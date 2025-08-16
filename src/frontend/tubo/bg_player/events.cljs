@@ -1,5 +1,6 @@
 (ns tubo.bg-player.events
   (:require
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [tubo.player.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
@@ -82,7 +83,10 @@
       :store (remove-entries store)
       :fx    [[:dispatch [:bg-player/pause true]]
               [:dispatch [:bg-player/seek 0]]
-              [:dispatch [:bg-player/hide]]]})))
+              [:timeout
+               {:id    (nano-id)
+                :event [:bg-player/hide]
+                :time  200}]]})))
 
 (rf/reg-event-db
  :bg-player/ready
