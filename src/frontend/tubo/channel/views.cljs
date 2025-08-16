@@ -22,20 +22,26 @@
      :tooltip-classes ["right-7" "top-0"]]))
 
 (defn metadata
-  [{:keys [avatar name subscriber-count] :as channel}]
-  [:div.flex.items-center.justify-between
-   [:div.flex.items-center.my-4.gap-x-4
-    [layout/uploader-avatar
-     {:uploader-avatar avatar
-      :uploader-name   name}]
-    [:div
-     [:h1.text-2xl.line-clamp-1.font-semibold {:title name} name]
-     (when subscriber-count
-       [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
-        [:span
-         (str (utils/format-quantity subscriber-count) " subscribers")]])]]
-   [:div.hidden.xs:block
-    [metadata-popover channel]]])
+  []
+  (let [!observer (atom nil)]
+    (fn [{:keys [avatar name subscriber-count] :as channel}]
+      [:div.flex.items-center.justify-between
+       [:div.flex.items-center.my-4.gap-x-4
+        [layout/uploader-avatar
+         {:uploader-avatar avatar
+          :uploader-name   name}]
+        [:div
+         [:h1.text-2xl.line-clamp-1.font-semibold
+          {:title name
+           :ref   #(rf/dispatch [:navigation/show-title-on-scroll !observer %
+                                 {:rootMargin "-73px" :threshold 0}])}
+          name]
+         (when subscriber-count
+           [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-sm
+            [:span
+             (str (utils/format-quantity subscriber-count) " subscribers")]])]]
+       [:div.hidden.xs:block
+        [metadata-popover channel]]])))
 
 (defn channel
   []

@@ -59,3 +59,8 @@
     (rf/subscribe [:navigation/sidebar-match-media-state])])
  (fn [[show-sidebar? sidebar-state]]
    (and (not (false? show-sidebar?)) (not (false? sidebar-state)))))
+
+(rf/reg-sub
+ :navigation/show-title
+ (fn [db]
+   (:navigation/show-title db)))

@@ -89,3 +89,20 @@
        {:fx [[:dispatch
               [:layout/destroy-tooltips-by-ids
                (disj tooltip-ids clicked-controller)]]]}))))
+
+(rf/reg-fx
+ :intersection-observer
+ (fn [{:keys [observer elem cb opts]}]
+   (when @observer
+     (.disconnect @observer))
+   (when elem
+     (.observe
+      (reset! observer (js/IntersectionObserver. cb (clj->js opts)))
+      elem))))
+
+(rf/reg-event-fx
+ :layout/add-intersection-observer
+ (fn [{:keys [db]} [_ observer elem cb opts]]
+   (when-not (or (:show-page-loading db) (:show-pagination-loading db))
+     {:intersection-observer
+      {:observer observer :elem elem :cb cb :opts opts}})))

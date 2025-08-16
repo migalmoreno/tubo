@@ -61,6 +61,7 @@
          controllers (rfc/apply-controllers (:controllers old-match) new-match)
          match       (assoc new-match :controllers controllers)]
      {:db            (-> db
+                         (assoc :navigation/show-title false)
                          (assoc :navigation/current-match match)
                          (assoc :navigation/show-mobile-menu false)
                          (assoc :show-pagination-loading false))
@@ -72,3 +73,22 @@
                         [:dispatch [:layout/hide-bg-overlay]])
                       (when (:queue/show db)
                         [:dispatch [:queue/show false]])]})))
+
+(rf/reg-event-fx
+ :navigation/show-title
+ (fn [{:keys [db]} [_ value]]
+   {:db (assoc db :navigation/show-title value)}))
+
+(rf/reg-event-fx
+ :navigation/show-title-on-scroll
+ (fn [_ [_ observer elem opts]]
+   {:fx [[:dispatch
+          [:layout/add-intersection-observer observer elem
+           (fn [entries]
+             (if (< (- (.-top (.-boundingClientRect (first entries)))
+                       (.-top (.-rootBounds (first entries))))
+                    0)
+               (rf/dispatch [:navigation/show-title
+                             (not (.-isIntersecting (first entries)))])
+               (rf/dispatch [:navigation/show-title false])))
+           opts]]]}))

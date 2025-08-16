@@ -70,10 +70,16 @@
         (map-indexed #(with-meta %2 {:key %1}) children)])]))
 
 (defn content-header
-  [heading & children]
-  [:div.flex.items-center.justify-between
-   [:h1.text-3xl.line-clamp-1.mr-6.font-extrabold {:title heading} heading]
-   (map-indexed #(with-meta %2 {:key %1}) children)])
+  []
+  (let [!observer (atom nil)]
+    (fn [heading & children]
+      [:div.flex.items-center.justify-between
+       [:h1.text-4xl.line-clamp-1.mr-6.font-extrabold
+        {:title heading
+         :ref   #(rf/dispatch [:navigation/show-title-on-scroll !observer %
+                               {:rootMargin "-73px" :threshold 0}])}
+        heading]
+       (map-indexed #(with-meta %2 {:key %1}) children)])))
 
 (defn uploader-avatar
   [{:keys [uploader-avatar uploader-name uploader-url]}

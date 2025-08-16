@@ -51,7 +51,8 @@
         show-main-player? @(rf/subscribe [:main-player/show])
         show-sidebar?     @(rf/subscribe [:navigation/show-sidebar])
         sidebar-state     @(rf/subscribe
-                            [:navigation/sidebar-match-media-state])]
+                            [:navigation/sidebar-match-media-state])
+        show-title?       @(rf/subscribe [:navigation/show-title])]
     [:div.flex.items-center.gap-x-4
      (when (and (not show-queue?)
                 (not show-main-player?))
@@ -74,7 +75,7 @@
                                          :else :minimized)])}
          [:i.fa-solid.fa-bars]]])
      (when (and (not show-queue?) (not show-main-player?))
-       [:div {:class (if show-search-form? "hidden md:flex" "hidden sm:flex")}
+       [:div.px-2.hidden.md:flex
         [logo]])
      (cond (and show-main-player? (not show-search-form?))
            [:button.pl-8
@@ -84,15 +85,20 @@
            [:button.pl-8
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
-     [:div.font-extrabold.text-lg.sm:text-xl
-      (cond (and (not show-queue?)
-                 (not show-main-player?)
-                 (not show-search-form?))
-            [:h1.pl-4.line-clamp-1.sm:hidden title]
-            (and show-main-player? (not show-search-form?))
-            [:h1.pl-4.whitespace-nowrap "Main Player"]
-            (and show-queue? (not show-search-form?))
-            [:h1.pl-4.whitespace-nowrap "Play Queue"])]]))
+     [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7
+      (when (and (seq title) (not show-search-form?))
+        [:h1.px-2.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden
+         {:class [(when-not show-title? "invisible")
+                  (if show-title? "opacity-1" "opacity-0")]}
+         title])
+      [:div.absolute.md:static.left-2.transition-all.ease-in-out.duration-500.whitespace-nowrap
+       {:class
+        [(if (and show-title? (seq title)) "invisible" "visible")
+         (if (and show-title? (seq title)) "opacity-0" "opacity-1")]}
+       (cond (and show-main-player? (not show-search-form?)) "Main Player"
+             (and show-queue? (not show-search-form?))       "Play Queue"
+             (not show-search-form?)                         [:div.md:hidden
+                                                              [logo]])]]]))
 
 (def theme-tooltip-items
   [{:label    "Light"

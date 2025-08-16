@@ -182,40 +182,37 @@
     (fn [related-streams next-page !layout pagination-fn]
       (let [service-color       @(rf/subscribe [:service-color])
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
-            last-item-ref       #(when-not pagination-loading?
-                                   (when @!observer (.disconnect @!observer))
-                                   (when %
-                                     (.observe
-                                      (reset! !observer
-                                        (js/IntersectionObserver.
-                                         (fn [entries]
-                                           (when (.-isIntersecting (first
-                                                                    entries))
-                                             (pagination-fn)))))
-                                      %)))]
+            items               (doall
+                                 (for [[i item]
+                                       (map-indexed vector related-streams)]
+                                   ^{:key i}
+                                   [:div
+                                    {:ref
+                                     (when (and (seq next-page)
+                                                (= (+ i 1)
+                                                   (count related-streams)))
+                                       #(rf/dispatch
+                                         [:layout/add-intersection-observer
+                                          !observer
+                                          %
+                                          (fn [entries]
+                                            (when (.-isIntersecting (first
+                                                                     entries))
+                                              (pagination-fn)))]))}
+                                    (if (and !layout (= @!layout "grid"))
+                                      [grid-item-content item]
+                                      [list-item-content item])]))]
         [:div.flex.flex-col.flex-auto.my-2.md:my-8
          (if (empty? related-streams)
            [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4
             [:i.fa-solid.fa-ghost.text-3xl]
             [:p.text-lg "No available streams"]]
            (if (and !layout (= @!layout "grid"))
-             [:div.grid.w-full.gap-x-10.gap-y-6
+             [:div.grid.w-full.gap-x-10.gap-y-4
               {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
-              (for [[i item] (map-indexed vector related-streams)]
-                ^{:key i}
-                [:div.w-full
-                 {:ref (when (and (seq next-page)
-                                  (= (+ i 1) (count related-streams)))
-                         last-item-ref)}
-                 [grid-item-content item]])]
-             [:div.flex.flex-col.gap-x-10.gap-y-4
-              (for [[i item] (map-indexed vector related-streams)]
-                ^{:key i}
-                [:div
-                 {:ref (when (and (seq next-page)
-                                  (= (+ i 1) (count related-streams)))
-                         last-item-ref)}
-                 [list-item-content item]])]))
+              items]
+             [:div.flex.flex-col.gap-x-10
+              items]))
          (when (and pagination-loading? (seq next-page))
            [layout/loading-icon service-color :text-md])]))))
 
