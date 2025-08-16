@@ -182,6 +182,14 @@
        :on-click #(rf/dispatch [:bg-player/dispose])}]
      :tooltip-classes ["right-5" "bottom-5"]
      :extra-classes ["px-5" "xs:p-3"]]))
+(defn menu-controls
+  [stream]
+  (let [show-list? @(rf/subscribe [:queue/show-list])]
+    [:div.flex.gap-x-4.pl-5.lg:hidden
+     [:button
+      {:on-click #(rf/dispatch [:queue/show-list (not show-list?)])}
+      (if show-list? [:i.fa-solid.fa-headphones] [:i.fa-solid.fa-list])]
+     [popover stream]]))
 
 (defn extra-controls
   [!player stream color]

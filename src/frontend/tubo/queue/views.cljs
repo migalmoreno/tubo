@@ -1,33 +1,50 @@
 (ns tubo.queue.views
   (:require
    [re-frame.core :as rf]
+   [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
-   [tubo.player.views :as player]
+   [tubo.items.views :as items]
    [tubo.layout.views :as layout]
+   [tubo.player.views :as player]
    [tubo.utils :as utils]))
 
 (defn item-metadata
-  [{:keys [uploader-name name service-id] :as item} queue-pos i]
-  [:div.flex.cursor-pointer.py-2
-   {:class    (when (= i queue-pos) ["bg-neutral-200" "dark:bg-neutral-900"])
-    :on-click #(rf/dispatch [:queue/change-pos i])}
-   [:div.flex.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24
+  [{:keys [uploader-name name service-id] :as item} queue-pos i !clicked-idx]
+  [:div.flex.cursor-pointer.px-4.py-2
+   {:class    (into
+               (when (= i queue-pos)
+                 ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
+               ["h-[4.5rem]" "@sm:h-fit"])
+    :on-click #(do (rf/dispatch [:queue/change-pos i])
+                   (reset! !clicked-idx i))}
+   [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
+    {:class "@sm:flex"}
     [:span.font-bold.text-neutral-400.text-sm
-     (if (= i queue-pos) [:i.fa-solid.fa-play] (inc i))]]
+     (cond
+       (and (= i @!clicked-idx) @(rf/subscribe [:bg-player/loading]))
+       [:<>
+        [:div.block.lg:hidden
+         [layout/loading-icon (utils/get-service-color service-id) :text-xl]]
+        [:div.hidden.lg:block (inc i)]]
+       (= i queue-pos) [:i.fa-solid.fa-play]
+       :else (inc i))]]
    [:div.flex.items-center.shrink-0.grow-0
-    [layout/thumbnail item nil :classes
-     ["h-12" "xs:h-16" "w-16" "xs:w-24" "md:w-32"]]]
+    [layout/thumbnail item nil :rounded? true :classes
+     ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"]]]
    [:div.flex.flex-col.pl-4.pr-12.w-full
-    [:h1.line-clamp-1.w-fit.text-sm.xs:text-lg {:title name} name]
-    [:div.text-neutral-600.dark:text-neutral-400.text-xs.xs:text-sm.flex.flex-col.xs:flex-row
+    [:h1.line-clamp-1.w-fit.text-sm
+     {:title name :class "@lg:text-lg"} name]
+    [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col
+     {:class "@lg:text-sm @lg:flex-row"}
      [:span.line-clamp-1 {:title uploader-name} uploader-name]
      (when service-id
        [:<>
-        [:span.px-2.hidden.xs:inline-block
+        [:span.px-2.hidden
          {:dangerouslySetInnerHTML {:__html "&bull;"}
-          :style                   {:font-size "0.5rem"}}]
+          :style                   {:font-size "0.5rem"}
+          :class                   "@lg:inline-block"}]
         [:span (utils/get-service-name service-id)]])]]])
 
 (defn popover
@@ -50,23 +67,23 @@
                                 :params {}
                                 :query  {:url uploader-url}}])}]
     :tooltip-classes ["right-5" "top-0" "z-20"]
-    :extra-classes [:px-7 :py-2]]])
+    :extra-classes ["px-4" "@sm:px-7" :py-2]]])
 
 (defn queue-item
-  [item queue queue-pos i bookmarks]
+  [item queue queue-pos i bookmarks !clicked-idx]
   [:div.relative.w-full
    {:ref #(when (and queue (= queue-pos i)) (rf/dispatch [:scroll-top %]))}
-   [item-metadata item queue-pos i]
+   [item-metadata item queue-pos i !clicked-idx]
    [popover item i bookmarks]])
 
 (defn queue-metadata
   [{:keys [url name uploader-url uploader-name]}]
   [:div.flex.flex-col.py-2
-   [:a.text-md.line-clamp-1.w-fit
+   [:a.text-xl.line-clamp-1.w-fit.font-bold
     {:href  (rfe/href :stream-page nil {:url url})
      :title name}
     name]
-   [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit
+   [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
     {:href  (rfe/href :channel-page nil {:url uploader-url})
      :title uploader-name}
     uploader-name]])
@@ -83,18 +100,18 @@
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])]
-    [:<>
+    [:div.flex.flex-col.gap-y-4
      [:div.flex.flex-auto.py-2.w-full.items-center.text-sm
-      [:span.mr-4.whitespace-nowrap
+      [:span.mr-4.whitespace-nowrap.w-8
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
       [bg-player/time-slider !player !elapsed-time color]
-      [:span.ml-4.whitespace-nowrap
+      [:span.ml-4.whitespace-nowrap.w-8
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
          "--:--")]]
-     [:div.flex.justify-center.items-center.gap-x-4
+     [:div.flex.justify-center.items-center.gap-x-6
       [player/loop-button loop-playback color true]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
@@ -115,11 +132,11 @@
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
-         [layout/loading-icon color :text-3xl])
+         [layout/loading-icon color "text-[2.5rem]"])
        :on-click
        #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes [:text-3xl]]
+       :extra-classes ["text-[2.5rem]" "w-[2.5rem]" "flex" "justify-center"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
@@ -135,25 +152,78 @@
 
 (defn queue
   []
-  (let [show-queue @(rf/subscribe [:queue/show])
-        stream     @(rf/subscribe [:queue/current])
-        bookmarks  @(rf/subscribe [:bookmarks])
-        queue-pos  @(rf/subscribe [:queue/position])
-        queue      @(rf/subscribe [:queue])
-        color      (-> stream
-                       :service-id
-                       utils/get-service-color)]
-    [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0
-     {:class ["dark:bg-neutral-950/90" "bg-neutral-100/90"
-              "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
-              (when-not show-queue "invisible")
-              (if show-queue "opacity-1" "opacity-0")]}
-     [:div.flex.flex-col.flex-auto.h-full.lg:pt-5.w-full
-      {:class ["lg:w-4/5" "xl:w-3/5"]}
-      [:div.flex.flex-col.overflow-y-auto.scrollbar-none.flex-auto.gap-y-1.relative.scroll-smooth
-       (for [[i item] (map-indexed vector queue)]
-         ^{:key i}
-         [queue-item item queue queue-pos i bookmarks])]
-      [:div.flex.flex-col.py-4.shrink-0.px-5
-       [queue-metadata stream]
-       [main-controls color]]]]))
+  (let [!active-tab  (r/atom :queue)
+        !clicked-idx (r/atom nil)]
+    (fn []
+      (let [show-queue  @(rf/subscribe [:queue/show])
+            show-list?  @(rf/subscribe [:queue/show-list])
+            stream      @(rf/subscribe [:queue/current])
+            bookmarks   @(rf/subscribe [:bookmarks])
+            queue-pos   @(rf/subscribe [:queue/position])
+            queue       @(rf/subscribe [:queue])
+            color       (-> stream
+                            :service-id
+                            utils/get-service-color)
+            dark-theme? @(rf/subscribe [:dark-theme])
+            bg-color    (str "rgba("
+                             (if dark-theme? "10,10,10" "255,255,255")
+                             ",0.9)")
+            bg-image    (str "linear-gradient("
+                             bg-color
+                             ","
+                             bg-color
+                             "),url("
+                             (:thumbnail stream)
+                             ")")]
+        [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0.transition-all.ease-in-out
+         {:class ["dark:bg-neutral-950/90" "bg-neutral-100/90"
+                  "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
+                  (when-not show-queue "invisible")
+                  (if show-queue "opacity-1" "opacity-0")]}
+         [:div.flex.w-full.h-full
+          [:div.flex-col.flex-1.gap-y-10.sm:p-8.items-center.justify-center
+           {:style {:background-image    bg-image
+                    :background-size     "cover"
+                    :background-position "center"
+                    :background-repeat   "no-repeat"}
+            :class (if show-queue
+                     (if show-list? "hidden lg:flex" "flex")
+                     "hidden")}
+           [:div.flex.w-full.items-center.justify-center
+            [layout/thumbnail stream nil :hide-duration? true :rounded? true
+             :classes
+             ["h-[16rem]" "xs:h-[24rem]" "w-[16rem]" "xs:w-[24rem]"]]]
+           [:div.flex.flex-col.py-4.shrink-0.px-5.w-full.gap-y-4
+            [queue-metadata stream]
+            [main-controls color]]]
+          [:div.flex-col.flex-1
+           {:class (if show-queue
+                     (if show-list? "flex" "hidden lg:flex")
+                     "hidden")}
+           [layout/tabs
+            [{:id    :queue
+              :label "UP NEXT"}
+             {:id    :related
+              :label "RELATED"}]
+            :selected-id @!active-tab
+            :on-change #(reset! !active-tab %)]
+           [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
+            {:class "@container"}
+            (case @!active-tab
+              :queue   [:<>
+                        (for [[i item] (map-indexed vector queue)]
+                          ^{:key i}
+                          [queue-item item queue queue-pos i bookmarks
+                           !clicked-idx])]
+              :related [:div.flex.flex-col.gap-y-4.p-4
+                        (for [[i item] (map-indexed vector
+                                                    (:related-streams stream))]
+                          ^{:key i}
+                          [items/list-item-content item
+                           :author-classes ["line-clamp-1" "text-xs"]
+                           :title-classes
+                           ["font-semibold" "line-clamp-2" "text-xs"]
+                           :metadata-classes ["text-xs"]
+                           :thumbnail-classes
+                           ["h-[5.5rem]" "min-w-[150px]"
+                            "max-w-[150px]"]])])]]]]))))

@@ -23,6 +23,11 @@
    (:queue/show db)))
 
 (rf/reg-sub
+ :queue/show-list
+ (fn [db]
+   (:queue/show-list db)))
+
+(rf/reg-sub
  :queue/current
  (fn []
    [(rf/subscribe [:queue]) (rf/subscribe [:queue/position])])

@@ -9,7 +9,14 @@ module.exports = {
       screens: {
         xs: "480px",
       },
+      containers: {
+        sm: "22rem",
+      },
     },
   },
-  plugins: [require("@tailwindcss/forms"), require("tailwind-scrollbar")],
+  plugins: [
+    require("@tailwindcss/container-queries"),
+    require("@tailwindcss/forms"),
+    require("tailwind-scrollbar"),
+  ],
 };

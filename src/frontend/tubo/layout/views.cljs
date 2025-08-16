@@ -13,13 +13,13 @@
 
 (defn thumbnail
   [{:keys [duration thumbnail stream-type short? name]} route &
-   {:keys [classes rounded?]}]
-  [:div.flex.box-border {:class classes}
+   {:keys [classes rounded? hide-duration?]}]
+  [:div.flex.box-border.rounded {:class classes}
    [:div.relative.min-w-full
     [:a.absolute.min-w-full.min-h-full {:href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
-       {:src thumbnail :class (when rounded? "rounded-md")}]
+       {:src thumbnail :class (when rounded? "rounded")}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
@@ -30,9 +30,10 @@
         :else                         "hidden")}
      [:p.text-white.text-xs
       (cond
-        (= stream-type "LIVE_STREAM") "LIVE"
-        short?                        "SHORTS"
-        duration                      (utils/format-duration duration))]]]])
+        (= stream-type "LIVE_STREAM")       "LIVE"
+        short?                              "SHORTS"
+        (and duration (not hide-duration?)) (utils/format-duration
+                                             duration))]]]])
 
 (defn logo
   [& {:keys [height width]}]

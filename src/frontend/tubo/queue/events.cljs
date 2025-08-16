@@ -22,6 +22,11 @@
     :body-overflow show?}))
 
 (rf/reg-event-fx
+ :queue/show-list
+ (fn [{:keys [db]} [_ value]]
+   {:db (assoc db :queue/show-list value)}))
+
+(rf/reg-event-fx
  :queue/shuffle
  [(rf/inject-cofx :store)]
  (fn [{:keys [db store]} [_ val]]
