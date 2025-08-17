@@ -109,7 +109,7 @@
     :icon     [:i.fa-solid.fa-moon]
     :on-click #(rf/dispatch [:settings/change [:theme]
                              "dark"])}
-   {:label    "Device"
+   {:label    "Auto"
     :icon     [:i.fa-solid.fa-laptop]
     :on-click #(rf/dispatch [:settings/change [:theme]
                              "auto"])}])
@@ -126,19 +126,35 @@
         [:button.px-4.md:hidden
          {:on-click #(rf/dispatch [:search/activate true])}
          [:i.fa-solid.fa-search]])
-      [:div.xs:hidden
+      [:div
        (when-not show-search-form?
-         (case (get-in match [:data :name])
-           :channel-page  [channel/metadata-popover
-                           @(rf/subscribe [:channel])]
-           :stream-page   [stream/metadata-popover @(rf/subscribe [:stream])]
-           :playlist-page [playlist/metadata-popover
-                           @(rf/subscribe [:playlist])]
-           (cond show-main-player? [stream/metadata-popover
-                                    @(rf/subscribe [:stream])]
-                 show-queue?       [bg-player/popover
-                                    @(rf/subscribe [:queue/current])]
-                 :else             [:<>])))]
+         (cond show-main-player? [:div.xs:hidden.pr-2
+                                  [stream/metadata-popover
+                                   @(rf/subscribe [:stream])]]
+               show-queue?       [bg-player/menu-controls
+                                  @(rf/subscribe [:queue/current])]
+               :else             [:div.xs:hidden.pr-2
+                                  (case (get-in match [:data :name])
+                                    :channel-page [channel/metadata-popover
+                                                   @(rf/subscribe [:channel])]
+                                    :stream-page [stream/metadata-popover
+                                                  @(rf/subscribe [:stream])]
+                                    :playlist-page [playlist/metadata-popover
+                                                    @(rf/subscribe
+                                                      [:playlist])]
+                                    :bookmark-page
+                                    (let [bookmark
+                                          @(rf/subscribe
+                                            [:bookmarks/get-by-id
+                                             (get-in
+                                              @(rf/subscribe
+                                                [:navigation/current-match])
+                                              [:query-params :id])])]
+                                      [playlist/metadata-popover
+                                       (assoc bookmark
+                                              :related-streams
+                                              (:items bookmark))])
+                                    [:<>])]))]
       [:div.hidden.md:flex
        [layout/popover
         [{:label     (str "Theme: "
@@ -153,7 +169,8 @@
           :icon  [:i.fa-solid.fa-cog]
           :link  {:route (rfe/href :settings-page)}}]
         :extra-classes ["p-0" "px-5" "z-30"]
-        :tooltip-classes ["right-5" "top-8" "w-44"]]]
+        :tooltip-classes ["right-5" "top-8" "w-44"]
+        :icon [:i.fa-solid.fa-cog]]]
       [:div.hidden.md:flex
        [layout/popover
         (into (if-not user
@@ -164,13 +181,16 @@
                   :icon  [:i.fa-solid.fa-right-to-bracket]
                   :link  {:route (rfe/href :login-page)}}]
                 [])
-              [(when user
+              (when user
+                [{:custom-content [:div.text-white.whitespace-nowrap.text-sm
+                                   "Logged in as "
+                                   [:span.font-bold (:username user)]]}
                  {:label    "Log Out"
                   :icon     [:i.fa-solid.fa-right-to-bracket
                              {:class "rotate-180"}]
-                  :on-click #(rf/dispatch [:auth/logout])})])
+                  :on-click #(rf/dispatch [:auth/logout])}]))
         :extra-classes ["p-0" "px-5" "z-30"]
-        :tooltip-classes ["right-5" "top-8" "w-32"]
+        :tooltip-classes ["right-5" "top-8"]
         :icon [:i.fa-solid.fa-circle-user]]]]]))
 
 (defn navbar
