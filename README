@@ -110,7 +110,7 @@ If you'd like to automate the process, you can place something along the followi
 ((nil . ((cider-preferred-build-tool . clojure-cli)
          (cider-clojure-cli-aliases . ":cljs")
          (cider-default-cljs-repl . custom)
-         (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :tubo)\n(shadow/nrepl-select :tubo))")
+         (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :frontend)\n(shadow/nrepl-select :frontend))")
          (cider-merge-sessions . :project)
          (eval . (progn
                    (unless (boundp 'cider-jack-in-nrepl-middlewares)
