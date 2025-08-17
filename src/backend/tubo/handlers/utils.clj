@@ -18,12 +18,12 @@
 
 (defn create-page
   [next-page]
-  (let [page (json/read-str next-page :key-fn keyword)]
-    (Page. (:url page)
-           (:id page)
-           (:ids page)
-           (:cookies page)
-           (.getBytes (:body page)))))
+  (let [page (json/read-str next-page)]
+    (Page. (get page "url")
+           (get page "id")
+           (get page "ids")
+           (get page "cookies")
+           (.getBytes (get page "body")))))
 
 (defn get-stream-item
   [stream]
