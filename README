@@ -13,10 +13,28 @@ Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][Ne
 * Installation
 ** Packaging
 *** Docker
-For Docker, there's a Docker Compose file available which you can run like this:
+There's a Docker Compose file available which you can run locally like this:
 
 #+begin_src sh
+cd /path/to/tubo
 docker compose up -d
+#+end_src
+
+If you'd rather use the image(s) pushed to DockerHub, you can simply remove the =build= section and add an =image= property for the corresponding service in the =docker-compose.yml= file.
+
+#+begin_src yaml
+services:
+  frontend:
+    image: migalmoreno/tubo-frontend
+    # ...
+  backend:
+    image: migalmoreno/tubo-backend
+    # ...
+  bg-helper:
+    image: migalmoreno/tubo-bg-helper
+    # ...
+
+# ...
 #+end_src
 
 *** Uberjar
@@ -33,8 +51,11 @@ After the last command is completed, you'll get a path to the uber-jar, which yo
 java -jar target/tubo-<VERSION>.jar
 #+end_src
 
+** Configuration
+The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running.
+
 ** Reverse Proxy
-If you want to self-host Tubo and make it publicly accessible you'll need to set up a reverse proxy. The following shows some example configurations for various web servers:
+If you want to self-host Tubo and make it publicly accessible you'll need to set up a web server with a reverse proxy. You can find example configurations below:
 
 *** Nginx
 
@@ -46,21 +67,22 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/<TUBO_HOST>/privkey.pem;
 
     location / {
+        proxy_pass http://localhost:8080;
+    }
+}
+
+# optional: you can set a reverse proxy for the API to connect via other front-ends
+server {
+    listen 443 ssl http2;
+    server_name api.<TUBO_HOST>;
+    ssl_certificate /etc/letsencrypt/live/<TUBO_HOST>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<TUBO_HOST>/privkey.pem;
+
+    location / {
         proxy_pass http://localhost:3000;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header HOST $http_host;
     }
 }
 #+end_src
-
-* Public Instances
-| URL                           | Country |
-|-------------------------------+---------|
-| https://tubo.media (Official) | 🇪🇸    |
-| https://tubo.reallyaweso.me   | 🇩🇪    |
-| https://tubo.ducks.party      | 🇩🇪    |
-
-A Swagger UI instance is also available at [[https://api.tubo.media/api-docs]]
 
 * Development Setup
 To get a development environment set up, first install the front-end dependencies.
