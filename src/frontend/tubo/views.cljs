@@ -27,10 +27,11 @@
       [:div.flex.flex-auto
        [navigation/sidebar current-match]
        [:div.flex.flex-col.flex-auto.justify-between.relative.max-w-full
-        (when-let [view (-> current-match
-                            :data
-                            :view)]
-          [view current-match])
+        (if-let [view (-> current-match
+                          :data
+                          :view)]
+          [view current-match]
+          [layout/not-found-page])
         [queue/queue]
         [bg-player/player]
         [main-player/player]]]]]))

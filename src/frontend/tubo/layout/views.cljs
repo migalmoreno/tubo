@@ -474,3 +474,10 @@
         (when submitting?
           [loading-icon nil :text-neutral-300 :dark:text-neutral-900])
         {:disabed (when submitting? "true")}]]])])
+
+(defn not-found-page
+  []
+  [:div.flex.flex-auto.h-full.items-center.justify-center
+   [:div.flex.flex-col.items-center.justify-center.gap-y-4
+    [:h1.font-extrabold.text-4xl.sm:text-6xl "404"]
+    [:h1.font-semibold.text-xl.sm:text-3xl "Page not found"]]])
