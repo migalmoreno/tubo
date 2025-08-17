@@ -44,6 +44,11 @@
   []
   (reify
    PoTokenProvider
+     (getWebEmbedClientPoToken [_ _]
+       (try
+         (get-po-token)
+         (catch Exception e
+           (log/error e))))
      (getWebClientPoToken [_ _]
        (try
          (get-po-token)
