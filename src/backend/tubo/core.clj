@@ -13,6 +13,7 @@
    org.schabi.newpipe.extractor.localization.Localization
    org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
    org.schabi.newpipe.extractor.ServiceList
+   org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper
    org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor))
 
 (defn start-npe
@@ -21,7 +22,9 @@
   (when (config/get-in [:backend :bg-helper-url])
     (YoutubeStreamExtractor/setPoTokenProvider
      (potoken/create-po-token-provider)))
-  (when-let [instance (first (config/get-in [:peertube :instances]))]
+  (YoutubeParsingHelper/setConsentAccepted
+   (config/get-in [:services :youtube :consent-cookie?]))
+  (when-let [instance (config/get-in [:services :peertube :instance])]
     (.setInstance ServiceList/PeerTube
                   (PeertubeInstance. (:url instance) (:name instance)))))
 

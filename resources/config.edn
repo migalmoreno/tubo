@@ -1,4 +1,6 @@
-{:peertube {:instances [{:url "https://framatube.org" :name "Framatube"}]}
+{:services
+ {:peertube {:instance {:url "https://framatube.org" :name "Framatube"}}
+  :youtube  {:consent-cookie? true}}
  :backend
  {:port #long #or [#env BACKEND_PORT 3000]
   :registrations? #or [#env ENABLE_REGISTRATIONS true]
