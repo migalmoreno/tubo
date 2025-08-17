@@ -7,7 +7,7 @@
 
 (defn non-negative
   [val]
-  (when-not (= val -1) val))
+  (when (pos-int? val) val))
 
 (defn get-next-page
   [info]

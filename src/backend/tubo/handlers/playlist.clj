@@ -22,7 +22,7 @@
      :uploader-name    (.getUploaderName info)
      :uploader-url     (.getUploaderUrl info)
      :uploader-avatars (j/from-java (.getUploaderAvatars info))
-     :stream-count     (.getStreamCount info)
+     :stream-count     (utils/non-negative (.getStreamCount info))
      :next-page        (utils/get-next-page info)}))
 
 (defn get-playlist-page
