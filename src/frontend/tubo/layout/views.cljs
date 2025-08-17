@@ -41,6 +41,12 @@
    (svgreq/embed "./resources/public/icons" "tubo" nil)
    (js-obj "height" width "width" height)))
 
+(defn bullet
+  []
+  [:span.text-neutral-600.dark:text-neutral-400
+   {:dangerouslySetInnerHTML {:__html "&bull;"}
+    :style                   {:font-size "0.5rem"}}])
+
 (defn loading-icon
   [service-color & classes]
   [:div.w-full.flex.justify-center.items-center.flex-auto

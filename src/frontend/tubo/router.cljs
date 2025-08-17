@@ -68,7 +68,7 @@
                                                    (rf/dispatch
                                                     [:channel/fetch-page
                                                      url]))}]}
-      :web/playlist  {:view        playlist/playlist
+      :web/playlist  {:view        playlist/playlist-page
                       :name        :playlist-page
                       :controllers [{:parameters {:query [:url]}
                                      :start      (fn [{{:keys [url]} :query}]

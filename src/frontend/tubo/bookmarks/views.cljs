@@ -1,12 +1,13 @@
 (ns tubo.bookmarks.views
   (:require
-   [reagent.core :as r]
    [re-frame.core :as rf]
+   [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [tubo.modals.views :as ms]))
+   [tubo.modals.views :as ms]
+   [tubo.playlist.views :as playlist]))
 
 (defn bookmarks
   []
@@ -100,31 +101,12 @@
         :placeholder "name"}]]]))
 
 (defn bookmark
-  []
-  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
-    (fn []
-      (let [{{:keys [id]} :query-params} @(rf/subscribe
-                                           [:navigation/current-match])
-            {:keys [items name]}         @(rf/subscribe [:bookmarks/get-by-id
-                                                         id])]
-        [layout/content-container
-         [layout/content-header name
-          [:div.flex.flex-auto
-           [layout/popover
-            (into
-             [{:label    "Edit playlist"
-               :icon     [:i.fa-solid.fa-pencil]
-               :on-click #(rf/dispatch [:modals/open
-                                        [playlist-edit-modal id]])}]
-             (when (seq items)
-               [{:label    "Add streams to queue"
-                 :icon     [:i.fa-solid.fa-headphones]
-                 :on-click #(rf/dispatch [:queue/add-n items true])}
-                {:label    "Add streams to playlist"
-                 :icon     [:i.fa-solid.fa-plus]
-                 :on-click #(rf/dispatch [:modals/open
-                                          [modals/add-to-bookmark items]])}]))]]
-          [items/layout-switcher !layout]]
-         [items/related-streams
-          (map #(assoc % :type "stream" :playlist-id id) items) nil
-          !layout]]))))
+  [{{:keys [id]} :query-params}]
+  (let [{:keys [items] :as bookmark} @(rf/subscribe [:bookmarks/get-by-id id])]
+    [playlist/playlist
+     (assoc bookmark
+            :stream-count    (count items)
+            :related-streams (map #(assoc % :type "stream" :playlist-id id)
+                                  items))
+     nil
+     [playlist-edit-modal id]]))
