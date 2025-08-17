@@ -220,7 +220,7 @@
                                 @(rf/subscribe
                                   [:navigation/sidebar-minimized]))]
     [:li.cursor-pointer.transition-colors.ease-in-out.delay-50.rounded-xl
-     {:class (into (if sidebar-minimized? ["mx-1"] ["mx-2" "pl-5" "w-64"])
+     {:class (into (if sidebar-minimized? ["mx-1"] ["mx-2" "pl-5" "w-72"])
                    extra-classes)}
      [:a.flex.gap-4
       {:href     route
