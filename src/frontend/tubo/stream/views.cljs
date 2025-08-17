@@ -1,7 +1,9 @@
 (ns tubo.stream.views
   (:require
-   [reagent.core :as r]
+   [clojure.string :as str]
    [re-frame.core :as rf]
+   [reagent.core :as r]
+   [reagent.dom.server :as server]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
@@ -42,17 +44,23 @@
    :extra-classes ["px-5" "xs:py-2" "xs:px-4"]])
 
 (defn metadata-uploader
-  [{:keys [uploader-url uploader-name subscriber-count] :as stream}]
+  [{:keys [uploader-url uploader-name uploader-verified? subscriber-count]
+    :as   stream}]
   [:div.flex.items-center
-   [layout/uploader-avatar stream]
+   [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
    [:div.mx-3.gap-x-2
-    [:a.line-clamp-1.font-semibold
-     {:href  (rfe/href :channel-page nil {:url uploader-url})
-      :title uploader-name}
-     uploader-name]
+    [:div
+     (when uploader-url
+       [:div.flex.gap-x-2.items-center
+        [:a.line-clamp-1.font-semibold
+         {:href  (rfe/href :channel-page nil {:url uploader-url})
+          :title uploader-name}
+         uploader-name]
+        (when uploader-verified?
+          [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])]
     (when subscriber-count
-      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm
-       [:span {:title subscriber-count}
+      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
+       [:span {:title subscriber-count :class "text-[0.8rem]"}
         (str (utils/format-quantity subscriber-count) " subscribers")]])]])
 
 (defn metadata-stats
@@ -72,36 +80,56 @@
     [metadata-popover stream]]])
 
 (defn metadata
-  [{:keys [name view-count upload-date tags] :as stream}]
+  [{:keys [name view-count upload-date] :as stream}]
   [:div
    [:div.flex.items-center.justify-between
     [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]]
    [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1.items-center
-    [:span {:title view-count}
+    [:span.whitespace-nowrap {:title view-count}
      (str (utils/format-quantity view-count) " views")]
     [:span
      {:dangerouslySetInnerHTML {:__html "&bull;"} :style {:font-size "0.5rem"}}]
-    [:span {:title upload-date} (utils/format-date-ago upload-date)]
-    (when-not (empty? tags)
-      [:span.px-2.py-1.text-xs.flex.gap-x-1.items-center.line-clamp-1.flex-auto.max-w-24.sm:max-w-96
-       (for [[i tag] (map-indexed vector tags)]
-         ^{:key i}
-         [:<>
-          [:span.whitespace-nowrap (str "#" tag)]])])]
+    [:span.whitespace-nowrap {:title upload-date}
+     (utils/format-date-ago upload-date)]]
    [:div.flex.justify-between.py-4.flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 
+(defn more-metadata
+  [{:keys [tags license category privacy]}]
+  [:div.flex.flex-col.py-4.gap-y-4.text-sm
+   (when (seq category)
+     [:div.flex
+      [:label.font-bold.min-w-24.whitespace-nowrap "CATEGORY"]
+      [:span category]])
+   (when (seq license)
+     [:div.flex
+      [:label.font-bold.min-w-24.whitespace-nowrap "LICENSE"]
+      [:span license]])
+   (when (seq privacy)
+     [:div.flex
+      [:label.font-bold.min-w-24.whitespace-nowrap "PRIVACY"]
+      [:span (str/capitalize privacy)]])
+   (when (seq tags)
+     [:div.flex
+      [:label.font-bold.min-w-24.whitespace-nowrap "TAGS"]
+      [:div.flex.gap-x-1.items-center.flex-wrap
+       (for [[i tag] (map-indexed vector tags)]
+         ^{:key i} [:span.whitespace-nowrap (str "#" tag)])]])])
+
 (defn description
-  [{:keys [description show-description]}]
+  [{:keys [description show-description] :as stream}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
       [:div.rounded-lg.break-words.flex.flex-col.gap-y-2
-       [layout/show-more-container show-description description
+       {:class "[overflow-wrap:anywhere]"}
+       [layout/show-more-container show-description
+        description
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
                          :stream/toggle-layout)
-                       :show-description])]])))
+                       :show-description])]
+       [more-metadata stream]])))
 
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading] :as stream}]
@@ -133,9 +161,9 @@
   []
   (let [!active-tab (r/atom :comments)]
     (fn [stream video]
-      [:div.flex.flex-col.w-full.flex-1
+      [:div.flex.flex-col.flex-1
        [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
-        {:class ["top-[56px]"]}
+        {:class (if @(rf/subscribe [:main-player/show]) "top-0" "top-[56px]")}
         video]
        [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
         [metadata stream]
@@ -182,9 +210,9 @@
     (if page-loading?
       [layout/loading-icon service-color :text-5xl]
       [:div.flex.flex-col.flex-auto.items-center.md:my-4
-       [:div.flex.gap-x-6.w-full {:class ["md:w-[95%] xl:w-11/12"]}
+       [:div.flex.gap-x-6 {:class "md:w-[95%] xl:w-11/12"}
         [video-container stream
          [player/video-player stream !player {}
           #(rf/dispatch [:player/set-stream stream !player])]]
-        [:div.hidden.lg:block {:class "max-w-[350px]"}
+        [:div.hidden.lg:block.shrink-0.flex-1 {:class "max-w-[350px]"}
          [related-items stream]]]])))

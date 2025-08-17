@@ -81,7 +81,7 @@
   (let [!observer (atom nil)]
     (fn [heading & children]
       [:div.flex.items-center.justify-between
-       [:h1.text-4xl.line-clamp-1.mr-6.font-extrabold
+       [:h1.text-3xl.lg:text-4xl.line-clamp-1.mr-6.font-extrabold
         {:title heading
          :ref   #(rf/dispatch [:navigation/show-title-on-scroll !observer %
                                {:rootMargin "-73px" :threshold 0}])}

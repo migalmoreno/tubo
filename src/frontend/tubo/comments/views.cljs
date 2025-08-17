@@ -13,7 +13,7 @@
      [:i.fa-solid.fa-thumbtack.mr-2.text-xs])
    (when uploader-name
      [:div.flex.items-stretch
-      [:a
+      [:a.text-sm
        {:href  (rfe/href :channel-page nil {:url uploader-url})
         :title uploader-name}
        [:h1.text-neutral-800.dark:text-gray-300.font-bold.line-clamp-1
@@ -28,13 +28,14 @@
 (defn comment-bottom-metadata
   [{:keys [upload-date like-count hearted-by-uploader? author-avatar
            author-name]}]
-  [:div.flex.items-center.my-2
-   [:div.mr-4
+  [:div.flex.items-center
+   [:div.mr-4.text-sm.text-neutral-600.dark:text-neutral-300
     [:span {:title upload-date} (utils/format-date-ago upload-date)]]
    (when (and like-count (> like-count 0))
-     [:div.flex.items-center.my-2
+     [:div.flex.items-center
       [:i.fa-solid.fa-thumbs-up.text-xs]
-      [:span.mx-1 {:title like-count} (utils/format-quantity like-count)]])
+      [:span.mx-1.text-sm.text-neutral-600.dark:text-neutral-300
+       {:title like-count} (utils/format-quantity like-count)]])
    (when hearted-by-uploader?
      [:div.relative.w-4.h-4.mx-2
       [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500]
@@ -45,23 +46,24 @@
 (defn comment-item
   [{:keys [id text replies reply-count show-replies] :as comment}]
   [:div.flex.gap-x-4.my-4
-   [layout/uploader-avatar comment]
-   [:div
-    [comment-top-metadata comment]
-    [:div.my-2
-     [:p
-      {:dangerouslySetInnerHTML {:__html text}
-       :class                   "[overflow-wrap:anywhere]"}]]
-    [comment-bottom-metadata comment]
+   [layout/uploader-avatar comment :classes ["w-12" "h-12"]]
+   [:div.flex.flex-col.gap-y-4
+    [:div.flex.flex-col.gap-y-2
+     [comment-top-metadata comment]
+     [:div
+      [:p.text-sm
+       {:dangerouslySetInnerHTML {:__html text}
+        :class                   "[overflow-wrap:anywhere]"}]]
+     [comment-bottom-metadata comment]]
     [:div.flex.items-center.cursor-pointer
      {:on-click #(rf/dispatch [:comments/toggle-replies id])}
-     (when replies
+     (when (seq replies)
        (if show-replies
          [:<>
-          [:p.font-bold "Hide replies"]
+          [:p.font-bold.text-sm "Hide replies"]
           [:i.fa-solid.fa-turn-up.mx-2.text-xs]]
          [:<>
-          [:p.font-bold
+          [:p.font-bold.text-sm
            (str reply-count (if (= reply-count 1) " reply" " replies"))]
           [:i.fa-solid.fa-turn-down.mx-2.text-xs]]))]]])
 
