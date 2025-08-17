@@ -48,6 +48,7 @@
                   "--thumb-bg" service-color}
       :class     slider-classes
       :type      "range"
+      :on-click  #(.stopPropagation %)
       :on-input  #(reset! !elapsed-time (.. % -target -value))
       :on-change #(when (and bg-player-ready? @!player)
                     (set! (.-currentTime @!player) @!elapsed-time))
@@ -70,26 +71,24 @@
           {:style    {"--thumb-bg" service-color}
            :class    (concat ["rotate-[270deg]"] slider-classes)
            :type     "range"
+           :on-click #(.stopPropagation %)
            :on-input #(rf/dispatch [:player/change-volume (.. % -target -value)
                                     player])
            :max      100
            :value    volume-level}])])))
 
 (defn metadata
-  [{:keys [url name uploader-url uploader-name] :as stream}]
-  [:div.flex.items-center.lg:flex-1
+  [{:keys [name uploader-name] :as stream}]
+  [:div.flex.lg:flex-1.gap-x-2
    [:div
-    [layout/thumbnail (dissoc stream :duration)
-     (rfe/href :stream-page nil {:url url}) :classes
-     [:h-14 :py-2 "w-[70px]"]]]
-   [:div.flex.flex-col.pl-2.pr-4
-    [:a.text-xs.line-clamp-1
-     {:href  (rfe/href :stream-page nil {:url url})
-      :title name}
+    [layout/thumbnail (dissoc stream :duration) nil :classes
+     ["h-12" "w-[70px]"]]]
+   [:div.flex.flex-col.pr-4.gap-y-1
+    [:h1.text-sm.line-clamp-1.font-semibold.w-fit
+     {:title name}
      name]
-    [:a.text-xs.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1
-     {:href  (rfe/href :channel-page nil {:url uploader-url})
-      :title uploader-name}
+    [:h1.text-xs.text-neutral-600.dark:text-neutral-300.line-clamp-1.font-semibold.w-fit
+     {:title uploader-name}
      uploader-name]]])
 
 (defn main-controls
@@ -283,7 +282,8 @@
                           ")")]
     (when show-player?
       [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
-       {:style
+       {:on-click #(rf/dispatch [:queue/show true])
+        :style
         {:visibility          (when show-queue? "hidden")
          :opacity             (if show-queue? 0 1)
          :background-image    bg-image

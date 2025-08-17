@@ -166,7 +166,7 @@
 
 (defn tooltip-item
   [{:keys [label icon on-click link destroy-tooltip-on-click? custom-content
-           subschema hide-bg-overlay-on-click?]
+           subschema hide-bg-overlay-on-click? stop-propagation?]
     :or   {destroy-tooltip-on-click? true
            hide-bg-overlay-on-click? true}} tooltip-id]
   (let [content [:<>
@@ -174,30 +174,37 @@
                    [:span.text-xs.min-w-4.w-4.flex.justify-center.items-center
                     icon])
                  [:span.whitespace-nowrap label]]
-        classes ["relative" "flex" "items-center" "gap-x-3"
-                 "hover:bg-neutral-200"
-                 "dark:hover:bg-neutral-800/50" "py-2.5" "px-4"
-                 "first:rounded-t" "last:rounded-b"]]
+        classes (into ["relative" "flex" "items-center" "gap-x-3" "py-2.5"
+                       "px-4" "first:rounded-t" "last:rounded-b"]
+                      (when-not custom-content
+                        ["hover:bg-neutral-200"
+                         "dark:hover:bg-neutral-800/50"]))]
     (if link
       [:a
        {:href     (:route link)
         :target   (when (:external? link) "_blank")
         :class    (str/join " " classes)
-        :on-click #(when destroy-tooltip-on-click?
-                     (rf/dispatch [:layout/destroy-tooltip-by-id
-                                   tooltip-id]))}
+        :on-click (fn [e]
+                    (when stop-propagation?
+                      (.stopPropagation e))
+                    (when destroy-tooltip-on-click?
+                      (rf/dispatch [:layout/destroy-tooltip-by-id
+                                    tooltip-id])))}
        content]
       [:li
-       {:on-click #(if subschema
-                     (rf/dispatch [:layout/change-tooltip-items tooltip-id
-                                   subschema])
-                     (do (when on-click
-                           (on-click %))
-                         (when destroy-tooltip-on-click?
-                           (rf/dispatch [:layout/destroy-tooltip-by-id
-                                         tooltip-id]))
-                         (when hide-bg-overlay-on-click?
-                           (rf/dispatch [:layout/hide-bg-overlay]))))
+       {:on-click (fn [e]
+                    (when stop-propagation?
+                      (.stopPropagation e))
+                    (if subschema
+                      (rf/dispatch [:layout/change-tooltip-items tooltip-id
+                                    subschema])
+                      (do (when on-click
+                            (on-click e))
+                          (when destroy-tooltip-on-click?
+                            (rf/dispatch [:layout/destroy-tooltip-by-id
+                                          tooltip-id]))
+                          (when hide-bg-overlay-on-click?
+                            (rf/dispatch [:layout/hide-bg-overlay])))))
         :class    (str/join " " classes)}
        (or custom-content content)])))
 
@@ -231,7 +238,7 @@
         tooltip-data (rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (fn [items &
          {:keys [extra-classes icon tooltip-classes responsive?
-                 destroy-on-click-out?]
+                 destroy-on-click-out? stop-propagation?]
           :or   {extra-classes         ["p-3"]
                  icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
@@ -244,13 +251,16 @@
         [:button.focus:outline-none.w-full
          {:class    extra-classes
           :type     "button"
-          :on-click (if @tooltip-data
-                      #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
-                      #(rf/dispatch [:layout/register-tooltip
-                                     {:items items
-                                      :id tooltip-id
-                                      :destroy-on-click-out?
-                                      destroy-on-click-out?}]))}
+          :on-click (fn [e]
+                      (when stop-propagation?
+                        (.stopPropagation e))
+                      (if @tooltip-data
+                        (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+                        (rf/dispatch [:layout/register-tooltip
+                                      {:items items
+                                       :id tooltip-id
+                                       :destroy-on-click-out?
+                                       destroy-on-click-out?}])))}
          icon]
         (when @tooltip-data
           [tooltip tooltip-id :extra-classes tooltip-classes])]
