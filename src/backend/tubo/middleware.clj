@@ -2,6 +2,8 @@
   (:require
    [buddy.auth :refer [authenticated?]]
    [buddy.auth.middleware :refer [wrap-authentication]]
+   [clojure.tools.logging :as log]
+   [reitit.ring.middleware.exception :as exception]
    [ring.middleware.reload :as reload]
    [ring.util.http-response :as res]
    [tubo.handlers.auth :as auth]))
@@ -27,6 +29,24 @@
       ([request respond raise]
        (reload!)
        ((f) request respond raise)))))
+
+(def exception-middleware
+  (exception/create-exception-middleware
+   (merge exception/default-handlers
+          {::exception/default
+           (fn [ex _]
+             (log/error ex)
+             (res/internal-server-error
+              {:message (ex-message ex)
+               :trace   (->> ex
+                             (.getStackTrace)
+                             (interpose "\n")
+                             (apply str))}))})))
+
+(defn wrap-datasource
+  [handler datasource]
+  (fn [request]
+    (handler (assoc request :datasource datasource))))
 
 (defn wrap-cors
   [handler]

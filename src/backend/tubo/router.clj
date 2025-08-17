@@ -1,17 +1,15 @@
 (ns tubo.router
   (:require
-   [clojure.tools.logging :as log]
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
    [reitit.ring.coercion :as coercion]
    [reitit.ring.middleware.muuntaja :as muuntaja]
-   [reitit.ring.middleware.exception :as exception]
    [reitit.coercion.malli]
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.util.http-response :refer [ok internal-server-error]]
+   [ring.util.http-response :refer [ok]]
    [tubo.handlers.auth :as auth]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
@@ -159,26 +157,11 @@
              :middleware [middleware/wrap-cors
                           middleware/wrap-token-auth
                           muuntaja/format-middleware
-                          (exception/create-exception-middleware
-                           (merge exception/default-handlers
-                                  {::exception/default
-                                   (fn [ex _]
-                                     (log/error ex)
-                                     (internal-server-error
-                                      {:message (ex-message ex)
-                                       :trace   (->> ex
-                                                     (.getStackTrace)
-                                                     (interpose "\n")
-                                                     (apply str))}))}))
+                          middleware/exception-middleware
                           wrap-params
                           coercion/coerce-exceptions-middleware
                           coercion/coerce-request-middleware
                           coercion/coerce-response-middleware]}}))
-
-(defn add-datasource
-  [handler datasource]
-  (fn [request]
-    (handler (assoc request :datasource datasource))))
 
 (defn create-app-handler
   [datasource]
@@ -189,4 +172,4 @@
     (ring/redirect-trailing-slash-handler {:method :add})
     (ring/create-default-handler
      {:not-found (constantly {:status 404 :body "Not found"})}))
-   {:middleware [[add-datasource datasource]]}))
+   {:middleware [[middleware/wrap-datasource datasource]]}))
