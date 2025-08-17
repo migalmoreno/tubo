@@ -30,9 +30,13 @@
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
   [:button.outline-none.focus:ring-transparent
    {:class    (into (into (when disabled? [:opacity-50 :cursor-auto])
-                          (when-not show-on-mobile? [:hidden :lg:block]))
+                          (when-not show-on-mobile?
+                            [:hidden :lg:flex :items-center :justify-center]))
                     extra-classes)
-    :on-click on-click}
+    :disabled disabled?
+    :on-click (fn [e]
+                (.stopPropagation e)
+                (on-click))}
    icon])
 
 (defn loop-button

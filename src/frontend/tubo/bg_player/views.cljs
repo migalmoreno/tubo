@@ -104,7 +104,7 @@
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
         !elapsed-time    @(rf/subscribe [:elapsed-time])]
     [:div.flex.flex-col.items-center.ml-auto
-     [:div.flex.justify-end.gap-x-4
+     [:div.flex.justify-end.gap-x-4.items-center
       [player/loop-button loop-playback color]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
@@ -121,10 +121,11 @@
          (if paused?
            [:i.fa-solid.fa-play]
            [:i.fa-solid.fa-pause])
-         [layout/loading-icon color "lg:text-2xl"])
+         [layout/loading-icon color "text-lg lg:text-2xl"])
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes ["lg:text-2xl"]]
+       :extra-classes
+       ["text-lg" "lg:text-2xl" "w-[2rem]"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
@@ -134,54 +135,66 @@
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
       [player/shuffle-button shuffle? color]]
      [:div.hidden.lg:flex.items-center.text-sm
-      [:span.mx-2
+      [:span.mx-2.w-8
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [time-slider !player !elapsed-time color]]
-      [:span.mx-2
+      [:span.mx-2.w-8
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
          "--:--")]]]))
 
 (defn popover
   [{:keys [uploader-url] :as stream}]
-  (let [queue     @(rf/subscribe [:queue])
-        queue-pos @(rf/subscribe [:queue/position])
-        bookmark  #(rf/dispatch [:modals/open
-                                 [modals/add-to-bookmark %]])]
+  (let [queue       @(rf/subscribe [:queue])
+        queue-pos   @(rf/subscribe [:queue/position])
+        bookmark    #(rf/dispatch [:modals/open
+                                   [modals/add-to-bookmark %]])
+        show-queue? @(rf/subscribe [:queue/show])]
     [layout/popover
-     [{:label    "Start radio"
-       :icon     [:i.fa-solid.fa-tower-cell]
-       :on-click #(rf/dispatch [:bg-player/start-radio
-                                stream])}
-      {:label    "Add current to playlist"
-       :icon     [:i.fa-solid.fa-plus]
-       :on-click #(bookmark stream)}
-      {:label    "Add queue to playlist"
-       :icon     [:i.fa-solid.fa-list]
-       :on-click #(bookmark queue)}
-      {:label    "Remove from queue"
-       :icon     [:i.fa-solid.fa-trash]
-       :on-click #(rf/dispatch [:queue/remove
-                                queue-pos])}
-      {:label    "Switch to main"
-       :icon     [:i.fa-solid.fa-display]
-       :on-click #(rf/dispatch
-                   [:bg-player/switch-to-main])}
-      {:label    "Show channel details"
-       :icon     [:i.fa-solid.fa-user]
-       :on-click #(rf/dispatch [:navigation/navigate
-                                {:name   :channel-page
-                                 :params {}
-                                 :query  {:url
-                                          uploader-url}}])}
-      {:label    "Close player"
-       :icon     [:i.fa-solid.fa-close]
-       :on-click #(rf/dispatch [:bg-player/dispose])}]
-     :tooltip-classes ["right-5" "bottom-5"]
-     :extra-classes ["px-5" "xs:p-3"]]))
+     [{:label             "Start radio"
+       :icon              [:i.fa-solid.fa-tower-cell]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:bg-player/start-radio
+                                         stream])}
+      {:label             "Add current to playlist"
+       :icon              [:i.fa-solid.fa-plus]
+       :stop-propagation? true
+       :on-click          #(bookmark stream)}
+      {:label             "Add queue to playlist"
+       :icon              [:i.fa-solid.fa-list]
+       :stop-propagation? true
+       :on-click          #(bookmark queue)}
+      {:label             "Remove from queue"
+       :icon              [:i.fa-solid.fa-trash]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:queue/remove
+                                         queue-pos])}
+      {:label             "Switch to main"
+       :icon              [:i.fa-solid.fa-display]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch
+                            [:bg-player/switch-to-main])}
+      {:label             "Show channel details"
+       :icon              [:i.fa-solid.fa-user]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:navigation/navigate
+                                         {:name   :channel-page
+                                          :params {}
+                                          :query  {:url
+                                                   uploader-url}}])}
+      {:label             "Close player"
+       :stop-propagation? true
+       :icon              [:i.fa-solid.fa-close]
+       :on-click          #(rf/dispatch [:bg-player/dispose])}]
+     :stop-propagation? true
+     :tooltip-classes ["right-5" (when-not show-queue? "bottom-5")]
+     :extra-classes
+     (into (when-not show-queue? ["xs:p-3" "text-lg"])
+           ["px-5" "lg:text-base"])]))
+
 (defn menu-controls
   [stream]
   (let [show-list? @(rf/subscribe [:queue/show-list])]
@@ -201,7 +214,7 @@
       :icon [:i.fa-solid.fa-list]
       :on-click #(rf/dispatch [:queue/show true])
       :show-on-mobile? true
-      :extra-classes [:!pl-4 :!pr-3]]
+      :extra-classes ["text-lg" "lg:text-base" "!pl-6" "!pr-4"]]
      [popover stream]]))
 
 (defn on-progress
