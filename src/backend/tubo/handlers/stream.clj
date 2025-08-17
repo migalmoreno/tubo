@@ -41,6 +41,7 @@
      :support-info       (.getSupportInfo info)
      :short?             (.isShortFormContent info)
      :license            (.getLicence info)
+     :privacy            (.getPrivacy info)
      :subtitles          (j/from-java-deep (.getSubtitles info)
                                            {:exceptions :omit})}))
 
