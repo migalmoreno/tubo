@@ -69,7 +69,7 @@
   (let [page-loading?     @(rf/subscribe [:show-page-loading])
         service-color     @(rf/subscribe [:service-color])
         sidebar-minimized @(rf/subscribe [:navigation/sidebar-minimized])]
-    [:div.flex.flex-col.flex-auto.items-center.px-5.md:p-0.py-4
+    [:div.flex.flex-col.flex-auto.items-center.py-4.px-5.md:px-0
      (if page-loading?
        [loading-icon service-color "text-5xl"]
        [:div.flex.flex-col.flex-auto.w-full

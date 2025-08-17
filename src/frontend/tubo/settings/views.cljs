@@ -191,7 +191,7 @@
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container
          [layout/content-header "Settings"]
-         [:div.mt-4.flex.gap-y-4.gap-x-12.md:flex-nowrap.flex-wrap
+         [:div.mt-4.lg:mt-8.flex.gap-y-4.gap-x-12.md:flex-nowrap.flex-wrap
           [layout/horizontal-tabs
            [(when user
               {:id        :user

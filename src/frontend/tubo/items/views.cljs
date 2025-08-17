@@ -63,7 +63,9 @@
       (when name
         [:div.flex.items-center.my-2
          [:a {:href route :title name}
-          [:h1.line-clamp-2.my-1 {:class "[overflow-wrap:anywhere]"} name]]
+          [:h1.line-clamp-2.my-1.font-semibold
+           {:class "[overflow-wrap:anywhere]"}
+           name]]
          (when (and verified? (not uploader-url))
            [:i.fa-solid.fa-circle-check.pl-2.text-sm])])
       [:div.flex.justify-between
@@ -147,7 +149,7 @@
            (when (and uploader-url uploader-verified?)
              [:i.fa-solid.fa-circle-check.text-xs])])
         (when (or view-count upload-date)
-          [:div.flex
+          [:div.flex.items-center
            (when view-count
              [:<>
               [:div.flex.items-center.h-full.whitespace-nowrap
