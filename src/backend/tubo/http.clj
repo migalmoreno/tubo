@@ -1,22 +1,23 @@
 (ns tubo.http
   (:require
+   [clojure.tools.logging :as log]
+   [integrant.core :as ig]
    [org.httpkit.server :refer [run-server]]
    [tubo.config :as config]
-   [tubo.middleware :refer [reloading-ring-handler]]
-   [tubo.router :as router]
-   [clojure.tools.logging :as log]))
+   [tubo.middleware :refer [reloading-ring-handler]]))
 
-(defonce server (atom nil))
+(defmethod ig/init-key ::service
+  [_ {:keys [handler]}]
+  (let [prod? (System/getProperty "prod")
+        port  (config/get-in [:backend :port])]
+    (log/info "Starting HTTP server on port" port)
+    (run-server (if prod?
+                  (handler)
+                  (reloading-ring-handler handler))
+                {:port port})))
 
-(defn start-server!
-  [datasource]
-  (let [port       (config/get-in [:backend :port])
-        prod?      (System/getProperty "prod")
-        handler-fn #(router/create-app-handler datasource)]
-    (reset! server (run-server (if prod?
-                                 (handler-fn)
-                                 (reloading-ring-handler handler-fn))
-                               {:port port}))
-    (log/info "Backend server running on port" port)))
-
-(defn stop-server! [] (when @server (@server :timeout 100) (reset! server nil)))
+(defmethod ig/halt-key! ::service
+  [_ server]
+  (do
+    (server :timeout 100)
+    (log/info "HTTP server stopped")))

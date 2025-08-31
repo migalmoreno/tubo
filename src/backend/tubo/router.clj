@@ -1,5 +1,6 @@
 (ns tubo.router
   (:require
+   [integrant.core :as ig]
    [muuntaja.core :as m]
    [reitit.core :as r]
    [reitit.ring :as ring]
@@ -163,13 +164,13 @@
                           coercion/coerce-request-middleware
                           coercion/coerce-response-middleware]}}))
 
-(defn create-app-handler
-  [datasource]
-  (ring/ring-handler
-   router
-   (ring/routes
-    (ring/create-resource-handler {:path "/"})
-    (ring/redirect-trailing-slash-handler {:method :add})
-    (ring/create-default-handler
-     {:not-found (constantly {:status 404 :body "Not found"})}))
-   {:middleware [[middleware/wrap-datasource datasource]]}))
+(defmethod ig/init-key ::handler
+  [_ {:keys [datasource]}]
+  #(ring/ring-handler
+    router
+    (ring/routes
+     (ring/create-resource-handler {:path "/"})
+     (ring/redirect-trailing-slash-handler {:method :add})
+     (ring/create-default-handler
+      {:not-found (constantly {:status 404 :body "Not found"})}))
+    {:middleware [[middleware/wrap-datasource datasource]]}))

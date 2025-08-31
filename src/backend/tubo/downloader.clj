@@ -1,10 +1,23 @@
 (ns tubo.downloader
   (:require
-   [clojure.tools.logging :as log])
+   [clojure.tools.logging :as log]
+   [integrant.core :as ig]
+   [tubo.config :as config]
+   [tubo.potoken :as potoken])
   (:import
+   [okhttp3
+    ConnectionSpec
+    OkHttpClient$Builder
+    Request$Builder
+    RequestBody]
    [org.schabi.newpipe.extractor.downloader Downloader Response]
    [org.schabi.newpipe.extractor.exceptions ReCaptchaException]
-   [okhttp3 Request$Builder OkHttpClient$Builder RequestBody ConnectionSpec]))
+   org.schabi.newpipe.extractor.localization.Localization
+   org.schabi.newpipe.extractor.NewPipe
+   org.schabi.newpipe.extractor.ServiceList
+   org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
+   org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor
+   org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper))
 
 (defonce user-agent
   "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0")
@@ -55,3 +68,15 @@
                             (toString))))
            (catch ReCaptchaException e
              (log/error e))))))
+
+(defmethod ig/init-key ::extractor
+  [_ _]
+  (NewPipe/init (create-downloader-impl) (Localization. "en" "US"))
+  (when (config/get-in [:backend :bg-helper-url])
+    (YoutubeStreamExtractor/setPoTokenProvider
+     (potoken/create-po-token-provider)))
+  (YoutubeParsingHelper/setConsentAccepted
+   (config/get-in [:services :youtube :consent-cookie?]))
+  (when-let [instance (config/get-in [:services :peertube :default-instance])]
+    (.setInstance ServiceList/PeerTube
+                  (PeertubeInstance. (:url instance) (:name instance)))))

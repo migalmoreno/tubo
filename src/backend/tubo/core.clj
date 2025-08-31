@@ -1,38 +1,14 @@
 (ns tubo.core
   (:gen-class)
   (:require
-   [migratus.core :as migratus]
-   [next.jdbc.connection :as connection]
-   [tubo.config :as config]
-   [tubo.downloader :as downloader]
-   [tubo.http :as http]
-   [tubo.potoken :as potoken])
-  (:import
-   com.zaxxer.hikari.HikariDataSource
-   org.schabi.newpipe.extractor.NewPipe
-   org.schabi.newpipe.extractor.localization.Localization
-   org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
-   org.schabi.newpipe.extractor.ServiceList
-   org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper
-   org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor))
+   [integrant.core :as ig]
+   [tubo.system :refer [config]]))
 
-(defn start-npe
-  []
-  (NewPipe/init (downloader/create-downloader-impl) (Localization. "en" "US"))
-  (when (config/get-in [:backend :bg-helper-url])
-    (YoutubeStreamExtractor/setPoTokenProvider
-     (potoken/create-po-token-provider)))
-  (YoutubeParsingHelper/setConsentAccepted
-   (config/get-in [:services :youtube :consent-cookie?]))
-  (when-let [instance (config/get-in [:services :peertube :instance])]
-    (.setInstance ServiceList/PeerTube
-                  (PeertubeInstance. (:url instance) (:name instance)))))
+(defn halt-system
+  [system]
+  (ig/halt! system))
 
 (defn -main
   [& _]
-  (let [ds (connection/->pool HikariDataSource (config/get-in [:backend :db]))]
-    (start-npe)
-    (migratus/migrate {:store :database :db {:datasource ds}})
-    (http/start-server! ds)))
-
-(defn reset [] (http/stop-server!))
+  (let [system (ig/init config)]
+    (.addShutdownHook (Runtime/getRuntime) (Thread. #(halt-system system)))))

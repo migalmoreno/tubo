@@ -1,0 +1,4 @@
+{:tubo.db/pg                {}
+ :tubo.downloader/extractor {}
+ :tubo.router/handler       {:datasource #ig/ref :tubo.db/pg}
+ :tubo.http/service         {:handler #ig/ref :tubo.router/handler}}

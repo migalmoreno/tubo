@@ -1,18 +1,20 @@
 {:services
- {:peertube {:instance {:url "https://framatube.org" :name "Framatube"}}
+ {:peertube {:default-instance {:url "https://framatube.org" :name "Framatube"}}
   :youtube  {:consent-cookie? true}}
+ :db
+ {:dbtype   "postgres"
+  :dbname   #or [#env DB_NAME "tubo"]
+  :host     #or [#env DB_HOST "localhost"]
+  :user     #or [#env DB_USERNAME "tubo"]
+  :username #or [#env DB_USERNAME "tubo"]
+  :password #env DB_PASSWORD}
  :backend
  {:port #long #or [#env BACKEND_PORT 3000]
   :registrations? #or [#env ENABLE_REGISTRATIONS true]
   :bg-helper-url
   #or
-   [#env BG_HELPER_URL #join ["http://localhost:" #ref [:bg-helper :port]]]
-  :db {:dbtype   "postgres"
-       :dbname   #or [#env DB_NAME "tubo"]
-       :host     #or [#env DB_HOST "localhost"]
-       :user     #or [#env DB_USERNAME "tubo"]
-       :username #or [#env DB_USERNAME "tubo"]
-       :password #env DB_PASSWORD}}
+   [#env BG_HELPER_URL
+    #join ["http://localhost:" #ref [:bg-helper :port]]]}
  :bg-helper {:port #or [#env BG_HELPER_PORT 3005]}
  :frontend
  {:api-url

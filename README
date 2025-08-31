@@ -91,7 +91,7 @@ To get a development environment set up, first install the front-end dependencie
 npm i
 #+end_src
 
-To start a PostgreSQL development server, you'll need to invoke the following in the project root:
+To start necessary processes alongside the application (database, scripts, etc.), you'll need to invoke the following in the project root:
 
 #+begin_src sh
 # Add `-- -D` if you want to detach the processes
@@ -107,7 +107,7 @@ psql
 Or by accessing a local =pgweb= instance in your browser at [[http://localhost:8081]]
 
 ** CLI
-To start a front-end development server with hot-reload support, run:
+To start the front-end development server with hot-reload support, run:
 
 #+begin_src sh
 clojure -M:cljs watch frontend
@@ -121,7 +121,7 @@ To start the API, run:
 clojure -M:run
 #+end_src
 
-Note that front-end API requests will be proxied to the API.
+You can now check the API documentation at http://localhost:3000/api-docs
 
 ** REPL
 You can also work on Tubo using an interactive environment like [[https://docs.cider.mx/cider/index.html][CIDER]]. Once you have it installed, do =M-x cider-jack-in-clj&cljs= in a source file and you'll enter a live REPL.
@@ -130,7 +130,7 @@ If you'd like to automate the process, you can place something along the followi
 
 #+begin_src elisp
 ((nil . ((cider-preferred-build-tool . clojure-cli)
-         (cider-clojure-cli-aliases . ":cljs")
+         (cider-clojure-cli-aliases . ":dev:cljs")
          (cider-default-cljs-repl . custom)
          (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :frontend)\n(shadow/nrepl-select :frontend))")
          (cider-merge-sessions . :project)
@@ -139,14 +139,13 @@ If you'd like to automate the process, you can place something along the followi
                      (require 'cider))
                    (make-variable-buffer-local 'cider-jack-in-nrepl-middlewares)
                    (add-to-list 'cider-jack-in-nrepl-middlewares "cider.nrepl/cider-middleware")
-                   (add-to-list 'cider-jack-in-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))))))
+                   (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))))))
 #+end_src
 
-You can then invoke this to start the API:
+You can then invoke this to start the system:
 
 #+begin_src clojure
-user=> (require '[tubo.http])
-user=> (tubo.http/start-server!)
+user=> (go)
 #+end_src
 
 * Browser Extension Support
