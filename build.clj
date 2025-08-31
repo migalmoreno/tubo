@@ -1,6 +1,5 @@
 (ns build
   (:require
-   [shadow.cljs.devtools.api :as shadow]
    [clojure.tools.build.api :as b]))
 
 (def lib 'tubo)
@@ -21,7 +20,6 @@
   (b/compile-clj {:basis     basis
                   :src-dir   ["src"]
                   :class-dir class-dir})
-  (shadow/release :tubo)
   (b/uber {:class-dir class-dir
            :uber-file uber-file
            :basis     basis
