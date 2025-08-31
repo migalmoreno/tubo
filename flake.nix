@@ -52,17 +52,23 @@
                   }
                 ];
               };
+              cli.preHook = ''
+                if [ ! -f resources/public/js/bg-helper.js ]; then
+                  ${pkgs.clojure}/bin/clojure -M:cljs compile bg-helper
+                fi
+              '';
               cli.environment.PC_DISABLE_TUI = true;
               cli.options.no-server = false;
-              settings.processes.pgweb =
-                let
-                  pgcfg = config.services.postgres.tubo-db;
-                in
-                {
-                  environment.PGWEB_DATABASE_URL = pgcfg.connectionURI { inherit dbName; };
+              settings.processes = {
+                pgweb = {
+                  environment.PGWEB_DATABASE_URL = config.services.postgres.tubo-db.connectionURI { inherit dbName; };
                   command = pkgs.pgweb;
                   depends_on.tubo-db.condition = "process_healthy";
                 };
+                bg-helper = {
+                  command = "${pkgs.nodejs}/bin/node resources/public/js/bg-helper.js";
+                };
+              };
             };
         };
     };
