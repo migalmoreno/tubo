@@ -18,7 +18,7 @@
       :checked value
       :value value
       :on-change
-      #(rf/dispatch [:settings/change keys (.. % -target -value)])]]))
+      #(rf/dispatch [:settings/change keys (.. % -target -checked)])]]))
 
 (defn text-input
   [label keys value]
