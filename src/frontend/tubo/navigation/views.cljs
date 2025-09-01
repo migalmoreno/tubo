@@ -119,7 +119,8 @@
   (let [show-search-form? @(rf/subscribe [:search/show-form])
         show-main-player? @(rf/subscribe [:main-player/show])
         show-queue?       @(rf/subscribe [:queue/show])
-        user              @(rf/subscribe [:auth/user])]
+        user              @(rf/subscribe [:auth/user])
+        {:keys [theme]}   @(rf/subscribe [:settings])]
     [:div.flex.justify-end.flex-auto
      [:div.flex.items-center.justify-end
       (when-not show-search-form?
@@ -157,14 +158,14 @@
                                     [:<>])]))]
       [:div.hidden.md:flex
        [layout/popover
-        [{:label     (str "Theme: "
-                          (str/capitalize (:theme @(rf/subscribe
-                                                    [:settings]))))
-          :icon      (case (:theme @(rf/subscribe [:settings]))
-                       "light" [:i.fa-solid.fa-sun]
-                       "dark"  [:i.fa-solid.fa-moon]
-                       "auto"  [:i.fa-solid.fa-laptop])
-          :subschema theme-tooltip-items}
+        [(when theme
+           {:label     (str "Theme: "
+                            (str/capitalize theme))
+            :icon      (case theme
+                         "light" [:i.fa-solid.fa-sun]
+                         "dark"  [:i.fa-solid.fa-moon]
+                         "auto"  [:i.fa-solid.fa-laptop])
+            :subschema theme-tooltip-items})
          {:label "Settings"
           :icon  [:i.fa-solid.fa-cog]
           :link  {:route (rfe/href :settings-page)}}]
