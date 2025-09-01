@@ -121,7 +121,7 @@ To start the API, run:
 clojure -M:run
 #+end_src
 
-You can now check the API documentation at http://localhost:3000/api-docs
+You can now check the API documentation at [[http://localhost:3000/api-docs][http://localhost:3000/api-docs]]
 
 ** REPL
 You can also work on Tubo using an interactive environment like [[https://docs.cider.mx/cider/index.html][CIDER]]. Once you have it installed, do =M-x cider-jack-in-clj&cljs= in a source file and you'll enter a live REPL.
