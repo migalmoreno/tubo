@@ -140,7 +140,8 @@
            (:available-kiosks kiosks))]
      [select-input "Default filter" [:default-filter service-id]
       (or (get default-filter service-id) (first (:content-filters service)))
-      (:content-filters service)]
+      (map (fn [filter] {:label (utils/titleize filter) :value filter})
+           (:content-filters service))]
      [text-input "API instance" [:instance] instance]
      [text-input "Authentication instance" [:auth-instance] auth-instance]
      [generic-input "PeerTube instances"
