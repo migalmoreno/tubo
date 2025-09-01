@@ -1,7 +1,8 @@
 (ns tubo.auth.events
   (:require
    [fork.re-frame :as fork]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.storage :refer [persist]]))
 
 (rf/reg-event-fx
  :auth/handle-signup-failure
@@ -11,14 +12,13 @@
 
 (rf/reg-event-fx
  :auth/handle-signup-success
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ path {:keys [body]}]]
-   {:db    (-> db
-               (fork/set-submitting path false)
-               (assoc :auth/user body))
-    :store (assoc store :auth/user body)
-    :fx    [[:dispatch [:notifications/success "Registration successful"]]
-            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [persist]
+ (fn [{:keys [db]} [_ path {:keys [body]}]]
+   {:db (-> db
+            (fork/set-submitting path false)
+            (assoc :auth/user body))
+    :fx [[:dispatch [:notifications/success "Registration successful"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/register
@@ -31,13 +31,12 @@
 
 (rf/reg-event-fx
  :auth/handle-invalidate-session-success
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]}]
-   {:db    (assoc db :auth/user nil)
-    :store (assoc store :auth/user nil)
-    :fx    [[:dispatch [:notifications/clear]]
-            [:dispatch [:notifications/success "Logged out"]]
-            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [persist]
+ (fn [{:keys [db]}]
+   {:db (assoc db :auth/user nil)
+    :fx [[:dispatch [:notifications/clear]]
+         [:dispatch [:notifications/success "Logged out"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/handle-invalidate-session-failure
@@ -47,24 +46,22 @@
 
 (rf/reg-event-fx
  :auth/logout
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]}]
-   {:db    (-> db
-               (assoc :auth/user nil)
-               (assoc :user/bookmarks nil))
-    :store (assoc store :auth/user nil)
-    :fx    [[:dispatch [:notifications/clear]]
-            [:dispatch [:notifications/success "Logged out"]]
-            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [persist]
+ (fn [{:keys [db]}]
+   {:db (-> db
+            (assoc :auth/user nil)
+            (assoc :user/bookmarks nil))
+    :fx [[:dispatch [:notifications/clear]]
+         [:dispatch [:notifications/success "Logged out"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/redirect-login
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]}]
-   {:db    (assoc db :auth/user nil)
-    :store (assoc store :auth/user nil)
-    :fx    [[:dispatch [:notifications/success "Logged out"]]
-            [:dispatch [:navigation/navigate {:name :login-page}]]]}))
+ [persist]
+ (fn [{:keys [db]}]
+   {:db (assoc db :auth/user nil)
+    :fx [[:dispatch [:notifications/success "Logged out"]]
+         [:dispatch [:navigation/navigate {:name :login-page}]]]}))
 
 (rf/reg-event-fx
  :auth/invalidate-session
@@ -87,15 +84,14 @@
 
 (rf/reg-event-fx
  :auth/handle-login-success
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ path {:keys [body]}]]
-   {:db    (-> db
-               (fork/set-submitting path false)
-               (assoc :auth/user body))
-    :store (assoc store :auth/user body)
-    :fx    [[:dispatch [:bookmarks/fetch-authenticated-playlists]]
-            [:dispatch [:notifications/success "Login successful"]]
-            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [persist]
+ (fn [{:keys [db]} [_ path {:keys [body]}]]
+   {:db (-> db
+            (fork/set-submitting path false)
+            (assoc :auth/user body))
+    :fx [[:dispatch [:bookmarks/fetch-authenticated-playlists]]
+         [:dispatch [:notifications/success "Login successful"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/login
@@ -108,15 +104,14 @@
 
 (rf/reg-event-fx
  :auth/handle-password-reset-success
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ path {:keys [body]}]]
-   {:db    (-> db
-               (fork/set-submitting path false)
-               (assoc :auth/user body))
-    :store (assoc store :auth/user body)
-    :fx    [[:dispatch [:modals/close]]
-            [:dispatch
-             [:notifications/success "Password reset"]]]}))
+ [persist]
+ (fn [{:keys [db]} [_ path {:keys [body]}]]
+   {:db (-> db
+            (fork/set-submitting path false)
+            (assoc :auth/user body))
+    :fx [[:dispatch [:modals/close]]
+         [:dispatch
+          [:notifications/success "Password reset"]]]}))
 
 (rf/reg-event-fx
  :auth/password-reset
@@ -129,16 +124,15 @@
 
 (rf/reg-event-fx
  :auth/handle-delete-user-success
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ path {:keys [body]}]]
-   {:db    (-> db
-               (fork/set-submitting path false)
-               (assoc :auth/user body))
-    :store (assoc store :auth/user body)
-    :fx    [[:dispatch [:modals/close]]
-            [:dispatch [:auth/logout]]
-            [:dispatch [:notifications/success "Removed user"]]
-            [:dispatch [:navigation/navigate {:name :homepage}]]]}))
+ [persist]
+ (fn [{:keys [db]} [_ path {:keys [body]}]]
+   {:db (-> db
+            (fork/set-submitting path false)
+            (assoc :auth/user body))
+    :fx [[:dispatch [:modals/close]]
+         [:dispatch [:auth/logout]]
+         [:dispatch [:notifications/success "Removed user"]]
+         [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 
 (rf/reg-event-fx
  :auth/delete-user

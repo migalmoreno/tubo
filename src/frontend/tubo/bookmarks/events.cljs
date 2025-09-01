@@ -3,12 +3,13 @@
    [nano-id.core :refer [nano-id]]
    [promesa.core :as p]
    [re-frame.core :as rf]
-   [tubo.layout.events :as le]
-   [tubo.utils :as utils]
    [fork.re-frame :as fork]
    [malli.core :as m]
    [malli.error :as me]
-   [tubo.schemas :as s]))
+   [tubo.layout.events :as le]
+   [tubo.schemas :as s]
+   [tubo.storage :refer [persist]]
+   [tubo.utils :as utils]))
 
 (defn apply-playlist-stream-transforms
   [db item]
@@ -41,8 +42,8 @@
 
 (rf/reg-event-fx
  :bookmarks/add
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ bookmark notify? path]]
+ [persist]
+ (fn [{:keys [db]} [_ bookmark notify? path]]
    (if (:auth/user db)
      {:fx [[:dispatch
             [:api/post-auth "user/playlists"
@@ -59,12 +60,11 @@
                               (if (:id bookmark)
                                 bookmark
                                 (assoc bookmark :id (nano-id))))]
-       {:db    updated-db
-        :store (assoc store :bookmarks (:bookmarks updated-db))
-        :fx    [(when notify?
-                  [:dispatch
-                   [:notifications/success
-                    (str "Added playlist \"" (:name bookmark) "\"")]])]}))))
+       {:db updated-db
+        :fx [(when notify?
+               [:dispatch
+                [:notifications/success
+                 (str "Added playlist \"" (:name bookmark) "\"")]])]}))))
 
 (rf/reg-event-fx
  :bookmarks/handle-add-form
@@ -91,8 +91,8 @@
 
 (rf/reg-event-fx
  :bookmarks/remove
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ id notify?]]
+ [persist]
+ (fn [{:keys [db]} [_ id notify?]]
    (if (:auth/user db)
      {:fx [[:dispatch
             [:api/delete-auth (str "user/playlists/" id)
@@ -104,13 +104,12 @@
                                      (remove (fn [bookmark]
                                                (= (:id bookmark) id))
                                              %)))]
-       {:db    updated-db
-        :store (assoc store :bookmarks (:bookmarks updated-db))
-        :fx    (if notify?
-                 [[:dispatch
-                   [:notifications/success
-                    (str "Removed playlist \"" (:name bookmark) "\"")]]]
-                 [])}))))
+       {:db updated-db
+        :fx (if notify?
+              [[:dispatch
+                [:notifications/success
+                 (str "Removed playlist \"" (:name bookmark) "\"")]]]
+              [])}))))
 
 (rf/reg-event-fx
  :bookmarks/on-clear-auth
@@ -188,8 +187,8 @@
 
 (rf/reg-event-fx
  :bookmark/add
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ bookmark item notify?]]
+ [persist]
+ (fn [{:keys [db]} [_ bookmark item notify?]]
    (if (:auth/user db)
      {:fx
       [[:dispatch
@@ -209,13 +208,12 @@
                                     (apply-playlist-stream-transforms db item)
                                     :playlist-id
                                     (:id bookmark))))]
-       {:db    updated-db
-        :store (assoc store :bookmarks (:bookmarks updated-db))
-        :fx    [[:dispatch [:modals/close]]
-                (when notify?
-                  [:dispatch
-                   [:notifications/success
-                    (str "Added to playlist \"" (:name selected) "\"")]])]}))))
+       {:db updated-db
+        :fx [[:dispatch [:modals/close]]
+             (when notify?
+               [:dispatch
+                [:notifications/success
+                 (str "Added to playlist \"" (:name selected) "\"")]])]}))))
 
 (rf/reg-event-fx
  :bookmark/on-remove-streams-auth
@@ -243,8 +241,8 @@
 
 (rf/reg-event-fx
  :bookmark/remove
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ bookmark]]
+ [persist]
+ (fn [{:keys [db]} [_ bookmark]]
    (if (:auth/user db)
      (let [playlist (first (filter #(= (:playlist-id %) (:playlist-id bookmark))
                                    (:user/bookmarks db)))]
@@ -262,13 +260,12 @@
                                  #(remove (fn [item]
                                             (= (:url item) (:url bookmark)))
                                           %))]
-       {:db    updated-db
-        :store (assoc store :bookmarks (:bookmarks updated-db))
-        :fx    [[:dispatch
-                 [:notifications/success
-                  (str "Removed from playlist \""
-                       (:name selected)
-                       "\"")]]]}))))
+       {:db updated-db
+        :fx [[:dispatch
+              [:notifications/success
+               (str "Removed from playlist \""
+                    (:name selected)
+                    "\"")]]]}))))
 
 (rf/reg-event-fx
  :bookmarks/add-imported

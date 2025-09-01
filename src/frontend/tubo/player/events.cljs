@@ -2,7 +2,8 @@
   (:require
    [goog.object :as gobj]
    [re-frame.core :as rf]
-   [tubo.player.utils :as utils]))
+   [tubo.player.utils :as utils]
+   [tubo.storage :refer [persist]]))
 
 (rf/reg-fx
  :player/volume
@@ -97,19 +98,17 @@
 
 (rf/reg-event-fx
  :player/change-volume
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ value player]]
+ []
+ (fn [{:keys [db]} [_ value player]]
    {:db            (assoc db :player/volume value)
-    :store         (assoc store :player/volume value)
     :player/volume {:player player :volume value}}))
 
 (rf/reg-event-fx
  :player/loop
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} _]
+ [persist]
+ (fn [{:keys [db]} _]
    (let [loop-state (case (:player/loop db)
                       :stream   false
                       :playlist :stream
                       :playlist)]
-     {:db    (assoc db :player/loop loop-state)
-      :store (assoc store :player/loop loop-state)})))
+     {:db (assoc db :player/loop loop-state)})))

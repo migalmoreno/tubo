@@ -1,7 +1,8 @@
 (ns tubo.services.events
   (:require
    [fork.re-frame :as fork]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.storage :refer [persist]]))
 
 (rf/reg-event-fx
  :services/fetch
@@ -14,10 +15,9 @@
 
 (rf/reg-event-fx
  :services/change-id
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ service-id]]
-   {:db    (assoc db :service-id service-id)
-    :store (assoc store :service-id service-id)}))
+ [persist]
+ (fn [{:keys [db]} [_ service-id]]
+   {:db (assoc db :service-id service-id)}))
 
 (rf/reg-event-fx
  :services/fetch-all
@@ -31,28 +31,24 @@
 
 (rf/reg-event-fx
  :peertube/delete-instance
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ instance]]
+ [persist]
+ (fn [{:keys [db]} [_ instance]]
    (let [pos        (.indexOf (:peertube/instances db) instance)
          updated-db (update db
                             :peertube/instances
                             #(into (subvec % 0 pos) (subvec % (inc pos))))]
-     {:db    updated-db
-      :store (assoc store
-                    :peertube/instances
-                    (:peertube/instances updated-db))})))
+     {:db updated-db})))
 
 (rf/reg-event-fx
  :peertube/add-instance
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ path {:keys [body]}]]
+ [persist]
+ (fn [{:keys [db]} [_ path {:keys [body]}]]
    (if (some #(= (:url %) (:url body)) (:peertube/instances db))
      {:fx [[:dispatch [:notifications/error "Instance already exists"]]]
       :db (fork/set-submitting db path false)}
-     {:db    (-> (fork/set-submitting db path false)
-                 (update :peertube/instances conj body))
-      :store (update store :peertube/instances conj body)
-      :fx    [[:dispatch [:modals/close]]]})))
+     {:db (-> (fork/set-submitting db path false)
+              (update :peertube/instances conj body))
+      :fx [[:dispatch [:modals/close]]]})))
 
 (rf/reg-event-fx
  :peertube/load-instances
@@ -62,8 +58,8 @@
 
 (rf/reg-event-fx
  :peertube/load-active-instance
- [(rf/inject-cofx :store)]
- (fn [{:keys [db store]} [_ {:keys [body]}]]
+ [persist]
+ (fn [{:keys [db]} [_ {:keys [body]}]]
    (let [updated-db (update db
                             :peertube/instances
                             #(into []
@@ -76,10 +72,7 @@
                                                   (:peertube/instances db))
                                           %
                                           (conj % body)))))]
-     {:db    updated-db
-      :store (assoc store
-                    :peertube/instances
-                    (:peertube/instances updated-db))})))
+     {:db updated-db})))
 
 (rf/reg-event-fx
  :peertube/change-instance

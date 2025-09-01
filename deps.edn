@@ -34,10 +34,10 @@
           :ns-default build}
   :cljs
   {:extra-paths ["src/frontend" "src/scripts" "env/release"]
-   :extra-deps  {akiroz.re-frame/storage         {:mvn/version "0.1.4"}
-                 babashka/process                {:mvn/version "0.5.22"}
+   :extra-deps  {babashka/process                {:mvn/version "0.5.22"}
                  babashka/fs                     {:mvn/version "0.5.23"}
                  cider/cider-nrepl               {:mvn/version "0.28.4"}
+                 com.cognitect/transit-clj       {:mvn/version "1.0.333"}
                  com.github.scopews/svgreq       {:mvn/version "1.1.0"}
                  day8/shadow-git-inject          {:mvn/version "0.0.5"}
                  fork/fork                       {:mvn/version "2.4.3"}

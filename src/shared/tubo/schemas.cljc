@@ -1,4 +1,8 @@
-(ns tubo.schemas)
+(ns tubo.schemas
+  (:require
+   [tubo.config :as config]
+   [malli.core :as m]
+   [malli.transform :as transform]))
 
 (def ValidUsername
   [:and
@@ -233,3 +237,58 @@
       [:name string?]
       [:thumbnail {:optional true} [:maybe uri?]]
       [:items [:vector string?]]]]]])
+
+(def Theme [:enum "auto" "light" "dark"])
+
+(def ItemLayout [:enum "list" "grid"])
+
+(def ImageQuality [:enum :high :medium :low :none])
+
+(def Settings
+  [:map {:closed true}
+   [:theme {:default "auto"} Theme]
+   [:show-comments {:default true} boolean?]
+   [:show-related {:default true} boolean?]
+   [:show-description {:default true} boolean?]
+   [:items-layout {:default "list"} ItemLayout]
+   [:default-resolution {:default "720p"} string?]
+   [:default-video-format {:default "MPEG-4"} string?]
+   [:default-audio-format {:default "m4a"} string?]
+   [:instance {:default (config/get-in [:frontend :api-url])} uri?]
+   [:auth-instance {:default (config/get-in [:frontend :auth-url])} uri?]
+   [:image-quality {:default :high} ImageQuality]
+   [:default-country {:default {0 {:name "United States" :code "US"}}} any?]
+   [:default-kiosk {:default {0 "Trending"}} any?]
+   [:default-filter {:default {0 "all"}} any?]
+   [:default-service {:default 0} int?]])
+
+(def App
+  [:map {:closed true}
+   [:player/paused {:default true :persist true} boolean?]
+   [:player/muted {:optional true :persist true} [:maybe boolean?]]
+   [:player/shuffled {:optional true :persist true} [:maybe boolean?]]
+   [:player/loop {:default true :persist true} [:maybe boolean?]]
+   [:player/volume {:default 100 :persist true} int?]
+   [:bg-player/show {:optional true :persist true} [:maybe boolean?]]
+   [:queue {:default [] :persist true} vector?]
+   [:queue/position {:default 0 :persist true} int?]
+   [:queue/unshuffled {:optional true :persist true} vector?]
+   [:service-id {:default 0 :persist true} int?]
+   [:auth/user {:optional true :persist true} any?]
+   [:peertube/instances
+    {:default [(config/get-in [:services :peertube :default-instance])]
+     :persist
+     true} [:vector PeerTubeInstance]]
+   [:bookmarks {:default [] :persist true} any?]
+   [:settings
+    {:default (m/decode Settings {} transform/default-value-transformer)
+     :persist true}
+    Settings]])
+
+(def default-local-db (m/decode App {} transform/default-value-transformer))
+
+(def persisted-keys
+  (->> App
+       (m/children)
+       (filter (comp :persist second))
+       (map first)))

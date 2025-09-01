@@ -1,6 +1,5 @@
 (ns tubo.events
   (:require
-   [akiroz.re-frame.storage :refer [reg-co-fx!]]
    [fork.re-frame :as fork]
    [re-frame.core :as rf]
    [re-promise.core]
@@ -10,7 +9,6 @@
    [tubo.bookmarks.events]
    [tubo.channel.events]
    [tubo.comments.events]
-   [tubo.config :as config]
    [tubo.kiosks.events]
    [tubo.layout.events]
    [tubo.layout.views :as layout]
@@ -21,112 +19,36 @@
    [tubo.player.events]
    [tubo.playlist.events]
    [tubo.queue.events]
+   [tubo.schemas :as s]
    [tubo.search.events]
    [tubo.services.events]
    [tubo.settings.events]
+   [tubo.storage]
    [tubo.stream.events]))
 
-(reg-co-fx! :tubo {:fx :store :cofx :store})
+(rf/reg-event-fx
+ :initialize
+ (fn []
+   {:db s/default-local-db
+    :fx [[:fetch-store
+          {:on-success [:load-db] :on-failure [:notifications/error]}]]}))
 
 (rf/reg-event-fx
- :initialize-db
- [(rf/inject-cofx :store)]
- (fn [{:keys [store]} _]
-   (let [if-nil #(if (nil? %1) %2 %1)]
-     {:fx [[:dispatch
-            [:services/fetch-all
-             [:services/load] [:bad-response]]]
+ :load-db
+ (fn [{:keys [db]} [_ store]]
+   {:fx [[:dispatch
+          [:services/fetch-all
+           [:services/load] [:bad-response]]]
+         [:dispatch
+          [:kiosks/fetch-all (or (:service-id store) 0)
+           [:kiosks/load] [:bad-response]]]
+         [:dispatch
+          [:api/get "services/3/instance" [:peertube/load-active-instance]
+           [:bad-response]]]
+         (when (:auth/user store)
            [:dispatch
-            [:kiosks/fetch-all (or (:service-id store) 0)
-             [:kiosks/load] [:bad-response]]]
-           [:dispatch
-            [:api/get "services/3/instance" [:peertube/load-active-instance]
-             [:bad-response]]]
-           (when (:auth/user store)
-             [:dispatch
-              [:bookmarks/fetch-authenticated-playlists]])]
-      :db
-      {:player/paused true
-       :player/muted (:player/muted store)
-       :player/shuffled (:player/shuffled store)
-       :player/loop (if-nil (:player/loop store) :playlist)
-       :player/volume (if-nil (:player/volume store) 100)
-       :bg-player/show (:bg-player/show store)
-       :queue (if-nil (:queue store) [])
-       :queue/position (if-nil (:queue/position store) 0)
-       :queue/unshuffled (:queue/unshuffled store)
-       :service-id (if-nil (:service-id store) 0)
-       :auth/user (:auth/user store)
-       :peertube/instances (if-nil (:peertube/instances store)
-                                   (config/get-in [:peertube :instances]))
-       :bookmarks (if-nil (:bookmarks store) [])
-       :settings {:theme                (if-nil (-> store
-                                                    :settings
-                                                    :theme)
-                                                "auto")
-                  :show-comments        (if-nil (-> store
-                                                    :settings
-                                                    :show-comments)
-                                                true)
-                  :show-related         (if-nil (-> store
-                                                    :settings
-                                                    :show-related)
-                                                true)
-                  :show-description     (if-nil (-> store
-                                                    :settings
-                                                    :show-description)
-                                                true)
-                  :items-layout         (if-nil (-> store
-                                                    :settings
-                                                    :items-layout)
-                                                "list")
-                  :default-resolution   (if-nil
-                                         (-> store
-                                             :settings
-                                             :default-resolution)
-                                         "720p")
-                  :default-video-format (if-nil
-                                         (-> store
-                                             :settings
-                                             :default-video-format)
-                                         "MPEG-4")
-                  :default-audio-format (if-nil
-                                         (-> store
-                                             :settings
-                                             :default-audio-format)
-                                         "m4a")
-                  :instance             (if-nil (-> store
-                                                    :settings
-                                                    :instance)
-                                                (config/get-in
-                                                 [:frontend :api-url]))
-                  :auth-instance        (if-nil (-> store
-                                                    :settings
-                                                    :instance)
-                                                (config/get-in
-                                                 [:frontend :auth-url]))
-                  :image-quality        (if-nil (-> store
-                                                    :settings
-                                                    :image-quality)
-                                                :high)
-                  :default-country      (if-nil (-> store
-                                                    :settings
-                                                    :default-country)
-                                                {0 {:name
-                                                    "United States"
-                                                    :code "US"}})
-                  :default-kiosk        (if-nil (-> store
-                                                    :settings
-                                                    :default-kiosk)
-                                                {0 "Trending"})
-                  :default-filter       (if-nil (-> store
-                                                    :settings
-                                                    :default-filter)
-                                                {0 "all"})
-                  :default-service      (if-nil (-> store
-                                                    :settings
-                                                    :default-service)
-                                                0)}}})))
+            [:bookmarks/fetch-authenticated-playlists]])]
+    :db (merge db store)}))
 
 (rf/reg-fx
  :scroll-to-top
