@@ -265,13 +265,16 @@
         (when @tooltip-data
           [tooltip tooltip-id :extra-classes tooltip-classes])]
        [:button.focus:outline-none.relative
-        {:on-click (if @tooltip-data
-                     #(rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
-                     #(rf/dispatch [:layout/show-mobile-tooltip
-                                    {:items items
-                                     :id tooltip-id
-                                     :destroy-on-click-out?
-                                     destroy-on-click-out?}]))
+        {:on-click (fn [e]
+                     (when stop-propagation?
+                       (.stopPropagation e))
+                     (if @tooltip-data
+                       (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+                       (rf/dispatch [:layout/show-mobile-tooltip
+                                     {:items items
+                                      :id tooltip-id
+                                      :destroy-on-click-out?
+                                      destroy-on-click-out?}])))
          :type     "button"
          :class    (conj extra-classes (if responsive? "xs:hidden" "hidden"))}
         icon]])))
