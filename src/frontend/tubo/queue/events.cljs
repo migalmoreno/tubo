@@ -71,19 +71,28 @@
 (rf/reg-event-fx
  :queue/add-n
  (fn [{:keys [db]} [_ streams notify?]]
-   {:fx (into (map (fn [stream] [:dispatch [:queue/add stream]]) streams)
-              [[:dispatch
-                [:bg-player/fetch-stream
-                 (-> streams
-                     first
-                     :url)
-                 (count (:queue db)) (= (count (:queue db)) 0)]]
-               (when notify?
-                 [:dispatch
-                  [:notifications/add
-                   {:status-text (str "Added "
-                                      (count streams)
-                                      " streams to queue")}]])])}))
+   {:db (update db
+                :queue
+                #(into (into [] %1) (into [] %2))
+                (map #(-> %
+                          (get-stream-metadata)
+                          (utils/apply-image-quality db :thumbnail :thumbnails)
+                          (utils/apply-image-quality db
+                                                     :uploader-avatar
+                                                     :uploader-avatars))
+                     streams))
+    :fx [[:dispatch
+          [:bg-player/fetch-stream
+           (-> streams
+               first
+               :url)
+           (count (:queue db)) (= (count (:queue db)) 0)]]
+         (when notify?
+           [:dispatch
+            [:notifications/add
+             {:status-text (str "Added "
+                                (count streams)
+                                " streams to queue")}]])]}))
 
 (rf/reg-event-fx
  :queue/remove
