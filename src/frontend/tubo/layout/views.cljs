@@ -285,23 +285,6 @@
          :class    (conj extra-classes (if responsive? "xs:hidden" "hidden"))}
         icon]])))
 
-(defn accordeon
-  []
-  (let [!open? (r/atom false)]
-    (fn [{:keys [label on-open open? left-icon]} & content]
-      [:div.flex.flex-col.py-4.flex-auto.justify-center
-       [:div.flex.justify-center
-        [:div.flex.items-center.cursor-pointer.gap-x-2
-         {:on-click #(do (when on-open (on-open))
-                         (reset! !open? (not @!open?)))}
-         left-icon
-         [:div.flex.gap-x-4.items-center
-          label
-          [:i.fa-solid {:class (if @!open? :fa-caret-up :fa-caret-down)}]]]]
-       (when @!open?
-         [:div.py-4
-          (map-indexed #(with-meta %2 {:key %1}) content)])])))
-
 (defn show-more-container
   []
   (let [!text-container  (atom nil)
