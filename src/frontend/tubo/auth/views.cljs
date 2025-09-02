@@ -51,9 +51,8 @@
 
 (defn register
   []
-  [layout/content-container
-   [:div.py-6
-    [layout/content-header "Register"]]
+  [layout/form-container
+   [layout/content-header "Register"]
    [layout/form
     {:validation  register-form-validation
      :on-submit   [:auth/register]
@@ -78,9 +77,8 @@
 
 (defn login
   []
-  [layout/content-container
-   [:div.py-6
-    [layout/content-header "Login"]]
+  [layout/form-container
+   [layout/content-header "Login"]
    [layout/form
     {:validation  login-form-validation
      :on-submit   [:auth/login]

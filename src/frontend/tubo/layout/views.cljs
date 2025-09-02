@@ -64,6 +64,12 @@
                  :opacity    (if show? "0.5" "0")}
       :on-click (:on-click overlay)}]))
 
+(defn form-container
+  [& children]
+  [:div.flex-auto.flex.items-center.flex-col.justify-center.w-full.px-10
+   [:div.w-full.flex.justify-center.flex-col.items-center.w-full.md:w-96.gap-y-6
+    (map-indexed #(with-meta %2 {:key %1}) children)]])
+
 (defn content-container
   [& children]
   (let [page-loading?     @(rf/subscribe [:show-page-loading])
@@ -467,7 +473,7 @@
    (fn [{:keys [values handle-change handle-blur handle-submit errors touched
                 submitting? normalize-name]
          :as   fork-args}]
-     [:form.flex.flex-col.gap-y-4 {:on-submit handle-submit}
+     [:form.flex.flex-col.gap-y-4.w-full {:on-submit handle-submit}
       [:div
        (doall
         (for [[i {:keys [label name] :as field}]
