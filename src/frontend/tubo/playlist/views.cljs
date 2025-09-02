@@ -37,7 +37,7 @@
          [layout/thumbnail playlist nil :classes
           ["h-52" "w-52"] :rounded? true]]
         [:div.flex.flex-col.flex-1.gap-y-1
-         [:h1.text-sm.font-bold.text-neutral-300
+         [:h1.text-sm.font-bold.text-neutral-600.dark:text-neutral-400
           (str (when edit-modal "LOCAL ") "PLAYLIST")]
          [:div.flex.flex-col.gap-y-6
           [layout/content-header name
@@ -65,5 +65,4 @@
 
 (defn playlist-page
   [{{:keys [url]} :query-params}]
-  (let [list @(rf/subscribe [:playlist])]
-    [playlist list url]))
+  [playlist @(rf/subscribe [:playlist]) list url])

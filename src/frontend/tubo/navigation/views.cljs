@@ -12,7 +12,8 @@
    [tubo.playlist.views :as playlist]
    [tubo.bg-player.views :as bg-player]
    [tubo.utils :as utils]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [tubo.bookmarks.views :as bookmarks]))
 
 (defn logo
   []
@@ -115,7 +116,7 @@
                              "auto"])}])
 
 (defn nav-right-content
-  [match]
+  [{{:keys [id]} :query-params :as match}]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
         show-main-player? @(rf/subscribe [:main-player/show])
         show-queue?       @(rf/subscribe [:queue/show])
@@ -154,7 +155,8 @@
                                       [playlist/metadata-popover
                                        (assoc bookmark
                                               :related-streams
-                                              (:items bookmark))])
+                                              (:items bookmark))
+                                       [bookmarks/playlist-edit-modal id]])
                                     [:<>])]))]
       [:div.hidden.md:flex
        [layout/popover
