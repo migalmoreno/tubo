@@ -87,7 +87,10 @@
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
      [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7
-      (when (and (seq title) (not show-search-form?))
+      (when (and (seq title)
+                 (not show-search-form?)
+                 (not show-main-player?)
+                 (not show-queue?))
         [:h1.px-2.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden
          {:class [(when-not show-title? "invisible")
                   (if show-title? "opacity-1" "opacity-0")]}
@@ -96,10 +99,11 @@
        {:class
         [(if (and show-title? (seq title)) "invisible" "visible")
          (if (and show-title? (seq title)) "opacity-0" "opacity-1")]}
-       (cond (and show-main-player? (not show-search-form?)) "Main Player"
-             (and show-queue? (not show-search-form?))       "Play Queue"
-             (not show-search-form?)                         [:div.md:hidden
-                                                              [logo]])]]]))
+       (if (and (not show-main-player?)
+                (not show-queue?)
+                (not show-search-form?))
+         [:div.md:hidden [logo]]
+         [:div.hidden.mx-2.md:flex.w-60])]]]))
 
 (def theme-tooltip-items
   [{:label    "Light"
