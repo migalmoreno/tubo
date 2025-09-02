@@ -9,7 +9,8 @@
    [tubo.layout.events :as le]
    [tubo.schemas :as s]
    [tubo.storage :refer [persist]]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [tubo.bookmarks.modals :as bookmarks]))
 
 (defn apply-playlist-stream-transforms
   [db item]
@@ -167,23 +168,42 @@
 (rf/reg-event-fx
  :bookmark/add-n
  (fn [{:keys [db]} [_ bookmark items notify?]]
-   {:fx (if (:auth/user db)
+   {:db (when-not (:auth/user db)
+          (update db
+                  :bookmarks
+                  (fn [bookmarks]
+                    (map
+                     (fn [bk]
+                       (if (= (:id bk) (:id bookmark))
+                         (update bk
+                                 :items
+                                 #(into (into [] %1) (into [] %2))
+                                 (filter
+                                  (fn [item]
+                                    (not (some #(= (:url %) (:url item))
+                                               (:items bk))))
+                                  (map #(assoc
+                                         (apply-playlist-stream-transforms db %)
+                                         :playlist-id
+                                         (:id bk))
+                                       items)))
+                         bk))
+                     bookmarks))))
+    :fx (if (:auth/user db)
           [[:dispatch
             [:api/post-auth
              (str "user/playlists/" (:playlist-id bookmark) "/add-streams")
              (map #(apply-auth-playlist-stream-transforms db %) items)
              [:bookmark/on-add-auth bookmark true] [:bad-response]]]]
-          (conj (map (fn [item]
-                       [:dispatch [:bookmark/add bookmark item]])
-                     items)
-                (when notify?
-                  [:dispatch
-                   [:notifications/success
-                    (str "Added "
-                         (count items)
-                         " items to playlist \""
-                         (:name bookmark)
-                         "\"")]])))}))
+          [[:dispatch [:modals/close]]
+           (when notify?
+             [:dispatch
+              [:notifications/success
+               (str "Added "
+                    (count items)
+                    " items to playlist \""
+                    (:name bookmark)
+                    "\"")]])])}))
 
 (rf/reg-event-fx
  :bookmark/add
