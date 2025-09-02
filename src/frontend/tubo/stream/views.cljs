@@ -160,45 +160,49 @@
   []
   (let [!active-tab (r/atom :comments)]
     (fn [stream video]
-      [:div.flex.flex-col.flex-1
-       [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
-        {:class (if @(rf/subscribe [:main-player/show]) "top-0" "top-[56px]")}
-        video]
-       [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
-        [metadata stream]
-        [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
-         [description stream]
-         [:div
-          [:h1.text-2xl.font-bold.pb-2 "Comments"]
-          [comments stream]]]
-        [:div.fixed.right-0.bg-neutral-100.dark:bg-neutral-950.z-10.w-full.md:hidden
-         {:class
-          (if @(rf/subscribe [:bg-player/show])
-            "!bottom-[80px]"
-            "!bottom-0")}
-         [layout/tabs
-          [{:id        :comments
-            :label     "Comments"
-            :left-icon [:i.fa-solid.fa-comments]}
-           {:id        :related-items
-            :label     "Related Items"
-            :left-icon [:i.fa-solid.fa-images]}
-           {:id        :description
-            :label     "Description"
-            :left-icon [:i.fa-solid.fa-file]}]
-          :selected-id @!active-tab
-          :on-change #(reset! !active-tab %)]]
-        [:div.hidden.md:flex.flex-col.lg:hidden.gap-y-8
-         [description stream]
-         [related-items stream]
-         [:div
-          [:h1.text-2xl.font-bold.pb-2 "Comments"]
-          [comments stream]]]
-        [:div.mt-4.mb-16.md:hidden
-         (case @!active-tab
-           :comments      [comments stream]
-           :related-items [related-items stream]
-           :description   [description stream])]]])))
+      (let [{:keys [show-comments show-related show-description]}
+            @(rf/subscribe [:settings])
+            comments-container [:div.flex.flex-col.gap-y-4
+                                [:h1.text-2xl.font-bold.pb-2 "Comments"]
+                                [comments stream]]]
+        [:div.flex.flex-col.flex-1
+         [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
+          {:class (if @(rf/subscribe [:main-player/show]) "top-0" "top-[56px]")}
+          video]
+         [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
+          [metadata stream]
+          [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
+           (when show-description [description stream])
+           (when show-comments comments-container)]
+          [:div.fixed.right-0.bg-neutral-100.dark:bg-neutral-950.z-10.w-full.md:hidden
+           {:class
+            (if @(rf/subscribe [:bg-player/show])
+              "!bottom-[80px]"
+              "!bottom-0")}
+           [layout/tabs
+            [(when show-comments
+               {:id        :comments
+                :label     "Comments"
+                :left-icon [:i.fa-solid.fa-comments]})
+             (when show-related
+               {:id        :related-items
+                :label     "Related Items"
+                :left-icon [:i.fa-solid.fa-images]})
+             (when show-description
+               {:id        :description
+                :label     "Description"
+                :left-icon [:i.fa-solid.fa-file]})]
+            :selected-id @!active-tab
+            :on-change #(reset! !active-tab %)]]
+          [:div.hidden.md:flex.flex-col.lg:hidden.gap-y-8
+           (when show-description [description stream])
+           (when show-related [related-items stream])
+           (when show-comments comments-container)]
+          [:div.mt-4.mb-16.md:hidden
+           (case @!active-tab
+             :comments      [comments stream]
+             :related-items [related-items stream]
+             :description   [description stream])]]]))))
 
 (defn stream
   []
@@ -209,7 +213,7 @@
     (if page-loading?
       [layout/loading-icon service-color :text-5xl]
       [:div.flex.flex-col.flex-auto.items-center.md:my-4
-       [:div.flex.gap-x-6 {:class "md:w-[95%] xl:w-11/12"}
+       [:div.flex.gap-x-6.w-full {:class "md:w-[95%] xl:w-11/12"}
         [video-container stream
          [player/video-player stream !player {}
           #(rf/dispatch [:player/set-stream stream !player])]]
