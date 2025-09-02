@@ -206,9 +206,8 @@
                                       [list-item-content item])]))]
         [:div.flex.flex-col.flex-auto.my-2.md:my-8
          (if (empty? related-streams)
-           [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4
-            [:i.fa-solid.fa-ghost.text-3xl]
-            [:p.text-lg "No available streams"]]
+           [:div.flex.items-center.flex-auto.flex-col.justify-center
+            [:span "No available streams"]]
            (if (and !layout (= @!layout "grid"))
              [:div.grid.w-full.gap-x-10.gap-y-4
               {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
