@@ -16,17 +16,19 @@
    {:class    (into
                (when (= i queue-pos)
                  ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
-               ["h-[4.5rem]" "@sm:h-fit"])
+               ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
     :on-click #(do (rf/dispatch [:queue/change-pos i])
                    (reset! !clicked-idx i))}
    [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
     {:class "@sm:flex"}
     [:span.font-bold.text-neutral-400.text-sm
      (cond
-       (and (= i @!clicked-idx) @(rf/subscribe [:bg-player/loading]))
+       (and (= i @!clicked-idx)
+            @(rf/subscribe [:bg-player/loading])
+            (not= queue-pos @!clicked-idx))
        [:<>
         [:div.block.lg:hidden
-         [layout/loading-icon (utils/get-service-color service-id) :text-xl]]
+         [layout/loading-icon nil :text-xl]]
         [:div.hidden.lg:block (inc i)]]
        (= i queue-pos) [:i.fa-solid.fa-play]
        :else (inc i))]]
