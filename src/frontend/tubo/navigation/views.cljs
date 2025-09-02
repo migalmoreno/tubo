@@ -202,7 +202,7 @@
         :icon [:i.fa-solid.fa-circle-user]]]]]))
 
 (defn navbar
-  [match]
+  [{{:keys [id]} :query-params {:keys [name]} :data :as match}]
   [:nav.sticky.flex.items-center.h-14.top-0.z-20
    {:class (into ["h-[56px]"]
                  (if @(rf/subscribe [:queue/show])
@@ -211,14 +211,15 @@
                     "bg-neutral-100/90"]))}
    [:div.flex.flex-auto.items-center
     [nav-left-content
-     (case (-> match
-               :data
-               :name)
-       :channel-page  (:name @(rf/subscribe [:channel]))
-       :kiosk-page    (:name @(rf/subscribe [:kiosk]))
-       :homepage      (:name @(rf/subscribe [:kiosk]))
-       :stream-page   (:name @(rf/subscribe [:stream]))
-       :playlist-page (:name @(rf/subscribe [:playlist]))
+     (case name
+       :channel-page   (:name @(rf/subscribe [:channel]))
+       :kiosk-page     (:name @(rf/subscribe [:kiosk]))
+       :homepage       (:name @(rf/subscribe [:kiosk]))
+       :stream-page    (:name @(rf/subscribe [:stream]))
+       :playlist-page  (:name @(rf/subscribe [:playlist]))
+       :bookmark-page  (:name @(rf/subscribe [:bookmarks/get-by-id id]))
+       :bookmarks-page "Bookmarks"
+       :settings-page  "Settings"
        nil)]
     [search/search-form]
     [:div.w-24.hidden.md:block]
