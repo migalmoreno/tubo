@@ -185,7 +185,8 @@
               (when user
                 [{:custom-content [:div.text-white.whitespace-nowrap.text-sm
                                    "Logged in as "
-                                   [:span.font-bold (:username user)]]}
+                                   [:span.font-bold (:username user)]]
+                  :destroy-tooltip-on-click? false}
                  {:label    "Log Out"
                   :icon     [:i.fa-solid.fa-right-to-bracket
                              {:class "rotate-180"}]

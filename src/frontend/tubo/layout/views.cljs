@@ -181,7 +181,8 @@
                     icon])
                  [:span.whitespace-nowrap label]]
         classes (into ["relative" "flex" "items-center" "gap-x-3" "py-2.5"
-                       "px-4" "first:rounded-t" "last:rounded-b"]
+                       "px-4" "first:rounded-t" "last:rounded-b"
+                       (when on-click "cursor-pointer")]
                       (when-not custom-content
                         ["hover:bg-neutral-200"
                          "dark:hover:bg-neutral-800/50"]))]
@@ -204,8 +205,7 @@
                     (if subschema
                       (rf/dispatch [:layout/change-tooltip-items tooltip-id
                                     subschema])
-                      (do (when on-click
-                            (on-click e))
+                      (do (when on-click (on-click e))
                           (when destroy-tooltip-on-click?
                             (rf/dispatch [:layout/destroy-tooltip-by-id
                                           tooltip-id]))
@@ -218,7 +218,7 @@
   [tooltip-id & {:keys [extra-classes]}]
   (let [{:keys [items]} @(rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (when-not (empty? (remove nil? items))
-      [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30.cursor-pointer
+      [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30
        {:class (conj extra-classes)}
        (for [[i item] (map-indexed vector (remove nil? items))]
          ^{:key i} [tooltip-item item tooltip-id])])))
