@@ -22,10 +22,11 @@
                         (filter #(some #{ChannelTabs/VIDEOS}
                                        (.getContentFilters %)))
                         first)
-        tab-info   (ChannelTabInfo/getInfo
-                    service
-                    (or videos-tab
-                        (first (.getTabs info))))]
+        tab-info   (when (or videos-tab (first (.getTabs info)))
+                     (ChannelTabInfo/getInfo
+                      service
+                      (or videos-tab
+                          (first (.getTabs info)))))]
     {:name             (.getName info)
      :service-id       (.getServiceId info)
      :id               (.getId info)
@@ -39,7 +40,7 @@
      :subscriber-count (utils/non-negative (.getSubscriberCount info))
      :feed-url         (.getFeedUrl info)
      :donation-links   (.getDonationLinks info)
-     :next-page        (utils/get-next-page tab-info)
+     :next-page        (when tab-info (utils/get-next-page tab-info))
      :related-streams  (when tab-info
                          (utils/get-items (.getRelatedItems tab-info)))}))
 
