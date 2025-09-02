@@ -28,7 +28,7 @@
 
 (defn get-comments
   [url]
-  (let [info (CommentsInfo/getInfo (url-decode url))]
+  (when-let [info (CommentsInfo/getInfo (url-decode url))]
     {:comments       (map get-comment-item (.getRelatedItems info))
      :comments-count (.getCommentsCount info)
      :next-page      (utils/get-next-page info)

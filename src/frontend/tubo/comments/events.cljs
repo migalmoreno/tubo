@@ -36,11 +36,17 @@
        (assoc-in (into keys [:show-comments-loading]) false))))
 
 (rf/reg-event-fx
+ :bad-comments-response
+ (fn [{:keys [db]} [_ keys res]]
+   {:fx [[:dispatch [:bad-response res]]]
+    :db (assoc-in db (into keys [:show-comments-loading]) false)}))
+
+(rf/reg-event-fx
  :comments/fetch-page
  (fn [{:keys [db]} [_ url keys]]
    {:fx [[:dispatch
           [:comments/fetch url
-           [:comments/load-page keys] [:bad-response]]]]
+           [:comments/load-page keys] [:bad-comments-response keys]]]]
     :db (-> db
             (assoc-in (into keys [:show-comments-loading]) true)
             (assoc-in (into keys [:show-comments]) true))}))
