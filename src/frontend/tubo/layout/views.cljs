@@ -105,10 +105,11 @@
          {:href  (rfe/href :channel-page nil {:url uploader-url})
           :title uploader-name
           :key   uploader-url}])
-      [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full
-       {:src uploader-avatar
-        :alt uploader-name
-        :key uploader-name}])]))
+      [:img.flex-auto.rounded-full.object-cover.max-w-full.min-h-full.text-xs.line-clamp-2
+       {:class "[overflow-wrap:anywhere]"
+        :src   uploader-avatar
+        :alt   uploader-name
+        :key   uploader-name}])]))
 
 (defn button
   [label on-click left-icon right-icon &
