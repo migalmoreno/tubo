@@ -53,7 +53,7 @@
     (.setInstance ServiceList/PeerTube
                   (PeertubeInstance. (:url body-params)
                                      (:name body-params)))
-    (ok (str "PeerTube instanced changed to " (:name body-params)))
+    (ok (str "PeerTube instance changed to " (:name body-params)))
     (catch Exception _
       (internal-server-error
        "There was a problem changing PeerTube instance"))))
