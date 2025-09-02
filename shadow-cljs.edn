@@ -2,24 +2,26 @@
  :dev-http {8020 {:root "resources/public"}}
  :builds
  {:frontend
-  {:target           :browser
-   :asset-path       "/js"
-   :output-dir       "resources/public/js"
-   :git-inject       {:version-pattern "^(.*)$"}
-   :build-hooks      [(shadow-git-inject.core/hook)
-                      (shadow-env.core/hook)
-                      (hooks/copy-assets
-                       {:public-dir "resources/public"
-                        :assets     {"resources/src/icons"      "icons"
-                                     "resources/src/index.html" "index.html"}})]
-   :dev              {:build-hooks [(hooks/webpack-watch)]}
-   :release          {:build-hooks [(hooks/webpack-release)]}
-   :compiler-options {:closure-defines {tubo.utils/version
-                                        :shadow-git-inject/version}}
-   :js-options       {:entry-keys        ["module" "browser" "main"]
-                      :export-conditions ["import" "module" "browser" "require"
-                                          "default"]}
-   :modules          {:main {:init-fn tubo.core/init}}}
+  {:target            :browser
+   :asset-path        "/js"
+   :output-dir        "resources/public/js"
+   :module-hash-names true
+   :git-inject        {:version-pattern "^(.*)$"}
+   :build-hooks       [(shadow-git-inject.core/hook)
+                       (shadow-env.core/hook)
+                       (hooks/copy-assets
+                        {:public-dir "resources/public"
+                         :assets     {"resources/src/icons" "icons"}})
+                       (shadow.html/copy-file "resources/src/index.html"
+                                              "resources/public/index.html")]
+   :dev               {:build-hooks [(hooks/webpack-watch)]}
+   :release           {:build-hooks [(hooks/webpack-release)]}
+   :compiler-options  {:closure-defines {tubo.utils/version
+                                         :shadow-git-inject/version}}
+   :js-options        {:entry-keys        ["module" "browser" "main"]
+                       :export-conditions ["import" "module" "browser" "require"
+                                           "default"]}
+   :modules           {:main {:init-fn tubo.core/init}}}
   :bg-helper
   {:target           :node-script
    :main             tubo.bg-helper/main
