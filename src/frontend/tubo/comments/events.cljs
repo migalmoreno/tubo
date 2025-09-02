@@ -45,18 +45,97 @@
             (assoc-in (into keys [:show-comments-loading]) true)
             (assoc-in (into keys [:show-comments]) true))}))
 
-(rf/reg-event-db
- :comments/toggle-replies
- (fn [db [_ comment-id]]
-   (update-in
-    db
-    (into (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
+(rf/reg-event-fx
+ :comments/load-replies
+ (fn [{:keys [db]} [_ comment-id {:keys [body]}]]
+   {:db (update-in db
+                   (into (if (:main-player/show db)
+                           [:queue (:queue/position db)]
+                           [:stream])
+                         [:comments-page :comments])
+                   (fn [comments]
+                     (map (fn [comment]
+                            (if (= (:id comment) comment-id)
+                              (assoc comment
+                                     :replies (utils/apply-avatars-quality
+                                               body
+                                               db
+                                               :comments)
+                                     :replies-loading false)
+                              comment))
+                          comments)))}))
+
+(rf/reg-event-fx
+ :comments/fetch-replies
+ (fn [{:keys [db]} [_ comment-id url replies-page]]
+   {:db (update-in
+         db
+         (into
+          (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
           [:comments-page :comments])
-    (fn [comments]
-      (map #(if (= (:id %) comment-id)
-              (assoc % :show-replies (not (:show-replies %)))
-              %)
-           comments)))))
+         (fn [comments]
+           (map #(if (= (:id %) comment-id) (assoc % :replies-loading true) %)
+                comments)))
+    :fx [[:dispatch
+          [:comments/fetch url
+           [:comments/load-replies comment-id] [:bad-response]
+           {:nextPage (.stringify js/JSON (clj->js replies-page))}]]
+         [:dispatch [:comments/show-replies comment-id true]]]}))
+
+(rf/reg-event-fx
+ :comments/load-more-replies
+ (fn [{:keys [db]} [_ comment-id {:keys [body]}]]
+   {:db (update-in db
+                   (into (if (:main-player/show db)
+                           [:queue (:queue/position db)]
+                           [:stream])
+                         [:comments-page :comments])
+                   (fn [comments]
+                     (map (fn [comment]
+                            (if (= (:id comment) comment-id)
+                              (-> comment
+                                  (assoc-in [:replies :next-page]
+                                            (:next-page body))
+                                  (update-in [:replies :comments]
+                                             #(into (into [] %1) %2)
+                                             (:comments
+                                              (utils/apply-avatars-quality
+                                               body
+                                               db
+                                               :comments)))
+                                  (assoc :replies-loading false))
+                              comment))
+                          comments)))}))
+
+(rf/reg-event-fx
+ :comments/fetch-more-replies
+ (fn [{:keys [db]} [_ comment-id url replies-page]]
+   {:db (update-in
+         db
+         (into
+          (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
+          [:comments-page :comments])
+         (fn [comments]
+           (map #(if (= (:id %) comment-id) (assoc % :replies-loading true) %)
+                comments)))
+    :fx [[:dispatch
+          [:comments/fetch url
+           [:comments/load-more-replies comment-id] [:bad-response]
+           {:nextPage (.stringify js/JSON (clj->js replies-page))}]]]}))
+
+(rf/reg-event-fx
+ :comments/show-replies
+ (fn [{:keys [db]} [_ comment-id val]]
+   {:db
+    (update-in
+     db
+     (into (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
+           [:comments-page :comments])
+     (fn [comments]
+       (map #(if (= (:id %) comment-id)
+               (assoc % :show-replies val)
+               %)
+            comments)))}))
 
 (rf/reg-event-db
  :comments/load-paginated

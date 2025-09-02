@@ -44,9 +44,11 @@
         :title (str author-name " hearted this comment")}]])])
 
 (defn comment-item
-  [{:keys [id text replies reply-count show-replies] :as comment}]
-  [:div.flex.gap-x-4.my-4
-   [layout/uploader-avatar comment :classes ["w-12" "h-12"]]
+  [{:keys [id text replies-page replies reply-count show-replies url reply?]
+    :as   comment}]
+  [:div.flex.gap-x-4
+   [layout/uploader-avatar comment :classes
+    (if reply? ["w-8" "h-8"] ["w-12" "h-12"])]
    [:div.flex.flex-col.gap-y-4
     [:div.flex.flex-col.gap-y-2
      [comment-top-metadata comment]
@@ -55,24 +57,27 @@
        {:dangerouslySetInnerHTML {:__html text}
         :class                   "[overflow-wrap:anywhere]"}]]
      [comment-bottom-metadata comment]]
-    [:div.flex.items-center.cursor-pointer
-     {:on-click #(rf/dispatch [:comments/toggle-replies id])}
-     (when (seq replies)
+    (when (seq replies-page)
+      [:div.flex.items-center.cursor-pointer.gap-x-2
+       {:on-click #(rf/dispatch (if (seq replies)
+                                  [:comments/show-replies id (not show-replies)]
+                                  [:comments/fetch-replies id url
+                                   replies-page]))}
        (if show-replies
          [:<>
-          [:p.font-bold.text-sm "Hide replies"]
+          [:span.font-bold.text-sm "Hide replies"]
           [:i.fa-solid.fa-turn-up.mx-2.text-xs]]
          [:<>
-          [:p.font-bold.text-sm
+          [:span.font-bold.text-sm
            (str reply-count (if (= reply-count 1) " reply" " replies"))]
-          [:i.fa-solid.fa-turn-down.mx-2.text-xs]]))]]])
+          [:i.fa-solid.fa-turn-down.mx-2.text-xs]])])]])
 
 (defn comments
   []
   (let [!observer (atom nil)]
     (fn [{:keys [comments next-page]}
-         {:keys [uploader-name uploader-avatar url]}]
-      (let [service-color       @(rf/subscribe [:service-color])
+         {:keys [uploader-name uploader-avatar url service-id]}]
+      (let [service-color       (utils/get-service-color service-id)
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
             last-item-ref       #(when-not pagination-loading?
                                    (when @!observer (.disconnect @!observer))
@@ -89,11 +94,12 @@
                                       %)))]
         [:div.flex.flex-col
          (if (empty? comments)
-           [:div.flex.items-center.flex-auto.flex-col.justify-center.gap-y-4.h-44
-            [:i.fa-solid.fa-ghost.text-3xl]
-            [:p.text-lg "No available comments"]]
-           [:div
-            (for [[i {:keys [replies show-replies] :as comment}]
+           [:div.flex.items-center.flex-auto.flex-col.justify-center.h-44
+            [:span "No available comments"]]
+           [:div.flex.flex-col.gap-y-6
+            (for [[i
+                   {:keys [id replies replies-loading show-replies]
+                    :as   comment}]
                   (map-indexed vector comments)]
               ^{:key i}
               [:div.flex.flex-col
@@ -104,14 +110,30 @@
                 [comment-item
                  (assoc comment
                         :author-name   uploader-name
-                        :author-avatar uploader-avatar)]]
-               (when (and replies show-replies)
-                 [:div {:style {:marginLeft "32px"}}
-                  (for [[i reply] (map-indexed vector (:items replies))]
+                        :author-avatar uploader-avatar
+                        :url           url)]]
+               (when (and (seq replies) show-replies)
+                 [:div.flex.flex-col.gap-y-8.my-4 {:class "ml-[32px]"}
+                  (for [[i reply] (map-indexed vector (:comments replies))]
                     ^{:key i}
                     [comment-item
                      (assoc reply
+                            :reply?        true
                             :author-name   uploader-name
-                            :author-avatar uploader-avatar)])])])
+                            :author-avatar uploader-avatar
+                            :url           url)])])
+               (when (and show-replies
+                          (or replies-loading (:next-page replies)))
+                 [:div.h-8.flex
+                  {:class "ml-[40px]"}
+                  (cond
+                    replies-loading [layout/loading-icon service-color :text-md]
+                    (:next-page replies)
+                    [:button
+                     {:on-click #(rf/dispatch [:comments/fetch-more-replies id
+                                               url
+                                               (:next-page replies)])}
+                     [:i.fa-solid.fa-turn-up.mx-2.text-xs.rotate-90]
+                     [:span.font-bold.text-sm "Show more replies"]])])])
             (when (and pagination-loading? (seq next-page))
               [layout/loading-icon service-color :text-md])])]))))

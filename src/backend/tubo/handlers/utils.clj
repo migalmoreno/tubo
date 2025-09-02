@@ -23,7 +23,7 @@
            (get page "id")
            (get page "ids")
            (get page "cookies")
-           (.getBytes (get page "body")))))
+           (when-let [body (get page "body")] (.getBytes body)))))
 
 (defn get-stream-item
   [stream]
