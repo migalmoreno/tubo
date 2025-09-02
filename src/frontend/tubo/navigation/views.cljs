@@ -57,7 +57,7 @@
     [:div.flex.items-center.gap-x-4
      (when (and (not show-queue?)
                 (not show-main-player?))
-       [:div.flex.items-center.justify-center.text-lg.pl-8
+       [:div.flex.items-center.justify-center.text-lg.pl-8.w-12
         {:class (when show-search-form? ["hidden" "md:flex" "pl-0"])}
         [:button
          {:on-click #(rf/dispatch [:navigation/show-mobile-menu])
@@ -76,14 +76,14 @@
                                          :else :minimized)])}
          [:i.fa-solid.fa-bars]]])
      (when (and (not show-queue?) (not show-main-player?))
-       [:div.px-2.hidden.md:flex
+       [:div.px-2.hidden.md:flex.w-60
         [logo]])
      (cond (and show-main-player? (not show-search-form?))
-           [:button.pl-8
+           [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
             [:i.fa-solid.fa-arrow-left]]
            (and show-queue? (not show-search-form?))
-           [:button.pl-8
+           [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
      [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7
