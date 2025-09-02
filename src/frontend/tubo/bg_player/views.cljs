@@ -281,15 +281,12 @@
                           (:thumbnail stream)
                           ")")]
     (when show-player?
-      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative
-       {:on-click #(rf/dispatch [:queue/show true])
-        :style
-        {:visibility          (when show-queue? "hidden")
-         :opacity             (if show-queue? 0 1)
-         :background-image    bg-image
-         :background-size     "cover"
-         :background-position "center"
-         :background-repeat   "no-repeat"}}
+      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative.bg-cover.bg-center.bg-no-repeat.cursor-pointer
+       {:style    {"--bg-image" bg-image}
+        :class    ["h-[80px]" "bg-[image:var(--bg-image)]"
+                   (when show-queue? "hidden")
+                   (if show-queue? "opacity-0" "opacity-1")]
+        :on-click #(rf/dispatch [:queue/show true])}
        [:div.flex.items-center
         [audio-player !player]
         [metadata stream]
