@@ -78,6 +78,7 @@
             (assoc :player/shuffled false))
     :fx [[:dispatch [:bg-player/pause true]]
          [:dispatch [:bg-player/seek 0]]
+         [:dispatch [:queue/show false]]
          [:timeout
           {:id    (nano-id)
            :event [:bg-player/hide]
@@ -127,6 +128,7 @@
  [(rf/inject-cofx ::inject/sub [:queue/current])]
  (fn [{:keys [db] :as cofx}]
    {:fx            [[:dispatch [:main-player/show true]]
+                    [:dispatch [:queue/show false]]
                     (when-not (seq (get-in db
                                            [:queue (:queue/position db)
                                             :comments-page]))
