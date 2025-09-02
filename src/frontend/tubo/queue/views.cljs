@@ -164,7 +164,9 @@
             dark-theme? @(rf/subscribe [:dark-theme])
             bg-color    (str "rgba("
                              (if dark-theme? "10,10,10" "255,255,255")
-                             ",0.9)")
+                             ","
+                             (if dark-theme? 0.8 0.6)
+                             ")")
             bg-image    (str "linear-gradient("
                              bg-color
                              ","
@@ -172,20 +174,21 @@
                              "),url("
                              (:thumbnail stream)
                              ")")]
-        [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0.transition-all.ease-in-out
+        [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0.transition-all.ease-in-out.top-0.h-dvh
          {:class ["dark:bg-neutral-950/90" "bg-neutral-100/90"
-                  "min-h-[calc(100dvh-56px)]" "h-[calc(100dvh-56px)]"
                   (when-not show-queue "invisible")
                   (if show-queue "opacity-1" "opacity-0")]}
-         [:div.flex.w-full.h-full
-          [:div.flex-col.flex-1.gap-y-10.sm:p-8.items-center.justify-center
-           {:style {:background-image    bg-image
-                    :background-size     "cover"
-                    :background-position "center"
-                    :background-repeat   "no-repeat"}
-            :class (if show-queue
-                     (if show-list? "hidden lg:flex" "flex")
-                     "hidden")}
+         [:div.flex.w-full.h-full.relative.overflow-hidden.before:absolute.before:top-0.before:bottom-0.before:left-0.before:right-0.before:bg-cover.before:bg-center.before:bg-no-repeat
+          {:style {"--bg-image" bg-image}
+           :class ["before:bg-[image:var(--bg-image)]"
+                   "before:content-['']" "before:scale-[3]"
+                   "before:blur-[50px]"]}
+          [:div.flex-col.flex-1.gap-y-10.p-4.sm:p-8.items-center.justify-center.relative
+           {:class (if show-queue
+                     (if show-list?
+                       ["hidden" "lg:flex"]
+                       ["flex"])
+                     ["hidden"])}
            [:div.flex.w-full.items-center.justify-center
             [layout/thumbnail stream nil :hide-duration? true :rounded? true
              :classes
@@ -193,10 +196,11 @@
            [:div.flex.flex-col.py-4.shrink-0.px-5.w-full.gap-y-4
             [queue-metadata stream]
             [main-controls color]]]
-          [:div.flex-col.flex-1
-           {:class (if show-queue
-                     (if show-list? "flex" "hidden lg:flex")
-                     "hidden")}
+          [:div.flex-col.flex-1.relative.lg:p-8
+           {:class (into ["mt-[56px]"]
+                         (if show-queue
+                           (if show-list? ["flex"] ["hidden" "lg:flex"])
+                           ["hidden"]))}
            [layout/tabs
             [{:id    :queue
               :label "UP NEXT"}

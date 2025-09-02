@@ -197,8 +197,12 @@
 
 (defn navbar
   [match]
-  [:nav.sticky.flex.items-center.h-14.top-0.z-20.backdrop-blur-md
-   {:class "bg-neutral-100/90 dark:bg-neutral-950/90"}
+  [:nav.sticky.flex.items-center.h-14.top-0.z-20
+   {:class (into ["h-[56px]"]
+                 (if @(rf/subscribe [:queue/show])
+                   ["bg-transparent"]
+                   ["backdrop-blur-md" "dark:bg-neutral-950/90"
+                    "bg-neutral-100/90"]))}
    [:div.flex.flex-auto.items-center
     [nav-left-content
      (case (-> match
