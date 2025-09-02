@@ -20,7 +20,7 @@
 (rf/reg-fx
  :persist
  (fn []
-   (let [persisted-db (select-keys @db/app-db s/persisted-keys)]
+   (let [persisted-db (select-keys @db/app-db s/persisted-local-db-keys)]
      (when-let [json (try (transit/write (transit/writer :json) persisted-db)
                           (catch :default e
                             #(rf/dispatch [:notifications/error e])))]

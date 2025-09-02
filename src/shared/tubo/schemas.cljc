@@ -85,7 +85,7 @@
    [:default-filter {:default {0 "all"}} any?]
    [:default-service {:default 0} int?]])
 
-(def App
+(def LocalDB
   [:map {:closed true}
    [:player/paused {:default true :persist true} boolean?]
    [:player/muted {:optional true :persist true} [:maybe boolean?]]
@@ -108,10 +108,10 @@
      :persist true}
     Settings]])
 
-(def default-local-db (m/decode App {} transform/default-value-transformer))
+(def default-local-db (m/decode LocalDB {} transform/default-value-transformer))
 
-(def persisted-keys
-  (->> App
+(def persisted-local-db-keys
+  (->> LocalDB
        (m/children)
        (filter (comp :persist second))
        (map first)))
