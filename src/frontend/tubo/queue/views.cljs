@@ -2,7 +2,6 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [reitit.frontend.easy :as rfe]
    [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
@@ -79,15 +78,11 @@
    [popover item i bookmarks]])
 
 (defn queue-metadata
-  [{:keys [url name uploader-url uploader-name]}]
+  [{:keys [name uploader-name]}]
   [:div.flex.flex-col.py-2
-   [:a.text-xl.line-clamp-1.w-fit.font-bold
-    {:href  (rfe/href :stream-page nil {:url url})
-     :title name}
-    name]
-   [:a.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
-    {:href  (rfe/href :channel-page nil {:url uploader-url})
-     :title uploader-name}
+   [:h1.text-xl.line-clamp-1.w-fit.font-bold {:title name} name]
+   [:h1.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
+    {:title uploader-name}
     uploader-name]])
 
 (defn main-controls
