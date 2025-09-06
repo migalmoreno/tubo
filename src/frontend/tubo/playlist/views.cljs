@@ -65,4 +65,4 @@
 
 (defn playlist-page
   [{{:keys [url]} :query-params}]
-  [playlist @(rf/subscribe [:playlist]) list url])
+  [playlist @(rf/subscribe [:playlist]) url])
