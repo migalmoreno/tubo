@@ -127,15 +127,19 @@
   [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
    :extra-button-args extra-button-args
-   :button-classes ["bg-neutral-800" "dark:bg-neutral-200"]
+   :button-classes
+   ["bg-neutral-800" "dark:bg-neutral-200" "hover:dark:bg-neutral-300"
+    "hover:bg-neutral-700"]
    :label-classes ["text-neutral-300" "dark:text-neutral-900"]])
 
 (defn secondary-button
   [label on-click left-icon right-icon extra-button-args]
   [button label on-click left-icon right-icon
    :extra-button-args extra-button-args
-   :button-classes ["bg-neutral-200" "dark:bg-neutral-900"]
-   :label-classes ["text-neutral-500" "dark:text-white"]])
+   :button-classes
+   ["bg-neutral-200" "dark:bg-neutral-900" "hover:bg-neutral-300"
+    "hover:dark:bg-neutral-800"]
+   :label-classes ["text-neutral-600" "dark:text-white"]])
 
 (defn form-field
   [{:keys [label orientation] :or {orientation :horizontal}} & children]
