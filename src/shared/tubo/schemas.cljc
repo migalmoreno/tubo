@@ -123,6 +123,9 @@
    [:layout/tooltips {:optional true} [:maybe map?]]
    [:auth/user {:optional true :persist true} [:maybe map?]]
    [:user/bookmarks {:optional true} any?]
+   [:user/subscriptions {:optional true} any?]
+   [:user/feed {:optional true} any?]
+   [:user/feed-last-updated {:optional true :persist true} any?]
    [:peertube/instances
     {:default [(config/get-in [:services :peertube :default-instance])]
      :persist
@@ -145,6 +148,9 @@
    [:kiosk {:optional true} [:maybe map?]]
    [:available-kiosks {:optional true} [:maybe vector?]]
    [:bookmarks {:default [] :persist true} any?]
+   [:subscriptions {:default [] :persist true} any?]
+   [:feed {:optional true :persist true} any?]
+   [:feed-last-updated {:optional true :persist true} any?]
    [:settings
     {:default (m/decode Settings {} transform/default-value-transformer)
      :persist true}

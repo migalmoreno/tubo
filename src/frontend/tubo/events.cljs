@@ -9,6 +9,7 @@
    [tubo.bookmarks.events]
    [tubo.channel.events]
    [tubo.comments.events]
+   [tubo.feed.events]
    [tubo.kiosks.events]
    [tubo.layout.events]
    [tubo.layout.views :as layout]
@@ -24,7 +25,8 @@
    [tubo.services.events]
    [tubo.settings.events]
    [tubo.storage]
-   [tubo.stream.events]))
+   [tubo.stream.events]
+   [tubo.subscriptions.events]))
 
 (rf/reg-event-fx
  :initialize
@@ -58,6 +60,11 @@
                     [:dispatch
                      [:bookmarks/fetch-authenticated-playlists
                       [:bad-response]]])]}))))
+
+(rf/reg-cofx
+ :now
+ (fn [cofx]
+   (assoc cofx :now (js/Date))))
 
 (rf/reg-fx
  :scroll-to-top
@@ -266,3 +273,8 @@
  (fn [{:keys [db]} [_ path res]]
    {:db (fork/set-submitting db path false)
     :fx [[:dispatch [:bad-response res]]]}))
+
+(rf/reg-event-db
+ :show-page-loading
+ (fn [db [_ val]]
+   (assoc db :show-page-loading val)))

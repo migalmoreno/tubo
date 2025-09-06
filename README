@@ -7,7 +7,9 @@ Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][Ne
 - No ads
 - Background player
 - Playback queue
-- User playlists
+- Playlists
+- Subscriptions
+- Feed
 - System/Light/Dark themes
 
 * Installation

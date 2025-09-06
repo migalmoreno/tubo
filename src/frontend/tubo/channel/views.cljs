@@ -8,9 +8,16 @@
    [tubo.utils :as utils]))
 
 (defn metadata-popover
-  [{:keys [related-streams]}]
+  [{:keys [related-streams url] :as item}]
   (when related-streams
     [layout/popover
+     [(if @(rf/subscribe [:subscriptions/subscribed url])
+        {:label    "Unsubscribe"
+         :icon     [:i.fa-solid.fa-user-minus]
+         :on-click #(rf/dispatch [:subscriptions/remove url])}
+        {:label    "Subscribe"
+         :icon     [:i.fa-solid.fa-user-plus]
+         :on-click #(rf/dispatch [:subscriptions/add item])})
       {:label    "Add to queue"
        :icon     [:i.fa-solid.fa-headphones]
        :on-click #(rf/dispatch [:queue/add-n related-streams true])}

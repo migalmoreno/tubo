@@ -37,7 +37,7 @@
   [id ds]
   (into
    []
-   (map #(-> (assoc % :items (get-playlist-streams (str (:playlist_id %)) ds))))
+   (map #(assoc % :items (get-playlist-streams (str (:playlist_id %)) ds)))
    (db/plan ds
             {:select [:*]
              :from   [:playlists]

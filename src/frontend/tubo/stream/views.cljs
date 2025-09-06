@@ -43,24 +43,35 @@
    :extra-classes ["px-5" "xs:py-2" "xs:px-4"]])
 
 (defn metadata-uploader
-  [{:keys [uploader-url uploader-name uploader-verified? subscriber-count]
+  [{:keys [uploader-url uploader-name uploader-verified? subscriber-count
+           uploader-avatars]
     :as   stream}]
-  [:div.flex.items-center
-   [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
-   [:div.mx-3.gap-x-2
-    [:div
-     (when uploader-url
-       [:div.flex.gap-x-2.items-center
-        [:a.line-clamp-1.font-semibold
-         {:href  (rfe/href :channel-page nil {:url uploader-url})
-          :title uploader-name}
-         uploader-name]
-        (when uploader-verified?
-          [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])]
-    (when subscriber-count
-      [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
-       [:span {:title subscriber-count :class "text-[0.8rem]"}
-        (str (utils/format-quantity subscriber-count) " subscribers")]])]])
+  [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none
+   [:div.flex.items-center
+    [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
+    [:div.mx-3.gap-x-2
+     [:div
+      (when uploader-url
+        [:div.flex.gap-x-2.items-center
+         [:a.line-clamp-1.font-semibold
+          {:href  (rfe/href :channel-page nil {:url uploader-url})
+           :title uploader-name}
+          uploader-name]
+         (when uploader-verified?
+           [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])]
+     (when subscriber-count
+       [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
+        [:span {:title subscriber-count :class "text-[0.8rem]"}
+         (str (utils/format-quantity subscriber-count) " subscribers")]])]]
+   (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+     [layout/secondary-button "Unsubscribe"
+      #(rf/dispatch [:subscriptions/remove uploader-url])]
+     [layout/primary-button "Subscribe"
+      #(rf/dispatch [:subscriptions/add
+                     {:url       uploader-url
+                      :name      uploader-name
+                      :verified? uploader-verified?
+                      :avatars   uploader-avatars}])])])
 
 (defn metadata-stats
   [{:keys [like-count dislike-count] :as stream}]
@@ -90,7 +101,7 @@
      {:dangerouslySetInnerHTML {:__html "&bull;"} :style {:font-size "0.5rem"}}]
     [:span.whitespace-nowrap {:title upload-date}
      (utils/format-date-ago upload-date)]]
-   [:div.flex.justify-between.py-4.flex-nowrap
+   [:div.flex.justify-between.py-4.gap-x-2.gap-y-4.flex-wrap.xs:flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
 

@@ -145,7 +145,8 @@
          "--:--")]]]))
 
 (defn popover
-  [{:keys [uploader-url] :as stream}]
+  [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
+    :as   stream}]
   (let [queue       @(rf/subscribe [:queue])
         queue-pos   @(rf/subscribe [:queue/position])
         bookmark    #(rf/dispatch [:modals/open
@@ -175,6 +176,19 @@
        :stop-propagation? true
        :on-click          #(rf/dispatch
                             [:bg-player/switch-to-main])}
+      (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+        {:label             "Unsubscribe from channel"
+         :icon              [:i.fa-solid.fa-user-minus]
+         :stop-propagation? true
+         :on-click          #(rf/dispatch [:subscriptions/remove uploader-url])}
+        {:label             "Subscribe to channel"
+         :icon              [:i.fa-solid.fa-user-plus]
+         :stop-propagation? true
+         :on-click          #(rf/dispatch [:subscriptions/add
+                                           {:url       uploader-url
+                                            :name      uploader-name
+                                            :verified? uploader-verified?
+                                            :avatars   uploader-avatars}])})
       {:label             "Show channel details"
        :icon              [:i.fa-solid.fa-user]
        :stop-propagation? true

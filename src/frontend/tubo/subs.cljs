@@ -6,6 +6,7 @@
    [tubo.bg-player.subs]
    [tubo.bookmarks.subs]
    [tubo.channel.subs]
+   [tubo.feed.subs]
    [tubo.kiosks.subs]
    [tubo.layout.subs]
    [tubo.main-player.subs]
@@ -18,7 +19,8 @@
    [tubo.search.subs]
    [tubo.services.subs]
    [tubo.settings.subs]
-   [tubo.stream.subs]))
+   [tubo.stream.subs]
+   [tubo.subscriptions.subs]))
 
 (defonce !auto-theme
   (let [theme (r/atom (when (and (.-matchMedia js/window)

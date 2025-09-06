@@ -210,14 +210,16 @@
    [:div.flex.flex-auto.items-center
     [nav-left-content
      (case name
-       :channel-page   (:name @(rf/subscribe [:channel]))
-       :kiosk-page     (:name @(rf/subscribe [:kiosk]))
-       :homepage       (:name @(rf/subscribe [:kiosk]))
-       :stream-page    (:name @(rf/subscribe [:stream]))
-       :playlist-page  (:name @(rf/subscribe [:playlist]))
-       :bookmark-page  (:name @(rf/subscribe [:bookmarks/get-by-id id]))
-       :bookmarks-page "Bookmarks"
-       :settings-page  "Settings"
+       :channel-page       (:name @(rf/subscribe [:channel]))
+       :kiosk-page         (:name @(rf/subscribe [:kiosk]))
+       :homepage           (:name @(rf/subscribe [:kiosk]))
+       :stream-page        (:name @(rf/subscribe [:stream]))
+       :playlist-page      (:name @(rf/subscribe [:playlist]))
+       :bookmark-page      (:name @(rf/subscribe [:bookmarks/get-by-id id]))
+       :bookmarks-page     "Bookmarks"
+       :settings-page      "Settings"
+       :subscriptions-page "Subscriptions"
+       :feed-page          "Feed"
        nil)]
     [search/search-form]
     [:div.w-24.hidden.md:block]
@@ -313,6 +315,10 @@
         show-mobile-menu?  @(rf/subscribe [:navigation/show-mobile-menu])]
     [:ul.flex.flex-col.border-t.dark:border-neutral-800.py-2.gap-y-2
      {:class "border-gray-400/50"}
+     [sidebar-item (rfe/href :feed-page) [:i.fa-solid.fa-rss]
+      "Feed" :always-expanded? always-expanded?]
+     [sidebar-item (rfe/href :subscriptions-page) [:i.fa-solid.fa-tv]
+      "Subscriptions" :always-expanded? always-expanded?]
      [sidebar-item (rfe/href :bookmarks-page) [:i.fa-solid.fa-bookmark]
       "Bookmarks" :always-expanded? always-expanded?]
      [sidebar-item (rfe/href :settings-page) [:i.fa-solid.fa-cog] "Settings"

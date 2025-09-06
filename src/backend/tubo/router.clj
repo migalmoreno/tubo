@@ -2,24 +2,26 @@
   (:require
    [integrant.core :as ig]
    [muuntaja.core :as m]
+   [reitit.coercion.malli]
    [reitit.core :as r]
    [reitit.ring :as ring]
    [reitit.ring.coercion :as coercion]
    [reitit.ring.middleware.muuntaja :as muuntaja]
-   [reitit.coercion.malli]
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [ring.middleware.params :refer [wrap-params]]
    [ring.util.http-response :refer [ok]]
    [tubo.handlers.auth :as auth]
+   [tubo.handlers.auth-playlists :as ap]
    [tubo.handlers.channel :as channel]
    [tubo.handlers.comments :as comments]
+   [tubo.handlers.feed :as feed]
    [tubo.handlers.kiosks :as kiosks]
    [tubo.handlers.playlist :as playlist]
    [tubo.handlers.search :as search]
    [tubo.handlers.services :as services]
    [tubo.handlers.stream :as stream]
-   [tubo.handlers.auth-playlists :as ap]
+   [tubo.handlers.subscriptions :as sub]
    [tubo.middleware :as middleware]
    [tubo.routes :as routes]
    [tubo.schemas :as s]))
@@ -63,6 +65,31 @@
        :delete {:summary    "deletes all playlists for an authenticated user"
                 :handler    ap/create-delete-auth-playlists-handler
                 :middleware [middleware/auth]}}
+      :api/user-subscriptions
+      {:get    {:summary "returns all subscriptions for an authenticated user"
+                :handler sub/create-get-subscriptions-handler
+                :middleware [middleware/auth]}
+       :post   {:summary    "adds a new subscription for an authenticated user"
+                :handler    sub/create-post-subscriptions-handler
+                :middleware [middleware/auth]
+                :parameters {:body s/SubscriptionChannel}}
+       :delete {:summary "deletes all subscriptions for an authenticated user"
+                :handler sub/create-delete-subscriptions-handler
+                :middleware [middleware/auth]}}
+      :api/user-subscription
+      {:delete {:summary    "deletes a subscription for an authenticated user"
+                :parameters {:path {:url string?}}
+                :handler    sub/create-delete-subscription-handler
+                :middleware [middleware/auth]}}
+      :api/feed {:get     {:summary
+                           "returns latest streams for a list of channel URLs"}
+                 :handler feed/create-get-feed-handler}
+      :api/user-feed
+      {:get
+       {:summary
+        "returns latest streams for an authenticated user's subscriptions"
+        :handler feed/create-get-user-feed-handler
+        :middleware [middleware/auth]}}
       :api/add-user-playlist-streams
       {:post {:summary    "adds new playlist streams for a given user playlist"
               :handler    ap/create-post-auth-playlist-add-streams-handler

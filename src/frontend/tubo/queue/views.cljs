@@ -50,7 +50,8 @@
         [:span (utils/get-service-name service-id)]])]]])
 
 (defn popover
-  [{:keys [uploader-url] :as item} i]
+  [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
+    :as   item} i]
   [:div.absolute.right-0.top-0.min-h-full.flex.items-center
    [layout/popover
     [{:label    "Start radio"
@@ -62,6 +63,17 @@
      {:label    "Remove from queue"
       :icon     [:i.fa-solid.fa-trash]
       :on-click #(rf/dispatch [:queue/remove i])}
+     (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+       {:label    "Unsubscribe from channel"
+        :icon     [:i.fa-solid.fa-user-minus]
+        :on-click #(rf/dispatch [:subscriptions/remove uploader-url])}
+       {:label    "Subscribe to channel"
+        :icon     [:i.fa-solid.fa-user-plus]
+        :on-click #(rf/dispatch [:subscriptions/add
+                                 {:url       uploader-url
+                                  :name      uploader-name
+                                  :verified? uploader-verified?
+                                  :avatars   uploader-avatars}])})
      {:label    "Show channel details"
       :icon     [:i.fa-solid.fa-user]
       :on-click #(rf/dispatch [:navigation/navigate

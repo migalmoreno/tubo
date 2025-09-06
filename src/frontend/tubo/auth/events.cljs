@@ -49,8 +49,10 @@
  [persist]
  (fn [{:keys [db]}]
    {:db (-> db
-            (assoc :auth/user nil)
-            (assoc :user/bookmarks nil))
+            (assoc :auth/user          nil
+                   :user/bookmarks     nil
+                   :user/subscriptions nil
+                   :user/feed          nil))
     :fx [[:dispatch [:notifications/clear]]
          [:dispatch [:notifications/success "Logged out"]]
          [:dispatch [:navigation/navigate {:name :homepage}]]]}))
@@ -89,7 +91,8 @@
    {:db (-> db
             (fork/set-submitting path false)
             (assoc :auth/user body))
-    :fx [[:dispatch [:bookmarks/fetch-authenticated-playlists]]
+    :fx [[:dispatch [:bookmarks/fetch-authenticated-playlists [:bad-response]]]
+         [:dispatch [:subscriptions/fetch [:bad-response]]]
          [:dispatch [:notifications/success "Login successful"]]
          [:dispatch [:navigation/navigate {:name :homepage}]]]}))
 

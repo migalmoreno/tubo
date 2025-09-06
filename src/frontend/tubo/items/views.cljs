@@ -7,10 +7,12 @@
    [tubo.utils :as utils]))
 
 (defn item-popover
-  [{:keys [audio-streams video-streams type url playlist-id uploader-url]
+  [{:keys [audio-streams video-streams type url playlist-id uploader-url
+           uploader-name uploader-avatars uploader-verified?]
     :as   item}]
   (let [items
-        (if (or (= type "stream") audio-streams video-streams)
+        (cond
+          (or (= type "stream") audio-streams video-streams)
           [{:label    "Add to queue"
             :icon     [:i.fa-solid.fa-headphones]
             :on-click #(rf/dispatch [:queue/add item true])}
@@ -25,17 +27,36 @@
              {:label    "Remove from playlist"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmark/remove item])})
+           (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+             {:label    "Unsubscribe from channel"
+              :icon     [:i.fa-solid.fa-user-minus]
+              :on-click #(rf/dispatch [:subscriptions/remove uploader-url])}
+             {:label    "Subscribe to channel"
+              :icon     [:i.fa-solid.fa-user-plus]
+              :on-click #(rf/dispatch [:subscriptions/add
+                                       {:url       uploader-url
+                                        :name      uploader-name
+                                        :verified? uploader-verified?
+                                        :avatars   uploader-avatars}])})
            {:label    "Show channel details"
             :icon     [:i.fa-solid.fa-user]
             :on-click #(rf/dispatch [:navigation/navigate
                                      {:name   :channel-page
                                       :params {}
                                       :query  {:url uploader-url}}])}]
-          [(when @(rf/subscribe [:bookmarks/bookmarked playlist-id])
-             {:label    "Remove playlist"
-              :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/remove playlist-id
-                                       true])})])]
+          (= type "channel")
+          [(if @(rf/subscribe [:subscriptions/subscribed url])
+             {:label    "Unsubscribe"
+              :icon     [:i.fa-solid.fa-user-minus]
+              :on-click #(rf/dispatch [:subscriptions/remove url])}
+             {:label    "Subscribe to channel"
+              :icon     [:i.fa-solid.fa-user-plus]
+              :on-click #(rf/dispatch [:subscriptions/add item])})]
+          :else [(when @(rf/subscribe [:bookmarks/bookmarked playlist-id])
+                   {:label    "Remove playlist"
+                    :icon     [:i.fa-solid.fa-trash]
+                    :on-click #(rf/dispatch [:bookmarks/remove playlist-id
+                                             true])})])]
     (when (not-empty (remove nil? items))
       [layout/popover items
        :extra-classes [:pr-0 :pl-4]
