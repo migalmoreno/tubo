@@ -17,7 +17,7 @@
 
 (defn logo
   []
-  [:a.justify-center.items-center.gap-x-2.px-2.flex
+  [:a.justify-center.items-center.gap-x-2.flex
    {:href (rfe/href :homepage)}
    [layout/logo :height 20 :width 20]
    [:h3.text-xl.font-extrabold "Tubo"]])
@@ -75,9 +75,6 @@
                                          :minimized
                                          :else :minimized)])}
          [:i.fa-solid.fa-bars]]])
-     (when (and (not show-queue?) (not show-main-player?))
-       [:div.px-2.hidden.md:flex.w-60
-        [logo]])
      (cond (and show-main-player? (not show-search-form?))
            [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
@@ -86,24 +83,25 @@
            [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
-     [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7
+     [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
       (when (and (seq title)
                  (not show-search-form?)
                  (not show-main-player?)
                  (not show-queue?))
-        [:h1.px-2.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden
+        [:h1.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden.px-2
          {:class [(when-not show-title? "invisible")
                   (if show-title? "opacity-1" "opacity-0")]}
          title])
-      [:div.absolute.md:static.left-2.transition-all.ease-in-out.duration-500.whitespace-nowrap
-       {:class
-        [(if (and show-title? (seq title)) "invisible" "visible")
-         (if (and show-title? (seq title)) "opacity-0" "opacity-1")]}
-       (if (and (not show-main-player?)
-                (not show-queue?)
-                (not show-search-form?))
-         [:div.md:hidden [logo]]
-         [:div.hidden.mx-2.md:flex.w-60])]]]))
+      (let [show-logo? (or show-main-player?
+                           show-queue?
+                           (and (or (not show-title?)
+                                    (not (seq title)))
+                                (not show-search-form?)))]
+        [:div.absolute.md:static.left-2.transition-all.ease-in-out.duration-500.whitespace-nowrap
+         {:class (if show-logo?
+                   ["max-md:visible" "max-md:opacity-1"]
+                   ["max-md:invisible" "max-md:opacity-0"])}
+         [logo]])]]))
 
 (def theme-tooltip-items
   [{:label    "Light"
@@ -368,6 +366,7 @@
     [:div.fixed.h-dvh.w-80.top-0.bg-neutral-100.dark:bg-neutral-950.transition-all.ease-in-out.delay-75.z-30.flex.flex-col
      {:class [(if show-mobile-menu? "left-0" "-left-80")]}
      [:div.flex.items-center.h-14.pl-8.gap-x-6
+      {:class "min-h-[56px]"}
       [:button.text-lg
        {:on-click #(rf/dispatch [:navigation/hide-mobile-menu])}
        [:i.fa-solid.fa-bars]]
