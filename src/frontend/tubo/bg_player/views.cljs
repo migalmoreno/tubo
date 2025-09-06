@@ -258,6 +258,7 @@
           :on-time-update #(on-update !player !buffered !elapsed)
           :on-loaded-data #(rf/dispatch [:bg-player/start])
           :on-play        #(rf/dispatch [:bg-player/set-paused false])
+          :on-error       #(rf/dispatch [:player/on-error !player])
           :on-pause       #(rf/dispatch [:bg-player/set-paused true])}])})))
 
 (defn player

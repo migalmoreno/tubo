@@ -1,6 +1,7 @@
 (ns tubo.player.events
   (:require
    [goog.object :as gobj]
+   [promesa.core :as p]
    [re-frame.core :as rf]
    [tubo.player.utils :as utils]
    [tubo.storage :refer [persist]]))
@@ -54,9 +55,30 @@
  :player/pause
  (fn [{:keys [paused? player]}]
    (when (and player @player)
-     (if paused?
-       (.play @player)
-       (.pause @player)))))
+     (-> (if paused?
+             (.play @player)
+             (.pause @player))
+         (p/catch #(rf/dispatch [:player/play-error % player]))))))
+
+(rf/reg-event-fx
+ :player/play-error
+ (fn [_ [_ error player]]
+   {:fx (case (.-code error)
+          0 []
+          1 []
+          9 [[:dispatch [:notifications/error "Playback failed. Retrying..."]]
+             [:dispatch [:queue/reload-current-stream player]]]
+          [[:dispatch [:notifications/error (.-message error)]]])}))
+
+(rf/reg-event-fx
+ :player/on-error
+ (fn [_ [_ player]]
+   (when (and @player (.-error @player))
+     {:fx (case (.. @player -error -code)
+            4 [[:dispatch [:notifications/error "Playback failed. Retrying..."]]
+               [:dispatch [:queue/reload-current-stream player]]]
+            [[:dispatch
+              [:notifications/error (.. @player -error -message)]]])})))
 
 (rf/reg-fx
  :media-session-metadata
@@ -98,7 +120,7 @@
 
 (rf/reg-event-fx
  :player/change-volume
- []
+ [persist]
  (fn [{:keys [db]} [_ value player]]
    {:db            (assoc db :player/volume value)
     :player/volume {:player player :volume value}}))

@@ -39,8 +39,9 @@
 (rf/reg-event-fx
  :bg-player/set-stream
  (fn [{:keys [db]} [_ stream pos]]
-   (let [audio-stream (utils/get-audio-stream stream (:settings db))]
-     {:fx [[:dispatch [:bg-player/set-src audio-stream pos]]]})))
+   (when-let [audio-stream (utils/get-audio-stream stream (:settings db))]
+     {:fx [[:dispatch [:bg-player/set-src audio-stream pos]]]
+      :db (assoc db :bg-player/loading false)})))
 
 (rf/reg-event-fx
  :bg-player/start
