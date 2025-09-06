@@ -9,8 +9,7 @@
    [tubo.layout.events :as le]
    [tubo.schemas :as s]
    [tubo.storage :refer [persist]]
-   [tubo.utils :as utils]
-   [tubo.bookmarks.modals :as bookmarks]))
+   [tubo.utils :as utils]))
 
 (defn apply-playlist-stream-transforms
   [db item]
@@ -57,7 +56,7 @@
              (if path [:on-form-submit-failure] [:bad-response])]]]}
      (let [updated-db (update db
                               :bookmarks
-                              conj
+                              #(into [] (conj (into [] %1) %2))
                               (if (:id bookmark)
                                 bookmark
                                 (assoc bookmark :id (nano-id))))]
@@ -120,19 +119,15 @@
 
 (rf/reg-event-fx
  :bookmarks/clear
+ [persist]
  (fn [{:keys [db]}]
    (if (:auth/user db)
      {:fx [[:dispatch
             [:api/delete-auth "user/playlists"
              [:bookmarks/on-clear-auth] [:bad-response]]]]}
-     {:fx (conj (into
-                 (map (fn [bookmark]
-                        [:dispatch
-                         [:bookmarks/remove
-                          (or (:playlist-id bookmark) (:id bookmark))]])
-                      (:bookmarks db)))
-                [:dispatch
-                 [:notifications/success "Cleared all playlists"]])})))
+     {:db (assoc db :bookmarks nil)
+      :fx [[:dispatch
+            [:notifications/success "Cleared all playlists"]]]})))
 
 (rf/reg-event-fx
  :bookmark/on-add-auth
@@ -167,6 +162,7 @@
 
 (rf/reg-event-fx
  :bookmark/add-n
+ [persist]
  (fn [{:keys [db]} [_ bookmark items notify?]]
    {:db (when-not (:auth/user db)
           (update db
@@ -175,18 +171,17 @@
                     (map
                      (fn [bk]
                        (if (= (:id bk) (:id bookmark))
-                         (update bk
-                                 :items
-                                 #(into (into [] %1) (into [] %2))
-                                 (filter
-                                  (fn [item]
-                                    (not (some #(= (:url %) (:url item))
-                                               (:items bk))))
-                                  (map #(assoc
-                                         (apply-playlist-stream-transforms db %)
-                                         :playlist-id
-                                         (:id bk))
-                                       items)))
+                         (update
+                          bk
+                          :items
+                          #(into (into [] %1) (into [] %2))
+                          (->> items
+                               (filter #(= (:type %) "stream"))
+                               (filter (fn [item]
+                                         (not (some #(= (:url %) (:url item))
+                                                    (:items bk)))))
+                               (map #(apply-playlist-stream-transforms db %))
+                               (map #(assoc % :playlist-id (:id bk)))))
                          bk))
                      bookmarks))))
     :fx (if (:auth/user db)
@@ -194,7 +189,7 @@
             [:api/post-auth
              (str "user/playlists/" (:playlist-id bookmark) "/add-streams")
              (map #(apply-auth-playlist-stream-transforms db %) items)
-             [:bookmark/on-add-auth bookmark true] [:bad-response]]]]
+             [:bookmark/on-add-auth bookmark notify?] [:bad-response]]]]
           [[:dispatch [:modals/close]]
            (when notify?
              [:dispatch
@@ -216,24 +211,27 @@
          (str "user/playlists/" (:playlist-id bookmark) "/add-streams")
          [(apply-auth-playlist-stream-transforms db item)]
          [:bookmark/on-add-auth bookmark notify?] [:bad-response]]]]}
-     (let [selected   (first (filter #(= (:id %) (:id bookmark))
-                                     (:bookmarks db)))
-           pos        (.indexOf (:bookmarks db) selected)
-           updated-db (if (some #(= (:url %) (:url item)) (:items selected))
-                        db
-                        (update-in db
-                                   [:bookmarks pos :items]
-                                   #(into [] (conj (into [] %1) %2))
-                                   (assoc
-                                    (apply-playlist-stream-transforms db item)
-                                    :playlist-id
-                                    (:id bookmark))))]
-       {:db updated-db
-        :fx [[:dispatch [:modals/close]]
-             (when notify?
-               [:dispatch
-                [:notifications/success
-                 (str "Added to playlist \"" (:name selected) "\"")]])]}))))
+     {:db (update db
+                  :bookmarks
+                  (fn [bookmarks]
+                    (map
+                     (fn [bk]
+                       (if (and (= (:id bk) (:id bookmark))
+                                (not (some #(= (:url %) (:url item))
+                                           (:items bk))))
+                         (update
+                          bk
+                          :items
+                          #(into [] (conj (into [] %1) %2))
+                          (->> (assoc item :playlist-id (:id bookmark))
+                               (apply-playlist-stream-transforms db)))
+                         bk))
+                     bookmarks)))
+      :fx [[:dispatch [:modals/close]]
+           (when notify?
+             [:dispatch
+              [:notifications/success
+               (str "Added to playlist \"" (:name bookmark) "\"")]])]})))
 
 (rf/reg-event-fx
  :bookmark/on-remove-streams-auth
