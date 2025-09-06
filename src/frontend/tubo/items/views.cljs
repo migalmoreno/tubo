@@ -51,8 +51,12 @@
                 "playlist" (rfe/href :playlist-page nil {:url url})
                 url)]
     [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
-     [layout/thumbnail item route :classes [:py-2 :h-44 "xs:h-28"] :rounded?
-      true]
+     [layout/thumbnail item route :container-classes
+      (if (= type "channel")
+        ["h-36" "w-36" "m-auto"]
+        ["py-2" "h-44" "xs:h-40"])
+      :image-classes
+      (if (= type "channel") ["rounded-full"] ["rounded"])]
      [:div
       [:div.flex.justify-between.my-2
        (when name
@@ -117,8 +121,10 @@
                                      {:url (:url item)})
                 (:url item))]
     [:div.flex.gap-x-3.xs:gap-x-5
-     [layout/thumbnail item route :classes thumbnail-classes
-      :rounded? true]
+     [layout/thumbnail item route
+      :container-classes thumbnail-classes
+      :image-classes
+      (if (= type "channel") ["rounded-full" "!min-w-16" "m-auto"] ["rounded"])]
      [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
       [:div.flex.items-center.justify-between
        (when name

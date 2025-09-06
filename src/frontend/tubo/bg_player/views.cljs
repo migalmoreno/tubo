@@ -2,7 +2,6 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.layout.views :as layout]
    [tubo.player.views :as player]
@@ -81,7 +80,7 @@
   [{:keys [name uploader-name] :as stream}]
   [:div.flex.lg:flex-1.gap-x-2
    [:div
-    [layout/thumbnail (dissoc stream :duration) nil :classes
+    [layout/thumbnail (dissoc stream :duration) nil :container-classes
      ["h-12" "w-[70px]"]]]
    [:div.flex.flex-col.pr-4.gap-y-1
     [:h1.text-sm.line-clamp-1.font-semibold.w-fit

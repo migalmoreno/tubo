@@ -32,8 +32,9 @@
        (= i queue-pos) [:i.fa-solid.fa-play]
        :else (inc i))]]
    [:div.flex.items-center.shrink-0.grow-0
-    [layout/thumbnail item nil :rounded? true :classes
-     ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"]]]
+    [layout/thumbnail item nil :container-classes
+     ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
+     ["rounded"]]]
    [:div.flex.flex-col.pl-4.pr-12.w-full
     [:h1.line-clamp-1.w-fit.text-sm
      {:title name :class "@lg:text-lg"} name]
@@ -190,9 +191,12 @@
                        ["flex"])
                      ["hidden"])}
            [:div.flex.w-full.items-center.justify-center
-            [layout/thumbnail stream nil :hide-duration? true :rounded? true
-             :classes
-             ["h-[16rem]" "xs:h-[24rem]" "w-[16rem]" "xs:w-[24rem]"]]]
+            [layout/thumbnail stream nil :hide-duration? true
+             :container-classes
+             ["h-[18rem]" "w-[18rem]" "md:h-[24rem]" "md:w-[24rem]"
+              "md:h-[28rem]" "md:w-[28rem]" "lg:h-[24rem]" "lg:w-[24rem]"
+              "xl:h-[28rem]" "xl:w-[28rem]"]
+             :image-classes ["rounded-md"]]]
            [:div.flex.flex-col.py-4.shrink-0.px-5.w-full.gap-y-4
             [queue-metadata stream]
             [main-controls color]]]

@@ -72,21 +72,19 @@
       [(fn [{:keys [values errors normalize-name handle-change handle-blur
                     touched set-values]}]
          [layout/form-field {:label "Thumbnail" :key :thumbnail}
-          [:div.flex.justify-center.w-full.py-2
-           [:div.relative
-            (when (and (seq (values :thumbnail))
-                       (nil? (first (:thumbnail errors))))
-              [:button.absolute.top-2.right-2.z-20.text-red-500
-               {:on-click #(set-values {:thumbnail nil})
-                :title    "Remove thumbnail"
-                :type     "button"}
-               [:i.fa-solid.fa-trash]])
-            [layout/thumbnail
-             {:thumbnail
-              (when (and (seq (values :thumbnail))
-                         (nil? (first (:thumbnail errors))))
-                (values :thumbnail))}
-             nil :classes [:h-44 "w-[250px]"] :rounded? true]]]
+          [:div.flex.justify-center.items-center.w-full.py-2.gap-y-4.flex-col
+           [layout/thumbnail
+            {:thumbnail
+             (when (and (seq (values :thumbnail))
+                        (nil? (first (:thumbnail errors))))
+               (values :thumbnail))}
+            nil :container-classes ["h-52" "w-52"] :image-classes
+            ["rounded-md"]]
+           (when (and (seq (values :thumbnail))
+                      (nil? (first (:thumbnail errors))))
+             [layout/secondary-button "Remove thumbnail"
+              #(set-values {:thumbnail nil}) [:i.fa-solid.fa-trash] nil
+              {:type "button"}])]
           [layout/input
            :name (normalize-name :thumbnail)
            :value (values :thumbnail)
