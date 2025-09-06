@@ -175,9 +175,8 @@
                              "),url("
                              (:thumbnail stream)
                              ")")]
-        [:div.fixed.flex.flex-col.items-center.justify-center.backdrop-blur.z-10.w-full.left-0.transition-all.ease-in-out.top-0.h-dvh
-         {:class ["dark:bg-neutral-950/90" "bg-neutral-100/90"
-                  (when-not show-queue "invisible")
+        [:div.fixed.flex.flex-col.items-center.justify-center.z-10.right-0.left-0.top-0.bottom-0.transition-all.ease-in-out
+         {:class [(when-not show-queue "invisible")
                   (if show-queue "opacity-1" "opacity-0")]}
          [:div.flex.w-full.h-full.relative.overflow-hidden.before:absolute.before:top-0.before:bottom-0.before:left-0.before:right-0.before:bg-cover.before:bg-center.before:bg-no-repeat
           {:style {"--bg-image" bg-image}
