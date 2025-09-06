@@ -327,7 +327,7 @@
        [layout/popover
         (map #(assoc % :hide-bg-overlay-on-click? false) theme-tooltip-items)
         :extra-classes ["p-0"]
-        :tooltip-classes ["right-5" "top-8" "w-44"]
+        :tooltip-classes ["right-5" "bottom-0"]
         :responsive? false
         :icon
         [sidebar-item nil
