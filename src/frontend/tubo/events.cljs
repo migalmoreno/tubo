@@ -36,19 +36,28 @@
 (rf/reg-event-fx
  :load-db
  (fn [{:keys [db]} [_ store]]
-   {:fx [[:dispatch
-          [:services/fetch-all
-           [:services/load] [:bad-response]]]
-         [:dispatch
-          [:kiosks/fetch-all (or (:service-id store) 0)
-           [:kiosks/load] [:bad-response]]]
-         [:dispatch
-          [:api/get "services/3/instance" [:peertube/load-active-instance]
-           [:bad-response]]]
-         (when (:auth/user store)
-           [:dispatch
-            [:bookmarks/fetch-authenticated-playlists]])]
-    :db (merge db store)}))
+   (let [app-db (merge db store)]
+     (merge (if (s/local-db-valid? app-db)
+              {:db app-db}
+              {:clear-store app-db})
+            {:fx [[:dispatch
+                   [:services/fetch-all
+                    [:services/load] [:bad-response]]]
+                  [:dispatch
+                   [:kiosks/fetch-all (or (:service-id store) 0)
+                    [:kiosks/load] [:bad-response]]]
+                  [:dispatch
+                   [:api/get "services/3/instance"
+                    [:peertube/load-active-instance]
+                    [:bad-response]]]
+                  (when (or (and (seq (:queue app-db))
+                                 (not (:main-player/show app-db)))
+                            (:main-player/show app-db))
+                    [:dispatch [:bg-player/switch-from-main]])
+                  (when (:auth/user app-db)
+                    [:dispatch
+                     [:bookmarks/fetch-authenticated-playlists
+                      [:bad-response]]])]}))))
 
 (rf/reg-fx
  :scroll-to-top

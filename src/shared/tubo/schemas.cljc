@@ -47,7 +47,7 @@
 (def PeerTubeInstance
   [:map
    [:name string?]
-   [:url uri?]])
+   [:url string?]])
 
 (def PlaylistsConfigFile
   [:map
@@ -61,11 +61,20 @@
       [:thumbnail {:optional true} [:maybe uri?]]
       [:items [:vector string?]]]]]])
 
+(def SubscriptionChannel
+  [:map
+   [:name string?]
+   [:url string?]
+   [:avatar string?]
+   [:verified boolean?]])
+
 (def Theme [:enum "auto" "light" "dark"])
 
 (def ItemLayout [:enum "list" "grid"])
 
 (def ImageQuality [:enum :high :medium :low :none])
+
+(def Loop [:enum :playlist :stream false])
 
 (def Settings
   [:map {:closed true}
@@ -77,32 +86,64 @@
    [:default-resolution {:default "720p"} string?]
    [:default-video-format {:default "MPEG-4"} string?]
    [:default-audio-format {:default "m4a"} string?]
-   [:instance {:default (config/get-in [:frontend :api-url])} uri?]
-   [:auth-instance {:default (config/get-in [:frontend :auth-url])} uri?]
    [:seamless-playback {:default true} boolean?]
+   [:instance {:default (config/get-in [:frontend :api-url])} string?]
+   [:auth-instance {:default (config/get-in [:frontend :auth-url])} string?]
    [:image-quality {:default :high} ImageQuality]
-   [:default-country {:default {0 {:name "United States" :code "US"}}} any?]
-   [:default-kiosk {:default {0 "Trending"}} any?]
-   [:default-filter {:default {0 "all"}} any?]
+   [:default-country {:default {0 {:name "United States" :code "US"}}} map?]
+   [:default-kiosk {:default {0 "Trending"}} map?]
+   [:default-filter {:default {0 "all"}} map?]
    [:default-service {:default 0} int?]])
 
 (def LocalDB
   [:map {:closed true}
+   [:navigation/current-match {:optional true} [:maybe map?]]
+   [:navigation/show-mobile-menu {:optional true} [:maybe boolean?]]
+   [:navigation/show-title {:optional true} [:maybe boolean?]]
+   [:navigation/show-sidebar {:optional true} [:maybe boolean?]]
    [:player/paused {:default true :persist true} boolean?]
    [:player/muted {:optional true :persist true} [:maybe boolean?]]
    [:player/shuffled {:optional true :persist true} [:maybe boolean?]]
-   [:player/loop {:default true :persist true} [:maybe boolean?]]
-   [:player/volume {:default 100 :persist true} int?]
+   [:player/loop {:default :playlist :persist true} Loop]
+   [:player/volume {:default 100 :persist true} any?]
    [:bg-player/show {:optional true :persist true} [:maybe boolean?]]
-   [:queue {:default [] :persist true} vector?]
-   [:queue/position {:default 0 :persist true} int?]
-   [:queue/unshuffled {:optional true :persist true} vector?]
-   [:service-id {:default 0 :persist true} int?]
-   [:auth/user {:optional true :persist true} any?]
+   [:bg-player/waiting {:optional true} [:maybe boolean?]]
+   [:bg-player/loading {:optional true} [:maybe boolean?]]
+   [:bg-player/ready {:optional true} [:maybe boolean?]]
+   [:main-player/show {:optional true} [:maybe boolean?]]
+   [:main-player/ready {:optional true} [:maybe boolean?]]
+   [:search/results {:optional true} [:maybe vector?]]
+   [:search/query {:optional true} [:maybe string?]]
+   [:search/show-form {:optional true} [:maybe boolean?]]
+   [:search/filter {:optional true} [:maybe map?]]
+   [:search/show-suggestions {:optional true} [:maybe boolean?]]
+   [:search/suggestions {:optional true} [:maybe map?]]
+   [:layout/bg-overlay {:optional true} [:maybe map?]]
+   [:layout/mobile-tooltip {:optional true} [:maybe map?]]
+   [:layout/tooltips {:optional true} [:maybe map?]]
+   [:auth/user {:optional true :persist true} [:maybe map?]]
+   [:user/bookmarks {:optional true} any?]
    [:peertube/instances
     {:default [(config/get-in [:services :peertube :default-instance])]
      :persist
      true} [:vector PeerTubeInstance]]
+   [:queue/show {:optional true} [:maybe boolean?]]
+   [:queue/show-list {:optional true} [:maybe boolean?]]
+   [:queue/position {:default 0 :persist true} int?]
+   [:queue/unshuffled {:optional true :persist true} [:maybe vector?]]
+   [:queue {:default [] :persist true} vector?]
+   [:notifications {:optional true} any?]
+   [:modals {:optional true} any?]
+   [:channel {:optional true} any?]
+   [:stream {:optional true} any?]
+   [:playlist {:optional true} any?]
+   [:services {:optional true} [:maybe vector?]]
+   [:service-id {:default 0 :persist true} int?]
+   [:show-page-loading {:optional true} [:maybe boolean?]]
+   [:show-pagination-loading {:optional true} [:maybe boolean?]]
+   [:kiosks {:optional true} any?]
+   [:kiosk {:optional true} [:maybe map?]]
+   [:available-kiosks {:optional true} [:maybe vector?]]
    [:bookmarks {:default [] :persist true} any?]
    [:settings
     {:default (m/decode Settings {} transform/default-value-transformer)
@@ -116,3 +157,7 @@
        (m/children)
        (filter (comp :persist second))
        (map first)))
+
+(def local-db-valid? (m/validator LocalDB))
+
+(def local-db-explain (m/explainer LocalDB))

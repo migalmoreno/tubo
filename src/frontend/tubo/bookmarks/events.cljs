@@ -419,7 +419,9 @@
    {:document-title (if (:auth/user db)
                       (str (:username (:auth/user db)) "'s playlists")
                       "Bookmarked playlists")
-    :fx             [[:dispatch [:bookmarks/fetch-authenticated-playlists]]]}))
+    :fx             [[:dispatch
+                      [:bookmarks/fetch-authenticated-playlists
+                       [:bad-page-response [:auth/redirect-login]]]]]}))
 
 (rf/reg-event-fx
  :bookmark/load-authenticated-playlist
@@ -447,12 +449,11 @@
 
 (rf/reg-event-fx
  :bookmarks/fetch-authenticated-playlists
- (fn [{:keys [db]} [_ cb]]
+ (fn [{:keys [db]} [_ on-error cb]]
    {:fx (if (:auth/user db)
           [[:dispatch
             [:api/get-auth "user/playlists"
-             [:bookmarks/on-fetch-authenticated-playlists cb]
-             [:bad-page-response [:auth/redirect-login]]]]]
+             [:bookmarks/on-fetch-authenticated-playlists cb] on-error]]]
           [])}))
 
 (rf/reg-event-fx
