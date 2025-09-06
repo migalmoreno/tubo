@@ -21,20 +21,6 @@
    (:peertube/instances db)))
 
 (rf/reg-sub
- :peertube/active-instance
- (fn [_]
-   (rf/subscribe [:peertube/instances]))
- (fn [instances]
-   (first (filter :active? instances))))
-
-(rf/reg-sub
- :service-name
- (fn []
-   (rf/subscribe [:service-id]))
- (fn [id]
-   (and id (utils/get-service-name id))))
-
-(rf/reg-sub
  :services
  (fn [db]
    (:services db)))
