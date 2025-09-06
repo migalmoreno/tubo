@@ -46,19 +46,18 @@
   [{:keys [uploader-url uploader-name uploader-verified? subscriber-count
            uploader-avatars]
     :as   stream}]
-  [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none
+  [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none.flex-wrap.xs:flex-nowrap.gap-y-4
    [:div.flex.items-center
     [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
     [:div.mx-3.gap-x-2
-     [:div
-      (when uploader-url
-        [:div.flex.gap-x-2.items-center
-         [:a.line-clamp-1.font-semibold
-          {:href  (rfe/href :channel-page nil {:url uploader-url})
-           :title uploader-name}
-          uploader-name]
-         (when uploader-verified?
-           [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])]
+     (when uploader-url
+       [:div.flex.gap-x-2.items-center
+        [:a.line-clamp-1.font-semibold.text-sm.xs:text-base
+         {:href  (rfe/href :channel-page nil {:url uploader-url})
+          :title uploader-name}
+         uploader-name]
+        (when uploader-verified?
+          [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])
      (when subscriber-count
        [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
         [:span {:title subscriber-count :class "text-[0.8rem]"}
@@ -86,7 +85,7 @@
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-down]
          [:span dislike-count]])])
-   [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
+   [:div.hidden.sm:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
     [metadata-popover stream]]])
 
 (defn metadata
