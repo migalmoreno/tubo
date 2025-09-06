@@ -26,5 +26,5 @@
                                                             serviceId)]
         [layout/content-container
          [layout/content-header name [items/layout-switcher !layout]]
-         [items/related-streams related-streams next-page !layout
+         [items/related-streams related-streams next-page @!layout
           #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))))

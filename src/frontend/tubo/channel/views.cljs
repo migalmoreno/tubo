@@ -11,10 +11,10 @@
   [{:keys [related-streams]}]
   (when related-streams
     [layout/popover
-     [{:label    "Add streams to queue"
+      {:label    "Add to queue"
        :icon     [:i.fa-solid.fa-headphones]
        :on-click #(rf/dispatch [:queue/add-n related-streams true])}
-      {:label    "Add streams to playlist"
+      {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
                                 [modals/add-to-bookmark related-streams]])}]
@@ -85,6 +85,6 @@
           [items/layout-switcher !layout]]
          [items/related-streams
           (or (:related-streams active-tab) related-streams) next-page-info
-          !layout
+          @!layout
           #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
                          next-page-info])]]))))

@@ -45,60 +45,55 @@
   [{:keys [url name uploader-url uploader-name uploader-verified?
            subscriber-count view-count stream-count verified? type]
     :as   item}]
-  (let [route (case (:type item)
-                "stream"   (rfe/href :stream-page
-                                     nil
-                                     {:url (:url item)})
-                "channel"  (rfe/href :channel-page
-                                     nil
-                                     {:url (:url item)})
-                "playlist" (rfe/href :playlist-page
-                                     nil
-                                     {:url (:url item)})
-                (:url item))]
+  (let [route (case type
+                "stream"   (rfe/href :stream-page nil {:url url})
+                "channel"  (rfe/href :channel-page nil {:url url})
+                "playlist" (rfe/href :playlist-page nil {:url url})
+                url)]
     [:div.flex.flex-col.max-w-full.min-h-full.max-h-full
      [layout/thumbnail item route :classes [:py-2 :h-44 "xs:h-28"] :rounded?
       true]
      [:div
-      (when name
-        [:div.flex.items-center.my-2
-         [:a {:href route :title name}
-          [:h1.line-clamp-2.my-1.font-semibold
-           {:class "[overflow-wrap:anywhere]"}
-           name]]
-         (when (and verified? (not uploader-url))
-           [:i.fa-solid.fa-circle-check.pl-2.text-sm])])
-      [:div.flex.justify-between
-       [:div.flex.items-center.my-2
+      [:div.flex.justify-between.my-2
+       (when name
+         [:div.flex.gap-x-2
+          [:a {:href route :title name}
+           [:span.line-clamp-2.font-semibold
+            {:class "[overflow-wrap:anywhere]"}
+            name]]
+          (when (and verified? (not uploader-url))
+            [:i.fa-solid.fa-circle-check.text-sm])])
+       [:div.h-fit
+        [item-popover item]]]
+      [:div.flex.justify-between.text-neutral-600.dark:text-neutral-400.items-center.my-2.text-sm
+       [:div.flex.gap-x-2.items-center
+        [layout/uploader-avatar item :classes ["w-6" "h-6"]]
         (conj
          (when uploader-url
            [:a
             {:href  (rfe/href :channel-page nil {:url uploader-url})
              :title uploader-name
              :key   url}])
-         [:h1.text-neutral-800.dark:text-gray-300.font-semibold.pr-2.line-clamp-1.break-all
+         [:span.font-semibold.line-clamp-1.break-all
           {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
           uploader-name])
         (when (and uploader-url uploader-verified?)
-          [:i.fa-solid.fa-circle-check.text-xs])]
-       [item-popover item]]
-      (when (and (= type "channel") subscriber-count)
-        [:div.flex.items-center
-         [:i.fa-solid.fa-users.text-xs]
-         [:span.mx-2 (utils/format-quantity subscriber-count)]])
-      (when stream-count
-        [:div.flex.items-center
-         [:i.fa-solid.fa-video.text-xs]
-         [:span.mx-2 (utils/format-quantity stream-count)]])
-      [:div.flex.my-1.justify-between
-       [:span (utils/format-date-ago (:upload-date item))]
-       (when view-count
-         [:div.flex.items-center.h-full.pl-2
-          [:i.fa-solid.fa-eye.text-xs]
-          [:p.pl-1.5 (utils/format-quantity view-count)]])]]]))
+          [:i.fa-solid.fa-circle-check.text-xs])]]
+      [:div.text-neutral-600.dark:text-neutral-400.text-sm
+       [:div.flex.gap-x-2
+        (when (and (= type "channel") subscriber-count)
+          [:span (str (utils/format-quantity subscriber-count) " subscribers")])
+        (when (and (= type "channel") subscriber-count stream-count)
+          [layout/bullet])
+        (when stream-count
+          [:span (str (utils/format-quantity stream-count) " streams")])]
+       [:div.flex.my-1.justify-between
+        [:span (utils/format-date-ago (:upload-date item))]
+        (when view-count
+          [:span (str (utils/format-quantity view-count) " views")])]]]]))
 
 (defn list-item-content
-  [{:keys [url name uploader-url uploader-name uploader-verified?
+  [{:keys [url name uploader-url uploader-name uploader-verified? description
            subscriber-count view-count stream-count verified? upload-date type]
     :as   item} &
    {:keys [author-classes title-classes thumbnail-classes metadata-classes]
@@ -176,12 +171,15 @@
                   :style                   {:font-size "0.5rem"}}])])
            (when stream-count
              [:span
-              (str (utils/format-quantity stream-count) " streams")])])]]]]))
+              (str (utils/format-quantity stream-count) " streams")])])
+        (when description
+          [:span.text-xs.line-clamp-1.sm:text-sm.sm:line-clamp-2
+           (:description item)])]]]]))
 
 (defn related-streams
   []
   (let [!observer (atom nil)]
-    (fn [related-streams next-page !layout pagination-fn]
+    (fn [related-streams next-page layout pagination-fn]
       (let [service-color       @(rf/subscribe [:service-color])
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
             items               (doall
@@ -201,16 +199,16 @@
                                             (when (.-isIntersecting (first
                                                                      entries))
                                               (pagination-fn)))]))}
-                                    (if (and !layout (= @!layout "grid"))
+                                    (if (and layout (= layout "grid"))
                                       [grid-item-content item]
                                       [list-item-content item])]))]
         [:div.flex.flex-col.flex-auto.my-2.md:my-8
          (if (empty? related-streams)
            [:div.flex.items-center.flex-auto.flex-col.justify-center
-            [:span "No available streams"]]
-           (if (and !layout (= @!layout "grid"))
+            [:span "No available items"]]
+           (if (and layout (= layout "grid"))
              [:div.grid.w-full.gap-x-10.gap-y-4
-              {:class "xs:grid-cols-[repeat(auto-fill,_minmax(165px,_1fr))]"}
+              {:class "xs:grid-cols-[repeat(auto-fill,_minmax(215px,_1fr))]"}
               items]
              [:div.flex.flex-col.gap-x-10
               items]))

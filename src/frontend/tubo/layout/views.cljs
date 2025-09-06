@@ -250,7 +250,7 @@
                  icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
                  destroy-on-click-out? true}}]
-      [:div.flex.items-center.tooltip-controller
+      [:div.flex.tooltip-controller
        {:class (str "tooltip-controller-" tooltip-id)}
        [:div.relative
         {:class (into ["w-full"]

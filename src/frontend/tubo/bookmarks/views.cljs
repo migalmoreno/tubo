@@ -27,7 +27,7 @@
          [layout/content-header "Bookmarks"
           [:div.flex.flex-auto
            [layout/popover
-            [{:label    "Add New"
+            [{:label    "Add new"
               :icon     [:i.fa-solid.fa-plus]
               :on-click #(rf/dispatch [:modals/open [modals/add-bookmark]])}
              {:destroy-tooltip-on-click? false
@@ -46,11 +46,11 @@
              {:label    "Export"
               :icon     [:i.fa-solid.fa-file-export]
               :on-click #(rf/dispatch [:bookmarks/export])}
-             {:label    "Clear All"
+             {:label    "Clear all"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmarks/clear])}]]]
           [items/layout-switcher !layout]]
-         [items/related-streams items nil !layout]]))))
+         [items/related-streams items nil @!layout]]))))
 
 (def edit-playlist-validation
   [:map

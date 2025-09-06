@@ -117,7 +117,7 @@
                 (:content-filters service))
            #(rf/dispatch [:search/set-filter (.. % -target -value)])]
           [items/layout-switcher !layout]]
-         [items/related-streams items next-page !layout
+         [items/related-streams items next-page @!layout
           #(rf/dispatch
             [:search/fetch-paginated
              {:query     q
