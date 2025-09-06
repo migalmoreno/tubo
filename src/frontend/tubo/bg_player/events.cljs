@@ -120,22 +120,21 @@
  :bg-player/switch-to-main
  [(rf/inject-cofx ::inject/sub [:queue/current])]
  (fn [{:keys [db] :as cofx}]
-   {:fx            [[:dispatch [:main-player/show true]]
-                    [:dispatch [:queue/show false]]
-                    (when-not (seq (get-in db
-                                           [:queue (:queue/position db)
-                                            :comments-page]))
-                      [:dispatch
-                       [:comments/fetch-page (:url (:queue/current cofx))
-                        [:queue (:queue/position db)]]])
-                    (when-not (seq (get-in db
-                                           [:queue (:queue/position db)
-                                            :related-streams]))
-                      [:dispatch
-                       [:bg-player/fetch-stream (:url (:queue/current cofx))
-                        (:queue/position db) false]])]
-    :db            (assoc db :bg-player/show false)
-    :scroll-to-top nil}))
+   {:fx [[:dispatch [:main-player/show true]]
+         [:dispatch [:queue/show false]]
+         (when-not (seq (get-in db
+                                [:queue (:queue/position db)
+                                 :comments-page]))
+           [:dispatch
+            [:comments/fetch-page (:url (:queue/current cofx))
+             [:queue (:queue/position db)]]])
+         (when-not (seq (get-in db
+                                [:queue (:queue/position db)
+                                 :related-streams]))
+           [:dispatch
+            [:bg-player/fetch-stream (:url (:queue/current cofx))
+             (:queue/position db) false]])]
+    :db (assoc db :bg-player/show false)}))
 
 (rf/reg-event-fx
  :bg-player/switch-from-main
