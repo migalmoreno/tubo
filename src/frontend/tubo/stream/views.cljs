@@ -159,11 +159,15 @@
 (defn video-container
   []
   (let [!active-tab (r/atom :comments)]
-    (fn [stream video]
+    (fn [{:keys [comments-page] :as stream} video]
       (let [{:keys [show-comments show-related show-description]}
             @(rf/subscribe [:settings])
             comments-container [:div.flex.flex-col.gap-y-4
-                                [:h1.text-2xl.font-bold.pb-2 "Comments"]
+                                [:h1.text-2xl.font-bold.pb-2
+                                 (let [{:keys [comments-count]} comments-page]
+                                   (if (> comments-count 0)
+                                     (str comments-count " comments")
+                                     "Comments"))]
                                 [comments stream]]]
         [:div.flex.flex-col.flex-1
          [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
