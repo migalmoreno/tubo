@@ -108,7 +108,7 @@
         [layout/content-container
          [:div.flex.w-full.justify-between
           [layout/select
-           (or filter (get (:default-filter settings) service-id))
+           (or filter (get (:default-filter settings) service-id) "")
            (map (fn [filter]
                   {:label (str/join " "
                                     (map str/capitalize
