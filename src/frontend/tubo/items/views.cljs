@@ -13,7 +13,7 @@
         (if (or (= type "stream") audio-streams video-streams)
           [{:label    "Add to queue"
             :icon     [:i.fa-solid.fa-headphones]
-            :on-click #(rf/dispatch [:bg-player/show item true])}
+            :on-click #(rf/dispatch [:queue/add item true])}
            {:label    "Start radio"
             :icon     [:i.fa-solid.fa-tower-cell]
             :on-click #(rf/dispatch [:bg-player/start-radio item])}

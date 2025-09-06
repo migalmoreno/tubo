@@ -16,7 +16,7 @@
                (when (= i queue-pos)
                  ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
                ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
-    :on-click #(do (rf/dispatch [:queue/change-pos i])
+    :on-click #(do (rf/dispatch [:queue/load-pos i])
                    (reset! !clicked-idx i))}
    [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
     {:class "@sm:flex"}

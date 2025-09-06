@@ -2,7 +2,8 @@
   (:require
    [re-frame.core :as rf]
    [tubo.storage :refer [persist]]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [vimsical.re-frame.cofx.inject :as inject]))
 
 (defn get-stream-metadata
   [stream]
@@ -62,37 +63,55 @@
                                                     :uploader-avatar
                                                     :uploader-avatars)))]
      {:db updated-db
-      :fx (if notify?
-            [[:dispatch
+      :fx [(when (= (count (:queue db)) 0)
+             [:dispatch [:bg-player/fetch-stream (:url stream) 0 true]])
+           (when notify?
+             [:dispatch
               [:notifications/add
-               {:status-text "Added stream to queue"}]]]
-            [])})))
+               {:status-text "Added stream to queue"}]])
+           (when (and (or (= (count (:queue db)) 0)
+                          (= (inc (:queue/position db)) (count (:queue db))))
+                      (get-in db [:settings :seamless-playback]))
+             [:dispatch
+              [:queue/change-seamless-pos (dec (count (:queue db)))]])]})))
 
 (rf/reg-event-fx
  :queue/add-n
+ [persist]
  (fn [{:keys [db]} [_ streams notify?]]
-   {:db (update db
-                :queue
-                #(into (into [] %1) (into [] %2))
-                (map #(-> %
-                          (get-stream-metadata)
-                          (utils/apply-image-quality db :thumbnail :thumbnails)
-                          (utils/apply-image-quality db
-                                                     :uploader-avatar
-                                                     :uploader-avatars))
-                     streams))
-    :fx [[:dispatch
-          [:bg-player/fetch-stream
-           (-> streams
-               first
-               :url)
-           (count (:queue db)) (= (count (:queue db)) 0)]]
-         (when notify?
-           [:dispatch
-            [:notifications/add
-             {:status-text (str "Added "
-                                (count streams)
-                                " streams to queue")}]])]}))
+   (let [updated-db
+         (update
+          db
+          :queue
+          #(into (into [] %1) (into [] %2))
+          (->> streams
+               (filter #(= (:type %) "stream"))
+               (map #(-> %
+                         (get-stream-metadata)
+                         (utils/apply-image-quality db :thumbnail :thumbnails)
+                         (utils/apply-image-quality db
+                                                    :uploader-avatar
+                                                    :uploader-avatars)))))]
+     {:db updated-db
+      :fx [(when (= (count (:queue db)) 0)
+             [:dispatch
+              [:bg-player/fetch-stream
+               (-> streams
+                   first
+                   :url)
+               (count (:queue db)) (= (count (:queue db)) 0)]])
+           (when (and (or (= (count (:queue db)) 0)
+                          (= (inc (:queue/position db)) (count (:queue db))))
+                      (get-in db [:settings :seamless-playback]))
+             [:dispatch
+              [:queue/change-seamless-pos
+               (if (= (count (:queue db)) 0) 0 (dec (count (:queue db))))]])
+           (when notify?
+             [:dispatch
+              [:notifications/add
+               {:status-text (str "Added "
+                                  (count streams)
+                                  " streams to queue")}]])]})))
 
 (rf/reg-event-fx
  :queue/remove
@@ -121,42 +140,104 @@
             :else [])})))
 
 (rf/reg-event-fx
- :queue/change-pos
+ :queue/load-pos
  (fn [{:keys [db]} [_ i]]
    (let [idx    (if (< i (count (:queue db)))
                   i
                   (when (= (:player/loop db) :playlist) 0))
          stream (get (:queue db) idx)]
      (when stream
-       {:fx [[:dispatch [:bg-player/fetch-stream (:url stream) idx true]]]}))))
+       {:fx [[:dispatch [:bg-player/fetch-stream (:url stream) idx true]]
+             (when (and (get-in db [:settings :seamless-playback])
+                        (> (count (:queue db)) 1))
+               [:dispatch [:queue/change-seamless-pos idx]])]}))))
+
+(rf/reg-event-fx
+ :queue/change-pos
+ (fn [{:keys [db]} [_ i]]
+   (let [idx    (cond (and (>= i 0) (< i (count (:queue db))))       i
+                      (and (>= i 0) (= (:player/loop db) :playlist)) 0
+                      (= (:player/loop db) :playlist)                (->
+                                                                       db
+                                                                       :queue
+                                                                       count
+                                                                       dec))
+         stream (get (:queue db) idx)]
+     (when stream
+       (if (get-in db [:settings :seamless-playback])
+         {:fx [[:dispatch [:queue/change-stream stream idx true]]
+               [:dispatch [:queue/change-seamless-pos idx]]]}
+         {:fx [[:dispatch
+                [:bg-player/fetch-stream (:url stream) idx true]]]})))))
+
+(rf/reg-event-fx
+ :queue/reload-current-stream
+ (fn [{:keys [db]} [_ _player]]
+   {:fx [[:dispatch [:queue/load-pos (:queue/position db)]]]}))
+
+(rf/reg-event-fx
+ :queue/change-seamless-pos
+ (fn [{:keys [db]} [_ idx]]
+   (let [stream      (get (:queue db) idx)
+         prev-idx    (when (> (count (:queue db)) 2)
+                       (if (= idx 0)
+                         (dec (count (:queue db)))
+                         (dec idx)))
+         next-idx    (when (> (count (:queue db)) 1)
+                       (if (= (count (:queue db)) (inc idx))
+                         0
+                         (inc idx)))
+         prev-stream (get (:queue db) prev-idx)
+         next-stream (get (:queue db) next-idx)]
+     (when stream
+       {:fx [(when prev-stream
+               [:dispatch
+                [:bg-player/fetch-stream (:url prev-stream) prev-idx nil]])
+             (when next-stream
+               [:dispatch
+                [:bg-player/fetch-stream (:url next-stream) next-idx
+                 nil]])]}))))
 
 (rf/reg-event-fx
  :queue/change-stream
- [persist]
- (fn [{:keys [db]} [_ stream idx play?]]
-   {:db (let [updated-db
-              (update-in
-               db
-               [:queue idx]
-               #(merge
-                 %
-                 (-> stream
-                     (utils/apply-image-quality db :thumbnail :thumbnails)
-                     (utils/apply-image-quality db
-                                                :uploader-avatar
-                                                :uploader-avatars)
-                     (utils/apply-thumbnails-quality
-                      db
-                      :related-streams)
-                     (utils/apply-avatars-quality
-                      db
-                      :related-streams))))]
-          (if play? (assoc updated-db :queue/position idx) updated-db))
-    :fx [(when play?
-           [:dispatch
-            [(if (:main-player/show db)
-               :main-player/set-stream
-               :bg-player/set-stream) stream idx]])
-         (when (and (:main-player/show db)
-                    (not (seq (get-in db [:queue idx :comments-page]))))
-           [:dispatch [:comments/fetch-page (:url stream) [:queue idx]]])]}))
+ [persist (rf/inject-cofx ::inject/sub [:bg-player])]
+ (fn [{:keys [db bg-player]} [_ stream idx play?]]
+   (when stream
+     {:db (let [updated-db
+                (update-in
+                 db
+                 [:queue idx]
+                 #(merge
+                   %
+                   (-> stream
+                       (utils/apply-image-quality db :thumbnail :thumbnails)
+                       (utils/apply-image-quality db
+                                                  :uploader-avatar
+                                                  :uploader-avatars)
+                       (utils/apply-thumbnails-quality
+                        db
+                        :related-streams)
+                       (utils/apply-avatars-quality
+                        db
+                        :related-streams))))]
+            (if play? (assoc updated-db :queue/position idx) updated-db))
+      :fx (into (if play?
+                  [[:media-session-metadata
+                    {:title   (:name stream)
+                     :artist  (:uploader-name stream)
+                     :artwork [{:src (-> stream
+                                         :thumbnails
+                                         last
+                                         :url)}]}]
+                   [:media-session-handlers
+                    {:current-pos idx
+                     :player      bg-player}]
+                   [:dispatch
+                    [(if (:main-player/show db)
+                       :main-player/set-stream
+                       :bg-player/set-stream) stream idx]]]
+                  [])
+                (when (and (:main-player/show db)
+                           (not (seq (get-in db [:queue idx :comments-page]))))
+                  [[:dispatch
+                    [:comments/fetch-page (:url stream) [:queue idx]]]]))})))

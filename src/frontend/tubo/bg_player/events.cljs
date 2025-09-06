@@ -103,14 +103,6 @@
     :db (assoc db :bg-player/loading true)}))
 
 (rf/reg-event-fx
- :bg-player/show
- []
- (fn [{:keys [db]} [_ stream notify?]]
-   {:fx [[:dispatch [:queue/add stream notify?]]
-         (when (= (count (:queue db)) 0)
-           [:dispatch [:bg-player/fetch-stream (:url stream) 0 true]])]}))
-
-(rf/reg-event-fx
  :bg-player/start-radio
  (fn [{:keys [db]} [_ stream]]
    (let [updated-db (update db :queue conj stream)
@@ -153,24 +145,12 @@
 
 (rf/reg-event-fx
  :bg-player/load-stream
- [persist (rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [db bg-player]} [_ idx play? {:keys [body]}]]
+ [persist]
+ (fn [{:keys [db]} [_ idx play? {:keys [body]}]]
    {:db (assoc db
                :bg-player/show    (not (:main-player/show db))
                :bg-player/loading false)
-    :fx (into
-         [[:dispatch [:queue/change-stream body idx play?]]]
-         (when play?
-           [[:media-session-metadata
-             {:title   (:name body)
-              :artist  (:uploader-name body)
-              :artwork [{:src (-> body
-                                  :thumbnails
-                                  last
-                                  :url)}]}]
-            [:media-session-handlers
-             {:current-pos idx
-              :player      bg-player}]]))}))
+    :fx [[:dispatch [:queue/change-stream body idx play?]]]}))
 
 (rf/reg-event-fx
  :bg-player/bad-response
@@ -190,8 +170,9 @@
 (rf/reg-event-fx
  :bg-player/fetch-stream
  (fn [{:keys [db]} [_ url idx play?]]
-   {:fx [[:dispatch
-          [:stream/fetch url
-           [:bg-player/load-stream idx play?]
-           [:bg-player/bad-response idx play?]]]]
-    :db (assoc db :bg-player/loading play?)}))
+   (merge (when-not (nil? play?)
+            {:db (assoc db :bg-player/loading play?)})
+          {:fx [[:dispatch
+                 [:stream/fetch url
+                  [:bg-player/load-stream idx play?]
+                  [:bg-player/bad-response idx play?]]]]})))

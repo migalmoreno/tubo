@@ -79,6 +79,7 @@
    [:default-audio-format {:default "m4a"} string?]
    [:instance {:default (config/get-in [:frontend :api-url])} uri?]
    [:auth-instance {:default (config/get-in [:frontend :auth-url])} uri?]
+   [:seamless-playback {:default true} boolean?]
    [:image-quality {:default :high} ImageQuality]
    [:default-country {:default {0 {:name "United States" :code "US"}}} any?]
    [:default-kiosk {:default {0 "Trending"}} any?]

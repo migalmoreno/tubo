@@ -147,14 +147,13 @@
      [generic-input "PeerTube instances"
       [layout/primary-button "Edit"
        #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
-     [select-input "Image Quality" [:image-quality]
+     [select-input "Image quality" [:image-quality]
       image-quality
       (map (fn [[value label]] {:label label :value value})
            (into [] qualities))]
      [boolean-input "Show comments" [:show-comments] show-comments]
      [boolean-input "Show description" [:show-description] show-description]
-     [boolean-input "Show 'Next' and 'Similar' videos" [:show-related]
-      show-related]]))
+     [boolean-input "Show related streams" [:show-related] show-related]]))
 
 (defn user-settings
   []
@@ -172,14 +171,16 @@
      #(rf/dispatch [:modals/open [auth/user-deletion-modal]])]]])
 
 (defn video-audio-settings
-  [{:keys [default-audio-format default-video-format default-resolution]}]
+  [{:keys [default-audio-format default-video-format default-resolution
+           seamless-playback]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
    [select-input "Default video format" [:default-video-format]
     default-video-format #{"MPEG-4" "WebM" "3GP"}]
    [select-input "Default audio format" [:default-audio-format]
-    default-audio-format #{"m4a" "WebM"}]])
+    default-audio-format #{"m4a" "WebM"}]
+   [boolean-input "Seamless playback" [:seamless-playback] seamless-playback]])
 
 (defn settings
   []
