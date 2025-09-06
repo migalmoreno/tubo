@@ -80,15 +80,16 @@
           :class "md:rounded-xl"}
          [:video
           (into
-           {:style   {"maxHeight" "100%"
-                      "minHeight" "100%"
-                      "minWidth"  "100%"
-                      "maxWidth"  "100%"}
-            :poster  thumbnail
-            :ref     #(reset! !player %)
-            :slot    "media"
-            :preload "metadata"
-            :class   "md:rounded-xl"}
+           {:style       {"maxHeight" "100%"
+                          "minHeight" "100%"
+                          "minWidth"  "100%"
+                          "maxWidth"  "100%"}
+            :poster      thumbnail
+            :playsInline true
+            :ref         #(reset! !player %)
+            :slot        "media"
+            :preload     "metadata"
+            :class       "md:rounded-xl"}
            video-args)
           [:track
            {:label   (:displayLanguageName (first subtitles))
