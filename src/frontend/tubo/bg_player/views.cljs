@@ -284,7 +284,7 @@
       [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative.bg-cover.bg-center.bg-no-repeat.cursor-pointer
        {:style    {"--bg-image" bg-image}
         :class    ["h-[80px]" "bg-[image:var(--bg-image)]"
-                   (when show-queue? "hidden")
+                   (when show-queue? "invisible")
                    (if show-queue? "opacity-0" "opacity-1")]
         :on-click #(rf/dispatch [:queue/show true])}
        [:div.flex.items-center
