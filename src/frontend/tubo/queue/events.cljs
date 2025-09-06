@@ -85,7 +85,7 @@
           :queue
           #(into (into [] %1) (into [] %2))
           (->> streams
-               (filter #(= (:type %) "stream"))
+               (filter #(not (some #{(:type %)} ["playlist" "channel"])))
                (map #(-> %
                          (get-stream-metadata)
                          (utils/apply-image-quality db :thumbnail :thumbnails)

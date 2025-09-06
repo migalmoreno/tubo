@@ -176,7 +176,8 @@
                           :items
                           #(into (into [] %1) (into [] %2))
                           (->> items
-                               (filter #(= (:type %) "stream"))
+                               (filter #(not (some #{(:type %)}
+                                                   ["playlist" "channel"])))
                                (filter (fn [item]
                                          (not (some #(= (:url %) (:url item))
                                                     (:items bk)))))
