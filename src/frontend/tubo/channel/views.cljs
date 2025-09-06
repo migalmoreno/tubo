@@ -75,7 +75,7 @@
          (when-not (empty? description)
            [layout/show-more-container @!show-description? description
             #(reset! !show-description? (not @!show-description?))])
-         [:div.flex.justify-between
+         [:div.flex.justify-between.items-center
           [layout/tabs
            (map (fn [tab]
                   {:id    (-> tab
