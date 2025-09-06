@@ -72,7 +72,7 @@
 (rf/reg-fx
  :document-title
  (fn [title]
-   (set! (.-title js/document) (str title " - Tubo"))))
+   (set! (.-title js/document) (str (when title (str title " - ")) "Tubo"))))
 
 (rf/reg-fx
  :scroll-top!
