@@ -52,4 +52,9 @@
  (fn []
    !top-loading-bar))
 
+(defonce !virtuoso (atom nil))
+
 (rf/reg-sub
+ :virtuoso
+ (fn []
+   !virtuoso))

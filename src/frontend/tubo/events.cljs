@@ -26,7 +26,8 @@
    [tubo.settings.events]
    [tubo.storage]
    [tubo.stream.events]
-   [tubo.subscriptions.events]))
+   [tubo.subscriptions.events]
+   [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
  :initialize
@@ -88,8 +89,21 @@
    (set! (.-title js/document) (str (when title (str title " - ")) "Tubo"))))
 
 (rf/reg-fx
+ :virtuoso-scroll-to-index
+ (fn [[virtuoso idx]]
+   (when virtuoso
+     (.scrollToIndex virtuoso
+                     #js {"index"    idx
+                          "align"    "start"
+                          "behavior" "smooth"}))))
 
 (rf/reg-event-fx
+ :scroll-to-index
+ [(rf/inject-cofx ::inject/sub [:virtuoso])]
+ (fn [{:keys [virtuoso]} [_ idx]]
+   (when @virtuoso
+     {:virtuoso-scroll-to-index [@virtuoso idx]})))
+
 
 (rf/reg-fx
  :start-loading!

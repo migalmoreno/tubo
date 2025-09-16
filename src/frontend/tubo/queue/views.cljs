@@ -1,5 +1,6 @@
 (ns tubo.queue.views
   (:require
+   ["react-virtuoso" :refer [Virtuoso]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.bg-player.views :as bg-player]
@@ -10,44 +11,37 @@
    [tubo.utils :as utils]))
 
 (defn item-metadata
-  [{:keys [uploader-name name service-id] :as item} queue-pos i !clicked-idx]
-  [:div.flex.cursor-pointer.px-4.py-2
-   {:class    (into
-               (when (= i queue-pos)
-                 ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
-               ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
-    :on-click #(do (rf/dispatch [:queue/load-pos i])
-                   (reset! !clicked-idx i))}
-   [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
-    {:class "@sm:flex"}
-    [:span.font-bold.text-neutral-400.text-sm
-     (cond
-       (and (= i @!clicked-idx)
-            @(rf/subscribe [:bg-player/loading])
-            (not= queue-pos @!clicked-idx))
-       [:<>
-        [:div.block.lg:hidden
-         [layout/loading-icon nil :text-xl]]
-        [:div.hidden.lg:block (inc i)]]
-       (= i queue-pos) [:i.fa-solid.fa-play]
-       :else (inc i))]]
-   [:div.flex.items-center.shrink-0.grow-0
-    [layout/thumbnail item nil :container-classes
-     ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
-     ["rounded"]]]
-   [:div.flex.flex-col.pl-4.pr-12.w-full
-    [:h1.line-clamp-1.w-fit.text-sm
-     {:title name :class "@lg:text-lg"} name]
-    [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col
-     {:class "@lg:text-sm @lg:flex-row"}
-     [:span.line-clamp-1 {:title uploader-name} uploader-name]
-     (when service-id
-       [:<>
-        [:span.px-2.hidden
-         {:dangerouslySetInnerHTML {:__html "&bull;"}
-          :style                   {:font-size "0.5rem"}
-          :class                   "@lg:inline-block"}]
-        [:span (utils/get-service-name service-id)]])]]])
+  [{:keys [uploader-name name service-id] :as item} i]
+  (let [queue-pos @(rf/subscribe [:queue/position])]
+    [:div.flex.cursor-pointer.px-4.py-2
+     {:class    (into
+                 (when (= i queue-pos)
+                   ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
+                 ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
+      :on-click #(rf/dispatch [:queue/load-pos i])}
+     [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
+      {:class "@sm:flex"}
+      [:span.font-bold.text-neutral-400.text-sm
+       (cond
+         (= i queue-pos) [:i.fa-solid.fa-play]
+         :else           (inc i))]]
+     [:div.flex.items-center.shrink-0.grow-0
+      [layout/thumbnail item nil :container-classes
+       ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
+       ["rounded"]]]
+     [:div.flex.flex-col.pl-4.pr-12.w-full
+      [:h1.line-clamp-1.w-fit.text-sm
+       {:title name :class "@lg:text-lg"} name]
+      [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col
+       {:class "@lg:text-sm @lg:flex-row"}
+       [:span.line-clamp-1 {:title uploader-name} uploader-name]
+       (when service-id
+         [:<>
+          [:span.px-2.hidden
+           {:dangerouslySetInnerHTML {:__html "&bull;"}
+            :style                   {:font-size "0.5rem"}
+            :class                   "@lg:inline-block"}]
+          [:span (utils/get-service-name service-id)]])]]]))
 
 (defn popover
   [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
@@ -83,18 +77,11 @@
     :tooltip-classes ["right-5" "top-0" "z-20"]
     :extra-classes ["px-4" "@sm:px-7" :py-2]]])
 
-(defn queue-item
-  [item queue queue-pos i bookmarks !clicked-idx]
-  [:div.relative.w-full
-   {:ref #(when (and queue (= queue-pos i)) (rf/dispatch [:scroll-top %]))}
-   [item-metadata item queue-pos i !clicked-idx]
-   [popover item i bookmarks]])
-
 (defn queue-metadata
   [{:keys [name uploader-name]}]
-  [:div.flex.flex-col.py-2
+  [:div.flex.flex-col.py-2.justify-center.items-center.gap-y-4
    [:h1.text-xl.line-clamp-1.w-fit.font-bold {:title name} name]
-   [:h1.text-sm.pt-2.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
+   [:h1.text-sm.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
     {:title uploader-name}
     uploader-name]])
 
@@ -111,13 +98,13 @@
         queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])]
     [:div.flex.flex-col.gap-y-4
-     [:div.flex.flex-auto.py-2.w-full.items-center.text-sm
-      [:span.mr-4.whitespace-nowrap.w-8
+     [:div.flex.flex-auto.py-2.w-full.items-center.text-sm.gap-x-4
+      [:span.whitespace-nowrap.w-16.flex.justify-end
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
       [bg-player/time-slider !player !elapsed-time color]
-      [:span.ml-4.whitespace-nowrap.w-8
+      [:span.whitespace-nowrap.w-16.flex.justify-start
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
          "--:--")]]
@@ -160,17 +147,32 @@
        :show-on-mobile? true]
       [player/shuffle-button shuffle? color true]]]))
 
+(defn virtualized-queue
+  []
+  (let [!virtuoso @(rf/subscribe [:virtuoso])]
+    (r/create-class
+     {:component-did-mount #(rf/dispatch [:queue/scroll-to-pos])
+      :reagent-render
+      (fn []
+        (let [bookmarks @(rf/subscribe [:bookmarks])
+              queue     @(rf/subscribe [:queue])]
+          [:> Virtuoso
+           {:totalCount  (count queue)
+            :ref         #(reset! !virtuoso %)
+            :itemContent (fn [i]
+                           (let [item (get queue i)]
+                             (r/as-element
+                              [:div.relative.w-full
+                               [item-metadata item i]
+                               [popover item i bookmarks]])))}]))})))
+
 (defn queue
   []
-  (let [!active-tab  (r/atom :queue)
-        !clicked-idx (r/atom nil)]
+  (let [!active-tab (r/atom :queue)]
     (fn []
       (let [show-queue  @(rf/subscribe [:queue/show])
             show-list?  @(rf/subscribe [:queue/show-list])
             stream      @(rf/subscribe [:queue/current])
-            bookmarks   @(rf/subscribe [:bookmarks])
-            queue-pos   @(rf/subscribe [:queue/position])
-            queue       @(rf/subscribe [:queue])
             color       (-> stream
                             :service-id
                             utils/get-service-color)

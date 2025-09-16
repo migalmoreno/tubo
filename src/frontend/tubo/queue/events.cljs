@@ -235,9 +235,18 @@
                    [:dispatch
                     [(if (:main-player/show db)
                        :main-player/set-stream
-                       :bg-player/set-stream) stream idx]]]
+                       :bg-player/set-stream) stream idx]]
+                   [:dispatch [:scroll-to-index idx]]]
                   [])
                 (when (and (:main-player/show db)
                            (not (seq (get-in db [:queue idx :comments-page]))))
                   [[:dispatch
                     [:comments/fetch-page (:url stream) [:queue idx]]]]))})))
+
+(rf/reg-event-fx
+ :queue/scroll-to-pos
+ (fn [{:keys [db]} _]
+   {:timeout
+    {:id    (nano-id)
+     :event [:scroll-to-index (:queue/position db)]
+     :time  100}}))
