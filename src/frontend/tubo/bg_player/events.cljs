@@ -57,10 +57,10 @@
 
 (rf/reg-event-fx
  :bg-player/mute
- [persist]
- (fn [{:keys [db]} [_ value player]]
+ [persist (rf/inject-cofx ::inject/sub [:bg-player])]
+ (fn [{:keys [db bg-player]} [_ value]]
    {:db          (assoc db :player/muted value)
-    :player/mute {:player player :muted? value}}))
+    :player/mute {:player bg-player :muted? value}}))
 
 (rf/reg-event-fx
  :bg-player/hide
@@ -121,7 +121,7 @@
  [(rf/inject-cofx ::inject/sub [:queue/current])]
  (fn [{:keys [db] :as cofx}]
    {:fx [[:dispatch [:main-player/show true]]
-         [:dispatch [:queue/show false]]
+         [:dispatch [:search/activate false]]
          (when-not (seq (get-in db
                                 [:queue (:queue/position db)
                                  :comments-page]))
@@ -134,7 +134,9 @@
            [:dispatch
             [:bg-player/fetch-stream (:url (:queue/current cofx))
              (:queue/position db) false]])]
-    :db (assoc db :bg-player/show false)}))
+    :db (assoc db
+               :bg-player/show false
+               :queue/show     false)}))
 
 (rf/reg-event-fx
  :bg-player/switch-from-main

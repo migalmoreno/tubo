@@ -22,8 +22,7 @@
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
                                 [modals/add-to-bookmark related-streams]])}]
-     :extra-classes ["px-5" "xs:p-3"]
-     :tooltip-classes ["right-7" "top-0"]]))
+     :extra-classes ["px-5" "xs:px-3"]]))
 
 (defn playlist
   []
@@ -58,9 +57,17 @@
            [:h1.text-sm.font-bold.text-neutral-600.dark:text-neutral-400
             (str (when edit-modal "LOCAL ") "PLAYLIST")]
            [:div.flex.flex-col.gap-y-6
-            [layout/content-header name
-             [:div.hidden.xs:block
-              [metadata-popover playlist edit-modal]]]
+            [layout/content-header name]
+            (when (seq related-streams)
+              [:div.flex.gap-x-3.items-center
+               [layout/primary-button "Play All"
+                #(rf/dispatch [:playlist/play-all related-streams])
+                [:i.fa-solid.fa-play]]
+               [layout/secondary-button "Shuffle"
+                #(rf/dispatch [:playlist/shuffle-all related-streams])
+                [:i.fa-solid.fa-shuffle]]
+               [:div.hidden.xs:block
+                [metadata-popover playlist edit-modal]]])
             [:div.flex.items-center.justify-between.gap-x-4
              [:div.flex.gap-x-3.items-center
               (when (seq uploader-name)

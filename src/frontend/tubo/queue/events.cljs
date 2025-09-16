@@ -70,16 +70,16 @@
              [:dispatch
               [:notifications/add
                {:status-text "Added stream to queue"}]])
-           (when (and (or (= (count (:queue db)) 0)
-                          (= (inc (:queue/position db)) (count (:queue db))))
-                      (get-in db [:settings :seamless-playback]))
+           (when (and (get-in db [:settings :seamless-playback])
+                      (or (= (count (:queue db)) 0)
+                          (= (inc (:queue/position db)) (count (:queue db)))))
              [:dispatch
               [:queue/change-seamless-pos (dec (count (:queue db)))]])]})))
 
 (rf/reg-event-fx
  :queue/add-n
  [persist]
- (fn [{:keys [db]} [_ streams notify?]]
+ (fn [{:keys [db]} [_ streams notify? pos]]
    (let [updated-db
          (update
           db
@@ -94,19 +94,24 @@
                                                     :uploader-avatar
                                                     :uploader-avatars)))))]
      {:db updated-db
-      :fx [(when (= (count (:queue db)) 0)
+      :fx [(when (and (not pos) (= (count (:queue db)) 0))
              [:dispatch
               [:bg-player/fetch-stream
                (-> streams
                    first
                    :url)
                (count (:queue db)) (= (count (:queue db)) 0)]])
-           (when (and (or (= (count (:queue db)) 0)
-                          (= (inc (:queue/position db)) (count (:queue db))))
-                      (get-in db [:settings :seamless-playback]))
+           (when (and (get-in db [:settings :seamless-playback])
+                      (or pos
+                          (= (count (:queue db)) 0)
+                          (= (inc (:queue/position db))
+                             (count (:queue db)))))
              [:dispatch
               [:queue/change-seamless-pos
-               (if (= (count (:queue db)) 0) 0 (dec (count (:queue db))))]])
+               (cond
+                 (= (count (:queue db)) 0) 0
+                 pos                       pos
+                 :else                     (dec (count (:queue db))))]])
            (when notify?
              [:dispatch
               [:notifications/add

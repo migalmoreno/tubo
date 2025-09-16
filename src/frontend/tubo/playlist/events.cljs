@@ -74,3 +74,23 @@
    {:fx [[:dispatch
           [:api/get (str "playlists/" (js/encodeURIComponent url))
            [:bg-player/load-related-streams true] [:bad-response]]]]}))
+
+(rf/reg-event-fx
+ :playlist/play-all
+ (fn [{:keys [db]} [_ streams]]
+   {:fx [[:dispatch [:queue/add-n streams false (count (:queue db))]]
+         [:dispatch
+          [:bg-player/fetch-stream (:url (first streams))
+           (count (:queue db))
+           true]]]}))
+
+(rf/reg-event-fx
+ :playlist/shuffle-all
+ (fn [{:keys [db]} [_ streams]]
+   (let [shuffled-streams (shuffle streams)]
+     {:fx [[:dispatch
+            [:queue/add-n (shuffle streams) false (count (:queue db))]]
+           [:dispatch
+            [:bg-player/fetch-stream (:url (first shuffled-streams))
+             (count (:queue db))
+             true]]]})))
