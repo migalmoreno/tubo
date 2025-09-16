@@ -79,9 +79,7 @@
                          :type            "radio"
                          :name            "instance"
                          :default-checked (= filter-idx i)}]
-                       (str/join " "
-                                 (map str/capitalize
-                                      (str/split filter "_")))]
+                       (utils/titleize filter)]
             :value    filter
             :on-click #(rf/dispatch [:search/change-filter filter])})
          (:content-filters service))
@@ -109,11 +107,7 @@
          [:div.flex.w-full.justify-between
           [layout/select
            (or filter (get (:default-filter settings) service-id) "")
-           (map (fn [filter]
-                  {:label (str/join " "
-                                    (map str/capitalize
-                                         (str/split filter "_")))
-                   :value filter})
+           (map (fn [filter] {:label (utils/titleize filter) :value filter})
                 (:content-filters service))
            #(rf/dispatch [:search/set-filter (.. % -target -value)])]
           [items/layout-switcher !layout]]
