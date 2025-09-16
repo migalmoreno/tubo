@@ -124,7 +124,7 @@
    [:auth/user {:optional true :persist true} [:maybe map?]]
    [:user/bookmarks {:optional true} any?]
    [:user/subscriptions {:optional true} any?]
-   [:user/feed {:optional true} any?]
+   [:user/feed {:optional true :persist true} any?]
    [:user/feed-last-updated {:optional true :persist true} any?]
    [:peertube/instances
     {:default [(config/get-in [:services :peertube :default-instance])]
