@@ -4,10 +4,12 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
+   [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
+   [tubo.queue.views :as queue]
    [tubo.player.views :as player]
    [tubo.utils :as utils]))
 
@@ -62,15 +64,16 @@
        [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
         [:span {:title subscriber-count :class "text-[0.8rem]"}
          (str (utils/format-quantity subscriber-count) " subscribers")]])]]
-   (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-     [layout/secondary-button "Unsubscribe"
-      #(rf/dispatch [:subscriptions/remove uploader-url])]
-     [layout/primary-button "Subscribe"
-      #(rf/dispatch [:subscriptions/add
-                     {:url       uploader-url
-                      :name      uploader-name
-                      :verified? uploader-verified?
-                      :avatars   uploader-avatars}])])])
+   (when uploader-url
+     (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+       [layout/secondary-button "Unsubscribe"
+        #(rf/dispatch [:subscriptions/remove uploader-url])]
+       [layout/primary-button "Subscribe"
+        #(rf/dispatch [:subscriptions/add
+                       {:url       uploader-url
+                        :name      uploader-name
+                        :verified? uploader-verified?
+                        :avatars   uploader-avatars}])]))])
 
 (defn metadata-stats
   [{:keys [like-count dislike-count] :as stream}]
@@ -85,21 +88,27 @@
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-down]
          [:span dislike-count]])])
-   [:div.hidden.sm:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
-    [metadata-popover stream]]])
+   (when stream
+     [:div.hidden.sm:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
+      [metadata-popover stream]])])
 
 (defn metadata
   [{:keys [name view-count upload-date] :as stream}]
   [:div
-   [:div.flex.items-center.justify-between
-    [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]]
+   (when name
+     [:div.flex.items-center.justify-between
+      [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]])
    [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1.items-center
-    [:span.whitespace-nowrap {:title view-count}
-     (str (utils/format-quantity view-count) " views")]
-    [:span
-     {:dangerouslySetInnerHTML {:__html "&bull;"} :style {:font-size "0.5rem"}}]
-    [:span.whitespace-nowrap {:title upload-date}
-     (utils/format-date-ago upload-date)]]
+    (when view-count
+      [:span.whitespace-nowrap {:title view-count}
+       (str (utils/format-quantity view-count) " views")])
+    (when (or view-count upload-date)
+      [:span
+       {:dangerouslySetInnerHTML {:__html "&bull;"}
+        :style                   {:font-size "0.5rem"}}])
+    (when upload-date
+      [:span.whitespace-nowrap {:title upload-date}
+       (utils/format-date-ago upload-date)])]
    [:div.flex.justify-between.py-4.gap-x-2.gap-y-4.flex-wrap.xs:flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
@@ -166,25 +175,56 @@
            :thumbnail-classes
            ["h-[5.5rem]" "min-w-[150px]" "max-w-[150px]"]])]])))
 
+(defn stream-queue
+  []
+  (let [stream        @(rf/subscribe [:queue/current])
+        pos           @(rf/subscribe [:queue/position])
+        queue         @(rf/subscribe [:queue])
+        loop-playback @(rf/subscribe [:player/loop])
+        color         (utils/get-service-color (:service-id stream))
+        shuffled      @(rf/subscribe [:player/shuffled])]
+    (when @(rf/subscribe [:main-player/show])
+      [:div.flex-col.w-full.rounded-lg
+       [:div.bg-neutral-200.dark:bg-neutral-900.rounded-lg.border-neutral-700
+        [:div.p-4.flex.items-center.justify-between.rounded-lg
+         [:div.flex.flex-col
+          [:h4.font-bold.text-lg "Queue"]
+          [:span.text-xs.text-neutral-600.dark:text-neutral-500
+           (str (inc pos) "/" (count queue))]]
+         [:div.flex.items-center
+          [:div.px-4
+           [player/loop-button loop-playback color true]]
+          [:div.pl-4.pr-5
+           [player/shuffle-button shuffled color true]]
+          [bg-player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
+        [:div.flex.flex-col.gap-y-1.w-full.h-64.max-h-64.overflow-y-auto.relative.scroll-smooth.scrollbar-none
+         {:class "@container"}
+         [queue/virtualized-queue]]]])))
+
 (defn video-container
   []
   (let [!active-tab (r/atom :comments)]
     (fn [{:keys [comments-page] :as stream} video]
       (let [{:keys [show-comments show-related show-description]}
             @(rf/subscribe [:settings])
-            comments-container [:div.flex.flex-col.gap-y-4
-                                [:h1.text-2xl.font-bold.pb-2
-                                 (let [{:keys [comments-count]} comments-page]
-                                   (if (> comments-count 0)
-                                     (str comments-count " comments")
-                                     "Comments"))]
-                                [comments stream]]]
+            show-main-player? @(rf/subscribe [:main-player/show])
+            comments-container (when stream
+                                 [:div.flex.flex-col.gap-y-4
+                                  [:h1.text-2xl.font-bold.pb-2
+                                   (let [{:keys [comments-count]} comments-page]
+                                     (if (> comments-count 0)
+                                       (str comments-count " comments")
+                                       "Comments"))]
+                                  [comments stream]])
+            breakpoint @(rf/subscribe [:layout/breakpoint])]
         [:div.flex.flex-col.flex-1
          [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
-          {:class (if @(rf/subscribe [:main-player/show]) "top-0" "top-[56px]")}
+          {:class (if show-main-player? "top-0" "top-[56px]")}
           video]
          [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
-          [metadata stream]
+          [:div.flex.flex-col.gap-y-8
+           (when (and show-main-player? (not= breakpoint :lg)) [stream-queue])
+           [metadata stream]]
           [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
            (when show-description [description stream])
            (when show-comments comments-container)]
@@ -219,17 +259,22 @@
              :description   [description stream])]]]))))
 
 (defn stream
+  [video-stream video-container]
+  (let [breakpoint @(rf/subscribe [:layout/breakpoint])]
+    [:div
+     {:class ["flex" "flex-col" "flex-auto" "items-center" "md:my-4"]}
+     [:div.flex.gap-x-6.w-full {:class "md:w-[95%] xl:w-11/12"}
+      video-container
+      [:div.hidden.lg:flex.gap-y-6.flex-col.shrink-0.flex-1
+       {:class "lg:min-w-[315px] lg:max-w-[350px]"}
+       (when (= breakpoint :lg) [stream-queue])
+       [related-items video-stream]]]]))
+
+(defn stream-page
   []
-  (let [stream        @(rf/subscribe [:stream])
-        !player       @(rf/subscribe [:main-player])
-        page-loading? @(rf/subscribe [:show-page-loading])
-        service-color @(rf/subscribe [:service-color])]
-    (if page-loading?
-      [layout/loading-icon service-color :text-5xl]
-      [:div.flex.flex-col.flex-auto.items-center.md:my-4
-       [:div.flex.gap-x-6.w-full {:class "md:w-[95%] xl:w-11/12"}
-        [video-container stream
-         [player/video-player stream !player {}
-          #(rf/dispatch [:player/set-stream stream !player])]]
-        [:div.hidden.lg:block.shrink-0.flex-1 {:class "max-w-[350px]"}
-         [related-items stream]]]])))
+  (let [!player      @(rf/subscribe [:main-player])
+        video-stream @(rf/subscribe [:stream])]
+    [stream video-stream
+     [video-container video-stream
+      [player/video-player video-stream !player {}
+       #(rf/dispatch [:player/set-stream video-stream !player])]]]))

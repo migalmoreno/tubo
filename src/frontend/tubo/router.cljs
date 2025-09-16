@@ -43,7 +43,7 @@
                                                          filter]))
                                          :stop       #(rf/dispatch
                                                        [:search/leave-page])}]}
-      :web/stream        {:view stream/stream
+      :web/stream        {:view stream/stream-page
                           :name :stream-page
                           :controllers
                           [{:parameters {:query [:url]}
