@@ -186,9 +186,9 @@
   []
   (let [user        @(rf/subscribe [:auth/user])
         breakpoint  @(rf/subscribe [:layout/breakpoint])
-        !active-tab (r/atom (cond (and user (= breakpoint :md)) :user
-                                  (= breakpoint :md)            :video-audio
-                                  :else                         nil))]
+        !active-tab (r/atom (cond (and user (not= breakpoint :sm)) :user
+                                  (not= breakpoint :sm)            :video-audio
+                                  :else                            nil))]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
         [layout/content-container

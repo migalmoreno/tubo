@@ -4,15 +4,23 @@
    [reagent.core :as r]))
 
 (defonce !breakpoint
-  (let [state (r/atom
-               (if (and (.-matchMedia js/window)
-                        (.-matches (.matchMedia js/window
-                                                "(min-width: 768px)")))
-                 :md
-                 :sm))]
-    (.addEventListener (.matchMedia js/window "(max-width: 768px)")
-                       "change"
-                       #(reset! state (if (.-matches %) :sm :md)))
+  (let [breakpoints {:lg "(min-width: 1025px)"
+                     :md "(min-width: 769px) and (max-width: 1024px)"
+                     :sm "(max-width: 768px)"}
+        state       (r/atom
+                     (when (.-matchMedia js/window)
+                       (->> breakpoints
+                            (filter
+                             (fn [[breakpoint query]]
+                               (when (.-matches (.matchMedia js/window query))
+                                 breakpoint)))
+                            first
+                            first)))]
+    (doseq [[breakpoint query] breakpoints]
+      (.addEventListener (.matchMedia js/window query)
+                         "change"
+                         #(when (.-matches %)
+                            (reset! state breakpoint))))
     state))
 
 (rf/reg-sub
