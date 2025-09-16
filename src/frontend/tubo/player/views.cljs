@@ -1,5 +1,6 @@
 (ns tubo.player.views
   (:require
+   ["motion/react" :refer [motion]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    ["media-chrome/dist/react" :refer
@@ -28,11 +29,15 @@
 
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
-  [:button.outline-none.focus:ring-transparent
-   {:class    (into (into (when disabled? [:opacity-50 :cursor-auto])
-                          (when-not show-on-mobile?
-                            [:hidden :lg:flex :items-center :justify-center]))
-                    extra-classes)
+  [:> motion.button
+   {:whileTap {:scale [0.7 1]}
+    :initial  {:scale 1}
+    :class    (into
+               ["outline-none" "focus:ring-transparent"]
+               (into (into (when disabled? [:opacity-50 :cursor-auto])
+                           (when-not show-on-mobile?
+                             [:hidden :lg:flex :items-center :justify-center]))
+                     extra-classes))
     :disabled disabled?
     :on-click (fn [e]
                 (.stopPropagation e)

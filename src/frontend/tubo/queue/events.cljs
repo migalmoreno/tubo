@@ -1,5 +1,6 @@
 (ns tubo.queue.events
   (:require
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [tubo.storage :refer [persist]]
    [tubo.utils :as utils]
@@ -154,7 +155,9 @@
 
 (rf/reg-event-fx
  :queue/change-pos
- (fn [{:keys [db]} [_ i]]
+ [(rf/inject-cofx ::inject/sub [:queue-thumbnail])
+  (rf/inject-cofx ::inject/sub [:queue-bg])]
+ (fn [{:keys [db queue-thumbnail queue-bg]} [_ i]]
    (let [idx    (cond (and (>= i 0) (< i (count (:queue db))))       i
                       (and (>= i 0) (= (:player/loop db) :playlist)) 0
                       (= (:player/loop db) :playlist)                (->
@@ -164,11 +167,19 @@
                                                                        dec))
          stream (get (:queue db) idx)]
      (when stream
-       (if (get-in db [:settings :seamless-playback])
-         {:fx [[:dispatch [:queue/change-stream stream idx true]]
-               [:dispatch [:queue/change-seamless-pos idx]]]}
-         {:fx [[:dispatch
-                [:bg-player/fetch-stream (:url stream) idx true]]]})))))
+       {:fx (into [[:dispatch
+                    [:animate @queue-bg
+                     {"--opacity"  [0.95 0.8]
+                      "--bg-color" (if (:dark-theme db) "#FFFFFF" "#000000")}
+                     {:duration 0.5 :ease "easeIn"}]]
+                   [:dispatch
+                    [:animate @queue-thumbnail {:scale [0.9 1]}
+                     {:type "spring" :ease "easeInOut"}]]]
+                  (if (get-in db [:settings :seamless-playback])
+                    [[:dispatch [:queue/change-stream stream idx true]]
+                     [:dispatch [:queue/change-seamless-pos idx]]]
+                    [[:dispatch
+                      [:bg-player/fetch-stream (:url stream) idx true]]]))}))))
 
 (rf/reg-event-fx
  :queue/reload-current-stream

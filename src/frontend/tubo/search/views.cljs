@@ -1,27 +1,39 @@
 (ns tubo.search.views
   (:require
+   ["motion/react" :refer [motion AnimatePresence]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [clojure.string :as str]
    [tubo.utils :as utils]))
 
 (defn suggestions-box
   [suggestions]
-  [:div.bg-neutral-200.dark:bg-neutral-900.sm:py-2.md:rounded.flex.flex-col.absolute.overflow-y-auto.top-full
-   {:class ["w-full" "sm:w-[20rem]" "lg:w-[28rem]" "-translate-x-1/2" "left-1/2"
-            "sm:top-[110%]" "sm:max-h-[87dvh]" "max-h-[calc(100dvh-56px)]"]}
-   (for [[i suggestion] (map-indexed vector suggestions)]
-     ^{:key i}
-     [:div.hover:bg-neutral-300.dark:hover:bg-neutral-800.cursor-pointer.flex.justify-between.items-center
-      [:div.flex.items-center.gap-x-4.w-full.py-2.px-4
-       {:on-click #(rf/dispatch [:search/submit suggestion])}
-       [:i.fa-solid.fa-search]
-       [:span.line-clamp-1 suggestion]]
-      [:div.py-2.px-4
-       {:on-click #(rf/dispatch [:search/fill-query suggestion])}
-       [:i.fa-solid.fa-arrow-up-long.-rotate-45]]])])
+  (let [show-suggestions? @(rf/subscribe [:search/show-suggestions])]
+    [:> AnimatePresence
+     (when (and (seq suggestions) show-suggestions?)
+       [:> motion.div
+        {:animate    {:y 0}
+         :initial    {:y 10}
+         :transition {:duration 0.1 :ease "easeIn"}
+         :exit       {:y 10 :opacity 0}
+         :style      {:translateX "-50%"}
+         :class      ["flex" "flex-col" "absolute" "overflow-y-auto" "top-full"
+                      "md:rounded" "sm:py-2" "bg-neutral-200"
+                      "dark:bg-neutral-900" "w-full" "sm:w-[20rem]"
+                      "lg:w-[28rem]"
+                      "left-1/2" "sm:top-[110%]" "sm:max-h-[87dvh]"
+                      "max-h-[calc(100dvh-56px)]"]}
+        (for [[i suggestion] (map-indexed vector suggestions)]
+          ^{:key i}
+          [:div.hover:bg-neutral-300.dark:hover:bg-neutral-800.cursor-pointer.flex.justify-between.items-center
+           [:div.flex.items-center.gap-x-4.w-full.py-2.px-4
+            {:on-click #(rf/dispatch [:search/submit suggestion])}
+            [:i.fa-solid.fa-search]
+            [:span.line-clamp-1 suggestion]]
+           [:div.py-2.px-4
+            {:on-click #(rf/dispatch [:search/fill-query suggestion])}
+            [:i.fa-solid.fa-arrow-up-long.-rotate-45]]])])]))
 
 (defn search-form
   []
@@ -29,7 +41,6 @@
         show-search-form? @(rf/subscribe [:search/show-form])
         !input            @(rf/subscribe [:search-input])
         suggestions       @(rf/subscribe [:search/service-suggestions])
-        show-suggestions? @(rf/subscribe [:search/show-suggestions])
         service           @(rf/subscribe [:services/current])
         search-filter     @(rf/subscribe [:search/filter])
         settings          @(rf/subscribe [:settings])
@@ -51,8 +62,11 @@
                         (when-not show-search-form? ["hidden" "md:flex"]))
        :on-submit #(do (.preventDefault %)
                        (rf/dispatch [:search/submit (.-value @!input)]))}
-      [:div.flex.items-center.relative.flex-auto.sm:flex-none.bg-white.dark:bg-neutral-900.rounded-full.px-4.border.border-neutral-300.dark:border-neutral-800.h-10
-       {:class ["sm:w-[22rem]" "lg:w-[28rem]"]}
+      [:div
+       {:class ["flex" "items-center" "relative" "flex-auto" "sm:flex-none"
+                "bg-white" "dark:bg-neutral-900" "rounded-full" "px-4"
+                "border" "border-neutral-00" "dark:border-neutral-800" "h-10"
+                "sm:w-[22rem]" "lg:w-[28rem]"]}
        [:button.p-2.md:hidden
         {:type "button" :on-click #(rf/dispatch [:search/cancel])}
         [:i.fa-solid.fa-arrow-left]]
@@ -88,10 +102,10 @@
        [:button.px-4.absolute
         {:on-click #(rf/dispatch [:search/clear-query])
          :type     "button"
-         :class    ["right-[4.5rem]" (when (empty? service-query) :invisible)]}
+         :class    ["right-[4.5rem]"
+                    (when (empty? service-query) :invisible)]}
         [:i.fa-solid.fa-xmark]]]]
-     (when (and (seq suggestions) show-suggestions?)
-       [suggestions-box suggestions])]))
+     [suggestions-box suggestions]]))
 
 (defn search
   []

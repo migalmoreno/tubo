@@ -1,5 +1,6 @@
 (ns tubo.navigation.views
   (:require
+   ["motion/react" :refer [AnimatePresence motion]]
    [reagent.core :as r]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
@@ -187,9 +188,10 @@
                   :link  {:route (rfe/href :login-page)}}]
                 [])
               (when user
-                [{:custom-content [:div.text-white.whitespace-nowrap.text-sm
-                                   "Logged in as "
-                                   [:span.font-bold (:username user)]]
+                [{:custom-content
+                  [:div.text-black.dark:text-white.whitespace-nowrap.text-sm
+                   "Logged in as "
+                   [:span.font-bold (:username user)]]
                   :destroy-tooltip-on-click? false}
                  {:label    "Log Out"
                   :icon     [:i.fa-solid.fa-right-to-bracket
@@ -201,12 +203,17 @@
 
 (defn navbar
   [{{:keys [id]} :query-params {:keys [name]} :data :as match}]
-  [:nav.sticky.flex.items-center.h-14.top-0.z-20
-   {:class (into ["h-[56px]"]
-                 (if @(rf/subscribe [:queue/show])
-                   ["bg-transparent"]
-                   ["backdrop-blur-md" "dark:bg-neutral-950/90"
-                    "bg-neutral-100/90"]))}
+  [:> motion.nav
+   {:animate    (if @(rf/subscribe [:queue/show])
+                  {:background "none"}
+                  {:background (if @(rf/subscribe [:dark-theme])
+                                 "rgba(10,10,10,0.9)"
+                                 "rgba(245,245,245,0.9)")})
+    :initial    false
+    :transition {:ease "easeInOut"}
+    :class      ["h-[56px]" "sticky" "flex" "items-center" "h-14" "top-0"
+                 "z-20" "backdrop-blur-md" "dark:bg-neutral-950/90"
+                 "bg-neutral-100/90"]}
    [:div.flex.flex-auto.items-center
     [nav-left-content
      (case name
@@ -368,15 +375,22 @@
 
 (defn mobile-menu
   [match]
-  (let [show-mobile-menu? @(rf/subscribe [:navigation/show-mobile-menu])]
-    [:div.fixed.h-dvh.w-80.top-0.bg-neutral-100.dark:bg-neutral-950.transition-all.ease-in-out.delay-75.z-30.flex.flex-col
-     {:class [(if show-mobile-menu? "left-0" "-left-80")]}
-     [:div.flex.items-center.h-14.pl-8.gap-x-6
-      {:class "min-h-[56px]"}
-      [:button.text-lg
-       {:on-click #(rf/dispatch [:navigation/hide-mobile-menu])}
-       [:i.fa-solid.fa-bars]]
-      [logo]]
-     [:div.flex.flex-col.justify-between.flex-auto.overflow-auto.scrollbar-none
-      [services-menu match true]
-      [tools-menu true]]]))
+  [:> AnimatePresence
+   (when @(rf/subscribe [:navigation/show-mobile-menu])
+     [:> motion.div
+      {:class      ["flex" "flex-col" "fixed" "h-dvh" "w-80" "top-0"
+                    "bg-neutral-100" "dark:bg-neutral-950" "transition-all"
+                    "z-30"]
+       :animate    {:x 0}
+       :initial    {:x -320}
+       :exit       {:x -640}
+       :transition {:duration 0.1}}
+      [:div.flex.items-center.h-14.pl-8.gap-x-6
+       {:class "min-h-[56px]"}
+       [:button.text-lg
+        {:on-click #(rf/dispatch [:navigation/hide-mobile-menu])}
+        [:i.fa-solid.fa-bars]]
+       [logo]]
+      [:div.flex.flex-col.justify-between.flex-auto.overflow-auto.scrollbar-none
+       [services-menu match true]
+       [tools-menu true]]])])

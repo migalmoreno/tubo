@@ -1,5 +1,6 @@
 (ns tubo.views
   (:require
+   ["motion/react" :refer [AnimatePresence motion]]
    ["react-top-loading-bar$default" :as LoadingBar]
    [re-frame.core :as rf]
    [tubo.bg-player.views :as bg-player]
@@ -32,11 +33,16 @@
          :ref   #(reset! !top-loading-bar %)}]
        [navigation/sidebar current-match]
        [:div.flex.flex-col.flex-auto.justify-between.relative.max-w-full
-        (if-let [view (-> current-match
-                          :data
-                          :view)]
-          [view current-match]
-          [layout/not-found-page])
+        [:> AnimatePresence
+         {:mode "wait" :onExitComplete #(rf/dispatch [:scroll-to-top])}
+         (if-let [view (get-in current-match [:data :view])]
+           ^{:key (get-in current-match [:data :name])}
+           [:> motion.div
+            {:class      ["flex" "flex-auto"]
+             :exit       {:opacity 0}
+             :transition {:duration 0.5 :ease "easeOut"}}
+            [view current-match]]
+           [layout/not-found-page])]
         [queue/queue]
         [bg-player/player]
         [main-player/player]]]]]))

@@ -1,5 +1,6 @@
 (ns tubo.layout.views
   (:require
+   ["motion/react" :refer [AnimatePresence motion]]
    [clojure.string :as str]
    [fork.re-frame :as fork]
    [malli.core :as m]
@@ -58,12 +59,17 @@
 (defn background-overlay
   []
   (when-let [{:keys [show?] :as overlay} @(rf/subscribe [:layout/bg-overlay])]
-    [:div.w-full.fixed.min-h-screen.right-0.top-0.z-20
-     {:class    (conj (:extra-classes overlay)
-                      (when-not (:transparent? overlay) "bg-black"))
-      :style    {:visibility (when-not show? "hidden")
-                 :opacity    (if show? "0.5" "0")}
-      :on-click (:on-click overlay)}]))
+    [:> AnimatePresence
+     (when show?
+       [:> motion.div
+        {:class    (into ["w-full" "fixed" "min-h-screen" "right-0" "top-0"
+                          "z-20"]
+                         (conj (:extra-classes overlay)
+                               (when-not (:transparent? overlay) "bg-black")))
+         :animate  {:opacity 0.5}
+         :initial  {:opacity 0}
+         :exit     {:opacity 0}
+         :on-click (:on-click overlay)}])]))
 
 (defn form-container
   [& children]
@@ -221,9 +227,17 @@
 (defn tooltip
   [tooltip-id & {:keys [extra-classes]}]
   (let [{:keys [items]} @(rf/subscribe [:layout/tooltip-by-id tooltip-id])]
-    (when-not (empty? (remove nil? items))
-      [:ul.absolute.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.z-30
-       {:class (conj extra-classes)}
+    (when (seq (remove nil? items))
+      [:> motion.ul
+       {:class      (into ["absolute" "bg-neutral-100" "dark:bg-neutral-900"
+                           "rounded-t" "rounded-b" "flex" "flex-col"
+                           "text-neutral-800" "dark:text-white" "shadow"
+                           "shadow-neutral-400" "dark:shadow-neutral-900"
+                           "z-30"]
+                          extra-classes)
+        :animate    {:scale 1}
+        :initial    {:scale 0.9}
+        :transition {:duration 0.05}}
        (for [[i item] (map-indexed vector (remove nil? items))]
          ^{:key i} [tooltip-item item tooltip-id])])))
 
@@ -233,14 +247,25 @@
         @(rf/subscribe [:layout/mobile-tooltip])
         {:keys [items] :as tooltip-data} @(rf/subscribe [:layout/tooltip-by-id
                                                          id])]
-    (when tooltip-data
-      [:div.xs:hidden
-       {:class (str "tooltip-controller-" id)}
-       (when-not (empty? (remove nil? items))
-         [:ul.bg-neutral-100.dark:bg-neutral-900.rounded-t.rounded-b.z-30.flex.flex-col.text-neutral-800.dark:text-white.shadow.shadow-neutral-400.dark:shadow-neutral-900.bottom-4.left-2.right-2.fixed
-          {:class (when-not show? "hidden")}
-          (for [[i item] (map-indexed vector (remove nil? items))]
-            ^{:key i} [tooltip-item item id])])])))
+    [:> AnimatePresence
+     (when tooltip-data
+       [:div.xs:hidden
+        {:class (str "tooltip-controller-" id)}
+        (when (and (seq (remove nil? items)) show?)
+          [:> motion.ul
+           {:animate    {:y 0}
+            :initial    {:y 400}
+            :exit       {:y 400}
+            :transition {:ease     "easeInOut"
+                         :bounce   0.1
+                         :duration 0.3}
+            :class      ["bg-neutral-100" "dark:bg-neutral-900" "rounded-t"
+                         "rounded-b" "z-30" "flex" "flex-col" "text-neutral-800"
+                         "dark:text-white" "shadow" "shadow-neutral-400"
+                         "dark:shadow-neutral-900" "bottom-4" "left-2" "right-2"
+                         "fixed"]}
+           (for [[i item] (map-indexed vector (remove nil? items))]
+             ^{:key i} [tooltip-item item id])])])]))
 
 (defn popover
   []

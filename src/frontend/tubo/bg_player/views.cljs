@@ -1,5 +1,6 @@
 (ns tubo.bg-player.views
   (:require
+   ["motion/react" :refer [AnimatePresence motion]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.bookmarks.modals :as modals]
@@ -132,21 +133,21 @@
        :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
       [player/shuffle-button shuffle? color]]
-     [:div.hidden.lg:flex.items-center.text-sm
-      [:span.mx-2.w-8
+     [:div.hidden.lg:flex.items-center.text-sm.gap-x-2
+      [:span.w-16.flex.justify-end
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
        [time-slider !player !elapsed-time color]]
-      [:span.mx-2.w-8
+      [:span.w-16.flex.justify-start
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
          "--:--")]]]))
 
 (defn popover
   [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
-    :as   stream}]
+    :as   stream} & {:keys [tooltip-classes]}]
   (let [queue       @(rf/subscribe [:queue])
         queue-pos   @(rf/subscribe [:queue/position])
         bookmark    #(rf/dispatch [:modals/open
@@ -202,18 +203,27 @@
        :icon              [:i.fa-solid.fa-close]
        :on-click          #(rf/dispatch [:bg-player/dispose])}]
      :stop-propagation? true
-     :tooltip-classes ["right-5" (when-not show-queue? "bottom-5")]
+     :tooltip-classes
+     (or tooltip-classes ["right-5" (when-not show-queue? "bottom-5")])
      :extra-classes
      (into (when-not show-queue? ["xs:p-3" "text-lg"])
            ["px-5" "lg:text-base"])]))
 
 (defn menu-controls
   [stream]
-  (let [show-list? @(rf/subscribe [:queue/show-list])]
-    [:div.flex.gap-x-4.pl-5.lg:hidden
-     [:button
-      {:on-click #(rf/dispatch [:queue/show-list (not show-list?)])}
-      (if show-list? [:i.fa-solid.fa-headphones] [:i.fa-solid.fa-list])]
+  (let [show-list? @(rf/subscribe [:queue/show-list])
+        muted?     @(rf/subscribe [:player/muted])]
+    [:div.flex.gap-x-4
+     [:div.flex.gap-x-8.pl-5.lg:hidden
+      [player/button
+       :show-on-mobile? true
+       :icon
+       (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
+       :on-click #(rf/dispatch [:bg-player/mute (not muted?)])
+       :extra-classes ["w-[1rem]"]]
+      [:button
+       {:on-click #(rf/dispatch [:queue/show-list (not show-list?)])}
+       (if show-list? [:i.fa-solid.fa-headphones] [:i.fa-solid.fa-list])]]
      [popover stream]]))
 
 (defn extra-controls
@@ -294,15 +304,22 @@
                           "),url("
                           (:thumbnail stream)
                           ")")]
-    (when show-player?
-      [:div.sticky.absolute.left-0.bottom-0.z-10.p-3.transition-all.ease-in.relative.bg-cover.bg-center.bg-no-repeat.cursor-pointer
-       {:style    {"--bg-image" bg-image}
-        :class    ["h-[80px]" "bg-[image:var(--bg-image)]"
-                   (when show-queue? "invisible")
-                   (if show-queue? "opacity-0" "opacity-1")]
-        :on-click #(rf/dispatch [:queue/show true])}
-       [:div.flex.items-center
-        [audio-player !player]
-        [metadata stream]
-        [main-controls !player color]
-        [extra-controls !player stream color]]])))
+    [:<>
+     (when show-player?
+       [audio-player !player])
+     [:> AnimatePresence
+      (when (and show-player? (not show-queue?))
+        [:> motion.div
+         {:style      {"--bg-image" bg-image}
+          :animate    {:y 0}
+          :initial    {:y 100}
+          :transition {:ease "easeOut" :duration 0.3}
+          :exit       {:y 100}
+          :class      ["h-[80px]" "sticky" "absolute" "left-0" "bottom-0" "z-10"
+                       "p-3" "relative" "bg-cover" "bg-center" "bg-no-repeat"
+                       "bg-[image:var(--bg-image)]" "cursor-pointer"]
+          :on-click   #(rf/dispatch [:queue/show true])}
+         [:div.flex.items-center
+          [metadata stream]
+          [main-controls !player color]
+          [extra-controls !player stream color]]])]]))

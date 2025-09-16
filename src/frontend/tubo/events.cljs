@@ -1,6 +1,8 @@
 (ns tubo.events
   (:require
+   ["motion" :refer [animate]]
    [fork.re-frame :as fork]
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
@@ -104,6 +106,17 @@
    (when @virtuoso
      {:virtuoso-scroll-to-index [@virtuoso idx]})))
 
+(rf/reg-fx
+ :animate!
+ (fn [[elem props opts]]
+   (when elem
+     (animate elem (clj->js props) (clj->js opts)))))
+
+(rf/reg-event-fx
+ :animate
+ (fn [_ [_ elem props opts]]
+   (when elem
+     {:animate! [elem props opts]})))
 
 (rf/reg-fx
  :start-loading!
@@ -251,7 +264,7 @@
 
 (rf/reg-fx
  :timeout
- (fn [{:keys [id event time]}]
+ (fn [{:keys [id event time] :or {id (nano-id)}}]
    (when-some [existing (get @!timeouts id)]
      (js/clearTimeout existing)
      (swap! !timeouts dissoc id))

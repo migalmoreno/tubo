@@ -33,3 +33,17 @@
    [(rf/subscribe [:queue]) (rf/subscribe [:queue/position])])
  (fn [[queue pos]]
    (and (not-empty queue) (< pos (count queue)) (nth queue pos))))
+
+(defonce !queue-thumbnail (atom nil))
+
+(rf/reg-sub
+ :queue-thumbnail
+ (fn []
+   !queue-thumbnail))
+
+(defonce !queue-bg (atom nil))
+
+(rf/reg-sub
+ :queue-bg
+ (fn []
+   !queue-bg))
