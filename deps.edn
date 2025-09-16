@@ -34,8 +34,8 @@
           :ns-default build}
   :cljs
   {:extra-paths ["src/frontend" "src/scripts" "env/release"]
-   :extra-deps  {babashka/process                {:mvn/version "0.5.22"}
-                 babashka/fs                     {:mvn/version "0.5.23"}
+   :extra-deps  {babashka/fs                     {:mvn/version "0.5.23"}
+                 babashka/process                {:mvn/version "0.5.22"}
                  cider/cider-nrepl               {:mvn/version "0.28.4"}
                  com.cognitect/transit-clj       {:mvn/version "1.0.333"}
                  com.github.scopews/svgreq       {:mvn/version "1.1.0"}
