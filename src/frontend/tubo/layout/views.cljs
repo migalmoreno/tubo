@@ -119,8 +119,10 @@
 (defn button
   [label on-click left-icon right-icon &
    {:keys [button-classes label-classes icon-classes extra-button-args]}]
-  [:button.flex.items-center.gap-x-2.px-4.py-2.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap
-   (merge {:on-click on-click :class button-classes} extra-button-args)
+  [:button.flex.justify-center.items-center.gap-x-2.px-4.py-2.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap
+   (merge {:on-click on-click
+           :class    (into button-classes (:class extra-button-args))}
+          extra-button-args)
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
    [:span.font-bold.text-sm {:class label-classes} label]
@@ -192,7 +194,7 @@
                  [:span.whitespace-nowrap label]]
         classes (into ["relative" "flex" "items-center" "gap-x-3" "py-2.5"
                        "px-4" "first:rounded-t" "last:rounded-b"
-                       (when on-click "cursor-pointer")]
+                       (when (or on-click subschema) "cursor-pointer")]
                       (when-not custom-content
                         ["hover:bg-neutral-200"
                          "dark:hover:bg-neutral-800/50"]))]
@@ -335,11 +337,12 @@
       #(when (and @!resize-observer @!text-container)
          (.unobserve @!resize-observer @!text-container))
       :reagent-render
-      (fn [open? text on-open]
+      (fn [open? text on-open &
+           {:keys [classes] :or {classes ["line-clamp-2"]}}]
         [:div.min-w-full
          [:span.text-clip.pr-2
           {:dangerouslySetInnerHTML {:__html text}
-           :class                   (when-not open? "line-clamp-2")
+           :class                   (when-not open? classes)
            :ref                     #(reset! !text-container %)}]
          (when (or @text-clamped? open?)
            [:button.font-bold {:on-click on-open}
@@ -433,8 +436,9 @@
               (when tab
                 [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
                  {:class (if selected?
-                           "border-neutral-700 dark:border-neutral-100"
-                           "!border-transparent")
+                           ["border-neutral-700" "dark:border-neutral-100"]
+                           ["!border-transparent" "text-neutral-600"
+                            "dark:text-neutral-400"])
                   :key   i}
                  [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center.text-sm.sm:text-base
                   {:on-click (when (not selected?)

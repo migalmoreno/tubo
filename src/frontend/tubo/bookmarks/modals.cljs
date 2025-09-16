@@ -6,7 +6,7 @@
 
 (defn bookmark-item
   [{:keys [items name] :as bookmark} item]
-  [:div.flex.gap-x-4.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-800
+  [:div.flex.gap-x-4.w-full.h-24.rounded.px-2.cursor-pointer.hover:bg-neutral-100.dark:hover:bg-neutral-900.transition-all.ease-in-out
    {:on-click
     #(rf/dispatch
       [(if (> (count (flatten [item])) 1) :bookmark/add-n :bookmark/add)
