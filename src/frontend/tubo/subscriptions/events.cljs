@@ -3,19 +3,21 @@
    [clojure.set :refer [rename-keys]]
    [re-frame.core :as rf]
    [tubo.storage :refer [persist]]
+   [tubo.layout.events :refer [show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :subscriptions/load-user-subs
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :user/subscriptions (map
-                                    #(rename-keys % {:avatar :thumbnail})
-                                    body)
-               :show-page-loading  false)}))
+               :user/subscriptions
+               (map
+                #(rename-keys % {:avatar :thumbnail})
+                body))}))
 
 (rf/reg-event-fx
  :subscriptions/fetch
+ [(show-loading-status :api/get-auth)]
  (fn [_ [_ on-error]]
    {:fx [[:dispatch
           [:api/get-auth "user/subscriptions" [:subscriptions/load-user-subs]
@@ -25,8 +27,7 @@
  :subscriptions/fetch-page
  (fn [{:keys [db]}]
    (if (:auth/user db)
-     {:db             (assoc db :show-page-loading true)
-      :document-title (str (:username (:auth/user db)) "'s subscriptions")
+     {:document-title (str (:username (:auth/user db)) "'s subscriptions")
       :fx             [[:dispatch
                         [:subscriptions/fetch
                          [:bad-page-response [:auth/redirect-login]]]]]}

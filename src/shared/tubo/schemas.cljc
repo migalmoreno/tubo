@@ -142,7 +142,6 @@
    [:playlist {:optional true} any?]
    [:services {:optional true} [:maybe vector?]]
    [:service-id {:default 0 :persist true} int?]
-   [:show-page-loading {:optional true} [:maybe boolean?]]
    [:show-pagination-loading {:optional true} [:maybe boolean?]]
    [:kiosks {:optional true} any?]
    [:kiosk {:optional true} [:maybe map?]]

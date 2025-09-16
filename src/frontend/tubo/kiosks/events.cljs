@@ -1,6 +1,7 @@
 (ns tubo.kiosks.events
   (:require
    [re-frame.core :as rf]
+   [tubo.layout.events :refer [show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-db
@@ -10,6 +11,7 @@
 
 (rf/reg-event-fx
  :kiosks/fetch
+ [(show-loading-status :api/get)]
  (fn [_ [_ service-id kiosk-id on-success on-error params]]
    {:fx [[:dispatch
           [:api/get
@@ -19,6 +21,7 @@
 
 (rf/reg-event-fx
  :kiosks/fetch-default
+ [(show-loading-status :api/get)]
  (fn [_ [_ service-id on-success on-error params]]
    {:fx [[:dispatch
           [:api/get
@@ -36,12 +39,11 @@
 (rf/reg-event-fx
  :kiosks/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
-   {:db (-> (assoc db
-                   :kiosk
-                   (-> body
-                       (utils/apply-thumbnails-quality db :related-streams)
-                       (utils/apply-avatars-quality db :related-streams)))
-            (assoc :show-page-loading false))
+   {:db (assoc db
+               :kiosk
+               (-> body
+                   (utils/apply-thumbnails-quality db :related-streams)
+                   (utils/apply-avatars-quality db :related-streams)))
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
 
@@ -53,8 +55,7 @@
                              :default-country
                              (get (js/parseInt service-id))
                              :code)]
-     {:db (assoc db :show-page-loading true)
-      :fx [[:dispatch
+     {:fx [[:dispatch
             (if kiosk-id
               [:kiosks/fetch service-id kiosk-id
                [:kiosks/load-page]
@@ -112,7 +113,9 @@
    (if (seq next-page)
      {:db (assoc db :show-pagination-loading true)
       :fx [[:dispatch
-            [:kiosks/fetch service-id kiosk-id
+            [:api/get
+             (str "services/" service-id
+                  "/kiosks/"  (js/encodeURIComponent kiosk-id))
              [:kiosks/load-paginated] [:bad-pagination-response]
              {:nextPage (.stringify js/JSON (clj->js next-page))}]]]}
      {:db (assoc db :show-pagination-loading false)})))

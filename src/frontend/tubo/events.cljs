@@ -67,9 +67,15 @@
    (assoc cofx :now (js/Date))))
 
 (rf/reg-fx
+ :scroll-to-top!
+ (fn []
+   (when js/window
+     (.scrollTo js/window #js {"top" 0 "behavior" "smooth"}))))
+
+(rf/reg-event-fx
  :scroll-to-top
  (fn []
-   (.scrollTo js/window #js {"top" 0 "behavior" "smooth"})))
+   {:scroll-to-top! nil}))
 
 (rf/reg-fx
  :body-overflow
@@ -82,15 +88,39 @@
    (set! (.-title js/document) (str (when title (str title " - ")) "Tubo"))))
 
 (rf/reg-fx
- :scroll-top!
- (fn [element]
-   (when element
-     (set! (.-scrollTop (.-parentNode element)) (.-offsetTop element)))))
 
 (rf/reg-event-fx
- :scroll-top
- (fn [_ [_ element]]
-   {:scroll-top! element}))
+
+(rf/reg-fx
+ :start-loading!
+ (fn [top-loading-bar]
+   (when @top-loading-bar
+     (.continuousStart ^js @top-loading-bar))))
+
+(rf/reg-event-fx
+ :start-loading
+ [(rf/inject-cofx ::inject/sub [:top-loading-bar])]
+ (fn [{:keys [top-loading-bar]} _]
+   {:start-loading! top-loading-bar}))
+
+(rf/reg-fx
+ :stop-loading!
+ (fn [top-loading-bar]
+   (when @top-loading-bar
+     (.complete @top-loading-bar))))
+
+(rf/reg-event-fx
+ :stop-loading
+ [(rf/inject-cofx ::inject/sub [:top-loading-bar])]
+ (fn [{:keys [top-loading-bar]} _]
+   {:stop-loading! top-loading-bar}))
+
+(rf/reg-event-fx
+ :on-success
+ [(rf/inject-cofx ::inject/sub [:top-loading-bar])]
+ (fn [{:keys [top-loading-bar]} [_ on-success body]]
+   {:fx            [[:dispatch (conj on-success body)]]
+    :stop-loading! top-loading-bar}))
 
 (rf/reg-event-fx
  :api/get
@@ -219,7 +249,8 @@
 (rf/reg-event-fx
  :bad-response
  (fn [_ [_ res]]
-   {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]]}))
+   {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]
+         [:dispatch [:stop-loading]]]}))
 
 (rf/reg-event-fx
  :bad-pagination-response
@@ -229,11 +260,11 @@
 
 (rf/reg-event-fx
  :bad-page-response
- (fn [{:keys [db]} [_ reload-cb res]]
+ (fn [_ [_ reload-cb res]]
    {:fx [[:dispatch
           [:change-view
-           #(layout/error (assoc res :type :error) reload-cb)]]]
-    :db (assoc db :show-page-loading false)}))
+           #(layout/error (assoc res :type :error) reload-cb)]]
+         [:dispatch [:stop-loading]]]}))
 
 (rf/reg-fx
  :file-download
@@ -273,8 +304,3 @@
  (fn [{:keys [db]} [_ path res]]
    {:db (fork/set-submitting db path false)
     :fx [[:dispatch [:bad-response res]]]}))
-
-(rf/reg-event-db
- :show-page-loading
- (fn [db [_ val]]
-   (assoc db :show-page-loading val)))

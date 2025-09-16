@@ -1,6 +1,7 @@
 (ns tubo.feed.events
   (:require
    [re-frame.core :as rf]
+   [tubo.layout.events :refer [show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-fx
@@ -11,25 +12,22 @@
          (if (:auth/user db) :user/feed :feed)
          (-> body
              (utils/apply-thumbnails-quality db :items)
-             (utils/apply-avatars-quality db :items)))
-    :fx [[:dispatch [:show-page-loading false]]]}))
+             (utils/apply-avatars-quality db :items)))}))
 
 (rf/reg-event-fx
  :feed/fetch
- [(rf/inject-cofx :now)]
+ [(rf/inject-cofx :now) (show-loading-status :api/get-auth)]
  (fn [{:keys [db now]}]
    {:db (assoc db
                (if (:auth/user db) :user/feed-last-updated :feed-last-updated)
                now)
     :fx (if (:auth/user db)
-          [[:dispatch [:show-page-loading true]]
-           [:dispatch
+          [[:dispatch
             [:api/get-auth "user/feed"
              [:feed/load-items]
              [:bad-page-response [:auth/redirect-login]]]]]
           (when (seq (:subscriptions db))
-            [[:dispatch [:show-page-loading true]]
-             [:dispatch
+            [[:dispatch
               [:api/get "feed" [:feed/load-items] [:bad-page-response]
                {:channels (.stringify js/JSON
                                       (clj->js (map :url

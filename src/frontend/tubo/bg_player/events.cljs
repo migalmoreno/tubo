@@ -172,7 +172,11 @@
  (fn [{:keys [db]} [_ url idx play?]]
    (merge (when-not (nil? play?)
             {:db (assoc db :bg-player/loading play?)})
-          {:fx [[:dispatch
-                 [:stream/fetch url
-                  [:bg-player/load-stream idx play?]
+          {:fx [(when play?
+                  [:dispatch [:start-loading]])
+                [:dispatch
+                 [:api/get (str "streams/" (js/encodeURIComponent url))
+                  (if play?
+                    [:on-success [:bg-player/load-stream idx play?]]
+                    [:bg-player/load-stream idx play?])
                   [:bg-player/bad-response idx play?]]]]})))

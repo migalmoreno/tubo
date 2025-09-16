@@ -2,10 +2,12 @@
   (:require
    [re-frame.core :as rf]
    [tubo.channel.views :as channel]
+   [tubo.layout.events :refer [show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :channel/fetch
+ [(show-loading-status :api/get)]
  (fn [_ [_ uri on-success on-error]]
    {:fx [[:dispatch
           [:api/get (str "channels/" (js/encodeURIComponent uri)) on-success
@@ -15,20 +17,20 @@
  :channel/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc db
-               :channel           (-> body
-                                      (utils/apply-thumbnails-quality
-                                       db
-                                       :related-streams)
-                                      (utils/apply-avatars-quality
-                                       db
-                                       :related-streams)
-                                      (utils/apply-image-quality db
-                                                                 :avatar
-                                                                 :avatars)
-                                      (utils/apply-image-quality db
-                                                                 :banner
-                                                                 :banners))
-               :show-page-loading false)
+               :channel
+               (-> body
+                   (utils/apply-thumbnails-quality
+                    db
+                    :related-streams)
+                   (utils/apply-avatars-quality
+                    db
+                    :related-streams)
+                   (utils/apply-image-quality db
+                                              :avatar
+                                              :avatars)
+                   (utils/apply-image-quality db
+                                              :banner
+                                              :banners)))
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
 
@@ -39,7 +41,7 @@
          [:dispatch
           [:channel/fetch uri [:channel/load-page]
            [:bad-page-response [:channel/fetch-page uri]]]]]
-    :db (assoc db :show-page-loading true)}))
+    :db (assoc db :channel nil)}))
 
 (rf/reg-event-fx
  :channel/load-tab

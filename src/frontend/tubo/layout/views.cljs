@@ -73,15 +73,13 @@
 
 (defn content-container
   [& children]
-  (let [page-loading?     @(rf/subscribe [:show-page-loading])
-        service-color     @(rf/subscribe [:service-color])
-        sidebar-minimized @(rf/subscribe [:navigation/sidebar-minimized])]
-    [:div.flex.flex-col.flex-auto.items-center.py-4.px-5.md:px-0
-     (if page-loading?
-       [loading-icon service-color "text-5xl"]
-       [:div.flex.flex-col.flex-auto.w-full
-        {:class [(if sidebar-minimized "md:w-4/5" "md:w-11/12")]}
-        (map-indexed #(with-meta %2 {:key %1}) children)])]))
+  (let [sidebar-minimized @(rf/subscribe [:navigation/sidebar-minimized])]
+    [:div
+     {:class ["flex" "flex-col" "flex-auto" "items-center" "py-4" "px-5"
+              "md:px-0" "w-full"]}
+     [:div.flex.flex-col.flex-auto.w-full
+      {:class [(if sidebar-minimized "md:w-4/5" "md:w-11/12")]}
+      (map-indexed #(with-meta %2 {:key %1}) children)]]))
 
 (defn content-header
   []
@@ -329,43 +327,39 @@
 
 (defn error
   [{:keys [type body status status-text problem-message]} cb]
-  (let [page-loading? @(rf/subscribe [:show-page-loading])
-        service-color @(rf/subscribe [:service-color])]
-    [content-container
-     (if page-loading?
-       [loading-icon service-color "text-5xl"]
-       [:div.flex.flex-auto.h-full.items-center.justify-center.py-4
-        [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
-         [:div.flex.items-center.gap-x-4.text-xl
-          {:class (when-not (:message body) :justify-center)}
-          (cond type
-                (case type
-                  :success [:i.fa-solid.fa-circle-check]
-                  :error   [:i.fa-solid.fa-circle-exclamation]
-                  :loading [:div.grow-0 [loading-icon]]
-                  [:i.fa-solid.fa-circle-info])
-                problem-message [:i.fa-solid.fa-circle-exclamation]
-                :else [:i.fa-solid.fa-circle-info])
-          [:h3.font-bold
-           (cond (or status status-text)
-                 (str status (when status-text (str " " status-text)))
-                 problem-message problem-message)]]
-         (when-let [message (:message body)]
-           [:span.break-words message])
-         (when (:trace body)
-           [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
-            [:pre.overflow-x-auto.font-mono.text-sm
-             (:trace body)]])
-         [:div.flex.justify-center.gap-x-6
-          [primary-button "Back" #(rf/dispatch [:navigation/history-go -1])
-           [:i.fa-solid.fa-arrow-left]]
-          (when (:trace body)
-            [secondary-button "Copy"
-             #(rf/dispatch [:copy-to-clipboard (:trace body)])
-             [:i.fa-regular.fa-clipboard]])
-          (when cb
-            [secondary-button "Retry" #(rf/dispatch cb)
-             [:i.fa-solid.fa-rotate-right]])]]])]))
+  [content-container
+   [:div.flex.flex-auto.h-full.items-center.justify-center.py-4
+    [:div.flex.flex-col.gap-y-8.border-border-neutral-300.rounded.dark:border-neutral-700.w-full
+     [:div.flex.items-center.gap-x-4.text-xl
+      {:class (when-not (:message body) :justify-center)}
+      (cond type
+            (case type
+              :success [:i.fa-solid.fa-circle-check]
+              :error   [:i.fa-solid.fa-circle-exclamation]
+              :loading [:div.grow-0 [loading-icon]]
+              [:i.fa-solid.fa-circle-info])
+            problem-message [:i.fa-solid.fa-circle-exclamation]
+            :else [:i.fa-solid.fa-circle-info])
+      [:h3.font-bold
+       (cond (or status status-text)
+             (str status (when status-text (str " " status-text)))
+             problem-message problem-message)]]
+     (when-let [message (:message body)]
+       [:span.break-words message])
+     (when (:trace body)
+       [:div.bg-neutral-300.dark:bg-neutral-950.py-4.px-4.rounded.relative
+        [:pre.overflow-x-auto.font-mono.text-sm
+         (:trace body)]])
+     [:div.flex.justify-center.gap-x-6
+      [primary-button "Back" #(rf/dispatch [:navigation/history-go -1])
+       [:i.fa-solid.fa-arrow-left]]
+      (when (:trace body)
+        [secondary-button "Copy"
+         #(rf/dispatch [:copy-to-clipboard (:trace body)])
+         [:i.fa-regular.fa-clipboard]])
+      (when cb
+        [secondary-button "Retry" #(rf/dispatch cb)
+         [:i.fa-solid.fa-rotate-right]])]]]])
 
 (defn horizontal-tabs
   [tabs]

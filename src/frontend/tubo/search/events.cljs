@@ -1,6 +1,7 @@
 (ns tubo.search.events
   (:require
    [re-frame.core :as rf]
+   [tubo.layout.events :refer [show-loading-status]]
    [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
@@ -25,6 +26,7 @@
 
 (rf/reg-event-fx
  :search/fetch
+ [(show-loading-status :api/get)]
  (fn [_ [_ service-id on-success on-error params]]
    {:fx [[:dispatch
           [:api/get (str "services/" service-id "/search") on-success on-error
@@ -34,25 +36,23 @@
  :search/load-page
  (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
    {:db (assoc db
-               :search/results    (-> body
-                                      (utils/apply-thumbnails-quality db :items)
-                                      (utils/apply-avatars-quality db :items))
-               :search/query      query
-               :search/filter     filter
-               :show-page-loading false)
+               :search/results (-> body
+                                   (utils/apply-thumbnails-quality db :items)
+                                   (utils/apply-avatars-quality db :items))
+               :search/query   query
+               :search/filter  filter)
     :fx [[:dispatch [:services/fetch body]]]}))
 
 (rf/reg-event-fx
  :search/fetch-page
- (fn [{:keys [db]} [_ service-id query filter]]
+ [(rf/inject-cofx ::inject/sub [:layout/breakpoint])]
+ (fn [{:keys [db] :as cofx} [_ service-id query filter]]
    (let [default-filter (-> db
                             :settings
                             :default-filter
                             (get (js/parseInt service-id)))]
-     {:db (assoc db
-                 :show-page-loading true
-                 :search/results    nil)
-      :fx [[:dispatch [:search/show-form true]]
+     {:fx [(when (= (:layout/breakpoint cofx) :sm)
+             [:dispatch [:search/show-form true]])
            [:dispatch [:search/hide-suggestions]]
            [:dispatch [:search/change-input query]]
            [:dispatch
@@ -86,7 +86,7 @@
  (fn [{:keys [db]} [_ {:keys [query id next-page filter]}]]
    (if (seq next-page)
      {:fx [[:dispatch
-            [:search/fetch id
+            [:api/get (str "services/" id "/search")
              [:search/load-paginated] [:bad-pagination-response]
              (into
               {:q        query

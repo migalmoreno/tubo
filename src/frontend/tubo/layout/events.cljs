@@ -4,6 +4,34 @@
    [re-frame.core :as rf]
    [clojure.string :as str]))
 
+(defn show-loading-status
+  [key]
+  (rf/->interceptor
+   :id    :show-loading-status
+   :after (fn [context]
+            (update-in
+             context
+             [:effects :fx]
+             (fn [fx]
+               (conj
+                (if fx
+                  (map
+                   #(map (fn [dispatched-fx]
+                           (if (and (coll? dispatched-fx)
+                                    (= (first dispatched-fx) key))
+                             (update dispatched-fx
+                                     2
+                                     (fn [on-success] [:on-success
+                                                       on-success]))
+                             dispatched-fx))
+                         %)
+                   fx)
+                  [])
+                (when (some (fn [fx]
+                              (some #(and (coll? %) (= (first %) key)) fx))
+                            (get-in context [:effects :fx]))
+                  [:dispatch [:start-loading]])))))))
+
 (rf/reg-event-db
  :layout/show-bg-overlay
  (fn [db [_ {:keys [on-click] :as data} remain-open?]]
@@ -103,6 +131,6 @@
 (rf/reg-event-fx
  :layout/add-intersection-observer
  (fn [{:keys [db]} [_ observer elem cb opts]]
-   (when-not (or (:show-page-loading db) (:show-pagination-loading db))
+   (when-not (:show-pagination-loading db)
      {:intersection-observer
       {:observer observer :elem elem :cb cb :opts opts}})))

@@ -1,5 +1,6 @@
 (ns tubo.views
   (:require
+   ["react-top-loading-bar$default" :as LoadingBar]
    [re-frame.core :as rf]
    [tubo.bg-player.views :as bg-player]
    [tubo.layout.views :as layout]
@@ -11,8 +12,9 @@
 
 (defn app
   []
-  (let [current-match @(rf/subscribe [:navigation/current-match])
-        dark-theme?   @(rf/subscribe [:dark-theme])]
+  (let [current-match    @(rf/subscribe [:navigation/current-match])
+        dark-theme?      @(rf/subscribe [:dark-theme])
+        !top-loading-bar @(rf/subscribe [:top-loading-bar])]
     [:div
      {:class    (when dark-theme? :dark)
       :on-click #(rf/dispatch [:layout/destroy-tooltips-on-click-out
@@ -25,6 +27,9 @@
       [navigation/navbar current-match]
       [notifications/notifications-panel]
       [:div.flex.flex-auto
+       [:> LoadingBar
+        {:color @(rf/subscribe [:service-color])
+         :ref   #(reset! !top-loading-bar %)}]
        [navigation/sidebar current-match]
        [:div.flex.flex-col.flex-auto.justify-between.relative.max-w-full
         (if-let [view (-> current-match

@@ -6,7 +6,7 @@
    [fork.re-frame :as fork]
    [malli.core :as m]
    [malli.error :as me]
-   [tubo.layout.events :as le]
+   [tubo.layout.events :as le :refer [show-loading-status]]
    [tubo.schemas :as s]
    [tubo.storage :refer [persist]]
    [tubo.utils :as utils]))
@@ -436,8 +436,7 @@
           #(if (= (:playlist-id %) (:playlist-id body))
              (utils/apply-image-quality-n body db :items :thumbnail :thumbnail)
              %)
-          bookmarks)))
-      (assoc :show-page-loading false))}))
+          bookmarks))))}))
 
 (rf/reg-event-fx
  :bookmarks/on-fetch-authenticated-playlists
@@ -448,6 +447,7 @@
 
 (rf/reg-event-fx
  :bookmarks/fetch-authenticated-playlists
+ [(show-loading-status :api/get-auth)]
  (fn [{:keys [db]} [_ on-error cb]]
    {:fx (if (:auth/user db)
           [[:dispatch
@@ -457,10 +457,10 @@
 
 (rf/reg-event-fx
  :bookmark/fetch-page
+ [(show-loading-status :api/get-auth)]
  (fn [{:keys [db]} [_ playlist-id]]
    (if (:auth/user db)
-     {:db (assoc db :show-page-loading true)
-      :fx [[:dispatch
+     {:fx [[:dispatch
             [:api/get-auth (str "user/playlists/" playlist-id)
              [:bookmark/load-authenticated-playlist]
              [:bad-page-response [:auth/redirect-login]]]]]}
@@ -482,6 +482,7 @@
 
 (rf/reg-event-fx
  :bookmark/edit
+ [(show-loading-status :api/put-auth)]
  (fn [{:keys [db]} [_ playlist {:keys [values path]}]]
    {:db (fork/set-submitting db path true)
     :fx [[:dispatch

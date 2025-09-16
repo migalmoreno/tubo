@@ -65,7 +65,6 @@
                          (assoc :navigation/current-match match)
                          (assoc :navigation/show-mobile-menu false)
                          (assoc :show-pagination-loading false))
-      :scroll-to-top nil
       :body-overflow false
       :fx            [(when (or (and (seq (:queue db))
                                      (not (:main-player/show db)))

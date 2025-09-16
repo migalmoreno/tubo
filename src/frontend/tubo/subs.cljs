@@ -41,16 +41,15 @@
    (or (and (= theme "auto") (= @!auto-theme "dark")) (= theme "dark"))))
 
 (rf/reg-sub
- :page-scroll
- (fn [db]
-   (:page-scroll db)))
-
-(rf/reg-sub
- :show-page-loading
- (fn [db]
-   (:show-page-loading db)))
-
-(rf/reg-sub
  :show-pagination-loading
  (fn [db]
    (:show-pagination-loading db)))
+
+(defonce !top-loading-bar (atom nil))
+
+(rf/reg-sub
+ :top-loading-bar
+ (fn []
+   !top-loading-bar))
+
+(rf/reg-sub
