@@ -35,7 +35,7 @@
 (rf/reg-event-fx
  :player/set-stream
  (fn [{:keys [db]} [_ stream player pos]]
-   (let [video-stream (utils/get-video-stream stream (:settings db))]
+   (when-let [video-stream (utils/get-video-stream stream (:settings db))]
      {:fx [[:dispatch
             [:player/set-src
              {:player player :src video-stream :current-pos pos}]]]})))
