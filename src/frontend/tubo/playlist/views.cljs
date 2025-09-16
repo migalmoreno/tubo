@@ -53,7 +53,7 @@
                    "before:blur-[50px]"]}
           [:div.flex.items-center.justify-center.xs:justify-start.w-full.xs:w-auto.relative
            [layout/thumbnail playlist nil :container-classes ["h-52" "w-52"]
-            :image-classes ["rounded-md"]]]
+            :image-classes ["rounded-md"] :hide-label? true]]
           [:div.flex.flex-col.flex-1.gap-y-1.relative
            [:h1.text-sm.font-bold.text-neutral-600.dark:text-neutral-400
             (str (when edit-modal "LOCAL ") "PLAYLIST")]

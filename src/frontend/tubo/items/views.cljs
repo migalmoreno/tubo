@@ -52,6 +52,10 @@
              {:label    "Subscribe to channel"
               :icon     [:i.fa-solid.fa-user-plus]
               :on-click #(rf/dispatch [:subscriptions/add item])})]
+          (= type "playlist")
+          [{:label    "Add to queue"
+            :icon     [:i.fa-solid.fa-headphones]
+            :on-click #(rf/dispatch [:playlist/fetch-related-streams url])}]
           :else [(when @(rf/subscribe [:bookmarks/bookmarked playlist-id])
                    {:label    "Remove playlist"
                     :icon     [:i.fa-solid.fa-trash]
@@ -63,8 +67,8 @@
        :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
-  [{:keys [url name uploader-url uploader-name uploader-verified?
-           subscriber-count view-count stream-count verified? type]
+  [{:keys [url name uploader-url uploader-name uploader-verified? upload-date
+           subscriber-count view-count stream-count verified? type description]
     :as   item}]
   (let [route (case type
                 "stream"   (rfe/href :stream-page nil {:url url})
@@ -90,32 +94,39 @@
             [:i.fa-solid.fa-circle-check.text-sm])])
        [:div.h-fit
         [item-popover item]]]
-      [:div.flex.justify-between.text-neutral-600.dark:text-neutral-400.items-center.my-2.text-sm
-       [:div.flex.gap-x-2.items-center
-        [layout/uploader-avatar item :classes ["w-6" "h-6"]]
-        (conj
-         (when uploader-url
-           [:a
-            {:href  (rfe/href :channel-page nil {:url uploader-url})
-             :title uploader-name
-             :key   url}])
-         [:span.font-semibold.line-clamp-1.break-all
-          {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
-          uploader-name])
-        (when (and uploader-url uploader-verified?)
-          [:i.fa-solid.fa-circle-check.text-xs])]]
-      [:div.text-neutral-600.dark:text-neutral-400.text-sm
-       [:div.flex.gap-x-2
-        (when (and (= type "channel") subscriber-count)
-          [:span (str (utils/format-quantity subscriber-count) " subscribers")])
-        (when (and (= type "channel") subscriber-count stream-count)
-          [layout/bullet])
-        (when stream-count
-          [:span (str (utils/format-quantity stream-count) " streams")])]
-       [:div.flex.my-1.justify-between
-        [:span (utils/format-date-ago (:upload-date item))]
-        (when view-count
-          [:span (str (utils/format-quantity view-count) " views")])]]]]))
+      (when uploader-url
+        [:div.flex.justify-between.text-neutral-600.dark:text-neutral-400.items-center.my-2.text-sm
+         [:div.flex.gap-x-2.items-center
+          [layout/uploader-avatar item :classes ["w-6" "h-6"]]
+          (conj
+           (when uploader-url
+             [:a
+              {:href  (rfe/href :channel-page nil {:url uploader-url})
+               :title uploader-name
+               :key   url}])
+           [:span.font-semibold.line-clamp-1.break-all
+            {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
+            uploader-name])
+          (when (and uploader-url uploader-verified?)
+            [:i.fa-solid.fa-circle-check.text-xs])]])
+      [:div.text-neutral-600.dark:text-neutral-400.text-sm.flex.flex-col.gap-y-2
+       (when (or subscriber-count stream-count)
+         [:div.flex.gap-x-2
+          (when (and (= type "channel") subscriber-count)
+            [:span
+             (str (utils/format-quantity subscriber-count) " subscribers")])
+          (when (and (= type "channel") subscriber-count stream-count)
+            [layout/bullet])
+          (when (and (= type "channel") stream-count)
+            [:span (str (utils/format-quantity stream-count) " streams")])])
+       (when (or upload-date view-count)
+         [:div.flex.my-1.justify-between
+          [:span (utils/format-date-ago upload-date)]
+          (when view-count
+            [:span (str (utils/format-quantity view-count) " views")])])
+       (when description
+         [:span.text-xs.line-clamp-1.sm:text-sm.sm:line-clamp-2
+          (:description item)])]]]))
 
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name uploader-verified? description
@@ -131,16 +142,10 @@
                               "xs:text-sm"]
            metadata-classes  ["text-xs" "xs:text-sm"]}}]
   (let [route (case (:type item)
-                "stream"   (rfe/href :stream-page
-                                     nil
-                                     {:url (:url item)})
-                "channel"  (rfe/href :channel-page
-                                     nil
-                                     {:url (:url item)})
-                "playlist" (rfe/href :playlist-page
-                                     nil
-                                     {:url (:url item)})
-                (:url item))]
+                "stream"   (rfe/href :stream-page nil {:url url})
+                "channel"  (rfe/href :channel-page nil {:url url})
+                "playlist" (rfe/href :playlist-page nil {:url url})
+                url)]
     [:div.flex.gap-x-3.xs:gap-x-5
      [layout/thumbnail item route
       :container-classes thumbnail-classes
@@ -184,7 +189,7 @@
            (when upload-date
              [:span.line-clamp-1 {:class metadata-classes}
               (utils/format-date-ago upload-date)])])
-        (when (or subscriber-count stream-count)
+        (when (and (= type "channel") (or subscriber-count stream-count))
           [:div.flex.flex-col.xs:flex-row
            {:class metadata-classes}
            (when (and (= type "channel") subscriber-count)

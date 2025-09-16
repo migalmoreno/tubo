@@ -92,15 +92,15 @@
 
 (rf/reg-event-fx
  :bg-player/load-related-streams
- (fn [_ [_ {:keys [body]}]]
-   {:fx [[:dispatch [:queue/add-n (:related-streams body)]]]}))
+ (fn [_ [_ notify? {:keys [body]}]]
+   {:fx [[:dispatch [:queue/add-n (:related-streams body) notify?]]]}))
 
 (rf/reg-event-fx
  :bg-player/fetch-related-streams
  (fn [{:keys [db]} [_ url]]
    {:fx [[:dispatch
           [:stream/fetch url
-           [:bg-player/load-related-streams]] [:bad-response]]]
+           [:bg-player/load-related-streams false]] [:bad-response]]]
     :db (assoc db :bg-player/loading true)}))
 
 (rf/reg-event-fx

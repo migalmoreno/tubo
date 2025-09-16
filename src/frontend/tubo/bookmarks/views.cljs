@@ -50,7 +50,9 @@
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmarks/clear])}]]]
           [items/layout-switcher !layout]]
-         [items/related-streams items nil @!layout]]))))
+         [items/related-streams
+          (map (fn [item] (assoc item :type "bookmark")) items) nil
+          @!layout]]))))
 
 (def edit-playlist-validation
   [:map

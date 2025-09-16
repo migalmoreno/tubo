@@ -13,29 +13,48 @@
    [tubo.utils :as utils]))
 
 (defn thumbnail
-  [{:keys [duration thumbnail stream-type short? name]} route &
-   {:keys [container-classes image-classes hide-duration?]}]
+  [{:keys [duration thumbnail stream-type stream-count short? name type
+           playlist-type]} route &
+   {:keys [container-classes image-classes hide-label?]}]
   [:div.flex
    {:class container-classes}
    [:div.relative.min-w-full
-    [:a.absolute.min-w-full.min-h-full {:href route :title name}]
+    [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
        {:src thumbnail :class image-classes}]
       [:div.bg-neutral-300.flex.min-h-full.min-w-full.justify-center.items-center.rounded
+       {:class image-classes}
        [:i.fa-solid.fa-image.text-3xl.text-white]])
-    [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
-     {:class
-      (cond
-        (= stream-type "LIVE_STREAM") "bg-red-600/80"
-        (or short? duration)          "bg-black/70"
-        :else                         "hidden")}
-     [:p.text-white.text-xs
-      (cond
-        (= stream-type "LIVE_STREAM")       "LIVE"
-        short?                              "SHORTS"
-        (and duration (not hide-duration?)) (utils/format-duration
-                                             duration))]]]])
+    (when-not hide-label?
+      [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
+       {:class
+        (cond
+          (= stream-type "LIVE_STREAM")                       "bg-red-600/80"
+          (or short? duration (= playlist-type "MIX_STREAM")) ["bg-black/70"]
+          (some #{type} ["playlist" "bookmark"])              ["bg-black/90"
+                                                               "h-full"
+                                                               "!right-0"
+                                                               "!bottom-0"
+                                                               "!rounded-none"
+                                                               "!rounded-tr"
+                                                               "!rounded-br"]
+          :else                                               "hidden")}
+       [:div.text-white.text-xs.h-full
+        (cond
+          (= stream-type "LIVE_STREAM") "LIVE"
+          short? "SHORTS"
+          duration (utils/format-duration duration)
+          (= playlist-type "MIX_STREAM") [:div.flex.gap-x-1.items-center.px-1
+                                          [:i.fa-solid.fa-tower-broadcast
+                                           {:class "text-[0.6rem]"}]
+                                          [:span "Mix"]]
+          (some #{type} ["playlist" "bookmark"])
+          [:div.flex.flex-col.gap-y-2.justify-center.items-center.px-3.h-full
+           {:class "text-[0.7rem]"}
+           [:i.fa-solid.fa-list]
+           (when stream-count
+             [:span.font-bold stream-count])])]])]])
 
 (defn logo
   [& {:keys [height width]}]
