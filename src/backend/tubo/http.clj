@@ -18,6 +18,5 @@
 
 (defmethod ig/halt-key! ::service
   [_ server]
-  (do
-    (server :timeout 100)
-    (log/info "HTTP server stopped")))
+  (server :timeout 100)
+  (log/info "HTTP server stopped"))
