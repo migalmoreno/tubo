@@ -4,18 +4,18 @@
 Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
 
 * Screenshots
-[[file:assets/00.png]]
-[[file:assets/01.png]]
-[[file:assets/02.png]]
-[[file:assets/03.png]]
-[[file:assets/04.png]]
-[[file:assets/05.png]]
-[[file:assets/06.png]]
-[[file:assets/07.png]]
-[[file:assets/08.png]]
-[[file:assets/09.png]]
-[[file:assets/10.png]]
-[[file:assets/11.png]]
+[[file:assets/stream.png]]
+[[file:assets/playlist.png]]
+[[file:assets/queue.png]]
+[[file:assets/channel.png]]
+[[file:assets/feed.png]]
+[[file:assets/subscriptions.png]]
+[[file:assets/main_player.png]]
+[[file:assets/search.png]]
+[[file:assets/stream_light.png]]
+[[file:assets/audio_mobile.png]]
+[[file:assets/queue_mobile.png]]
+
 * Features
 - No ads
 - Background player
