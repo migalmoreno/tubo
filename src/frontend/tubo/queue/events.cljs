@@ -1,5 +1,6 @@
 (ns tubo.queue.events
   (:require
+   ["fast-average-color" :refer [FastAverageColor]]
    [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [tubo.storage :refer [persist]]
@@ -159,10 +160,21 @@
                [:dispatch [:queue/change-seamless-pos idx]])]}))))
 
 (rf/reg-event-fx
+ :queue/set-color
+ [persist]
+ (fn [{:keys [db]} [_ color]]
+   {:db (assoc db :queue/color (get (js->clj color) "hex"))}))
+
+(rf/reg-event-fx
+ :queue/get-color-async
+ (fn [_ [_ image]]
+   {:promise {:call       #(.getColorAsync (FastAverageColor.) image)
+              :on-success [:queue/set-color]
+              :on-failure [:notifications/error "error"]}}))
+
+(rf/reg-event-fx
  :queue/change-pos
- [(rf/inject-cofx ::inject/sub [:queue-thumbnail])
-  (rf/inject-cofx ::inject/sub [:queue-bg])]
- (fn [{:keys [db queue-thumbnail queue-bg]} [_ i]]
+ (fn [{:keys [db]} [_ i]]
    (let [idx    (cond (and (>= i 0) (< i (count (:queue db))))       i
                       (and (>= i 0) (= (:player/loop db) :playlist)) 0
                       (= (:player/loop db) :playlist)                (->
@@ -172,19 +184,13 @@
                                                                        dec))
          stream (get (:queue db) idx)]
      (when stream
-       {:fx (into [[:dispatch
-                    [:animate @queue-bg
-                     {"--opacity"  [0.95 0.8]
-                      "--bg-color" (if (:dark-theme db) "#FFFFFF" "#000000")}
-                     {:duration 0.5 :ease "easeIn"}]]
-                   [:dispatch
-                    [:animate @queue-thumbnail {:scale [0.9 1]}
-                     {:type "spring" :ease "easeInOut"}]]]
-                  (if (get-in db [:settings :seamless-playback])
-                    [[:dispatch [:queue/change-stream stream idx true]]
-                     [:dispatch [:queue/change-seamless-pos idx]]]
-                    [[:dispatch
-                      [:bg-player/fetch-stream (:url stream) idx true]]]))}))))
+       {:fx (if (get-in db [:settings :seamless-playback])
+              [[:dispatch
+                [:queue/change-stream stream idx true]]
+               [:dispatch [:queue/change-seamless-pos idx]]]
+              [[:dispatch
+                [:bg-player/fetch-stream (:url stream) idx
+                 true]]])}))))
 
 (rf/reg-event-fx
  :queue/reload-current-stream
@@ -216,48 +222,63 @@
 
 (rf/reg-event-fx
  :queue/change-stream
- [persist (rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [db bg-player]} [_ stream idx play?]]
+ [persist (rf/inject-cofx ::inject/sub [:bg-player])
+  (rf/inject-cofx ::inject/sub [:queue-bg])
+  (rf/inject-cofx ::inject/sub [:queue-thumbnail])
+  (rf/inject-cofx ::inject/sub [:dark-theme])]
+ (fn [{:keys [db bg-player queue-bg queue-thumbnail dark-theme]}
+      [_ stream idx play?]]
    (when stream
-     {:db (let [updated-db
-                (update-in
-                 db
-                 [:queue idx]
-                 #(merge
-                   %
-                   (-> stream
-                       (utils/apply-image-quality db :thumbnail :thumbnails)
-                       (utils/apply-image-quality db
-                                                  :uploader-avatar
-                                                  :uploader-avatars)
-                       (utils/apply-thumbnails-quality
-                        db
-                        :related-streams)
-                       (utils/apply-avatars-quality
-                        db
-                        :related-streams))))]
-            (if play? (assoc updated-db :queue/position idx) updated-db))
-      :fx (into (if play?
-                  [[:media-session-metadata
-                    {:title   (:name stream)
-                     :artist  (:uploader-name stream)
-                     :artwork [{:src (-> stream
-                                         :thumbnails
-                                         last
-                                         :url)}]}]
-                   [:media-session-handlers
-                    {:current-pos idx
-                     :player      bg-player}]
-                   [:dispatch
-                    [(if (:main-player/show db)
-                       :main-player/set-stream
-                       :bg-player/set-stream) stream idx]]
-                   [:dispatch [:scroll-to-index idx]]]
-                  [])
-                (when (and (:main-player/show db)
-                           (not (seq (get-in db [:queue idx :comments-page]))))
-                  [[:dispatch
-                    [:comments/fetch-page (:url stream) [:queue idx]]]]))})))
+     (let [updated-db (update-in
+                       db
+                       [:queue idx]
+                       #(merge
+                         %
+                         (->
+                           stream
+                           (utils/apply-image-quality db :thumbnail :thumbnails)
+                           (utils/apply-image-quality db
+                                                      :uploader-avatar
+                                                      :uploader-avatars)
+                           (utils/apply-thumbnails-quality
+                            db
+                            :related-streams)
+                           (utils/apply-avatars-quality
+                            db
+                            :related-streams))))]
+       {:db (if play? (assoc updated-db :queue/position idx) updated-db)
+        :fx (into (if play?
+                    [[:dispatch
+                      [:queue/get-color-async
+                       (get-in updated-db [:queue idx :thumbnail])]]
+                     [:dispatch
+                      [:animate @queue-bg
+                       {"--opacity" [(if dark-theme 0.8 0.3) 0.5]}
+                       {:duration 0.5 :ease "easeIn"}]]
+                     [:dispatch
+                      [:animate @queue-thumbnail {:scale [0.9 1]}
+                       {:type "spring" :ease "easeInOut"}]]
+                     [:media-session-metadata
+                      {:title   (:name stream)
+                       :artist  (:uploader-name stream)
+                       :artwork [{:src (-> stream
+                                           :thumbnails
+                                           last
+                                           :url)}]}]
+                     [:media-session-handlers
+                      {:current-pos idx
+                       :player      bg-player}]
+                     [:dispatch
+                      [(if (:main-player/show db)
+                         :main-player/set-stream
+                         :bg-player/set-stream) stream idx]]
+                     [:dispatch [:scroll-to-index idx]]]
+                    [])
+                  (when (and (:main-player/show db)
+                             (not (seq (get-in db
+                                               [:queue idx :comments-page]))))
+                    [[:dispatch
+                      [:comments/fetch-page (:url stream) [:queue idx]]]]))}))))
 
 (rf/reg-event-fx
  :queue/scroll-to-pos

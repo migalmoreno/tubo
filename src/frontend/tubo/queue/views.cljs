@@ -180,17 +180,10 @@
             !bg         @(rf/subscribe [:queue-bg])
             dark-theme? @(rf/subscribe [:dark-theme])
             breakpoint  @(rf/subscribe [:layout/breakpoint])
-            bg-color    (str "rgba("
+            bg-gradient (str "rgba("
                              (if dark-theme? "10,10,10" "255,255,255")
                              ","
                              "var(--opacity)"
-                             ")")
-            bg-image    (str "linear-gradient("
-                             bg-color
-                             ","
-                             bg-color
-                             "),url("
-                             (:thumbnail stream)
                              ")")]
         [:> AnimatePresence
          (when show-queue
@@ -201,20 +194,15 @@
              :class   ["fixed" "flex" "flex-col" "items-center" "justify-center"
                        "z-10" "right-0" "left-0" "top-0" "bottom-0"]}
             [:> motion.div
-             {:style {"--bg-image" bg-image
-                      "--bg-color" (if dark-theme? "#000000" "#FFFFFF")
-                      "--scale"    3
-                      "--opacity"  (if dark-theme? 0.8 0.6)
-                      "--blur"     "50px"}
+             {:style {"--bg-color"    @(rf/subscribe [:queue/color])
+                      "--bg-gradient" bg-gradient
+                      "--opacity"     0.5}
               :ref   #(reset! !bg %)
               :class ["flex" "w-full" "h-full" "relative" "overflow-hidden"
-                      "before:absolute"
+                      "before:absolute" "bg-[color:var(--bg-color)]"
                       "before:top-0" "before:bottom-0" "before:left-0"
-                      "before:right-0" "before:bg-cover" "before:bg-center"
-                      "before:bg-no-repeat" "before:bg-[image:var(--bg-image)]"
-                      "before:bg-[color:var(--bg-color)]"
-                      "before:content-['']" "before:scale-[var(--scale)]"
-                      "before:blur-[--blur]"]}
+                      "before:right-0" "before:bg-[color:var(--bg-gradient)]"
+                      "before:content-['']"]}
              (when (and show-queue (or (= breakpoint :lg) (not show-list?)))
                [:div.flex.flex-col.flex-1.p-4.sm:p-8.items-center.justify-center.relative
                 [:div.flex.flex-col.gap-y-10.items-center.justify-center

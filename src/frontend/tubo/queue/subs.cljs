@@ -13,6 +13,11 @@
    (:queue/unshuffled db)))
 
 (rf/reg-sub
+ :queue/color
+ (fn [db]
+   (:queue/color db)))
+
+(rf/reg-sub
  :queue/position
  (fn [db]
    (:queue/position db)))
