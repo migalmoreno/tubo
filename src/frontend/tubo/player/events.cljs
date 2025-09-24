@@ -34,7 +34,7 @@
    {:player/src opts}))
 
 (rf/reg-event-fx
- :player/play-error
+ :shaka/play-error
  (fn [error]
    {:fx [[:dispatch
           [:notifications/error
