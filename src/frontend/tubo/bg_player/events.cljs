@@ -181,4 +181,6 @@
                   (if play?
                     [:on-success [:bg-player/load-stream idx play?]]
                     [:bg-player/load-stream idx play?])
-                  [:bg-player/bad-response idx play?]]]]})))
+                  (if-not (nil? play?)
+                    [:bg-player/bad-response idx play?]
+                    [:noop])]]]})))

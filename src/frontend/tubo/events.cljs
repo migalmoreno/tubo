@@ -150,6 +150,10 @@
     :stop-loading! top-loading-bar}))
 
 (rf/reg-event-fx
+ :noop
+ (fn []))
+
+(rf/reg-event-fx
  :api/get
  (fn [{:keys [db]} [_ path on-success on-failure params]]
    {:fetch
