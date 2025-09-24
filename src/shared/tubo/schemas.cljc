@@ -123,7 +123,7 @@
    [:layout/tooltips {:optional true} [:maybe map?]]
    [:auth/user {:optional true :persist true} [:maybe map?]]
    [:user/bookmarks {:optional true} any?]
-   [:user/subscriptions {:optional true} any?]
+   [:user/subscriptions {:optional true :persist true} any?]
    [:user/feed {:optional true :persist true} any?]
    [:user/feed-last-updated {:optional true :persist true} any?]
    [:peertube/instances
