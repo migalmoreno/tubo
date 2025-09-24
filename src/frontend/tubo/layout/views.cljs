@@ -19,7 +19,8 @@
   [:div.flex
    {:class container-classes}
    [:div.relative.min-w-full
-    [:a.absolute.min-w-full.min-h-full.z-10 {:href route :title name}]
+    [:a.absolute.min-w-full.min-h-full
+     {:class ["z-[5]"] :href route :title name}]
     (if thumbnail
       [:img.object-cover.min-h-full.max-h-full.min-w-full
        {:src thumbnail :class image-classes}]
