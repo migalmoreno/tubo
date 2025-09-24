@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/frontend/Dockerfile
-    volumes:
-      - ./resources/config.edn:/app/resources/config.edn
     ports:
       - 8080:8080
     depends_on:
@@ -18,8 +16,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/backend/Dockerfile
-    volumes:
-      - ./resources/config.edn:/app/resources/config.edn
     ports:
       - 3000:3000
     depends_on:
@@ -44,8 +40,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/bg-helper/Dockerfile
-    volumes:
-      - ./resources/config.edn:/app/resources/config.edn
     ports:
       - 3005:3005
     restart: always

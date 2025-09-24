@@ -67,7 +67,15 @@ java -jar target/tubo-<VERSION>.jar
 #+end_src
 
 ** Configuration
-The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running.
+The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to the configuration file for the respective service. For example, if you want to change add your custom settings for the =backend= service:
+
+#+begin_src yaml
+services:
+  backend:
+    # ...rest of backend service settings
+    volumes:
+      - /path/to/your/config.edn:/app/resources/config.edn
+#+end_src
 
 ** Reverse Proxy
 If you want to self-host Tubo and make it publicly accessible you'll need to set up a web server with a reverse proxy. You can find example configurations below:
