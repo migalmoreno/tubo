@@ -20,7 +20,7 @@
      {:class    (when dark-theme? :dark)
       :on-click #(rf/dispatch [:layout/destroy-tooltips-on-click-out
                                (.. % -target)])}
-     [:div.font-nunito-sans.min-h-screen.h-full.relative.flex.flex-col.dark:text-white.bg-neutral-100.dark:bg-neutral-950.z-10
+     [:div.font-roboto.min-h-screen.h-full.relative.flex.flex-col.dark:text-white.bg-neutral-100.dark:bg-neutral-950.z-10
       [layout/background-overlay]
       [layout/mobile-tooltip]
       [modals/modals-container]

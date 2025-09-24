@@ -21,7 +21,7 @@
   [:a.justify-center.items-center.gap-x-2.flex
    {:href (rfe/href :homepage)}
    [layout/logo :height 20 :width 20]
-   [:h3.text-xl.font-extrabold "Tubo"]])
+   [:h3.text-xl.font-bold "Tubo"]])
 
 (defn media-ccc-logo
   []
@@ -84,7 +84,7 @@
            [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:queue/show false])}
             [:i.fa-solid.fa-arrow-left]])
-     [:div.font-extrabold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
+     [:div.font-bold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
       (when (and (seq title)
                  (not show-search-form?)
                  (not show-main-player?)
@@ -191,7 +191,7 @@
                 [{:custom-content
                   [:div.text-black.dark:text-white.whitespace-nowrap.text-sm
                    "Logged in as "
-                   [:span.font-bold (:username user)]]
+                   [:span.font-medium (:username user)]]
                   :destroy-tooltip-on-click? false}
                  {:label    "Log Out"
                   :icon     [:i.fa-solid.fa-right-to-bracket
@@ -255,8 +255,9 @@
                (merge {:class ["text-neutral-600" "dark:text-neutral-300"]}
                       icon-attrs))
          icon)]
-      [:span.text-sm.whitespace-nowrap
-       {:class [(when sidebar-minimized? "text-xs")]} label]]]))
+      [:span.whitespace-nowrap
+       {:class [(if sidebar-minimized? "text-[0.7rem]" "text-[0.8rem]")]}
+       label]]]))
 
 (defn services-menu
   [{{:keys [kioskId]} :query-params path :path} always-expanded?]

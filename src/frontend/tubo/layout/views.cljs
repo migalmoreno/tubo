@@ -27,7 +27,7 @@
        {:class image-classes}
        [:i.fa-solid.fa-image.text-3xl.text-white]])
     (when-not hide-label?
-      [:div.rounded.p-1.absolute.bottom-1.right-1.z-0
+      [:div.rounded-md.p-1.absolute.bottom-1.right-1.z-0.font-medium
        {:class
         (cond
           (= stream-type "LIVE_STREAM")                       "bg-red-600/80"
@@ -40,7 +40,7 @@
                                                                "!rounded-tr"
                                                                "!rounded-br"]
           :else                                               "hidden")}
-       [:div.text-white.text-xs.h-full
+       [:div.text-neutral-300.text-xs.h-full
         (cond
           (= stream-type "LIVE_STREAM") "LIVE"
           short? "SHORTS"
@@ -63,10 +63,10 @@
    (js-obj "height" width "width" height)))
 
 (defn bullet
-  []
+  [& {:keys [extra-classes]}]
   [:span.text-neutral-600.dark:text-neutral-400
    {:dangerouslySetInnerHTML {:__html "&bull;"}
-    :style                   {:font-size "0.5rem"}}])
+    :class                   (into ["text-[0.75rem]"] extra-classes)}])
 
 (defn loading-icon
   [service-color & classes]
@@ -111,7 +111,7 @@
   (let [!observer (atom nil)]
     (fn [heading & children]
       [:div.flex.items-center.justify-between
-       [:h1.text-3xl.lg:text-4xl.line-clamp-1.mr-6.font-extrabold
+       [:h1.text-3xl.lg:text-4xl.line-clamp-1.mr-6.font-semibold
         {:title heading
          :ref   #(rf/dispatch [:navigation/show-title-on-scroll !observer %
                                {:rootMargin "-73px" :threshold 0}])}
@@ -144,7 +144,7 @@
           extra-button-args)
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
-   [:span.font-bold.text-sm {:class label-classes} label]
+   [:span.font-medium.text-sm {:class label-classes} label]
    (when right-icon
      (conj right-icon {:class (or icon-classes label-classes)}))])
 
@@ -254,7 +254,7 @@
                            "rounded-t" "rounded-b" "flex" "flex-col"
                            "text-neutral-800" "dark:text-white" "shadow"
                            "shadow-neutral-400" "dark:shadow-neutral-900"
-                           "z-30"]
+                           "z-30" "text-sm"]
                           extra-classes)
         :animate    {:scale 1}
         :initial    {:scale 0.9}
@@ -453,13 +453,13 @@
           (for [[i tab] (map-indexed vector tabs)]
             (let [selected? (= (:id tab) (or selected-id (:id @!current)))]
               (when tab
-                [:li.flex-auto.flex.justify-center.items-center.font-semibold.border-b-2
+                [:li.flex-auto.flex.justify-center.items-center.font-medium.border-b-2
                  {:class (if selected?
                            ["border-neutral-700" "dark:border-neutral-100"]
                            ["!border-transparent" "text-neutral-600"
                             "dark:text-neutral-400"])
                   :key   i}
-                 [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center.text-sm.sm:text-base
+                 [:button.flex.flex-auto.py-4.items-center.gap-3.justify-center.text-sm
                   {:on-click (when (not selected?)
                                (fn []
                                  (reset! !current tab)

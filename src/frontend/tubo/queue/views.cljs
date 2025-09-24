@@ -17,12 +17,12 @@
     [:div.flex.cursor-pointer.px-4.py-2
      {:class    (into
                  (when (= i queue-pos)
-                   ["bg-neutral-300/70" "dark:bg-neutral-800/60"])
+                   ["bg-neutral-600/20" "dark:bg-neutral-800/60"])
                  ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
       :on-click #(rf/dispatch [:queue/load-pos i])}
      [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
       {:class "@sm:flex"}
-      [:span.font-bold.text-neutral-400.text-sm
+      [:span.font-medium.text-neutral-600.dark:text-neutral-300.text-xs
        (cond
          (= i queue-pos) [:i.fa-solid.fa-play]
          :else           (inc i))]]
@@ -30,18 +30,15 @@
       [layout/thumbnail item nil :container-classes
        ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
        ["rounded"]]]
-     [:div.flex.flex-col.pl-4.pr-12.w-full
+     [:div.flex.flex-col.pl-4.pr-12.w-full.gap-y-1
       [:h1.line-clamp-1.w-fit.text-sm
-       {:title name :class "@lg:text-lg"} name]
-      [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col
-       {:class "@lg:text-sm @lg:flex-row"}
+       {:title name :class "@lg:text-md"} name]
+      [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col.gap-y-1.gap-x-2
+       {:class "@lg:flex-row"}
        [:span.line-clamp-1 {:title uploader-name} uploader-name]
        (when service-id
          [:<>
-          [:span.px-2.hidden
-           {:dangerouslySetInnerHTML {:__html "&bull;"}
-            :style                   {:font-size "0.5rem"}
-            :class                   "@lg:inline-block"}]
+          [layout/bullet :extra-classes ["hidden" "@lg:inline-block"]]
           [:span (utils/get-service-name service-id)]])]]]))
 
 (defn popover
@@ -81,8 +78,8 @@
 (defn queue-metadata
   [{:keys [name uploader-name]}]
   [:div.flex.flex-col.py-2.justify-center.items-center.gap-y-4
-   [:h1.text-xl.line-clamp-1.w-fit.font-bold {:title name} name]
-   [:h1.text-sm.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-semibold
+   [:h1.text-xl.line-clamp-1.w-fit.font-semibold {:title name} name]
+   [:h1.text-sm.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-medium
     {:title uploader-name}
     uploader-name]])
 
@@ -99,16 +96,18 @@
         queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])]
     [:div.flex.flex-col.gap-y-4
-     [:div.flex.flex-auto.py-2.w-full.items-center.text-sm.gap-x-4
-      [:span.whitespace-nowrap.w-16.flex.justify-end
-       (if (and bg-player-ready? @!player @!elapsed-time)
-         (utils/format-duration @!elapsed-time)
-         "--:--")]
+     [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium
+      {:class "text-[0.8rem]"}
       [bg-player/time-slider !player !elapsed-time color]
-      [:span.whitespace-nowrap.w-16.flex.justify-start
-       (if (and bg-player-ready? @!player)
-         (utils/format-duration (.-duration @!player))
-         "--:--")]]
+      [:div.flex.w-full.justify-between
+       [:span.whitespace-nowrap.w-16.flex.justify-start
+        (if (and bg-player-ready? @!player @!elapsed-time)
+          (utils/format-duration @!elapsed-time)
+          "--:--")]
+       [:span.whitespace-nowrap.w-16.flex.justify-end
+        (if (and bg-player-ready? @!player)
+          (utils/format-duration (.-duration @!player))
+          "--:--")]]]
      [:div.flex.justify-center.items-center.gap-x-6
       [player/loop-button loop-playback color true]
       [player/button
@@ -233,7 +232,7 @@
                     "shadow-xl" "shadow-neutral-500" "dark:shadow-neutral-900"
                     "rounded-md"]
                    :image-classes ["rounded-md"]]]
-                 [:div.flex.flex-col.py-4.shrink-0.w-full.gap-y-4
+                 [:div.flex.flex-col.py-4.shrink-0.w-full.gap-y-6
                   [queue-metadata stream]
                   [main-controls color]]]])
              (when (and show-queue (or (= breakpoint :lg) show-list?))

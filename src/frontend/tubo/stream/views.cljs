@@ -42,7 +42,10 @@
                                  [modals/add-to-bookmark
                                   related-streams]])}]))
    :tooltip-classes ["right-5" "top-5"]
-   :extra-classes ["px-5" "xs:py-2" "xs:px-4"]])
+   :extra-classes ["px-5" "xs:py-2.5" "xs:px-2" "rounded-full"]
+   :icon
+   [:<> [:i.fa-solid.fa-ellipsis-vertical.xs:hidden]
+    [:i.fa-solid.fa-ellipsis.hidden.xs:block]]])
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name uploader-verified? subscriber-count
@@ -54,7 +57,7 @@
     [:div.mx-3.gap-x-2
      (when uploader-url
        [:div.flex.gap-x-2.items-center
-        [:a.line-clamp-1.font-semibold.text-sm.xs:text-base
+        [:a.line-clamp-1.font-medium.text-sm.xs:text-base
          {:href  (rfe/href :channel-page nil {:url uploader-url})
           :title uploader-name}
          uploader-name]
@@ -79,7 +82,7 @@
   [{:keys [like-count dislike-count] :as stream}]
   [:div.flex.items-center.justify-end.gap-x-2
    (when (or like-count dislike-count)
-     [:div.flex.bg-neutral-200.dark:bg-neutral-900.px-4.py-2.rounded-full.sm:text-base.text-sm.gap-x-4
+     [:div.flex.bg-neutral-200.dark:bg-neutral-900.px-4.py-2.rounded-full.text-sm.gap-x-4.font-medium
       (when like-count
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-up]
@@ -97,15 +100,13 @@
   [:div
    (when name
      [:div.flex.items-center.justify-between
-      [:h1.text-lg.sm:text-2xl.font-bold.line-clamp-2 {:title name} name]])
+      [:h1.text-lg.sm:text-xl.font-semibold.line-clamp-2 {:title name} name]])
    [:div.flex.gap-x-2.text-neutral-600.dark:text-neutral-400.text-xs.sm:text-sm.my-1.items-center
     (when view-count
       [:span.whitespace-nowrap {:title view-count}
        (str (utils/format-quantity view-count) " views")])
     (when (or view-count upload-date)
-      [:span
-       {:dangerouslySetInnerHTML {:__html "&bull;"}
-        :style                   {:font-size "0.5rem"}}])
+      [layout/bullet])
     (when upload-date
       [:span.whitespace-nowrap {:title upload-date}
        (utils/format-date-ago upload-date)])]
@@ -139,7 +140,7 @@
   [{:keys [description show-description] :as stream}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
     (when (and show? (seq description))
-      [:div.rounded-lg.break-words.flex.flex-col.gap-y-2
+      [:div.rounded-lg.break-words.flex.flex-col.gap-y-8.text-sm
        {:class "[overflow-wrap:anywhere]"}
        [layout/show-more-container show-description
         description

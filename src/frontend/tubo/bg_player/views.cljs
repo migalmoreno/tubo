@@ -84,10 +84,10 @@
     [layout/thumbnail (dissoc stream :duration) nil :container-classes
      ["h-12" "w-[70px]"]]]
    [:div.flex.flex-col.pr-4.gap-y-1
-    [:h1.text-sm.line-clamp-1.font-semibold.w-fit
+    [:h1.text-sm.line-clamp-1.w-fit
      {:title name}
      name]
-    [:h1.text-xs.text-neutral-600.dark:text-neutral-300.line-clamp-1.font-semibold.w-fit
+    [:h1.text-xs.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit
      {:title uploader-name}
      uploader-name]]])
 
@@ -133,7 +133,8 @@
        :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
       [player/shuffle-button shuffle? color]]
-     [:div.hidden.lg:flex.items-center.text-sm.gap-x-2
+     [:div.hidden.lg:flex.items-center.gap-x-2
+      {:class "text-[0.8rem]"}
       [:span.w-16.flex.justify-end
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)

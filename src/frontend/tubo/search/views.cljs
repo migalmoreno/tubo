@@ -97,13 +97,13 @@
             :value    filter
             :on-click #(rf/dispatch [:search/change-filter filter])})
          (:content-filters service))
-        :extra-classes ["p-0 pr-2 pl-6"]
+        :extra-classes ["p-0" "pr-2" "pl-6"]
         :tooltip-classes ["right-0" "top-12" "sm:right-auto" "sm:left-4"]]
        [:button.px-4.absolute
         {:on-click #(rf/dispatch [:search/clear-query])
          :type     "button"
          :class    ["right-[4.5rem]"
-                    (when (empty? service-query) :invisible)]}
+                    (when-not (seq service-query) "invisible")]}
         [:i.fa-solid.fa-xmark]]]]
      [suggestions-box suggestions]]))
 

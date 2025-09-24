@@ -81,13 +81,13 @@
         ["h-36" "w-36" "m-auto"]
         ["py-2" "h-44" "xs:h-40"])
       :image-classes
-      (if (= type "channel") ["rounded-full"] ["rounded"])]
+      (if (= type "channel") ["rounded-full"] ["rounded-lg"])]
      [:div
       [:div.flex.justify-between.my-2
        (when name
-         [:div.flex.gap-x-2
+         [:div.flex.gap-x-2.font-medium.text-sm
           [:a {:href route :title name}
-           [:span.line-clamp-2.font-semibold
+           [:span.line-clamp-2
             {:class "[overflow-wrap:anywhere]"}
             name]]
           (when (and verified? (not uploader-url))
@@ -104,12 +104,12 @@
               {:href  (rfe/href :channel-page nil {:url uploader-url})
                :title uploader-name
                :key   url}])
-           [:span.font-semibold.line-clamp-1.break-all
+           [:span.line-clamp-1.break-all.text-xs
             {:class "[overflow-wrap:anywhere]" :title uploader-name :key url}
             uploader-name])
           (when (and uploader-url uploader-verified?)
             [:i.fa-solid.fa-circle-check.text-xs])]])
-      [:div.text-neutral-600.dark:text-neutral-400.text-sm.flex.flex-col.gap-y-2
+      [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col.gap-y-2
        (when (or subscriber-count stream-count)
          [:div.flex.gap-x-2
           (when (and (= type "channel") subscriber-count)
@@ -120,13 +120,13 @@
           (when (and (= type "channel") stream-count)
             [:span (str (utils/format-quantity stream-count) " streams")])])
        (when (or upload-date view-count)
-         [:div.flex.my-1.justify-between
-          [:span (utils/format-date-ago upload-date)]
+         [:div.flex.items-center.my-1.gap-x-1
+          (when upload-date
+            [:span (utils/format-date-ago upload-date)])
+          (when (and upload-date view-count)
+            [layout/bullet])
           (when view-count
-            [:span (str (utils/format-quantity view-count) " views")])])
-       (when description
-         [:span.text-xs.line-clamp-1.sm:text-sm.sm:line-clamp-2
-          (:description item)])]]]))
+            [:span (str (utils/format-quantity view-count) " views")])])]]]))
 
 (defn list-item-content
   [{:keys [url name uploader-url uploader-name uploader-verified? description

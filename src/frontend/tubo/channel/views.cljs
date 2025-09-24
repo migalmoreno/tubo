@@ -58,6 +58,7 @@
              [metadata-popover channel]]]
            (when-not (empty? description)
              [:div.text-neutral-600.dark:text-neutral-400.text-sm
+              {:class "[overflow-wrap:anywhere]"}
               [layout/show-more-container @!show-description? description
                #(rf/dispatch
                  [:modals/open
