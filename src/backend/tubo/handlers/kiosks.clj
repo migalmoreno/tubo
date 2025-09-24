@@ -1,14 +1,17 @@
 (ns tubo.handlers.kiosks
   (:require
    [ring.util.http-response :refer [ok]]
-   [tubo.handlers.utils :as utils])
+   [tubo.handlers.utils :as utils]
+   [clojure.pprint :as pprint])
   (:import
    org.schabi.newpipe.extractor.kiosk.KioskInfo
    org.schabi.newpipe.extractor.localization.ContentCountry
    org.schabi.newpipe.extractor.NewPipe))
 
 (defn get-default-kiosk
-  [{:keys [region]} service-id]
+  [{{{:keys [service-id]} :path} :parameters
+    {:strs [region]}             :query-params
+    :as                          req}]
   (let [service   (NewPipe/getService service-id)
         extractor (doto (.getDefaultKioskExtractor
                          (if region
@@ -22,10 +25,12 @@
      :url             (.getUrl info)
      :service-id      service-id
      :next-page       (utils/get-next-page info)
-     :related-streams (utils/get-items (.getRelatedItems info))}))
+     :related-streams (utils/get-items (.getRelatedItems info) req)}))
 
 (defn get-kiosk
-  [{:keys [region]} kiosk-id service-id]
+  [{{{:keys [kiosk-id service-id]} :path} :parameters
+    {:strs [region]}                      :query-params
+    :as                                   req}]
   (let [service (NewPipe/getService service-id)
         extractor
         (doto (.getExtractorById
@@ -42,10 +47,12 @@
      :url             (.getUrl info)
      :service-id      service-id
      :next-page       (utils/get-next-page info)
-     :related-streams (utils/get-items (.getRelatedItems info))}))
+     :related-streams (utils/get-items (.getRelatedItems info) req)}))
 
 (defn get-kiosk-page
-  [{:keys [region]} kiosk-id service-id next-page]
+  [{{{:keys [kiosk-id service-id]} :path} :parameters
+    {:strs [nextPage region]}             :query-params
+    :as                                   req}]
   (let [service    (NewPipe/getService service-id)
         extractor  (.getExtractorById
                     (if region
@@ -57,9 +64,9 @@
         kiosk-info (KioskInfo/getInfo extractor)
         info       (KioskInfo/getMoreItems service
                                            (.getUrl kiosk-info)
-                                           (utils/create-page next-page))]
+                                           (utils/create-page nextPage))]
     {:next-page       (utils/get-next-page info)
-     :related-streams (utils/get-items (.getItems info))}))
+     :related-streams (utils/get-items (.getItems info) req)}))
 
 (defn get-kiosks
   [service-id]
@@ -74,9 +81,9 @@
 
 (defn create-kiosk-handler
   [{{{:keys [kiosk-id service-id]} :path} :parameters
-    {:strs [nextPage region]}             :query-params}]
-  (ok (cond (and service-id nextPage kiosk-id)
-            (get-kiosk-page {:region region} kiosk-id service-id nextPage)
-            (and service-id kiosk-id)
-            (get-kiosk {:region region} kiosk-id service-id)
-            :else (get-default-kiosk {:region region} service-id))))
+    {:strs [nextPage]}                    :query-params
+    :as                                   req}]
+  (ok (cond
+        (and service-id nextPage kiosk-id) (get-kiosk-page req)
+        (and service-id kiosk-id)          (get-kiosk req)
+        :else                              (get-default-kiosk req))))

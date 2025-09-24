@@ -2,19 +2,21 @@
   (:require
    [ring.util.http-response :refer [ok]]
    [tubo.models.channel :as channel]
-   [tubo.models.subscription :as subscription]))
+   [tubo.models.subscription :as subscription]
+   [tubo.handlers.utils :as utils]))
 
 (defn create-get-subscriptions-handler
-  [{:keys [datasource identity]}]
-  (ok (subscription/get-subscriptions-by-user datasource (:id identity))))
+  [req]
+  (ok (subscription/get-subscriptions-by-user req)))
 
 (defn create-post-subscriptions-handler
   [{:keys [datasource identity body-params]}]
   (let [channel (or (channel/get-channel-by-url (:url body-params) datasource)
                     (first (channel/add-channels
-                            [(into []
-                                   (map body-params
-                                        [:url :name :avatar :verified]))]
+                            [[(:url body-params)
+                              (:name body-params)
+                              (utils/unproxy-image (:avatar body-params))
+                              (:verified body-params)]]
                             datasource)))]
     (ok (subscription/add-subscriptions datasource
                                         [[(:id identity)

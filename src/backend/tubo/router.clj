@@ -18,6 +18,7 @@
    [tubo.handlers.feed :as feed]
    [tubo.handlers.kiosks :as kiosks]
    [tubo.handlers.playlist :as playlist]
+   [tubo.handlers.proxy :as proxy]
    [tubo.handlers.search :as search]
    [tubo.handlers.services :as services]
    [tubo.handlers.stream :as stream]
@@ -30,6 +31,7 @@
   [data opts]
   (if (keyword? data)
     (case data
+      :proxy {:handler proxy/create-proxy-handler}
       :api/health {:no-doc true
                    :get    (constantly (ok))}
       :api/register {:post {:summary    "registers a user"

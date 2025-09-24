@@ -2,6 +2,7 @@
   (:require
    [buddy.auth :refer [authenticated?]]
    [buddy.auth.middleware :refer [wrap-authentication]]
+   [clojure.string :as str]
    [clojure.tools.logging :as log]
    [reitit.ring.middleware.exception :as exception]
    [ring.middleware.reload :as reload]
@@ -51,10 +52,16 @@
 (defn wrap-cors
   [handler]
   (fn [request]
-    ((comp
-      #(res/header % "Access-Control-Allow-Methods" "*")
-      #(res/header % "Access-Control-Allow-Headers" "Authorization, *")
-      #(res/header % "Access-Control-Allow-Origin" "*")
-      #(res/header % "Access-Control-Max-Age" "86400")
-      handler)
-     request)))
+    (let [handled-request (handler request)
+          headers         (:headers handled-request)
+          cors-headers    (reduce-kv
+                           (fn [m k v]
+                             (when-not (contains? headers (str/lower-case k))
+                               (assoc m k v)))
+                           {}
+                           {"Access-Control-Allow-Methods" "*"
+                            "Access-Control-Allow-Headers" "Authorization, *"
+                            "Access-Control-Allow-Origin"  "*"
+                            "Access-Control-Max-Age"       "86400"})]
+      (-> handled-request
+          (update :headers #(merge % cors-headers))))))

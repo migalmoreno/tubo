@@ -1,7 +1,8 @@
 (ns tubo.models.subscription
   (:require
    [tubo.db :as db]
-   [tubo.models.channel :as channel]))
+   [tubo.models.channel :as channel]
+   [tubo.handlers.utils :as utils]))
 
 (defn get-subscription-channel-by-id
   [ds id]
@@ -13,14 +14,16 @@
                     :where  [:= :subscriptions.channel_id id]}))
 
 (defn get-subscriptions-by-user
-  [ds id]
+  [{:keys [datasource identity] :as req}]
   (into
    []
-   (map #(get-subscription-channel-by-id ds (:channel_id %)))
-   (db/plan ds
+   (map #(let [channel (get-subscription-channel-by-id datasource
+                                                       (:channel_id %))]
+           (assoc channel :avatar (utils/proxy-image (:avatar channel) req))))
+   (db/plan datasource
             {:select [:*]
              :from   [:subscriptions]
-             :where  [:= :user_id id]})))
+             :where  [:= :user_id (:id identity)]})))
 
 (defn add-subscriptions
   [ds values]

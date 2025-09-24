@@ -9,13 +9,13 @@
    org.schabi.newpipe.extractor.NewPipe))
 
 (defn get-comment-item
-  [item]
+  [item req]
   {:id                   (.getCommentId item)
    :text                 (.. item (getCommentText) (getContent))
    :upload-date          (.getTextualUploadDate item)
    :uploader-name        (.getUploaderName item)
    :uploader-url         (.getUploaderUrl item)
-   :uploader-avatars     (j/from-java (.getUploaderAvatars item))
+   :uploader-avatars     (utils/proxy-images (.getUploaderAvatars item) req)
    :uploader-verified?   (.isUploaderVerified item)
    :creator-reply?       (.hasCreatorReply item)
    :channel-owner?       (.isChannelOwner item)
@@ -27,23 +27,23 @@
    :replies-page         (j/from-java (.getReplies item))})
 
 (defn get-comments
-  [url]
+  [{{:keys [url]} :path-params :as req}]
   (when-let [info (CommentsInfo/getInfo (url-decode url))]
-    {:comments       (map get-comment-item (.getRelatedItems info))
+    {:comments       (map #(get-comment-item % req) (.getRelatedItems info))
      :comments-count (.getCommentsCount info)
      :next-page      (utils/get-next-page info)
      :disabled?      (.isCommentsDisabled info)}))
 
 (defn get-comments-page
-  [url next-page]
+  [{{:keys [url]} :path-params {:strs [nextPage]} :query-params :as req}]
   (let [service (NewPipe/getServiceByUrl (url-decode url))
         info    (CommentsInfo/getMoreItems service
                                            (url-decode url)
-                                           (utils/create-page next-page))]
-    {:comments  (map get-comment-item (.getItems info))
+                                           (utils/create-page nextPage))]
+    {:comments  (map #(get-comment-item % req) (.getItems info))
      :next-page (utils/get-next-page info)
      :disabled? false}))
 
 (defn create-comments-handler
-  [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
-  (ok (if nextPage (get-comments-page url nextPage) (get-comments url))))
+  [{{:strs [nextPage]} :query-params :as req}]
+  (ok (if nextPage (get-comments-page req) (get-comments req))))

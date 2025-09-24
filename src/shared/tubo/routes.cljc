@@ -18,6 +18,7 @@
    ["/api-docs/*" :api/swagger-ui]
    ["/login" :web/login]
    ["/register" :web/register]
+   ["/proxy/:url" :proxy]
    ["/api/v1"
     ["/health" :api/health]
     ["/register" :api/register]

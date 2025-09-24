@@ -6,10 +6,9 @@
    [tubo.models.subscription :as subscription]))
 
 (defn get-channels-latest-streams
-  [channels]
+  [channels req]
   (->> channels
-       (map #(-> %
-                 :url
+       (map #(-> (assoc-in req [:path-params :url] (:url %))
                  get-channel
                  :related-streams))
        flatten
@@ -17,17 +16,17 @@
        (sort-by :uploaded #(> %1 %2))))
 
 (defn create-get-user-feed-handler
-  [{:keys [datasource identity]}]
-  (let [channels (subscription/get-subscriptions-by-user datasource
-                                                         (:id identity))]
+  [req]
+  (let [channels (subscription/get-subscriptions-by-user req)]
     (when (seq channels)
-      (ok {:items    (get-channels-latest-streams channels)
+      (ok {:items    (get-channels-latest-streams channels req)
            :channels (map :url channels)}))))
 
 (defn create-get-feed-handler
-  [{:keys [query-params]}]
+  [{:keys [query-params] :as req}]
   (let [urls (json/read-str (get query-params "channels"))]
     (when (seq urls)
       (ok {:items    (get-channels-latest-streams (map (fn [url] {:url url})
-                                                       urls))
+                                                       urls)
+                                                  req)
            :channels urls}))))

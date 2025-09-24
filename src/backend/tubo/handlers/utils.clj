@@ -1,7 +1,9 @@
 (ns tubo.handlers.utils
   (:require
    [clojure.data.json :as json]
-   [clojure.java.data :as j])
+   [clojure.java.data :as j]
+   [clojure.string :as str]
+   [ring.util.codec :refer [url-decode url-encode]])
   (:import
    org.schabi.newpipe.extractor.Page))
 
@@ -25,19 +27,39 @@
            (get page "cookies")
            (when-let [body (get page "body")] (.getBytes body)))))
 
+(defn proxy-image
+  [image req]
+  (str (name (:scheme req))
+       "://" (:server-name req)
+       ":" (:server-port req)
+       "/proxy/"
+       (url-encode image)))
+
+(defn proxy-images
+  [images req]
+  (map #(assoc % :url (proxy-image (:url %) req)) (j/from-java images)))
+
+(defn unproxy-image
+  [image]
+  (-> (java.net.URL. image)
+      (.getPath)
+      (str/split #"/proxy/")
+      last
+      url-decode))
+
 (defn get-stream-item
-  [stream]
+  [stream req]
   {:type               :stream
    :service-id         (.getServiceId stream)
    :url                (.getUrl stream)
    :name               (.getName stream)
-   :thumbnails         (j/from-java (.getThumbnails stream))
+   :thumbnails         (proxy-images (.getThumbnails stream) req)
    :short?             (.isShortFormContent stream)
    :uploader-name      (.getUploaderName stream)
    :uploader-url       (.getUploaderUrl stream)
-   :uploader-avatars   (j/from-java (.getUploaderAvatars stream))
+   :uploader-avatars   (proxy-images (.getUploaderAvatars stream) req)
    :upload-date        (.getTextualUploadDate stream)
-   :short-description  (.getShortDescription stream)
+   :description        (.getShortDescription stream)
    :duration           (non-negative (.getDuration stream))
    :view-count         (non-negative (.getViewCount stream))
    :stream-type        (.getStreamType stream)
@@ -50,24 +72,24 @@
    :uploader-verified? (.isUploaderVerified stream)})
 
 (defn get-channel-item
-  [channel]
+  [channel req]
   {:type             :channel
    :service-id       (.getServiceId channel)
    :url              (.getUrl channel)
    :name             (.getName channel)
-   :thumbnails       (j/from-java (.getThumbnails channel))
+   :thumbnails       (proxy-images (.getThumbnails channel) req)
    :description      (.getDescription channel)
    :subscriber-count (non-negative (.getSubscriberCount channel))
    :stream-count     (non-negative (.getStreamCount channel))
    :verified?        (.isVerified channel)})
 
 (defn get-playlist-item
-  [playlist]
+  [playlist req]
   {:type          :playlist
    :service-id    (.getServiceId playlist)
    :url           (.getUrl playlist)
    :name          (.getName playlist)
-   :thumbnails    (j/from-java (.getThumbnails playlist))
+   :thumbnails    (proxy-images (.getThumbnails playlist) req)
    :uploader-name (.getUploaderName playlist)
    :uploader-url  (.getUploaderUrl playlist)
    :description   (.getDescription playlist)
@@ -75,9 +97,9 @@
    :stream-count  (non-negative (.getStreamCount playlist))})
 
 (defn get-items
-  [items]
+  [items req]
   (map #(case (.name (.getInfoType %))
-          "STREAM"   (get-stream-item %)
-          "CHANNEL"  (get-channel-item %)
-          "PLAYLIST" (get-playlist-item %))
+          "STREAM"   (get-stream-item % req)
+          "CHANNEL"  (get-channel-item % req)
+          "PLAYLIST" (get-playlist-item % req))
        items))

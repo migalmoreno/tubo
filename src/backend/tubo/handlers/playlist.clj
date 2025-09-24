@@ -9,31 +9,31 @@
    org.schabi.newpipe.extractor.playlist.PlaylistInfo))
 
 (defn get-playlist
-  [url]
+  [{{:keys [url]} :path-params :as req}]
   (let [service (NewPipe/getServiceByUrl (url-decode url))
         info    (PlaylistInfo/getInfo service (url-decode url))]
     {:name             (.getName info)
      :service-id       (.getServiceId info)
-     :related-streams  (utils/get-items (.getRelatedItems info))
+     :related-streams  (utils/get-items (.getRelatedItems info) req)
      :id               (.getId info)
      :playlist-type    (j/from-java (.getPlaylistType info))
-     :thumbnails       (j/from-java (.getThumbnails info))
-     :banners          (j/from-java (.getBanners info))
+     :thumbnails       (utils/proxy-images (.getThumbnails info) req)
+     :banners          (utils/proxy-images (.getBanners info) req)
      :uploader-name    (.getUploaderName info)
      :uploader-url     (.getUploaderUrl info)
-     :uploader-avatars (j/from-java (.getUploaderAvatars info))
+     :uploader-avatars (utils/proxy-images (.getUploaderAvatars info) req)
      :stream-count     (utils/non-negative (.getStreamCount info))
      :next-page        (utils/get-next-page info)}))
 
 (defn get-playlist-page
-  [url next-page]
+  [{{:keys [url]} :path-params {:strs [nextPage]} :query-params :as req}]
   (let [service (NewPipe/getServiceByUrl (url-decode url))
         info    (PlaylistInfo/getMoreItems service
                                            url
-                                           (utils/create-page next-page))]
+                                           (utils/create-page nextPage))]
     {:next-page       (utils/get-next-page info)
-     :related-streams (utils/get-items (.getItems info))}))
+     :related-streams (utils/get-items (.getItems info) req)}))
 
 (defn create-playlist-handler
-  [{{:keys [url]} :path-params {:strs [nextPage]} :query-params}]
-  (ok (if nextPage (get-playlist-page url nextPage) (get-playlist url))))
+  [{{:strs [nextPage]} :query-params :as req}]
+  (ok (if nextPage (get-playlist-page req) (get-playlist req))))

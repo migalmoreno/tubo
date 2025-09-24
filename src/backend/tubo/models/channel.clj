@@ -9,13 +9,6 @@
                 :columns     [:url :name :avatar :verified]
                 :values      values}))
 
-(defn get-channels-by-urls
-  [ds urls]
-  (db/execute! ds
-               {:select [:*]
-                :from   [:channels]
-                :where  [:in :url urls]}))
-
 (defn get-channel-by-url
   [url ds]
   (db/execute-one! ds

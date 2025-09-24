@@ -2,12 +2,13 @@
   (:require
    [tubo.db :as db]
    [tubo.models.channel :as channel]
-   [tubo.models.stream :as stream]))
+   [tubo.models.stream :as stream]
+   [tubo.handlers.utils :as utils]))
 
 (defn get-playlist-streams
-  [id ds]
+  [{:keys [datasource] :as req} id]
   (->> (db/execute!
-        ds
+        datasource
         {:select   [:*]
          :from     [:streams]
          :join-by  [:join
@@ -22,37 +23,39 @@
          :where    [:= :playlists.playlist_id (parse-uuid id)]
          :order-by [:playlist_streams.playlist_stream_order]}
         {})
-       (map (fn [e]
-              {:id                 (:streams/id e)
-               :name               (:streams/name e)
-               :url                (:streams/url e)
-               :duration           (:streams/duration e)
-               :thumbnail          (:streams/thumbnail e)
-               :uploader-verified? (:channels/verified e)
-               :uploader-name      (:channels/name e)
-               :uploader-url       (:channels/url e)
-               :uploader-avatar    (:channels/avatar e)}))))
+       (map
+        (fn [e]
+          {:id                 (:streams/id e)
+           :name               (:streams/name e)
+           :url                (:streams/url e)
+           :duration           (:streams/duration e)
+           :thumbnail          (utils/proxy-image (:streams/thumbnail e) req)
+           :uploader-verified? (:channels/verified e)
+           :uploader-name      (:channels/name e)
+           :uploader-url       (:channels/url e)
+           :uploader-avatar    (utils/proxy-image (:channels/avatar e) req)}))))
 
 (defn get-playlists-by-owner
-  [id ds]
+  [{:keys [datasource identity] :as req}]
   (into
    []
-   (map #(assoc % :items (get-playlist-streams (str (:playlist_id %)) ds)))
-   (db/plan ds
+   (map #(assoc % :items (get-playlist-streams req (str (:playlist_id %)))))
+   (db/plan datasource
             {:select [:*]
              :from   [:playlists]
-             :where  [:= :owner id]})))
+             :where  [:= :owner (:id identity)]})))
 
 (defn get-full-playlist-by-playlist-id
-  [id ds]
-  (when-let [playlist (db/execute-one! ds
+  [{:keys [datasource path-params] :as req}]
+  (when-let [playlist (db/execute-one! datasource
                                        {:select [:*]
                                         :from   [:playlists]
                                         :where  [:= :playlist_id
-                                                 (parse-uuid id)]})]
+                                                 (parse-uuid (:id
+                                                              path-params))]})]
     (assoc playlist
            :items
-           (get-playlist-streams (str (:playlist-id playlist)) ds))))
+           (get-playlist-streams req (str (:playlist-id playlist))))))
 
 (defn get-playlist-by-playlist-id
   [id ds]

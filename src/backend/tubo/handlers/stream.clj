@@ -8,19 +8,19 @@
    org.schabi.newpipe.extractor.stream.StreamInfo))
 
 (defn get-stream
-  [url]
+  [{{:keys [url]} :path-params :as req}]
   (let [info (StreamInfo/getInfo (url-decode url))]
     {:name               (.getName info)
      :service-id         (.getServiceId info)
-     :related-streams    (utils/get-items (.getRelatedItems info))
+     :related-streams    (utils/get-items (.getRelatedItems info) req)
      :url                (.getUrl info)
-     :thumbnails         (j/from-java (.getThumbnails info))
+     :thumbnails         (utils/proxy-images (.getThumbnails info) req)
      :description        (.. info (getDescription) (getContent))
      :duration           (.getDuration info)
      :upload-date        (.getTextualUploadDate info)
      :uploader-name      (.getUploaderName info)
      :uploader-url       (.getUploaderUrl info)
-     :uploader-avatars   (j/from-java (.getUploaderAvatars info))
+     :uploader-avatars   (utils/proxy-images (.getUploaderAvatars info) req)
      :uploader-verified? (.isUploaderVerified info)
      :tags               (.getTags info)
      :category           (.getCategory info)
@@ -46,5 +46,5 @@
                                            {:exceptions :omit})}))
 
 (defn create-stream-handler
-  [{{:keys [url]} :path-params}]
-  (ok (get-stream url)))
+  [req]
+  (ok (get-stream req)))

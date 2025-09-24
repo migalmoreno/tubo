@@ -2,6 +2,7 @@
   (:require
    [clojure.data :as data]
    [ring.util.http-response :refer [ok]]
+   [tubo.handlers.utils :as utils]
    [tubo.models.channel :as channel]
    [tubo.models.playlist :as playlist]
    [tubo.models.stream :as stream]))
@@ -11,32 +12,33 @@
   (let [channel  (or (channel/get-channel-by-url (:uploader-url item)
                                                  ds)
                      (first (channel/add-channels
-                             [(into []
-                                    (map item
-                                         [:uploader-url
-                                          :uploader-name
-                                          :uploader-avatar
-                                          :uploader-verified?]))]
+                             [[(:uploader-url item)
+                               (:uploader-name item)
+                               (utils/unproxy-image (:uploader-avatar item))
+                               (:uploader-verified? item)]]
                              ds)))
         stream   (or (stream/get-stream-by-url (:url item) ds)
                      (first (stream/add-streams
-                             [(into (map item [:name :thumbnail :url])
-                                    [(:id channel) (:duration item)])]
+                             [[(:duration item)
+                               (:id channel)
+                               (:name item)
+                               (utils/unproxy-image (:thumbnail item))
+                               (:url item)]]
                              ds)))
         playlist (playlist/get-playlist-by-playlist-id playlist-id ds)]
     (playlist/add-playlist-streams [[(:id stream) (:id playlist) (:order item)]]
                                    ds)))
 
 (defn create-get-auth-playlists-handler
-  [{:keys [datasource identity]}]
-  (ok (playlist/get-playlists-by-owner (:id identity) datasource)))
+  [req]
+  (ok (playlist/get-playlists-by-owner req)))
 
 (defn create-get-auth-playlist-handler
-  [{:keys [datasource path-params]}]
-  (ok (playlist/get-full-playlist-by-playlist-id (:id path-params) datasource)))
+  [req]
+  (ok (playlist/get-full-playlist-by-playlist-id req)))
 
 (defn create-post-auth-playlists-handler
-  [{:keys [datasource body-params identity]}]
+  [{:keys [datasource body-params identity] :as req}]
   (let [{:keys [playlist-id] :as added-playlist}
         (first (playlist/add-playlists [[(:name body-params)
                                          (:id identity)
@@ -48,8 +50,7 @@
         (add-playlist-streams datasource item (str playlist-id))))
     (ok (assoc added-playlist
                :id    playlist-id
-               :items (playlist/get-playlist-streams (str playlist-id)
-                                                     datasource)))))
+               :items (playlist/get-playlist-streams req (str playlist-id))))))
 
 (defn create-delete-auth-playlists-handler
   [{:keys [datasource identity]}]
@@ -60,9 +61,8 @@
   (ok (playlist/delete-playlist-by-id datasource (:id path-params))))
 
 (defn create-post-auth-playlist-add-streams-handler
-  [{:keys [datasource body-params path-params]}]
-  (let [playlist-streams (playlist/get-playlist-streams (:id path-params)
-                                                        datasource)
+  [{:keys [datasource body-params path-params] :as req}]
+  (let [playlist-streams (playlist/get-playlist-streams req (:id path-params))
         items            (remove
                           nil?
                           (map-indexed
@@ -87,12 +87,11 @@
     (ok (into [] streams-to-add))))
 
 (defn create-post-auth-playlist-delete-stream-handler
-  [{:keys [datasource body-params path-params]}]
+  [{:keys [datasource body-params path-params] :as req}]
   (let [playlist          (playlist/get-playlist-by-playlist-id
                            (:id path-params)
                            datasource)
-        playlist-streams  (playlist/get-playlist-streams (:id path-params)
-                                                         datasource)
+        playlist-streams  (playlist/get-playlist-streams req (:id path-params))
         selected          (first (filter #(= (:url body-params)
                                              (:url %))
                                          playlist-streams))
