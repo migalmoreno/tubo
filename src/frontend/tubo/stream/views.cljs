@@ -166,15 +166,17 @@
   (let [show? (:show-related @(rf/subscribe [:settings]))]
     (when (and show? (seq related-streams))
       [:div.flex.flex-col.min-w-fit.flex-auto
-       [:div.flex.flex-col.gap-x-10.gap-y-4
+       [:div.flex.flex-col.gap-x-10.gap-y-2
         (for [[i item] (map-indexed vector related-streams)]
           ^{:key i}
           [items/list-item-content item
            :author-classes ["line-clamp-1" "text-xs"]
-           :title-classes ["font-semibold" "line-clamp-2" "text-xs"]
-           :metadata-classes ["text-xs"]
-           :thumbnail-classes
-           ["h-[5.5rem]" "min-w-[150px]" "max-w-[150px]"]])]])))
+           :container-classes ["gap-y-1"]
+           :metadata-classes ["text-xs" "gap-y-2"]
+           :thumbnail-container-classes
+           ["h-[5.5rem]" "min-w-[150px]" "max-w-[150px]" "rounded-full"]
+           :thumbnail-image-classes ["rounded-lg"]
+           :title-classes ["font-medium" "line-clamp-2" "text-xs"]])]])))
 
 (defn stream-queue
   []

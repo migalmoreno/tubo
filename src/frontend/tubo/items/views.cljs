@@ -68,7 +68,7 @@
 
 (defn grid-item-content
   [{:keys [url name uploader-url uploader-name uploader-verified? upload-date
-           subscriber-count view-count stream-count verified? type description]
+           subscriber-count view-count stream-count verified? type]
     :as   item}]
   (let [route (case type
                 "stream"   (rfe/href :stream-page nil {:url url})
@@ -132,15 +132,24 @@
   [{:keys [url name uploader-url uploader-name uploader-verified? description
            subscriber-count view-count stream-count verified? upload-date type]
     :as   item} &
-   {:keys [author-classes title-classes thumbnail-classes metadata-classes]
-    :or   {thumbnail-classes ["py-2" "h-24" "min-w-[125px]" "max-w-[125px]"
-                              "sm:h-36" "sm:min-w-[250px]" "sm:max-w-[250px]"]
-           title-classes     ["[overflow-wrap:anywhere]" "line-clamp-1"
-                              "text-sm" "sm:text-xl" "mt-2" "font-semibold"]
-           author-classes    ["[overflow-wrap:anywhere]" "font-semibold"
-                              "line-clamp-1" "break-all" "text-xs"
-                              "xs:text-sm"]
-           metadata-classes  ["text-xs" "xs:text-sm"]}}]
+   {:keys [author-classes container-classes metadata-classes title-classes
+           thumbnail-container-classes thumbnail-image-classes]
+    :or   {author-classes              ["[overflow-wrap:anywhere]"
+                                        "line-clamp-1" "break-all" "text-xs"]
+           container-classes           ["xs:mr-2"]
+           metadata-classes            ["text-xs" "gap-y-3"]
+           thumbnail-container-classes ["py-2" "h-28" "min-w-[150px]"
+                                        "max-w-[150px]"
+                                        "xs:h-32" "xs:min-w-[175px]"
+                                        "xs:max-w-[175px]"
+                                        "sm:h-44" "sm:min-w-[300px]"
+                                        "sm:max-w-[300px]"
+                                        "lg:min-w-[350px]" "lg:max-w-[350px]"
+                                        "lg:h-48"]
+           thumbnail-image-classes     ["rounded-lg"]
+           title-classes               ["[overflow-wrap:anywhere]" "text-sm"
+                                        "w-fit"
+                                        "mt-2" "line-clamp-1" "sm:text-lg"]}}]
   (let [route (case (:type item)
                 "stream"   (rfe/href :stream-page nil {:url url})
                 "channel"  (rfe/href :channel-page nil {:url url})
@@ -148,104 +157,105 @@
                 url)]
     [:div.flex.gap-x-3.xs:gap-x-5
      [layout/thumbnail item route
-      :container-classes thumbnail-classes
+      :container-classes thumbnail-container-classes
       :image-classes
-      (if (= type "channel") ["rounded-full" "!min-w-16" "m-auto"] ["rounded"])]
-     [:div.flex.flex-col.flex-auto.xs:mr-2.gap-y-2
+      (if (= type "channel")
+        ["rounded-full" "!min-w-16" "m-auto"]
+        thumbnail-image-classes)]
+     [:div.flex.flex-col.flex-auto {:class container-classes}
       [:div.flex.items-center.justify-between
        (when name
          [:a {:href route :title name}
-          [:h1 {:class title-classes} name
+          [:div {:class title-classes}
+           [:span name]
            (when (and verified? (not uploader-url))
-             [:i.fa-solid.fa-circle-check.pl-3.text-sm])]])
+             [:i.fa-solid.fa-circle-check.pl-3.text-sm.w-fit])]])
        [item-popover item]]
-      [:div.flex.items-center.justify-between.gap-y-2
-       [:div.flex.flex-col.justify-center.gap-y-2.text-neutral-600.dark:text-neutral-400
-        (when (or uploader-url uploader-name)
-          [:div.flex.gap-2.items-center
-           [layout/uploader-avatar item :classes ["w-6" "h-6"]]
-           (conj
-            (when uploader-url
-              [:a
-               {:href  (rfe/href :channel-page nil {:url uploader-url})
-                :title uploader-name
-                :key   url}])
-            [:h1
-             {:class author-classes :title uploader-name :key url}
-             uploader-name])
-           (when (and uploader-url uploader-verified?)
-             [:i.fa-solid.fa-circle-check.text-xs])])
-        (when (or view-count upload-date)
-          [:div.flex.items-center
-           (when view-count
-             [:<>
-              [:div.flex.items-center.h-full.whitespace-nowrap
-               [:p {:class metadata-classes}
-                (str (utils/format-quantity view-count) " views")]]
-              (when upload-date
-                [:span.px-2
-                 {:dangerouslySetInnerHTML {:__html "&bull;"}
-                  :style                   {:font-size "0.5rem"}}])])
-           (when upload-date
-             [:span.line-clamp-1 {:class metadata-classes}
-              (utils/format-date-ago upload-date)])])
-        (when (and (= type "channel") (or subscriber-count stream-count))
-          [:div.flex.flex-col.xs:flex-row
-           {:class metadata-classes}
-           (when (and (= type "channel") subscriber-count)
-             [:<>
-              [:div.flex.items-center.h-full
-               [:p
-                (str (utils/format-quantity subscriber-count) " subscribers")]]
-              (when stream-count
-                [:span.px-2.hidden.xs:inline-block
-                 {:dangerouslySetInnerHTML {:__html "&bull;"}
-                  :style                   {:font-size "0.5rem"}}])])
-           (when stream-count
-             [:span
-              (str (utils/format-quantity stream-count) " streams")])])
-        (when description
-          [:span.text-xs.line-clamp-1.sm:text-sm.sm:line-clamp-2
-           (:description item)])]]]]))
+      [:div.flex.flex-col.justify-center.text-neutral-600.dark:text-neutral-400
+       {:class metadata-classes}
+       (when (or view-count upload-date)
+         [:div.flex.items-center.gap-x-1
+          (when view-count
+            [:<>
+             [:div.flex.items-center.h-full.whitespace-nowrap
+              [:p {:class metadata-classes}
+               (str (utils/format-quantity view-count) " views")]]
+             (when upload-date
+               [layout/bullet])])
+          (when upload-date
+            [:span.line-clamp-1 {:class metadata-classes}
+             (utils/format-date-ago upload-date)])])
+       (when (or uploader-url uploader-name)
+         [:div.flex.gap-2.items-center
+          [layout/uploader-avatar item :classes ["w-6" "h-6"]]
+          (conj
+           (when uploader-url
+             [:a
+              {:href  (rfe/href :channel-page nil {:url uploader-url})
+               :title uploader-name
+               :key   url}])
+           [:h1
+            {:class author-classes :title uploader-name :key url}
+            uploader-name])
+          (when (and uploader-url uploader-verified?)
+            [:i.fa-solid.fa-circle-check.text-xs])])
+       (when (and (= type "channel") (or subscriber-count stream-count))
+         [:div.flex.flex-col.xs:flex-row.gap-x-1
+          (when (and (= type "channel") subscriber-count)
+            [:<>
+             [:div.flex.items-center.h-full
+              [:p
+               (str (utils/format-quantity subscriber-count) " subscribers")]]
+             (when stream-count
+               [layout/bullet])])
+          (when stream-count
+            [:span
+             (str (utils/format-quantity stream-count) " streams")])])
+       (when (seq description)
+         [:span.text-xs.line-clamp-1.sm:line-clamp-2.leading-5.max-xs:hidden
+          {:class "[overflow-wrap:anywhere]"}
+          description])]]]))
 
-(defn related-streams
+(defn items-container
   []
   (let [!observer (atom nil)]
     (fn [related-streams next-page layout pagination-fn]
-      (let [service-color       @(rf/subscribe [:service-color])
-            pagination-loading? @(rf/subscribe [:show-pagination-loading])
-            items               (doall
-                                 (for [[i item]
-                                       (map-indexed vector related-streams)]
-                                   ^{:key i}
-                                   [:div
-                                    {:ref
-                                     (when (and (seq next-page)
-                                                (= (+ i 1)
-                                                   (count related-streams)))
-                                       #(rf/dispatch
-                                         [:layout/add-intersection-observer
-                                          !observer
-                                          %
-                                          (fn [entries]
-                                            (when (.-isIntersecting (first
-                                                                     entries))
-                                              (pagination-fn)))]))}
-                                    (if (and layout (= layout "grid"))
-                                      [grid-item-content item]
-                                      [list-item-content item])]))]
-        [:div.flex.flex-col.flex-auto.my-2.md:my-8
-         (if (empty? related-streams)
-           [:div.flex.items-center.flex-auto.flex-col.justify-center
-            [:span "No available items"]]
-           (if (and layout (= layout "grid"))
-             [:div.grid.w-full.gap-x-10.gap-y-4
-              {:class "xs:grid-cols-[repeat(auto-fill,_minmax(215px,_1fr))]"}
-              items]
-             [:div.flex.flex-col.gap-x-10
-              items]))
-         (when (and pagination-loading? (seq next-page))
-           [layout/loading-icon service-color :text-md])]))))
+      [:<>
+       (for [[i item]
+             (map-indexed vector related-streams)]
+         ^{:key i}
+         [:div
+          {:ref
+           (when (and (seq next-page)
+                      (= (+ i 1)
+                         (count related-streams)))
+             #(rf/dispatch
+               [:layout/add-intersection-observer
+                !observer
+                %
+                (fn [entries]
+                  (when (.-isIntersecting (first
+                                           entries))
+                    (pagination-fn)))]))}
+          (if (and layout (= layout "grid"))
+            [grid-item-content item]
+            [list-item-content item])])])))
+
+(defn related-streams
+  [related-streams next-page layout pagination-fn]
+  (let [service-color       @(rf/subscribe [:service-color])
+        pagination-loading? @(rf/subscribe [:show-pagination-loading])]
+    [:div.flex.flex-col.flex-auto.my-2.md:my-8
+     (if (seq related-streams)
+       (conj (if (and layout (= layout "grid"))
+               [:div.grid.w-full.gap-x-4.gap-y-4
+                {:class "xs:grid-cols-[repeat(auto-fill,_minmax(215px,_1fr))]"}]
+               [:div.flex.flex-col.gap-x-10])
+             [items-container related-streams next-page layout pagination-fn])
+       [:div.flex.items-center.flex-auto.flex-col.justify-center
+        [:span "No available items"]])
+     (when (and pagination-loading? (seq next-page))
+       [layout/loading-icon service-color :text-md])]))
 
 (defn layout-switcher
   [!layout]

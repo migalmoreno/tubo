@@ -253,16 +253,18 @@
                  {:class "@container"}
                  (case @!active-tab
                    :queue   [virtualized-queue]
-                   :related [:div.flex.flex-col.gap-y-4.p-4
+                   :related [:div.flex.flex-col.gap-y-2.p-4
                              (for [[i item] (map-indexed vector
                                                          (:related-streams
                                                           stream))]
                                ^{:key i}
                                [items/list-item-content item
+                                :container-classes
+                                ["flex" "flex-col" "flex-auto" "gap-y-1"]
                                 :author-classes ["line-clamp-1" "text-xs"]
                                 :title-classes
                                 ["font-semibold" "line-clamp-2" "text-xs"]
-                                :metadata-classes ["text-xs"]
-                                :thumbnail-classes
+                                :metadata-classes ["text-xs" "gap-y-2"]
+                                :thumbnail-container-classes
                                 ["h-[5.5rem]" "min-w-[150px]"
                                  "max-w-[150px]"]])])]])]])]))))
