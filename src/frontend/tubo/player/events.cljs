@@ -4,7 +4,8 @@
    [promesa.core :as p]
    [re-frame.core :as rf]
    [tubo.player.utils :as utils]
-   [tubo.storage :refer [persist]]))
+   [tubo.storage :refer [persist]]
+   [clojure.string :as str]))
 
 (rf/reg-fx
  :player/volume
@@ -33,12 +34,57 @@
    {:player/src opts}))
 
 (rf/reg-event-fx
+ :player/play-error
+ (fn [error]
+   {:fx [[:dispatch
+          [:notifications/error
+           (or (.-detail error) "Player error")]]]}))
+
+(rf/reg-fx
+ :player/configure
+ (fn [player]
+   (.configure (.-api @player)
+               (clj->js {"preferredVideoCodecs" ["av01" "vp9" "avc1"]
+                         "preferredAudioCodecs" ["opus" "m4a"]
+                         "manifest"             {"disableVideo" false}}))))
+
+(rf/reg-fx
+ :player/request-filter
+ (fn [[player url]]
+   (when-let [networking-engine (.getNetworkingEngine (.-api @player))]
+     (.registerRequestFilter
+      networking-engine
+      (fn [_ request]
+        (let [original-url (some->> (.-uris request)
+                                    first
+                                    (new js/URL))
+              proxied-url  (when (str/ends-with? (.-host original-url)
+                                                 ".googlevideo.com")
+                             (new js/URL
+                                  (str url
+                                       "/proxy/"
+                                       (js/encodeURIComponent
+                                        (.toString original-url)))))]
+          (when proxied-url
+            (aset (.-uris request) 0 (.toString proxied-url)))))))))
+
+
+(rf/reg-event-fx
+ :player/initialize
+ (fn [{:keys [db]} [_ stream player pos]]
+   {:fx                    [[:dispatch [:player/set-stream stream player pos]]]
+    :player/configure      player
+    :player/request-filter [player (get-in db [:settings :instance])]}))
+
+(rf/reg-event-fx
  :player/set-stream
  (fn [{:keys [db]} [_ stream player pos]]
    (when-let [video-stream (utils/get-video-stream stream (:settings db))]
      {:fx [[:dispatch
             [:player/set-src
-             {:player player :src video-stream :current-pos pos}]]]})))
+             {:player      player
+              :src         video-stream
+              :current-pos pos}]]]})))
 
 (rf/reg-fx
  :player/loop
@@ -48,8 +94,12 @@
 (rf/reg-fx
  :player/time
  (fn [{:keys [time player]}]
-   (when (and player @player)
-     (set! (.-currentTime @player) time))))
+   (set! (.-currentTime @player) time)))
+
+(rf/reg-event-fx
+ :player/seek
+ (fn [_ [_ time player]]
+   {:player/time {:time time :player player}}))
 
 (rf/reg-fx
  :player/pause
@@ -97,7 +147,7 @@
                                {:duration     (.-duration @player)
                                 :playbackRate (.-playbackRate @player)
                                 :position     current-time})
-           seek #(do (rf/dispatch [:seek %]) (update-position))
+           seek #(do (rf/dispatch [:player/seek % player]) (update-position))
            events
            {"play"          #(.play @player)
             "pause"         #(.pause @player)

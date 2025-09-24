@@ -210,6 +210,7 @@
     (fn [{:keys [comments-page] :as stream} video]
       (let [{:keys [show-comments show-related show-description]}
             @(rf/subscribe [:settings])
+            !player @(rf/subscribe [:main-player])
             show-main-player? @(rf/subscribe [:main-player/show])
             comments-container (when stream
                                  [:div.flex.flex-col.gap-y-4
@@ -221,45 +222,45 @@
                                   [comments stream]])
             breakpoint @(rf/subscribe [:layout/breakpoint])]
         [:div.flex.flex-col.flex-1
-         [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10
+         [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10.relative
           {:class (if show-main-player? "top-0" "top-[56px]")}
           video]
-         [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
-          [:div.flex.flex-col.gap-y-8
-           (when (and show-main-player? (not= breakpoint :lg)) [stream-queue])
-           [metadata stream]]
-          [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
-           (when show-description [description stream])
-           (when show-comments comments-container)]
-          [:div.fixed.right-0.bg-neutral-100.dark:bg-neutral-950.z-10.w-full.md:hidden
-           {:class
-            (if @(rf/subscribe [:bg-player/show])
-              "!bottom-[80px]"
-              "!bottom-0")}
-           [layout/tabs
-            [(when show-comments
-               {:id        :comments
-                :label     "Comments"
-                :left-icon [:i.fa-solid.fa-comments]})
-             (when show-related
-               {:id        :related-items
-                :label     "Related Items"
-                :left-icon [:i.fa-solid.fa-images]})
-             (when show-description
-               {:id        :description
-                :label     "Description"
-                :left-icon [:i.fa-solid.fa-file]})]
-            :selected-id @!active-tab
-            :on-change #(reset! !active-tab %)]]
-          [:div.hidden.md:flex.flex-col.lg:hidden.gap-y-8
-           (when show-description [description stream])
-           (when show-related [related-items stream])
-           (when show-comments comments-container)]
-          [:div.mt-4.mb-16.md:hidden
-           (case @!active-tab
-             :comments      [comments stream]
-             :related-items [related-items stream]
-             :description   [description stream])]]]))))
+         (when stream
+           [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
+            [:div.flex.flex-col.gap-y-8
+             (when (and show-main-player? (not= breakpoint :lg)) [stream-queue])
+             [metadata stream]]
+            [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
+             (when show-description [description stream])
+             (when show-comments comments-container)]
+            [:div.sticky.right-0.left-0.bg-neutral-100.dark:bg-neutral-950.z-10.md:hidden.-mx-4.md:mx-0.border-b.border-neutral-300.dark:border-neutral-700.z-10
+             {:style {:top (when @!player
+                             (+ (.-height (.getBoundingClientRect @!player))
+                                (if show-main-player? 0 56)))}}
+             [layout/tabs
+              [(when show-comments
+                 {:id        :comments
+                  :label     "Comments"
+                  :left-icon [:i.fa-solid.fa-comments]})
+               (when show-related
+                 {:id        :related-items
+                  :label     "Related Items"
+                  :left-icon [:i.fa-solid.fa-images]})
+               (when show-description
+                 {:id        :description
+                  :label     "Description"
+                  :left-icon [:i.fa-solid.fa-file]})]
+              :selected-id @!active-tab
+              :on-change #(reset! !active-tab %)]]
+            [:div.hidden.md:flex.flex-col.lg:hidden.gap-y-8
+             (when show-description [description stream])
+             (when show-related [related-items stream])
+             (when show-comments comments-container)]
+            [:div.mt-4.md:mb-16.md:hidden
+             (case @!active-tab
+               :comments      [comments stream]
+               :related-items [related-items stream]
+               :description   [description stream])]])]))))
 
 (defn stream
   [video-stream video-container]
@@ -280,4 +281,4 @@
     [stream video-stream
      [video-container video-stream
       [player/video-player video-stream !player {}
-       #(rf/dispatch [:player/set-stream video-stream !player])]]]))
+       #(rf/dispatch [:player/initialize video-stream !player])]]]))

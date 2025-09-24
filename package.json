@@ -2,8 +2,6 @@
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",
     "bgutils-js": "^3.2.0",
-    "hls-video-element": "^1.2.11",
-    "hls.js": "^1.5.17",
     "fast-average-color": "^9.5.0",
     "jsdom": "^26.0.0",
     "localforage": "^1.10.0",
@@ -13,6 +11,7 @@
     "react-dom": "^18.2.0",
     "react-top-loading-bar": "^3.0.2",
     "react-virtuoso": "^4.14.0",
+    "shaka-video-element": "^0.6.20",
     "timeago.js": "^4.0.2"
   },
   "devDependencies": {
