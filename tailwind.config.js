@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        "nunito-sans": ["Nunito Sans", "sans-serif"],
+        roboto: ["Roboto", "sans-serif"],
       },
       screens: {
         xs: "480px",

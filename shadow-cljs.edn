@@ -14,14 +14,19 @@
                          :assets     {"resources/src/icons" "icons"}})
                        (shadow.html/copy-file "resources/src/index.html"
                                               "resources/public/index.html")]
-   :dev               {:build-hooks [(hooks/webpack-watch)]}
-   :release           {:build-hooks [(hooks/webpack-release)]}
+   :js-options        {:entry-keys            ["module" "browser" "main"]
+                       :export-conditions     ["module" "import" "browser"
+                                               "require" "default"]
+                       :js-provider           :external
+                       :external-index        "target/js/index.js"
+                       :external-index-format :esm}
    :compiler-options  {:closure-defines {tubo.utils/version
                                          :shadow-git-inject/version}}
-   :js-options        {:entry-keys        ["module" "browser" "main"]
-                       :export-conditions ["import" "module" "browser" "require"
-                                           "default"]}
-   :modules           {:main {:init-fn tubo.core/init}}}
+   :modules           {:main {:init-fn tubo.core/init}}
+   :dev               {:build-hooks [(hooks/postcss-watch)
+                                     (hooks/esbuild-watch)]}
+   :release           {:build-hooks [(hooks/postcss-release)
+                                     (hooks/esbuild-release)]}}
   :bg-helper
   {:target           :node-script
    :main             tubo.bg-helper/main

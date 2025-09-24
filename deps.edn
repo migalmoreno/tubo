@@ -47,7 +47,7 @@
                  re-promise/re-promise           {:mvn/version "0.1.1"}
                  reagent/reagent                 {:mvn/version "1.1.1"}
                  superstructor/re-frame-fetch-fx {:mvn/version "0.4.0"}
-                 thheller/shadow-cljs            {:mvn/version "3.0.3"}}
+                 thheller/shadow-cljs            {:mvn/version "3.2.1"}}
    :main-opts   ["-m" "shadow.cljs.devtools.cli"]}
   :dev {:extra-paths ["env/dev"]
         :extra-deps  {integrant/repl {:mvn/version "0.3.3"}}}
