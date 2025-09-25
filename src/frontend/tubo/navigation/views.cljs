@@ -363,13 +363,15 @@
 (defn sidebar
   [match]
   (let [sidebar-minimized? @(rf/subscribe [:navigation/sidebar-minimized])
-        sidebar-shown      @(rf/subscribe [:navigation/sidebar-shown])]
+        sidebar-shown      @(rf/subscribe [:navigation/sidebar-shown])
+        show-bg-player?    @(rf/subscribe [:bg-player/show])]
     [:div.sticky.top-14.transition-all.ease-in-out.delay-75.z-10
-     {:class (into (into ["h-[calc(100dvh-56px)]"]
-                         (if sidebar-shown ["hidden" "md:flex"] ["hidden"]))
-                   (if sidebar-minimized?
-                     ["min-w-20 w-20 max-w-20"]
-                     ["min-w-80 w-80 max-w-80"]))}
+     {:style {"--height" (if show-bg-player? "80px" "0px")}
+      :class (concat ["h-[calc(100dvh-56px-var(--height))]"]
+                     (if sidebar-shown ["hidden" "md:flex"] ["hidden"])
+                     (if sidebar-minimized?
+                       ["min-w-20" "w-20" "max-w-20"]
+                       ["min-w-80" "w-80" "max-w-80"]))}
      [:div.overflow-auto.scrollbar-none.justify-between.flex.flex-col
       [services-menu match]
       [tools-menu]]]))

@@ -44,5 +44,5 @@
             [view current-match]]
            [layout/not-found-page])]
         [queue/queue]
-        [bg-player/player]
-        [main-player/player]]]]]))
+        [main-player/player]]]
+      [bg-player/player]]]))

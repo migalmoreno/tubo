@@ -214,8 +214,8 @@
   [stream]
   (let [show-list? @(rf/subscribe [:queue/show-list])
         muted?     @(rf/subscribe [:player/muted])]
-    [:div.flex.gap-x-4
-     [:div.flex.gap-x-8.pl-5.lg:hidden
+    [:div.flex.gap-x-4.lg:hidden
+     [:div.flex.gap-x-8.pl-5
       [player/button
        :show-on-mobile? true
        :icon
@@ -291,20 +291,9 @@
         stream       @(rf/subscribe [:queue/current])
         show-queue?  @(rf/subscribe [:queue/show])
         show-player? @(rf/subscribe [:bg-player/show])
-        dark-theme?  @(rf/subscribe [:dark-theme])
         color        (-> stream
                          :service-id
-                         utils/get-service-color)
-        bg-color     (str "rgba("
-                          (if dark-theme? "10,10,10" "255,255,255")
-                          ",0.95)")
-        bg-image     (str "linear-gradient("
-                          bg-color
-                          ","
-                          bg-color
-                          "),url("
-                          (:thumbnail stream)
-                          ")")]
+                         utils/get-service-color)]
     [:<>
      (when show-player?
        [audio-player !player])
@@ -315,11 +304,12 @@
           :initial    {:y 100}
           :transition {:ease "easeOut" :duration 0.3}
           :exit       {:y 100}
-          :class      ["h-[80px]" "sticky" "absolute" "left-0" "bottom-0" "z-10"
-                       "p-3" "relative" "bg-cover" "bg-center" "bg-no-repeat"
-                       "bg-[image:var(--bg-image)]" "cursor-pointer"]
+          :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
+                       "bottom-5" "xs:bottom-3" "right-0" "md:bottom-0" "z-10"
+                       "rounded-xl" "md:rounded-none" "mx-3" "xs:mx-3" "md:mx-0"
+                       "p-3" "relative" "cursor-pointer" "bg-neutral-200"
+                       "dark:bg-neutral-900"]
           :on-click   #(rf/dispatch [:queue/show true])}
-         [:div.flex.items-center
-          [metadata stream]
-          [main-controls !player color]
-          [extra-controls !player stream color]]])]]))
+         [metadata stream]
+         [main-controls !player color]
+         [extra-controls !player stream color]])]]))
