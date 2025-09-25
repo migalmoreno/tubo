@@ -42,19 +42,20 @@
                                  [modals/add-to-bookmark
                                   related-streams]])}]))
    :tooltip-classes ["right-5" "top-5"]
-   :extra-classes ["px-5" "xs:py-2.5" "xs:px-2" "rounded-full"]
+   :extra-classes ["px-5" "xs:py-2.5" "xs:px-2.5" "rounded-full"]
    :icon
-   [:<> [:i.fa-solid.fa-ellipsis-vertical.xs:hidden]
+   [:<>
+    [:i.fa-solid.fa-ellipsis-vertical.xs:hidden]
     [:i.fa-solid.fa-ellipsis.hidden.xs:block]]])
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name uploader-verified? subscriber-count
            uploader-avatars]
     :as   stream}]
-  [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none.flex-wrap.xs:flex-nowrap.gap-y-4
-   [:div.flex.items-center
+  [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none.flex-wrap.xs:flex-nowrap.gap-4
+   [:div.flex.items-center.gap-x-3
     [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
-    [:div.mx-3.gap-x-2
+    [:div.gap-x-2
      (when uploader-url
        [:div.flex.gap-x-2.items-center
         [:a.line-clamp-1.font-medium.text-sm.xs:text-base
@@ -86,11 +87,13 @@
       (when like-count
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-up]
-         [:span (utils/format-quantity like-count)]])
+         [:span.text-neutral-800.dark:text-neutral-300
+          (utils/format-quantity like-count)]])
       (when dislike-count
         [:div.flex.items-center.gap-x-2
          [:i.fa-solid.fa-thumbs-down]
-         [:span dislike-count]])])
+         [:span.text-neutral-800.dark:text-neutral-300
+          (utils/format-quantity dislike-count)]])])
    (when stream
      [:div.hidden.sm:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
       [metadata-popover stream]])])
@@ -210,7 +213,6 @@
     (fn [{:keys [comments-page] :as stream} video]
       (let [{:keys [show-comments show-related show-description]}
             @(rf/subscribe [:settings])
-            !player @(rf/subscribe [:main-player])
             show-main-player? @(rf/subscribe [:main-player/show])
             comments-container (when stream
                                  [:div.flex.flex-col.gap-y-4
@@ -233,10 +235,7 @@
             [:div.hidden.lg:flex.flex-col.gap-y-8.py-4
              (when show-description [description stream])
              (when show-comments comments-container)]
-            [:div.sticky.right-0.left-0.bg-neutral-100.dark:bg-neutral-950.z-10.md:hidden.-mx-4.md:mx-0.border-b.border-neutral-300.dark:border-neutral-700.z-10
-             {:style {:top (when @!player
-                             (+ (.-height (.getBoundingClientRect @!player))
-                                (if show-main-player? 0 56)))}}
+            [:div.bg-neutral-100.dark:bg-neutral-950.md:hidden.-mx-4.md:mx-0.border-b.border-neutral-300.dark:border-neutral-700
              [layout/tabs
               [(when show-comments
                  {:id        :comments
