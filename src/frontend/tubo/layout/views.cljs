@@ -81,7 +81,7 @@
   (when-let [{:keys [show?] :as overlay} @(rf/subscribe [:layout/bg-overlay])]
     [:> AnimatePresence
      (when show?
-       [:> motion.div
+       [:> (.-div motion)
         {:class    (into ["w-full" "fixed" "min-h-screen" "right-0" "top-0"
                           "z-20"]
                          (conj (:extra-classes overlay)
@@ -250,7 +250,7 @@
   [tooltip-id & {:keys [extra-classes]}]
   (let [{:keys [items]} @(rf/subscribe [:layout/tooltip-by-id tooltip-id])]
     (when (seq (remove nil? items))
-      [:> motion.ul
+      [:> (.-ul motion)
        {:class      (into ["absolute" "bg-neutral-100" "dark:bg-neutral-900"
                            "rounded-t" "rounded-b" "flex" "flex-col"
                            "text-neutral-800" "dark:text-white" "shadow"
@@ -274,7 +274,7 @@
        [:div.xs:hidden
         {:class (str "tooltip-controller-" id)}
         (when (and (seq (remove nil? items)) show?)
-          [:> motion.ul
+          [:> (.-ul motion)
            {:animate    {:y 0}
             :initial    {:y 400}
             :exit       {:y 400}

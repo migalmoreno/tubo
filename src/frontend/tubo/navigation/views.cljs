@@ -203,7 +203,7 @@
 
 (defn navbar
   [{{:keys [id]} :query-params {:keys [name]} :data :as match}]
-  [:> motion.nav
+  [:> (.-nav motion)
    {:animate    (if @(rf/subscribe [:queue/show])
                   {:background "none"}
                   {:background (if @(rf/subscribe [:dark-theme])
@@ -378,7 +378,7 @@
   [match]
   [:> AnimatePresence
    (when @(rf/subscribe [:navigation/show-mobile-menu])
-     [:> motion.div
+     [:> (.-div motion)
       {:class      ["flex" "flex-col" "fixed" "h-dvh" "w-80" "top-0"
                     "bg-neutral-100" "dark:bg-neutral-950" "transition-all"
                     "z-30"]

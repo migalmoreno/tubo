@@ -187,7 +187,7 @@
                              ")")]
         [:> AnimatePresence
          (when show-queue
-           [:> motion.div
+           [:> (.-div motion)
             {:initial {:opacity 0}
              :animate {:opacity 1}
              :exit    {:opacity 0}
@@ -208,7 +208,7 @@
                 [:div.flex.flex-col.gap-y-10.items-center.justify-center
                  {:class ["w-full" "md:w-[28rem]" "lg:w-[24rem]"
                           "xl:w-[28rem]"]}
-                 [:> motion.div
+                 [:> (.-div motion)
                   {:class   ["flex" "w-full" "items-center" "justify-center"]
                    :animate {:scale 1}
                    :ref     #(reset! !thumbnail %)
@@ -224,7 +224,7 @@
                   [queue-metadata stream]
                   [main-controls color]]]])
              (when (and show-queue (or (= breakpoint :lg) show-list?))
-               [:> motion.div
+               [:> (.-div motion)
                 {:animate    {:y 0}
                  :initial    {:y 50}
                  :transition {:duration 0.3}

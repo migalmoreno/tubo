@@ -37,7 +37,7 @@
          {:mode "wait" :onExitComplete #(rf/dispatch [:scroll-to-top])}
          (if-let [view (get-in current-match [:data :view])]
            ^{:key (get-in current-match [:data :name])}
-           [:> motion.div
+           [:> (.-div motion)
             {:class      ["flex" "flex-auto"]
              :exit       {:opacity 0}
              :transition {:duration 0.5 :ease "easeOut"}}

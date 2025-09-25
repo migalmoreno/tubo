@@ -310,9 +310,8 @@
        [audio-player !player])
      [:> AnimatePresence
       (when (and show-player? (not show-queue?))
-        [:> motion.div
-         {:style      {"--bg-image" bg-image}
-          :animate    {:y 0}
+        [:> (.-div motion)
+         {:animate    {:y 0}
           :initial    {:y 100}
           :transition {:ease "easeOut" :duration 0.3}
           :exit       {:y 100}

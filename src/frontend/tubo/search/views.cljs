@@ -12,7 +12,7 @@
   (let [show-suggestions? @(rf/subscribe [:search/show-suggestions])]
     [:> AnimatePresence
      (when (and (seq suggestions) show-suggestions?)
-       [:> motion.div
+       [:> (.-div motion)
         {:animate    {:y 0}
          :initial    {:y 10}
          :transition {:duration 0.1 :ease "easeIn"}

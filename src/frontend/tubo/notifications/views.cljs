@@ -6,7 +6,7 @@
 
 (defn notification-content
   [{:keys [type status status-text body problem-message] :as notification}]
-  [:> motion.div
+  [:> (.-div motion)
    {:animate    {:x 0}
     :initial    {:x 400}
     :exit       {:x 400}

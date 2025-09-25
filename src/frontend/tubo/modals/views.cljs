@@ -17,7 +17,7 @@
 
 (defn modal-panel
   [{:keys [child]}]
-  [:> motion.div
+  [:> (.-div motion)
    {:class      ["flex" "fixed" "z-30" "top-1/2" "w-[90%]" "align-middle"
                  "left-1/2" "w-11/12" "sm:w-3/4" "md:w-3/5" "lg:w-1/2"
                  "xl:w-1/3"

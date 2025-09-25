@@ -30,11 +30,10 @@
             show-player? @(rf/subscribe [:main-player/show])]
         [:> AnimatePresence
          (when show-player?
-           [:> motion.div
-            {:class   ["w-full" "z-10" "justify-center" "flex" "left-0"
-                       "backdrop-blur" "fixed" "min-h-[calc(100dvh-56px)]"
-                       "max-h-[calc(100dvh-56px)]"
-                       "bg-neutral-100/90" "dark:bg-neutral-950/90"]
+           [:> (.-div motion)
+            {:class   ["w-full" "z-10" "justify-center" "flex" "left-0" "fixed"
+                       "min-h-[calc(100dvh-56px)]" "max-h-[calc(100dvh-56px)]"
+                       "bg-neutral-100" "dark:bg-neutral-950"]
              :animate {:transform "translateY(0)"}
              :initial {:transform "translateY(100%)"}
              :exit    {:transform "translateY(100%)"}}
