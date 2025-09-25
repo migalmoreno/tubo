@@ -39,25 +39,35 @@
 (rf/reg-event-fx
  :playlist/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
-   {:db (assoc db
-               :playlist
-               (-> body
-                   (utils/apply-image-quality
-                    db
-                    :thumbnail
-                    :thumbnails)
-                   (utils/apply-image-quality
-                    db
-                    :uploader-avatar
-                    :uploader-avatars)
-                   (utils/apply-thumbnails-quality
-                    db
-                    :related-streams)
-                   (utils/apply-avatars-quality
-                    db
-                    :related-streams)))
-    :fx [[:dispatch [:services/fetch body]]
-         [:document-title (:name body)]]}))
+   (let [updated-db
+         (assoc db
+                :playlist
+                (-> body
+                    (utils/apply-image-quality
+                     db
+                     :thumbnail
+                     :thumbnails)
+                    (utils/apply-image-quality
+                     db
+                     :uploader-avatar
+                     :uploader-avatars)
+                    (utils/apply-thumbnails-quality
+                     db
+                     :related-streams)
+                    (utils/apply-avatars-quality
+                     db
+                     :related-streams)))]
+     {:db updated-db
+      :fx [[:dispatch [:services/fetch body]]
+           [:document-title (:name body)]
+           [:dispatch
+            [:get-color-async (get-in updated-db [:playlist :thumbnail])
+             [:playlist/load-thumbnail-color]]]]})))
+
+(rf/reg-event-db
+ :playlist/load-thumbnail-color
+ (fn [db [_ color]]
+   (assoc-in db [:playlist :thumbnail-color] (get (js->clj color) "hex"))))
 
 (rf/reg-event-fx
  :playlist/fetch-page

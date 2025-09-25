@@ -30,31 +30,35 @@
     (fn [{:keys [name uploader-name uploader-url stream-count related-streams
                  next-page]
           :as   playlist} url edit-modal]
-      (let [dark-theme? @(rf/subscribe [:dark-theme])
-            bg-color    (str "rgba("
-                             (if dark-theme? "10,10,10" "255,255,255")
-                             ","
-                             (if dark-theme? 0.5 0.2)
-                             ")")
-            bg-image    (str "linear-gradient("
-                             bg-color
-                             ","
-                             bg-color
-                             "),url("
-                             (:thumbnail playlist)
-                             ")")]
-        [layout/content-container
-         [:div.flex.w-full.items-end.py-4.flex-wrap.xs:flex-nowrap.gap-8.relative.before:absolute.before:top-0.before:bottom-0.before:left-0.before:right-0.before:bg-cover.before:bg-center.before:bg-no-repeat.before:h-24.rounded
-          {:style {"--bg-image" bg-image}
-           :class ["before:bg-[image:var(--bg-image)]"
-                   "before:content-['']" "before:scale-y-[3]"
-                   "before:scale-x-[1.075]"
-                   "before:blur-[50px]"]}
+      (let [dark-theme?        @(rf/subscribe [:dark-theme])
+            color              (if dark-theme? "10,10,10" "245,245,245")
+            top-bg-gradient    (str "linear-gradient(to top, rgba("
+                                    color
+                                    ",0.7) 10%, rgba("
+                                    color
+                                    ",0.3) 65%, rgba("
+                                    color
+                                    ",0.2) 75%, transparent 90%)")
+            bottom-bg-gradient (str "linear-gradient(to bottom, rgba("
+                                    color
+                                    ",0.8) 10%, rgba("
+                                    color
+                                    ",0.90) 50%, rgba("
+                                    color
+                                    ",1) 90%)")]
+        [:div.w-full.flex.flex-col
+         [:div.flex.w-full.items-end.p-8.flex-wrap.xs:flex-nowrap.gap-8.relative
+          {:style {"--bg-color"    (:thumbnail-color playlist)
+                   "--bg-gradient" top-bg-gradient}
+           :class ["bg-[color:var(--bg-color)]"
+                   "before:bg-[image:var(--bg-gradient)]"
+                   "before:absolute" "before:content-['']" "before:top-0"
+                   "before:right-0" "before:left-0" "before:bottom-0"]}
           [:div.flex.items-center.justify-center.xs:justify-start.w-full.xs:w-auto.relative
            [layout/thumbnail playlist nil :container-classes ["h-52" "w-52"]
             :image-classes ["rounded-md"] :hide-label? true]]
           [:div.flex.flex-col.flex-1.gap-y-1.relative
-           [:h1.text-sm.font-bold.text-neutral-600.dark:text-neutral-400
+           [:h1.text-sm.font-medium.text-neutral-800.dark:text-neutral-400
             (str (when edit-modal "LOCAL ") "PLAYLIST")]
            [:div.flex.flex-col.gap-y-6
             [layout/content-header name]
@@ -83,10 +87,17 @@
               (when (> stream-count 0)
                 [:span.text-sm.font-semibold.whitespace-nowrap.text-neutral-600.dark:text-neutral-400.flex-auto
                  (str stream-count
-                      (if (= stream-count 1) " stream" " streams"))])]
-             [items/layout-switcher !layout]]]]]
-         [items/related-streams related-streams next-page @!layout
-          #(rf/dispatch [:playlist/fetch-paginated url next-page])]]))))
+                      (if (= stream-count 1) " stream" " streams"))])]]]]]
+         [layout/content-container
+          [:div.absolute.left-0.right-0.top-0.-z-10
+           {:style {"--bg-color"    (:thumbnail-color playlist)
+                    "--bg-gradient" bottom-bg-gradient}
+            :class ["h-[600px]" "max-h-full" "bg-[color:var(--bg-color)]"
+                    "before:bg-[image:var(--bg-gradient)]"
+                    "before:absolute" "before:content-['']" "before:top-0"
+                    "before:right-0" "before:left-0" "before:bottom-0"]}]
+          [items/related-streams related-streams next-page @!layout
+           #(rf/dispatch [:playlist/fetch-paginated url next-page])]]]))))
 
 (defn playlist-page
   [{{:keys [url]} :query-params}]

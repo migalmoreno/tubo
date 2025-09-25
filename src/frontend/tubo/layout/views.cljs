@@ -102,7 +102,7 @@
   (let [sidebar-minimized @(rf/subscribe [:navigation/sidebar-minimized])]
     [:div
      {:class ["flex" "flex-col" "flex-auto" "items-center" "py-4" "px-5"
-              "md:px-0" "w-full"]}
+              "md:px-0" "w-full" "relative"]}
      [:div.flex.flex-col.flex-auto.w-full
       {:class [(if sidebar-minimized "md:w-4/5" "md:w-11/12")]}
       (map-indexed #(with-meta %2 {:key %1}) children)]]))

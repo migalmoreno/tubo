@@ -426,17 +426,24 @@
  :bookmark/load-authenticated-playlist
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:document-title (:name body)
-    :db
-    (->
-      (update
-       db
-       :user/bookmarks
-       (fn [bookmarks]
-         (map
-          #(if (= (:playlist-id %) (:playlist-id body))
-             (utils/apply-image-quality-n body db :items :thumbnail :thumbnail)
-             %)
-          bookmarks))))}))
+    :db             (update
+                     db
+                     :user/bookmarks
+                     (fn [bookmarks]
+                       (map
+                        #(if (= (:playlist-id %) (:playlist-id body))
+                           (utils/apply-image-quality-n body
+                                                        db
+                                                        :items
+                                                        :thumbnail
+                                                        :thumbnail)
+                           %)
+                        bookmarks)))
+    :fx             [(when-let [thumbnail (get-in body [:items 0 :thumbnail])]
+                       [:dispatch
+                        [:get-color-async thumbnail
+                         [:bookmark/load-thumbnail-color
+                          (:playlist-id body)]]])]}))
 
 (rf/reg-event-fx
  :bookmarks/on-fetch-authenticated-playlists
@@ -455,6 +462,18 @@
              [:bookmarks/on-fetch-authenticated-playlists cb] on-error]]]
           [])}))
 
+(rf/reg-event-db
+ :bookmark/load-thumbnail-color
+ (fn [db [_ playlist-id color]]
+   (update db
+           (if (:auth/user db) :user/bookmarks :bookmarks)
+           (fn [bookmarks]
+             (map
+              #(if (= ((if (:auth/user db) :playlist-id :id) %) playlist-id)
+                 (assoc % :thumbnail-color (get (js->clj color) "hex"))
+                 %)
+              bookmarks)))))
+
 (rf/reg-event-fx
  :bookmark/fetch-page
  [(show-loading-status :api/get-auth)]
@@ -465,7 +484,11 @@
              [:bookmark/load-authenticated-playlist]
              [:bad-page-response [:auth/redirect-login]]]]]}
      (let [playlist (first (filter #(= (:id %) playlist-id) (:bookmarks db)))]
-       {:document-title (:name playlist)}))))
+       {:document-title (:name playlist)
+        :fx             [[:dispatch
+                          [:get-color-async
+                           (get-in playlist [:items 0 :thumbnail])
+                           [:bookmark/load-thumbnail-color playlist-id]]]]}))))
 
 (rf/reg-event-fx
  :bookmark/on-update-info-auth-success

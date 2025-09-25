@@ -1,5 +1,6 @@
 (ns tubo.events
   (:require
+   ["fast-average-color" :refer [FastAverageColor]]
    ["motion" :refer [animate]]
    [fork.re-frame :as fork]
    [nano-id.core :refer [nano-id]]
@@ -105,6 +106,13 @@
  (fn [{:keys [virtuoso]} [_ idx]]
    (when @virtuoso
      {:virtuoso-scroll-to-index [@virtuoso idx]})))
+
+(rf/reg-event-fx
+ :get-color-async
+ (fn [_ [_ image on-success]]
+   {:promise {:call       #(.getColorAsync (FastAverageColor.) image)
+              :on-success on-success
+              :on-failure [:notifications/error]}}))
 
 (rf/reg-fx
  :animate!
