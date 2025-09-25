@@ -13,20 +13,15 @@
                         {:public-dir "resources/public"
                          :assets     {"resources/src/icons" "icons"}})
                        (shadow.html/copy-file "resources/src/index.html"
-                                              "resources/public/index.html")]
-   :js-options        {:entry-keys            ["module" "browser" "main"]
-                       :export-conditions     ["module" "import" "browser"
-                                               "require" "default"]
-                       :js-provider           :external
-                       :external-index        "target/js/index.js"
-                       :external-index-format :esm}
+                                              "resources/public/index.html")
+                       (hooks/postcss "resources/src/index.css"
+                                      "resources/public/index.css")]
+   :js-options        {:entry-keys        ["module" "browser" "main"]
+                       :export-conditions ["import" "module" "browser" "require"
+                                           "default"]}
    :compiler-options  {:closure-defines {tubo.utils/version
                                          :shadow-git-inject/version}}
-   :modules           {:main {:init-fn tubo.core/init}}
-   :dev               {:build-hooks [(hooks/postcss-watch)
-                                     (hooks/esbuild-watch)]}
-   :release           {:build-hooks [(hooks/postcss-release)
-                                     (hooks/esbuild-release)]}}
+   :modules           {:main {:init-fn tubo.core/init}}}
   :bg-helper
   {:target           :node-script
    :main             tubo.bg-helper/main
