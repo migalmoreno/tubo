@@ -235,26 +235,31 @@
    (assoc db :search/filter filter)))
 
 (rf/reg-event-fx
+ :search/navigate
+ (fn [{:keys [db]} [_ query res]]
+   {:fx [[:dispatch
+          [:navigation/navigate
+           {:name   :search-page
+            :params {}
+            :query  (into {:q         query
+                           :serviceId (:service-id db)}
+                          (when (and (seq (:search/filter db))
+                                     (some #{(:search/filter db)}
+                                           (:content-filters
+                                            (get (:services db)
+                                                 (:service-id
+                                                  db)))))
+                            {:filter (:search/filter db)}))}]]
+         [:dispatch [:search/change-suggestions res]]]}))
+
+(rf/reg-event-fx
  :search/submit
- (fn [{:keys [db]} [_ query]]
+ (fn [_ [_ query]]
    (when (seq query)
      {:stop-debounce :search/query
       :fx            [[:dispatch
                        [:search/fetch-suggestions query
-                        [:search/change-suggestions]]]
-                      [:dispatch
-                       [:navigation/navigate
-                        {:name   :search-page
-                         :params {}
-                         :query  (into {:q         query
-                                        :serviceId (:service-id db)}
-                                       (when (and (seq (:search/filter db))
-                                                  (some #{(:search/filter db)}
-                                                        (:content-filters
-                                                         (get (:services db)
-                                                              (:service-id
-                                                               db)))))
-                                         {:filter (:search/filter db)}))}]]]})))
+                        [:search/navigate query]]]]})))
 
 (rf/reg-event-fx
  :search/set-filter
