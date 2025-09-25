@@ -32,6 +32,5 @@
                 (str "Last updated: " (utils/format-date-ago last-updated))])
              [:div.flex.items-center.gap-x-6.justify-between.flex-auto
               [layout/primary-button "Refresh" #(rf/dispatch [:feed/fetch])
-               [:i.fa-solid.fa-refresh]]
-              [items/layout-switcher !layout]]])]
+               [:i.fa-solid.fa-refresh]]]])]
          [items/related-streams items nil @!layout]]))))

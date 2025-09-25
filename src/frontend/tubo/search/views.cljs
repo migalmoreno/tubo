@@ -108,28 +108,26 @@
      [suggestions-box suggestions]]))
 
 (defn search
-  []
-  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
-    (fn [{{:keys [q serviceId]} :query-params}]
-      (let [{:keys [items next-page]} @(rf/subscribe [:search/results])
-            service-id                (or @(rf/subscribe [:service-id])
-                                          serviceId)
-            filter                    @(rf/subscribe [:search/filter])
-            service                   @(rf/subscribe [:services/current])
-            settings                  @(rf/subscribe [:settings])]
-        [layout/content-container
-         [:div.flex.w-full.justify-between
-          [layout/select
-           (or filter (get (:default-filter settings) service-id) "")
-           (map (fn [filter] {:label (utils/titleize filter) :value filter})
-                (:content-filters service))
-           #(rf/dispatch [:search/set-filter (.. % -target -value)])]
-          [items/layout-switcher !layout]]
-         [items/related-streams items next-page @!layout
-          #(rf/dispatch
-            [:search/fetch-paginated
-             {:query     q
-              :id        service-id
-              :filter    (or filter
-                             (get (:default-filter settings) service-id))
-              :next-page next-page}])]]))))
+  [{{:keys [q serviceId]} :query-params}]
+  (let [{:keys [items next-page]} @(rf/subscribe [:search/results])
+        service-id                (or @(rf/subscribe [:service-id])
+                                      serviceId)
+        filter                    @(rf/subscribe [:search/filter])
+        service                   @(rf/subscribe [:services/current])
+        settings                  @(rf/subscribe [:settings])]
+    [layout/content-container
+     [:div.flex.w-full.justify-between
+      [layout/select
+       (or filter (get (:default-filter settings) service-id) "")
+       (map (fn [filter] {:label (utils/titleize filter) :value filter})
+            (:content-filters service))
+       #(rf/dispatch [:search/set-filter (.. % -target -value)])]]
+     [items/related-streams items next-page
+      (:items-layout @(rf/subscribe [:settings]))
+      #(rf/dispatch
+        [:search/fetch-paginated
+         {:query     q
+          :id        service-id
+          :filter    (or filter
+                         (get (:default-filter settings) service-id))
+          :next-page next-page}])]]))

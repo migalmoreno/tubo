@@ -256,21 +256,3 @@
         [:span "No available items"]])
      (when (and pagination-loading? (seq next-page))
        [layout/loading-icon service-color :text-md])]))
-
-(defn layout-switcher
-  [!layout]
-  [layout/popover
-   [{:label    "List"
-     :icon     [:i.fa-solid.fa-table-list]
-     :on-click #(reset! !layout "list")}
-    {:label    "Grid"
-     :icon     [:i.fa-solid.fa-table-cells-large]
-     :on-click #(reset! !layout "grid")}]
-   :responsive? false
-   :extra-classes ["p-0"]
-   :tooltip-classes ["right-3" "top-10"]
-   :icon
-   [:div.flex.items-center.gap-x-3.rounded-full.transition-all.ease-in-out.text-sm.text-neutral-500
-    [:i.fa-solid
-     {:class (if (= @!layout "list") :fa-table-list :fa-table-cells-large)}]
-    [:i.fa-solid.fa-angle-down.text-sm]]])

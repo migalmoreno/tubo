@@ -75,8 +75,7 @@
 
 (defn channel
   []
-  (let [!layout        (r/atom (:items-layout @(rf/subscribe [:settings])))
-        !active-tab-id (r/atom nil)]
+  (let [!active-tab-id (r/atom nil)]
     (fn [{{:keys [url]} :query-params}]
       (let [{:keys [banner next-page related-streams] :as channel}
             @(rf/subscribe [:channel])
@@ -95,21 +94,21 @@
              {:src banner}]])
          [:div.flex.flex-col.gap-y-4
           [metadata channel]
-          [:div.flex.justify-between.items-center
-           [layout/tabs
-            (map (fn [{:keys [contentFilters]}]
-                   {:id    (first contentFilters)
-                    :label (str/capitalize (first contentFilters))})
-                 (:tabs channel))
-            :selected-id
-            (or @!active-tab-id
-                (get-in (first (:tabs channel)) [:contentFilters 0]))
-            :on-change
-            #(do (reset! !active-tab-id %)
-                 (rf/dispatch [:channel/fetch-tab url %]))]
-           [items/layout-switcher !layout]]]
+          (when (seq (:tabs channel))
+            [:div.flex.justify-between.items-center.border-b.border-neutral-300.dark:border-neutral-700
+             [layout/tabs
+              (map (fn [{:keys [contentFilters]}]
+                     {:id    (first contentFilters)
+                      :label (str/capitalize (first contentFilters))})
+                   (:tabs channel))
+              :selected-id
+              (or @!active-tab-id
+                  (get-in (first (:tabs channel)) [:contentFilters 0]))
+              :on-change
+              #(do (reset! !active-tab-id %)
+                   (rf/dispatch [:channel/fetch-tab url %]))]])]
          [items/related-streams
           (or (:related-streams active-tab) related-streams) next-page-info
-          @!layout
+          (:items-layout @(rf/subscribe [:settings]))
           #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
                          next-page-info])]]))))

@@ -1,6 +1,5 @@
 (ns tubo.kiosks.views
   (:require
-   [reagent.core :as r]
    [re-frame.core :as rf]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]))
@@ -17,14 +16,13 @@
            (= default-kiosk kiosk))))
 
 (defn kiosk
-  []
-  (let [!layout (r/atom (:items-layout @(rf/subscribe [:settings])))]
-    (fn [{{:keys [serviceId]} :query-params}]
-      (let [{:keys [id name related-streams next-page]} @(rf/subscribe [:kiosk])
-            service-id                                  (or @(rf/subscribe
-                                                              [:service-id])
-                                                            serviceId)]
-        [layout/content-container
-         [layout/content-header name [items/layout-switcher !layout]]
-         [items/related-streams related-streams next-page @!layout
-          #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))))
+  [{{:keys [serviceId]} :query-params}]
+  (let [{:keys [id name related-streams next-page]} @(rf/subscribe [:kiosk])
+        service-id                                  (or @(rf/subscribe
+                                                          [:service-id])
+                                                        serviceId)]
+    [layout/content-container
+     [layout/content-header name]
+     [items/related-streams related-streams next-page
+      (:items-layout @(rf/subscribe [:settings]))
+      #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))

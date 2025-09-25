@@ -48,8 +48,7 @@
               :on-click #(rf/dispatch [:bookmarks/export])}
              {:label    "Clear all"
               :icon     [:i.fa-solid.fa-trash]
-              :on-click #(rf/dispatch [:bookmarks/clear])}]]]
-          [items/layout-switcher !layout]]
+              :on-click #(rf/dispatch [:bookmarks/clear])}]]]]
          [items/related-streams
           (map (fn [item] (assoc item :type "bookmark")) items) nil
           @!layout]]))))
