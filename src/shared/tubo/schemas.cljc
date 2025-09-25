@@ -134,7 +134,6 @@
    [:queue/show-list {:optional true} [:maybe boolean?]]
    [:queue/position {:default 0 :persist true} int?]
    [:queue/unshuffled {:optional true :persist true} [:maybe vector?]]
-   [:queue/color {:optional true :persist true} any?]
    [:queue {:default [] :persist true} vector?]
    [:notifications {:optional true} any?]
    [:modals {:optional true} any?]

@@ -1,6 +1,5 @@
 (ns tubo.queue.events
   (:require
-   ["fast-average-color" :refer [FastAverageColor]]
    [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [tubo.storage :refer [persist]]
@@ -159,18 +158,11 @@
                         (> (count (:queue db)) 1))
                [:dispatch [:queue/change-seamless-pos idx]])]}))))
 
-(rf/reg-event-fx
- :queue/set-color
+(rf/reg-event-db
+ :queue/load-thumbnail-color
  [persist]
- (fn [{:keys [db]} [_ color]]
-   {:db (assoc db :queue/color (get (js->clj color) "hex"))}))
-
-(rf/reg-event-fx
- :queue/get-color-async
- (fn [_ [_ image]]
-   {:promise {:call       #(.getColorAsync (FastAverageColor.) image)
-              :on-success [:queue/set-color]
-              :on-failure [:notifications/error "error"]}}))
+ (fn [db [_ idx color]]
+   (assoc-in db [:queue idx :thumbnail-color] (get (js->clj color) "hex"))))
 
 (rf/reg-event-fx
  :queue/change-pos
@@ -249,8 +241,9 @@
        {:db (if play? (assoc updated-db :queue/position idx) updated-db)
         :fx (into (if play?
                     [[:dispatch
-                      [:queue/get-color-async
-                       (get-in updated-db [:queue idx :thumbnail])]]
+                      [:get-color-async
+                       (get-in updated-db [:queue idx :thumbnail])
+                       [:queue/load-thumbnail-color idx]]]
                      [:dispatch
                       [:animate @queue-bg
                        {"--opacity" [(if dark-theme 0.8 0.3) 0.5]}

@@ -17,7 +17,7 @@
     [:div.flex.cursor-pointer.px-4.py-2
      {:class    (into
                  (when (= i queue-pos)
-                   ["bg-neutral-600/20" "dark:bg-neutral-800/60"])
+                   ["bg-neutral-600/20" "dark:bg-neutral-900/30"])
                  ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
       :on-click #(rf/dispatch [:queue/load-pos i])}
      [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
@@ -181,7 +181,7 @@
             dark-theme? @(rf/subscribe [:dark-theme])
             breakpoint  @(rf/subscribe [:layout/breakpoint])
             bg-gradient (str "rgba("
-                             (if dark-theme? "10,10,10" "255,255,255")
+                             (if dark-theme? "10,10,10" "245,245,245")
                              ","
                              "var(--opacity)"
                              ")")]
@@ -193,13 +193,19 @@
              :exit    {:opacity 0}
              :class   ["fixed" "flex" "flex-col" "items-center" "justify-center"
                        "z-10" "right-0" "left-0" "top-0" "bottom-0"]}
-            [:> motion.div
-             {:style {"--bg-color"    @(rf/subscribe [:queue/color])
-                      "--bg-gradient" bg-gradient
+            [:> (.-div motion)
+             {:style {"--bg-color"    (or (:thumbnail-color stream)
+                                          (str "rgba("
+                                               (if dark-theme?
+                                                 "10,10,10"
+                                                 "245,245,245")
+                                               ")"))
+                      "--bg-gradient" (when (:thumbnail-color stream)
+                                        bg-gradient)
                       "--opacity"     0.5}
               :ref   #(reset! !bg %)
               :class ["flex" "w-full" "h-full" "relative" "overflow-hidden"
-                      "before:absolute" "bg-[color:var(--bg-color)]"
+                      "bg-[color:var(--bg-color)]" "before:absolute"
                       "before:top-0" "before:bottom-0" "before:left-0"
                       "before:right-0" "before:bg-[color:var(--bg-gradient)]"
                       "before:content-['']"]}
