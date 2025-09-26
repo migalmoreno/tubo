@@ -109,10 +109,10 @@
 
 (rf/reg-event-fx
  :get-color-async
- (fn [_ [_ image on-success]]
+ (fn [_ [_ image on-success on-error]]
    {:promise {:call       #(.getColorAsync (FastAverageColor.) image)
               :on-success on-success
-              :on-failure [:notifications/error]}}))
+              :on-failure (or on-error [:noop])}}))
 
 (rf/reg-fx
  :animate!
