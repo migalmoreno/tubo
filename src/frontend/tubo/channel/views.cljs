@@ -67,7 +67,7 @@
                     name
                     [:div.flex.flex-col.gap-y-2
                      [:h3.font-bold.text-lg "Description"]
-                     [:span.text-sm
+                     [:span.text-sm.whitespace-pre-line
                       {:dangerouslySetInnerHTML {:__html description}}]]])])
                :classes ["line-clamp-1"]]])
            [:div.hidden.xs:flex sub-btn]]]
