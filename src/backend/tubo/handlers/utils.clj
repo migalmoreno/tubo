@@ -105,7 +105,6 @@
    :thumbnails    (proxy-images (.getThumbnails playlist) req)
    :uploader-name (.getUploaderName playlist)
    :uploader-url  (.getUploaderUrl playlist)
-   :description   (.getDescription playlist)
    :playlist-type (.getPlaylistType playlist)
    :stream-count  (non-negative (.getStreamCount playlist))})
 
