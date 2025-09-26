@@ -300,8 +300,7 @@
               :srcLang (:languageTag (first subtitles))
               :src     (:content (first subtitles))}]]
            [:div.ytp-gradient-bottom.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
-            {:class ["md:rounded-b-xl"
-                     "pt-[37px]" "h-[170px]"]
+            {:class ["md:rounded-b-xl" "pt-[37px]" "h-[170px]"]
              :style
              {"backgroundImage"
               "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAACqCAYAAABsziWkAAAAAXNSR0IArs4c6QAAAQVJREFUOE9lyNdHBQAAhfHb3nvvuu2997jNe29TJJEkkkgSSSSJJJJEEkkiifRH5jsP56Xz8PM5gcC/xfDEmjhKxEOCSaREEiSbFEqkQppJpzJMJiWyINvkUCIX8kw+JQqg0BRRxaaEEqVQZsopUQGVpooS1VBjglStqaNEPTSYRko0QbNpoUQrtJl2qsN0UqILuk0PJXqhz/RTYgAGzRA1bEYoMQpjZpwSExAyk5SYgmkzQ82aOUqEIWKilJiHBbNIiSVYhhVYhTVYhw3YhC3Yhh3YhT3YhwM4hCM4hhM4hTM4hwu4hCu4hhu4hTu4hwd4hCd4hhd4hTd4hw/4hC/4hh/4/QM2/id28uIEJAAAAABJRU5ErkJggg==')"}}]

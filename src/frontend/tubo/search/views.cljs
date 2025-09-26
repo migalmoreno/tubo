@@ -2,7 +2,6 @@
   (:require
    ["motion/react" :refer [motion AnimatePresence]]
    [re-frame.core :as rf]
-   [reagent.core :as r]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
    [tubo.utils :as utils]))
@@ -21,9 +20,8 @@
          :class      ["flex" "flex-col" "absolute" "overflow-y-auto" "top-full"
                       "md:rounded" "sm:py-2" "bg-neutral-200"
                       "dark:bg-neutral-900" "w-full" "sm:w-[20rem]"
-                      "lg:w-[28rem]"
-                      "left-1/2" "sm:top-[110%]" "sm:max-h-[87dvh]"
-                      "max-h-[calc(100dvh-56px)]"]}
+                      "lg:w-[28rem]" "left-1/2" "sm:top-[110%]"
+                      "sm:max-h-[87dvh]" "max-h-[calc(100dvh-56px)]"]}
         (for [[i suggestion] (map-indexed vector suggestions)]
           ^{:key i}
           [:div.hover:bg-neutral-300.dark:hover:bg-neutral-800.cursor-pointer.flex.justify-between.items-center
