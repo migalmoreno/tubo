@@ -79,10 +79,10 @@
 
 (defn metadata
   [{:keys [name uploader-name] :as stream}]
-  [:div.flex.lg:flex-1.gap-x-2
+  [:div.flex.lg:flex-1.gap-x-4
    [:div
     [layout/thumbnail (dissoc stream :duration) nil :container-classes
-     ["h-12" "w-[70px]"]]]
+     ["h-12" "w-12"] :image-classes ["rounded"]]]
    [:div.flex.flex-col.pr-4.gap-y-1
     [:h1.text-sm.line-clamp-1.w-fit
      {:title name}
@@ -305,10 +305,10 @@
           :transition {:ease "easeOut" :duration 0.3}
           :exit       {:y 100}
           :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
-                       "bottom-5" "xs:bottom-3" "right-0" "md:bottom-0" "z-10"
-                       "rounded-xl" "md:rounded-none" "mx-3" "xs:mx-3" "md:mx-0"
-                       "p-3" "relative" "cursor-pointer" "bg-neutral-200"
-                       "dark:bg-neutral-900"]
+                       "right-0" "bottom-0" "z-10" "p-3" "relative"
+                       "cursor-pointer" "bg-neutral-200" "dark:bg-neutral-900"
+                       "shadow-xl" "shadow-neutral-500"
+                       "dark:shadow-neutral-900"]
           :on-click   #(rf/dispatch [:queue/show true])}
          [metadata stream]
          [main-controls !player color]
