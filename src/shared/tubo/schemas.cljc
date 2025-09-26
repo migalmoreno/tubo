@@ -24,7 +24,7 @@
   [:map
    [:id {:optional true} [:maybe int?]]
    [:name string?]
-   [:duration int?]
+   [:duration [:maybe int?]]
    [:uploader-avatar [:maybe uri?]]
    [:thumbnail [:maybe uri?]]
    [:uploader-url uri?]
