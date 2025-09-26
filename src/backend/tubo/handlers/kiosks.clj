@@ -1,8 +1,7 @@
 (ns tubo.handlers.kiosks
   (:require
    [ring.util.http-response :refer [ok]]
-   [tubo.handlers.utils :as utils]
-   [clojure.pprint :as pprint])
+   [tubo.handlers.utils :as utils])
   (:import
    org.schabi.newpipe.extractor.kiosk.KioskInfo
    org.schabi.newpipe.extractor.localization.ContentCountry

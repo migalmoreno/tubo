@@ -10,12 +10,12 @@
   (ok (subscription/get-subscriptions-by-user req)))
 
 (defn create-post-subscriptions-handler
-  [{:keys [datasource identity body-params]}]
+  [{:keys [datasource identity body-params] :as req}]
   (let [channel (or (channel/get-channel-by-url (:url body-params) datasource)
                     (first (channel/add-channels
                             [[(:url body-params)
                               (:name body-params)
-                              (utils/unproxy-image (:avatar body-params))
+                              (utils/unproxy-image (:avatar body-params) req)
                               (:verified body-params)]]
                             datasource)))]
     (ok (subscription/add-subscriptions datasource

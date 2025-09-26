@@ -8,26 +8,26 @@
    [tubo.models.stream :as stream]))
 
 (defn add-playlist-streams
-  [ds item playlist-id]
+  [{:keys [datasource] :as req} item playlist-id]
   (let [channel  (or (channel/get-channel-by-url (:uploader-url item)
-                                                 ds)
+                                                 datasource)
                      (first (channel/add-channels
                              [[(:uploader-url item)
                                (:uploader-name item)
-                               (utils/unproxy-image (:uploader-avatar item))
+                               (utils/unproxy-image (:uploader-avatar item) req)
                                (:uploader-verified? item)]]
-                             ds)))
-        stream   (or (stream/get-stream-by-url (:url item) ds)
+                             datasource)))
+        stream   (or (stream/get-stream-by-url (:url item) datasource)
                      (first (stream/add-streams
                              [[(:duration item)
                                (:id channel)
                                (:name item)
-                               (utils/unproxy-image (:thumbnail item))
+                               (utils/unproxy-image (:thumbnail item) req)
                                (:url item)]]
-                             ds)))
-        playlist (playlist/get-playlist-by-playlist-id playlist-id ds)]
+                             datasource)))
+        playlist (playlist/get-playlist-by-playlist-id playlist-id datasource)]
     (playlist/add-playlist-streams [[(:id stream) (:id playlist) (:order item)]]
-                                   ds)))
+                                   datasource)))
 
 (defn create-get-auth-playlists-handler
   [req]
@@ -47,7 +47,7 @@
     (when (seq (:items body-params))
       (doseq [item (map-indexed (fn [i item] (assoc item :order (inc i)))
                                 (:items body-params))]
-        (add-playlist-streams datasource item (str playlist-id))))
+        (add-playlist-streams req item (str playlist-id))))
     (ok (assoc added-playlist
                :id    playlist-id
                :items (playlist/get-playlist-streams req (str playlist-id))))))
@@ -61,7 +61,7 @@
   (ok (playlist/delete-playlist-by-id datasource (:id path-params))))
 
 (defn create-post-auth-playlist-add-streams-handler
-  [{:keys [datasource body-params path-params] :as req}]
+  [{:keys [body-params path-params] :as req}]
   (let [playlist-streams (playlist/get-playlist-streams req (:id path-params))
         items            (remove
                           nil?
@@ -83,7 +83,7 @@
                               (into []))]
     (when (seq streams-to-add)
       (doseq [item streams-to-add]
-        (add-playlist-streams datasource item (:id path-params))))
+        (add-playlist-streams req item (:id path-params))))
     (ok (into [] streams-to-add))))
 
 (defn create-post-auth-playlist-delete-stream-handler

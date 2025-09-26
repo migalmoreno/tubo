@@ -5,6 +5,7 @@
    [clojure.string :as str]
    [ring.util.codec :refer [url-decode url-encode]])
   (:import
+   java.net.URL
    org.schabi.newpipe.extractor.Page))
 
 (defn non-negative
@@ -29,23 +30,35 @@
 
 (defn proxy-image
   [image req]
-  (str (name (:scheme req))
-       "://" (:server-name req)
-       ":" (:server-port req)
-       "/proxy/"
-       (url-encode image)))
+  (when (seq image)
+    (if (str/includes? (.getHost (URL. image)) "sndcdn.com")
+      image
+      (str (name (:scheme req))
+           "://" (:server-name req)
+           ":" (:server-port req)
+           "/proxy/"
+           (url-encode image)))))
 
 (defn proxy-images
   [images req]
   (map #(assoc % :url (proxy-image (:url %) req)) (j/from-java images)))
 
 (defn unproxy-image
-  [image]
-  (-> (java.net.URL. image)
-      (.getPath)
-      (str/split #"/proxy/")
-      last
-      url-decode))
+  [image req]
+  (let [proxy-url (str (name (:scheme req))
+                       "://"
+                       (:server-name req)
+                       ":"
+                       (:server-port req)
+                       "/proxy/")]
+    (when (seq image)
+      (if (str/includes? image proxy-url)
+        (-> (URL. image)
+            (.getPath)
+            (str/split #"/proxy/")
+            last
+            url-decode)
+        image))))
 
 (defn get-stream-item
   [stream req]
