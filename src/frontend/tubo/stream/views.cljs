@@ -95,7 +95,7 @@
          [:span.text-neutral-800.dark:text-neutral-300
           (utils/format-quantity dislike-count)]])])
    (when stream
-     [:div.hidden.sm:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
+     [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
       [metadata-popover stream]])])
 
 (defn metadata
@@ -108,7 +108,7 @@
     (when view-count
       [:span.whitespace-nowrap {:title view-count}
        (str (utils/format-quantity view-count) " views")])
-    (when (or view-count upload-date)
+    (when (and view-count upload-date)
       [layout/bullet])
     (when upload-date
       [:span.whitespace-nowrap {:title upload-date}
@@ -137,7 +137,8 @@
       [:label.font-bold.min-w-24.whitespace-nowrap "TAGS"]
       [:div.flex.gap-x-1.items-center.flex-wrap
        (for [[i tag] (map-indexed vector tags)]
-         ^{:key i} [:span.whitespace-nowrap (str "#" tag)])]])])
+         ^{:key i}
+         [:span {:class "[overflow-wrap:anywhere]"} (str "#" tag)])]])])
 
 (defn description
   [{:keys [description show-description] :as stream}]
