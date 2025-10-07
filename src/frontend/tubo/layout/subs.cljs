@@ -28,6 +28,18 @@
  (fn [_]
    @!breakpoint))
 
+(defonce !page-visible
+  (let [state (r/atom (not (.-hidden js/document)))]
+    (.addEventListener js/document
+                       "visibilitychange"
+                       #(reset! state (not (.-hidden js/document))))
+    state))
+
+(rf/reg-sub
+ :page-visible
+ (fn []
+   @!page-visible))
+
 (rf/reg-sub
  :layout/bg-overlay
  (fn [db]

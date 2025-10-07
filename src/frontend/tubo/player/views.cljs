@@ -270,7 +270,8 @@
                               #(reset! !media-paused (.-detail %))))
       :component-will-unmount on-unmount
       :reagent-render
-      (fn [{:keys [thumbnail subtitles service-id]} !player video-args]
+      (fn [{:keys [thumbnail subtitles service-id] :as stream} !player
+           video-args]
         (let [service-color   (utils/get-service-color service-id)
               overlay-active? (and (or (nil? @!user-inactive) @!user-inactive)
                                    (not @!media-paused))]
@@ -291,7 +292,8 @@
               :playsInline true
               :ref         #(reset! !player %)
               :slot        "media"
-              :on-error    #(rf/dispatch [:shaka/play-error %])
+              :on-error    #(rf/dispatch [:shaka/play-error % !player stream])
+              :on-play     #(rf/dispatch [:player/start !player stream])
               :preload     "metadata"}
              video-args)
             [:track
@@ -299,7 +301,7 @@
               :kind    "captions"
               :srcLang (:languageTag (first subtitles))
               :src     (:content (first subtitles))}]]
-           [:div.ytp-gradient-bottom.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
+           [:div.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
             {:class ["md:rounded-b-xl" "pt-[37px]" "h-[170px]"]
              :style
              {"backgroundImage"

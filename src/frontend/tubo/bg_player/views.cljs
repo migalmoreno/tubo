@@ -107,7 +107,7 @@
       [player/loop-button loop-playback color]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
-       :on-click #(rf/dispatch [:queue/change-pos (dec queue-pos)])
+       :on-click #(rf/dispatch [:queue/previous])
        :disabled? (not (and queue (not= queue-pos 0)))]
       [player/button
        :icon [:i.fa-solid.fa-backward]
@@ -130,7 +130,7 @@
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
       [player/button
        :icon [:i.fa-solid.fa-forward-step]
-       :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
+       :on-click #(rf/dispatch [:queue/next])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
       [player/shuffle-button shuffle? color]]
      [:div.hidden.lg:flex.items-center.gap-x-2
@@ -260,30 +260,31 @@
   (reset! !elapsed (.-currentTime @!player)))
 
 (defn audio-player
-  []
+  [!player]
   (let [!elapsed  @(rf/subscribe [:elapsed-time])
         pos       @(rf/subscribe [:queue/position])
         stream    @(rf/subscribe [:queue/current])
         !buffered @(rf/subscribe [:bg-player/buffered])]
     (r/create-class
-     {:component-will-unmount #(rf/dispatch [:bg-player/ready false])
-      :component-did-mount #(rf/dispatch [:bg-player/set-stream stream pos])
+     {:component-will-unmount #(rf/dispatch [:bg-player/unmount])
+      :component-did-mount #(rf/dispatch [:bg-player/mount stream !player pos])
       :reagent-render
       (fn [!player]
-        [:audio
-         {:ref            #(reset! !player %)
-          :preload        "metadata"
-          :on-waiting     #(rf/dispatch [:bg-player/set-waiting true])
-          :loop           (= @(rf/subscribe [:player/loop]) :stream)
-          :muted          @(rf/subscribe [:player/muted])
-          :on-can-play    #(rf/dispatch [:bg-player/ready true])
-          :on-seeked      #(reset! !elapsed (.-currentTime @!player))
-          :on-progress    #(on-progress !player !buffered)
-          :on-time-update #(on-update !player !buffered !elapsed)
-          :on-loaded-data #(rf/dispatch [:bg-player/start])
-          :on-play        #(rf/dispatch [:bg-player/set-paused false])
-          :on-error       #(rf/dispatch [:player/on-error !player])
-          :on-pause       #(rf/dispatch [:bg-player/set-paused true])}])})))
+        (let [stream @(rf/subscribe [:queue/current])]
+          [:audio
+           {:ref            #(reset! !player %)
+            :preload        "metadata"
+            :on-waiting     #(rf/dispatch [:bg-player/set-waiting true])
+            :loop           (= @(rf/subscribe [:player/loop]) :stream)
+            :muted          @(rf/subscribe [:player/muted])
+            :on-can-play    #(rf/dispatch [:bg-player/set-ready true])
+            :on-seeked      #(reset! !elapsed (.-currentTime @!player))
+            :on-progress    #(on-progress !player !buffered)
+            :on-time-update #(on-update !player !buffered !elapsed)
+            :on-loaded-data #(rf/dispatch [:bg-player/start])
+            :on-play        #(rf/dispatch [:bg-player/play !player stream])
+            :on-error       #(rf/dispatch [:player/on-error !player])
+            :on-pause       #(rf/dispatch [:bg-player/set-paused true])}]))})))
 
 (defn player
   []

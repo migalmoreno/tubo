@@ -165,6 +165,19 @@
    (assoc-in db [:queue idx :thumbnail-color] (get (js->clj color) "hex"))))
 
 (rf/reg-event-fx
+ :queue/previous
+ [(rf/inject-cofx ::inject/sub [:elapsed-time])]
+ (fn [{:keys [db elapsed-time]}]
+   {:fx (if (> @elapsed-time 5)
+          [[:dispatch [:bg-player/seek 0]]]
+          [[:dispatch [:queue/change-pos (dec (:queue/position db))]]])}))
+
+(rf/reg-event-fx
+ :queue/next
+ (fn [{:keys [db]}]
+   {:fx [[:dispatch [:queue/change-pos (inc (:queue/position db))]]]}))
+
+(rf/reg-event-fx
  :queue/change-pos
  (fn [{:keys [db]} [_ i]]
    (let [idx    (cond (and (>= i 0) (< i (count (:queue db))))       i
@@ -240,16 +253,10 @@
                       [:get-color-async
                        (get-in updated-db [:queue idx :thumbnail])
                        [:queue/load-thumbnail-color idx]]]
-                     [:media-session-metadata
+                     [:set-media-session-metadata
                       {:title   (:name stream)
                        :artist  (:uploader-name stream)
-                       :artwork [{:src (-> stream
-                                           :thumbnails
-                                           last
-                                           :url)}]}]
-                     [:media-session-handlers
-                      {:current-pos idx
-                       :player      bg-player}]
+                       :artwork [{:src thumbnail}]}]
                      [:dispatch
                       [(if (:main-player/show db)
                          :main-player/set-stream

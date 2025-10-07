@@ -86,6 +86,15 @@
               :src         video-stream
               :current-pos pos}]]]})))
 
+(rf/reg-event-fx
+ :player/start
+ (fn [_ [_ player stream]]
+   {:fx [[:set-media-session-metadata
+          {:title   (:name stream)
+           :artist  (:uploader-name stream)
+           :artwork [{:src (:thumbnail stream)}]}]
+         [:set-media-session-handlers player]]}))
+
 (rf/reg-fx
  :player/loop
  (fn [{:keys [player loop]}]
@@ -131,15 +140,20 @@
               [:notifications/error (.. @player -error -message)]]])})))
 
 (rf/reg-fx
- :media-session-metadata
+ :set-media-session-metadata
  (fn [metadata]
    (when (gobj/containsKey js/navigator "mediaSession")
      (set! (.-metadata js/navigator.mediaSession)
            (js/MediaMetadata. (clj->js metadata))))))
 
 (rf/reg-fx
- :media-session-handlers
- (fn [{:keys [current-pos player]}]
+ :clear-media-session
+ (fn [_]
+   (.setPositionState js/navigator.mediaSession)))
+
+(rf/reg-fx
+ :set-media-session-handlers
+ (fn [player]
    (when (gobj/containsKey js/navigator "mediaSession")
      (let [current-time (and player @player (.-currentTime @player))
            update-position
@@ -147,26 +161,32 @@
                                {:duration     (.-duration @player)
                                 :playbackRate (.-playbackRate @player)
                                 :position     current-time})
+           update-playback #(set! (.-playbackState js/navigator.mediaSession) %)
            seek #(do (rf/dispatch [:player/seek % player]) (update-position))
            events
-           {"play"          #(.play @player)
-            "pause"         #(.pause @player)
-            "previoustrack" #(rf/dispatch [:queue/change-pos (dec current-pos)])
-            "nexttrack"     #(rf/dispatch [:queue/change-pos (inc current-pos)])
+           {"play"          #(do (.play @player) (update-playback "playing"))
+            "pause"         #(do (.pause @player) (update-playback "paused"))
+            "previoustrack" #(rf/dispatch [:queue/previous])
+            "nexttrack"     #(rf/dispatch [:queue/next])
             "seekbackward"  (fn [^js/navigator.MediaSessionActionDetails
                                  details]
-                              (seek (- current-time
+                              (seek (- (.-currentTime @player)
                                        (or (.-seekOffset details) 10))))
             "seekforward"   (fn [^js/navigator.MediaSessionActionDetails
                                  details]
-                              (seek (+ current-time
+                              (seek (+ (.-currentTime @player)
                                        (or (.-seekOffset details) 10))))
             "seekto"        (fn [^js/navigator.MediaSessionActionDetails
                                  details]
                               (seek (.-seekTime details)))
             "stop"          #(seek 0)}]
        (doseq [[action cb] events]
-         (.setActionHandler js/navigator.mediaSession action cb))))))
+         (try
+           (.setActionHandler js/navigator.mediaSession action cb)
+           (catch js/Error _
+             (js/console.error (str "The media session action "
+                                    action
+                                    " is not supported.")))))))))
 
 (rf/reg-event-fx
  :player/change-volume

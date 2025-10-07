@@ -51,9 +51,31 @@
    {:fx [[:dispatch [:bg-player/set-paused true]]
          [:dispatch [:bg-player/seek @elapsed-time]]
          [:dispatch [:bg-player/pause false]]
-         [:dispatch
-          [:player/change-volume (:player/volume db)
-           bg-player]]]}))
+         [:dispatch [:player/change-volume (:player/volume db) bg-player]]]}))
+
+(rf/reg-event-fx
+ :bg-player/mount
+ (fn [_ [_ stream player pos]]
+   {:fx [[:dispatch [:bg-player/set-stream stream pos]]
+         [:set-media-session-handlers player]]}))
+
+(rf/reg-event-fx
+ :bg-player/unmount
+ (fn []
+   {:fx [[:dispatch [:bg-player/set-ready false]]
+         [:clear-media-session]]}))
+
+(rf/reg-event-fx
+ :bg-player/play
+ [(rf/inject-cofx ::inject/sub [:page-visible])]
+ (fn [{:keys [page-visible]} [_ player stream]]
+   {:fx (into [[:dispatch [:bg-player/set-paused false]]]
+              (when page-visible
+                [[:set-media-session-metadata
+                  {:title   (:name stream)
+                   :artist  (:uploader-name stream)
+                   :artwork [{:src (:thumbnail stream)}]}]
+                 [:set-media-session-handlers player]]))}))
 
 (rf/reg-event-fx
  :bg-player/mute
@@ -86,7 +108,7 @@
            :time  200}]]}))
 
 (rf/reg-event-db
- :bg-player/ready
+ :bg-player/set-ready
  (fn [db [_ ready]]
    (assoc db :bg-player/ready ready)))
 
