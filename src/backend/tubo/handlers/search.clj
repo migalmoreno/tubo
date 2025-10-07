@@ -8,52 +8,29 @@
    org.schabi.newpipe.extractor.NewPipe
    org.schabi.newpipe.extractor.search.SearchInfo))
 
-(defn get-suggestions
-  [service-id query]
-  (when-let [extractor (.getSuggestionExtractor
-                        (NewPipe/getService service-id))]
-    (j/from-java
-     (.suggestionList extractor query))))
-
-(defn get-search
+(defn get-query-handler
   [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters
-    {:strs [filter sort]}                           :query-params
-    :as                                             req}]
-  (let [service (NewPipe/getService service-id)
-        query-handler
-        (.. service
-            (getSearchQHFactory)
-            (fromQuery q
-                       (or (and (seq filter) (str/split filter #",")) '())
-                       (or sort "")))
-        info (SearchInfo/getInfo service query-handler)]
-    {:items             (utils/get-items (.getRelatedItems info) req)
-     :next-page         (utils/get-next-page info)
-     :service-id        service-id
-     :search-suggestion (.getSearchSuggestion info)
-     :corrected-search? (.isCorrectedSearch info)}))
-
-(defn get-search-page
-  [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters
-    {:strs [filter sort nextPage]}                  :query-params
-    :as                                             req}]
-  (let [service       (NewPipe/getService service-id)
-        query-handler (.. service
-                          (getSearchQHFactory)
-                          (fromQuery
-                           q
-                           (or (and (seq filter) (str/split filter #",")) '())
-                           (or sort "")))
-        info          (SearchInfo/getMoreItems service
-                                               query-handler
-                                               (utils/create-page nextPage))]
-    {:items     (utils/get-items (.getItems info) req)
-     :next-page (utils/get-next-page info)}))
+    {:strs [filter sort]}                           :query-params}]
+  (.. (NewPipe/getService service-id)
+      (getSearchQHFactory)
+      (fromQuery q
+                 (or (and (seq filter) (str/split filter #",")) '())
+                 (or sort ""))))
 
 (defn create-search-handler
-  [{{:strs [nextPage]} :query-params :as req}]
-  (ok (if nextPage (get-search-page req) (get-search req))))
+  [{{{:keys [service-id]} :path} :parameters
+    {:strs [nextPage]}           :query-params
+    :as                          req}]
+  (when-let [info (if nextPage
+                    (SearchInfo/getMoreItems (NewPipe/getService service-id)
+                                             (get-query-handler req)
+                                             (utils/create-page nextPage))
+                    (SearchInfo/getInfo (NewPipe/getService service-id)
+                                        (get-query-handler req)))]
+    (ok (utils/->ListInfo info req))))
 
 (defn create-suggestions-handler
   [{{{:keys [service-id]} :path {:keys [q]} :query} :parameters}]
-  (ok (get-suggestions service-id q)))
+  (when-let [extractor (.getSuggestionExtractor (NewPipe/getService
+                                                 service-id))]
+    (ok (j/from-java-shallow (.suggestionList extractor q) {}))))

@@ -113,16 +113,16 @@
    (assoc db :bg-player/ready ready)))
 
 (rf/reg-event-fx
- :bg-player/load-related-streams
+ :bg-player/load-related-items
  (fn [_ [_ notify? {:keys [body]}]]
-   {:fx [[:dispatch [:queue/add-n (:related-streams body) notify?]]]}))
+   {:fx [[:dispatch [:queue/add-n (:related-items body) notify?]]]}))
 
 (rf/reg-event-fx
- :bg-player/fetch-related-streams
+ :bg-player/fetch-related-items
  (fn [{:keys [db]} [_ url]]
    {:fx [[:dispatch
           [:stream/fetch url
-           [:bg-player/load-related-streams false]] [:bad-response]]]
+           [:bg-player/load-related-items false]] [:bad-response]]]
     :db (assoc db :bg-player/loading true)}))
 
 (rf/reg-event-fx
@@ -132,7 +132,7 @@
          idx        (.lastIndexOf (:queue updated-db) stream)]
      {:fx [[:dispatch [:queue/add stream]]
            [:dispatch [:bg-player/fetch-stream (:url stream) idx true]]
-           [:dispatch [:bg-player/fetch-related-streams (:url stream)]]
+           [:dispatch [:bg-player/fetch-related-items (:url stream)]]
            [:dispatch
             [:notifications/add
              {:status-text "Started stream radio"
@@ -152,7 +152,7 @@
              [:queue (:queue/position db)]]])
          (when-not (seq (get-in db
                                 [:queue (:queue/position db)
-                                 :related-streams]))
+                                 :related-items]))
            [:dispatch
             [:bg-player/fetch-stream (:url (:queue/current cofx))
              (:queue/position db) false]])]

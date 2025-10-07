@@ -35,12 +35,13 @@
 (rf/reg-event-fx
  :search/load-page
  (fn [{:keys [db]} [_ {:keys [query filter]} {:keys [body]}]]
-   {:db (assoc db
-               :search/results (-> body
-                                   (utils/apply-thumbnails-quality db :items)
-                                   (utils/apply-avatars-quality db :items))
-               :search/query   query
-               :search/filter  filter)
+   {:db (assoc
+         db
+         :search/results (-> body
+                             (utils/apply-thumbnails-quality db :related-items)
+                             (utils/apply-avatars-quality db :related-items))
+         :search/query   query
+         :search/filter  filter)
     :fx [[:dispatch [:services/fetch body]]]}))
 
 (rf/reg-event-fx
@@ -67,18 +68,18 @@
 (rf/reg-event-db
  :search/load-paginated
  (fn [db [_ {:keys [body]}]]
-   (if (empty? (:items body))
+   (if (seq (:items body))
      (-> db
-         (assoc-in [:search/results :next-page] nil)
-         (assoc :show-pagination-loading false))
-     (-> db
-         (update-in [:search/results :items]
+         (update-in [:search/results :related-items]
                     #(apply conj %1 %2)
                     (-> body
                         (utils/apply-thumbnails-quality db :items)
                         (utils/apply-avatars-quality db :items)
                         :items))
          (assoc-in [:search/results :next-page] (:next-page body))
+         (assoc :show-pagination-loading false))
+     (-> db
+         (assoc-in [:search/results :next-page] nil)
          (assoc :show-pagination-loading false)))))
 
 (rf/reg-event-fx
@@ -245,10 +246,11 @@
                            :serviceId (:service-id db)}
                           (when (and (seq (:search/filter db))
                                      (some #{(:search/filter db)}
-                                           (:content-filters
+                                           (get-in
                                             (get (:services db)
-                                                 (:service-id
-                                                  db)))))
+                                                 (:service-id db))
+                                            [:search-qh-factory
+                                             :available-content-filter])))
                             {:filter (:search/filter db)}))}]]
          [:dispatch [:search/change-suggestions res]]]}))
 

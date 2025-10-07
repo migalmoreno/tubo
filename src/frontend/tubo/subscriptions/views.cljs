@@ -14,5 +14,5 @@
         [{:label    "Clear all"
           :icon     [:i.fa-solid.fa-trash]
           :on-click #(rf/dispatch [:subscriptions/clear])}]]]]
-     [items/related-streams (map #(assoc % :type "channel") subscriptions) nil
-      "grid"]]))
+     [items/related-items (map #(assoc % :info-type "CHANNEL") subscriptions)
+      nil "grid"]]))

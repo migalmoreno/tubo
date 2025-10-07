@@ -33,4 +33,4 @@
              [:div.flex.items-center.gap-x-6.justify-between.flex-auto
               [layout/primary-button "Refresh" #(rf/dispatch [:feed/fetch])
                [:i.fa-solid.fa-refresh]]]])]
-         [items/related-streams items nil @!layout]]))))
+         [items/related-items items nil @!layout]]))))

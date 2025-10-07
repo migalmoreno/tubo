@@ -19,15 +19,15 @@
                                  :uploader-avatar
                                  :uploader-avatars)
       (select-keys
-       [:type :service-id :url :name :thumbnail :verified?
-        :uploader-name :uploader-url :uploader-avatar :uploader-verified?
-        :upload-date :short-description :duration :view-count :uploaded])))
+       [:info-type :service-id :url :name :thumbnail :uploader-name
+        :uploader-url :uploader-avatar :uploader-verified :textual-upload-date
+        :short-description :duration :view-count])))
 
 (defn apply-auth-playlist-stream-transforms
   [db item]
   (-> (apply-playlist-stream-transforms db item)
       (select-keys [:url :name :thumbnail :duration :uploader-avatar
-                    :uploader-url :uploader-verified? :uploader-name])))
+                    :uploader-url :uploader-verified :uploader-name])))
 
 (rf/reg-event-fx
  :bookmarks/on-add-auth
@@ -176,8 +176,8 @@
                           :items
                           #(into (into [] %1) (into [] %2))
                           (->> items
-                               (filter #(not (some #{(:type %)}
-                                                   ["playlist" "channel"])))
+                               (filter #(not (some #{(:info-type %)}
+                                                   ["PLAYLIST" "CHANNEL"])))
                                (filter (fn [item]
                                          (not (some #(= (:url %) (:url item))
                                                     (:items bk)))))

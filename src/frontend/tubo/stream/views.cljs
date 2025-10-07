@@ -14,7 +14,7 @@
    [tubo.utils :as utils]))
 
 (defn metadata-popover
-  [{:keys [url related-streams] :as stream}]
+  [{:keys [url related-items] :as stream}]
   [layout/popover
    (into
     [{:label    "Add to queue"
@@ -30,17 +30,14 @@
       :icon     [:i.fa-solid.fa-plus]
       :on-click #(rf/dispatch [:modals/open
                                [modals/add-to-bookmark stream]])}]
-    (when (seq related-streams)
+    (when (seq related-items)
       [{:label    "Add related to queue"
         :icon     [:i.fa-solid.fa-headphones]
-        :on-click #(rf/dispatch [:queue/add-n
-                                 related-streams
-                                 true])}
+        :on-click #(rf/dispatch [:queue/add-n related-items true])}
        {:label    "Add related to playlist"
         :icon     [:i.fa-solid.fa-plus]
         :on-click #(rf/dispatch [:modals/open
-                                 [modals/add-to-bookmark
-                                  related-streams]])}]))
+                                 [modals/add-to-bookmark related-items]])}]))
    :tooltip-classes ["right-5" "top-5"]
    :extra-classes ["px-5" "xs:py-2.5" "xs:px-2.5" "rounded-full"]
    :icon
@@ -49,7 +46,7 @@
     [:i.fa-solid.fa-ellipsis.hidden.xs:block]]])
 
 (defn metadata-uploader
-  [{:keys [uploader-url uploader-name uploader-verified? subscriber-count
+  [{:keys [uploader-url uploader-name uploader-verified subscriber-count
            uploader-avatars]
     :as   stream}]
   [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none.flex-wrap.xs:flex-nowrap.gap-4
@@ -62,7 +59,7 @@
          {:href  (rfe/href :channel-page nil {:url uploader-url})
           :title uploader-name}
          uploader-name]
-        (when uploader-verified?
+        (when uploader-verified
           [:i.fa-solid.fa-circle-check.text-xs.text-neutral-500])])
      (when subscriber-count
        [:div.flex.items-center.text-neutral-600.dark:text-neutral-400
@@ -74,10 +71,10 @@
         #(rf/dispatch [:subscriptions/remove uploader-url])]
        [layout/primary-button "Subscribe"
         #(rf/dispatch [:subscriptions/add
-                       {:url       uploader-url
-                        :name      uploader-name
-                        :verified? uploader-verified?
-                        :avatars   uploader-avatars}])]))])
+                       {:url      uploader-url
+                        :name     uploader-name
+                        :verified uploader-verified
+                        :avatars  uploader-avatars}])]))])
 
 (defn metadata-stats
   [{:keys [like-count dislike-count] :as stream}]
@@ -99,7 +96,7 @@
       [metadata-popover stream]])])
 
 (defn metadata
-  [{:keys [name view-count upload-date] :as stream}]
+  [{:keys [name view-count textual-upload-date] :as stream}]
   [:div
    (when name
      [:div.flex.items-center.justify-between
@@ -108,11 +105,11 @@
     (when view-count
       [:span.whitespace-nowrap {:title view-count}
        (str (utils/format-quantity view-count) " views")])
-    (when (and view-count upload-date)
+    (when (and view-count textual-upload-date)
       [layout/bullet])
-    (when upload-date
-      [:span.whitespace-nowrap {:title upload-date}
-       (utils/format-date-ago upload-date)])]
+    (when textual-upload-date
+      [:span.whitespace-nowrap {:title textual-upload-date}
+       (utils/format-date-ago textual-upload-date)])]
    [:div.flex.justify-between.py-4.gap-x-2.gap-y-4.flex-wrap.xs:flex-nowrap
     [metadata-uploader stream]
     [metadata-stats stream]]])
@@ -143,11 +140,11 @@
 (defn description
   [{:keys [description show-description] :as stream}]
   (let [show? (:show-description @(rf/subscribe [:settings]))]
-    (when (and show? (seq description))
+    (when (and show? (seq (:content description)))
       [:div.rounded-lg.break-words.flex.flex-col.gap-y-8.text-sm
        {:class "[overflow-wrap:anywhere]"}
        [layout/show-more-container show-description
-        description
+        (:content description)
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
                          :stream/toggle-layout)
@@ -166,12 +163,12 @@
           [comments/comments comments-page stream])))))
 
 (defn related-items
-  [{:keys [related-streams]}]
+  [{:keys [related-items]}]
   (let [show? (:show-related @(rf/subscribe [:settings]))]
-    (when (and show? (seq related-streams))
+    (when (and show? (seq related-items))
       [:div.flex.flex-col.min-w-fit.flex-auto
        [:div.flex.flex-col.gap-x-10.gap-y-2
-        (for [[i item] (map-indexed vector related-streams)]
+        (for [[i item] (map-indexed vector related-items)]
           ^{:key i}
           [items/list-item-content item
            :author-classes ["line-clamp-1" "text-xs"]

@@ -10,16 +10,16 @@
    [clojure.string :as str]))
 
 (defn metadata-popover
-  [{:keys [related-streams]}]
-  (when related-streams
+  [{:keys [related-items]}]
+  (when (seq related-items)
     [layout/popover
      [{:label    "Add to queue"
        :icon     [:i.fa-solid.fa-headphones]
-       :on-click #(rf/dispatch [:queue/add-n related-streams true])}
+       :on-click #(rf/dispatch [:queue/add-n related-items true])}
       {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
-                                [bm/add-to-bookmark related-streams]])}]
+                                [bm/add-to-bookmark related-items]])}]
      :extra-classes ["px-5" "xs:p-3"]
      :tooltip-classes ["right-7" "top-0"]]))
 
@@ -77,16 +77,14 @@
   []
   (let [!active-tab-id (r/atom nil)]
     (fn [{{:keys [url]} :query-params}]
-      (let [{:keys [banner next-page related-streams] :as channel}
-            @(rf/subscribe [:channel])
-            active-tab (first (filter #(= @!active-tab-id
-                                          (-> %
-                                              :contentFilters
-                                              first))
-                                      (:tabs channel)))
-            next-page-info (if active-tab
-                             (:next-page active-tab)
-                             next-page)]
+      (let [{:keys [banner] :as channel} @(rf/subscribe [:channel])
+            active-tab                   (if @!active-tab-id
+                                           (first (filter
+                                                   #(= @!active-tab-id
+                                                       (first
+                                                        (:content-filters %)))
+                                                   (:tabs channel)))
+                                           (first (:tabs channel)))]
         [layout/content-container
          (when banner
            [:div.flex.justify-center.h-24
@@ -97,18 +95,21 @@
           (when (seq (:tabs channel))
             [:div.flex.justify-between.items-center.border-b.border-neutral-300.dark:border-neutral-700
              [layout/tabs
-              (map (fn [{:keys [contentFilters]}]
-                     {:id    (first contentFilters)
-                      :label (str/capitalize (first contentFilters))})
+              (map (fn [{:keys [content-filters]}]
+                     {:id    (first content-filters)
+                      :label (str/capitalize (first content-filters))})
                    (:tabs channel))
               :selected-id
               (or @!active-tab-id
-                  (get-in (first (:tabs channel)) [:contentFilters 0]))
+                  (get-in (first (:tabs channel)) [:content-filters 0]))
               :on-change
               #(do (reset! !active-tab-id %)
                    (rf/dispatch [:channel/fetch-tab url %]))]])]
-         [items/related-streams
-          (or (:related-streams active-tab) related-streams) next-page-info
+         [items/related-items
+          (or (:related-items active-tab) (:related-items channel))
+          (:next-page active-tab)
           (:items-layout @(rf/subscribe [:settings]))
-          #(rf/dispatch [:channel/fetch-paginated url @!active-tab-id
-                         next-page-info])]]))))
+          #(rf/dispatch [:channel/fetch-tab-paginated url
+                         (or @!active-tab-id
+                             (first (:content-filters active-tab)))
+                         (:next-page active-tab)])]]))))

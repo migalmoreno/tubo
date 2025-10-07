@@ -28,7 +28,7 @@
    [:uploader-avatar [:maybe uri?]]
    [:thumbnail [:maybe uri?]]
    [:uploader-url uri?]
-   [:uploader-verified? boolean?]
+   [:uploader-verified boolean?]
    [:uploader-name string?]
    [:url uri?]])
 

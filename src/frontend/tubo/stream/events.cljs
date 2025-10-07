@@ -17,25 +17,15 @@
  :stream/load-page
  [(rf/inject-cofx ::inject/sub [:main-player])]
  (fn [{:keys [db main-player]} [_ {:keys [body]}]]
-   {:db (assoc db
-               :stream
-               (-> body
-                   (utils/apply-thumbnails-quality
-                    db
-                    :related-streams)
-                   (utils/apply-avatars-quality
-                    db
-                    :related-streams)
-                   (utils/apply-image-quality
-                    db
-                    :uploader-avatar
-                    :uploader-avatars)
-                   (utils/apply-image-quality db
-                                              :thumbnail
-                                              :thumbnails)))
-    :fx [(when (-> db
-                   :settings
-                   :show-comments)
+   {:db (assoc
+         db
+         :stream
+         (-> body
+             (utils/apply-thumbnails-quality db :related-items)
+             (utils/apply-avatars-quality db :related-items)
+             (utils/apply-image-quality db :uploader-avatar :uploader-avatars)
+             (utils/apply-image-quality db :thumbnail :thumbnails)))
+    :fx [(when (get-in db [:settings :show-comments])
            [:dispatch [:comments/fetch-page (:url body) [:stream]]])
          [:dispatch [:services/fetch body]]
          [:dispatch [:player/set-stream body main-player]]

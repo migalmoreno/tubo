@@ -52,9 +52,8 @@
       ["/instance-metadata/:url" :api/instance-metadata]
       ["/change-instance" :api/change-instance]]]
     ["/streams/:url" :api/stream]
-    ["/channels"
-     ["/:url"
-      ["" :api/channel]
-      ["/tabs/:tab-id" :api/channel-tab]]]
+    ["/channels/:url"
+     ["" :api/channel]
+     ["/tabs/:tab-id" :api/channel-tab]]
     ["/playlists/:url" :api/playlist]
     ["/comments/:url" :api/comments]]])

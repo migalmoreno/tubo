@@ -49,8 +49,8 @@
              {:label    "Clear all"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmarks/clear])}]]]]
-         [items/related-streams
-          (map (fn [item] (assoc item :type "bookmark")) items) nil
+         [items/related-items
+          (map (fn [item] (assoc item :info-type "BOOKMARK")) items) nil
           @!layout]]))))
 
 (def edit-playlist-validation
@@ -104,8 +104,8 @@
   (let [{:keys [items] :as bookmark} @(rf/subscribe [:bookmarks/get-by-id id])]
     [playlist/playlist
      (assoc bookmark
-            :stream-count    (count items)
-            :related-streams (map #(assoc % :type "stream" :playlist-id id)
-                                  items))
+            :stream-count  (count items)
+            :related-items (map #(assoc % :info-type "STREAM" :playlist-id id)
+                                items))
      nil
      [playlist-edit-modal id]]))

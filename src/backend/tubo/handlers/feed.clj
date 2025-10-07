@@ -2,18 +2,20 @@
   (:require
    [clojure.data.json :as json]
    [ring.util.http-response :refer [ok]]
-   [tubo.handlers.channel :refer [get-channel]]
-   [tubo.models.subscription :as subscription]))
+   [tubo.handlers.channel :as channel]
+   [tubo.models.subscription :as subscription]
+   [tubo.handlers.utils :as utils]))
 
 (defn get-channels-latest-streams
   [channels req]
   (->> channels
        (map #(-> (assoc-in req [:path-params :url] (:url %))
-                 get-channel
-                 :related-streams))
+                 channel/get-channel-tab-info
+                 (utils/->ListInfo req)
+                 :related-items))
        flatten
        (remove nil?)
-       (sort-by :uploaded #(> %1 %2))))
+       (sort-by :upload-date #(> %1 %2))))
 
 (defn create-get-user-feed-handler
   [req]

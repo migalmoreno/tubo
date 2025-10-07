@@ -116,32 +116,25 @@
                       (first (filter #(= (.. e -target -value) (:name %))
                                      countries))]))]
      [select-input "Default service" nil
-      (->> services
-           (filter #(= (:id %) default-service))
-           first
-           :info
-           :name)
-      (map #(-> %
-                :info
-                :name)
-           services)
+      (get-in (first (filter #(= (:service-id %) default-service) services))
+              [:service-info :name])
+      (map #(get-in % [:service-info :name]) services)
       (fn [e]
         (rf/dispatch [:settings/change [:default-service]
-                      (->> services
-                           (filter #(= (.. e -target -value)
-                                       (-> %
-                                           :info
-                                           :name)))
-                           first
-                           :id)]))]
+                      (:service-id (first (filter
+                                           #(= (.. e -target -value)
+                                               (get-in % [:service-info :name]))
+                                           services)))]))]
      [select-input "Default kiosk" [:default-kiosk service-id]
       (or (get default-kiosk service-id) (:default-kiosk kiosks))
       (map (fn [kiosk] {:label (utils/titleize kiosk) :value kiosk})
            (:available-kiosks kiosks))]
      [select-input "Default filter" [:default-filter service-id]
-      (or (get default-filter service-id) (first (:content-filters service)))
+      (or (get default-filter service-id)
+          (first (get-in service
+                         [:search-qh-factory :available-content-filter])))
       (map (fn [filter] {:label (utils/titleize filter) :value filter})
-           (:content-filters service))]
+           (get-in service [:search-qh-factory :available-content-filter]))]
      [text-input "API instance" [:instance] instance]
      [text-input "Authentication instance" [:auth-instance] auth-instance]
      [generic-input "PeerTube instances"

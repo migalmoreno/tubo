@@ -17,12 +17,11 @@
 
 (defn kiosk
   [{{:keys [serviceId]} :query-params}]
-  (let [{:keys [id name related-streams next-page]} @(rf/subscribe [:kiosk])
-        service-id                                  (or @(rf/subscribe
-                                                          [:service-id])
-                                                        serviceId)]
+  (let [{:keys [id name next-page] :as kiosk} @(rf/subscribe [:kiosk])
+        service-id                            (or @(rf/subscribe [:service-id])
+                                                  serviceId)]
     [layout/content-container
      [layout/content-header name]
-     [items/related-streams related-streams next-page
+     [items/related-items (:related-items kiosk) next-page
       (:items-layout @(rf/subscribe [:settings]))
       #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))

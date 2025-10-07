@@ -10,10 +10,10 @@
   [stream]
   (select-keys
    stream
-   [:type :service-id :url :name :thumbnail :thumbnails :audio-streams
-    :video-streams :verified? :uploader-name :uploader-url
-    :uploader-verified? :uploader-avatar :uploader-avatars :upload-date
-    :short-description :duration :view-count :playlist-id]))
+   [:info-type :service-id :url :name :thumbnail :thumbnails :audio-streams
+    :video-streams :uploader-name :uploader-url :uploader-verified
+    :uploader-avatar :uploader-avatars :textual-upload-date :short-description
+    :duration :view-count :playlist-id]))
 
 (rf/reg-event-fx
  :queue/show
@@ -86,7 +86,7 @@
           :queue
           #(into (into [] %1) (into [] %2))
           (->> streams
-               (filter #(not (some #{(:type %)} ["playlist" "channel"])))
+               (filter #(not (some #{(:info-type %)} ["PLAYLIST" "CHANNEL"])))
                (map #(-> %
                          (get-stream-metadata)
                          (utils/apply-image-quality db :thumbnail :thumbnails)
@@ -241,17 +241,13 @@
                            (utils/apply-image-quality db
                                                       :uploader-avatar
                                                       :uploader-avatars)
-                           (utils/apply-thumbnails-quality
-                            db
-                            :related-streams)
-                           (utils/apply-avatars-quality
-                            db
-                            :related-streams))))]
+                           (utils/apply-thumbnails-quality db :related-items)
+                           (utils/apply-avatars-quality db :related-items))))
+           thumbnail  (get-in updated-db [:queue idx :thumbnail])]
        {:db (if play? (assoc updated-db :queue/position idx) updated-db)
         :fx (into (if play?
                     [[:dispatch
-                      [:get-color-async
-                       (get-in updated-db [:queue idx :thumbnail])
+                      [:get-color-async thumbnail
                        [:queue/load-thumbnail-color idx]]]
                      [:set-media-session-metadata
                       {:title   (:name stream)

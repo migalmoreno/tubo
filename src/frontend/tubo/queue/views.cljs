@@ -17,7 +17,7 @@
     [:div.flex.cursor-pointer.px-4.py-2
      {:class    (into
                  (when (= i queue-pos)
-                   ["bg-neutral-600/20" "dark:bg-neutral-900/30"])
+                   ["bg-neutral-600/20" "dark:bg-neutral-800/50"])
                  ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
       :on-click #(rf/dispatch [:queue/load-pos i])}
      [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
@@ -42,7 +42,7 @@
           [:span (utils/get-service-name service-id)]])]]]))
 
 (defn popover
-  [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
+  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
     :as   item} i]
   [:div.absolute.right-0.top-0.min-h-full.flex.items-center
    [layout/popover
@@ -62,10 +62,10 @@
        {:label    "Subscribe to channel"
         :icon     [:i.fa-solid.fa-user-plus]
         :on-click #(rf/dispatch [:subscriptions/add
-                                 {:url       uploader-url
-                                  :name      uploader-name
-                                  :verified? uploader-verified?
-                                  :avatars   uploader-avatars}])})
+                                 {:url      uploader-url
+                                  :name     uploader-name
+                                  :verified uploader-verified
+                                  :avatars  uploader-avatars}])})
      {:label    "Show channel details"
       :icon     [:i.fa-solid.fa-user]
       :on-click #(rf/dispatch [:navigation/navigate
@@ -245,9 +245,8 @@
                  (case @!active-tab
                    :queue   [virtualized-queue]
                    :related [:div.flex.flex-col.gap-y-2.p-4
-                             (for [[i item] (map-indexed vector
-                                                         (:related-streams
-                                                          stream))]
+                             (for [[i item]
+                                   (map-indexed vector (:related-items stream))]
                                ^{:key i}
                                [items/list-item-content item
                                 :container-classes

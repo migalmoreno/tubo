@@ -16,8 +16,8 @@
    (-> db
        (assoc-in
         (into keys [:comments-page])
-        (-> (utils/apply-avatars-quality body db :comments)
-            (update :comments
+        (-> (utils/apply-avatars-quality body db :related-items)
+            (update :related-items
                     #(map
                       (fn [c]
                         (if (seq (:replies c))
@@ -58,15 +58,15 @@
                    (into (if (:main-player/show db)
                            [:queue (:queue/position db)]
                            [:stream])
-                         [:comments-page :comments])
+                         [:comments-page :related-items])
                    (fn [comments]
                      (map (fn [comment]
-                            (if (= (:id comment) comment-id)
+                            (if (= (:comment-id comment) comment-id)
                               (assoc comment
                                      :replies (utils/apply-avatars-quality
                                                body
                                                db
-                                               :comments)
+                                               :items)
                                      :replies-loading false)
                               comment))
                           comments)))}))
@@ -78,9 +78,11 @@
          db
          (into
           (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
-          [:comments-page :comments])
+          [:comments-page :related-items])
          (fn [comments]
-           (map #(if (= (:id %) comment-id) (assoc % :replies-loading true) %)
+           (map #(if (= (:comment-id %) comment-id)
+                   (assoc % :replies-loading true)
+                   %)
                 comments)))
     :fx [[:dispatch
           [:comments/fetch url
@@ -95,20 +97,20 @@
                    (into (if (:main-player/show db)
                            [:queue (:queue/position db)]
                            [:stream])
-                         [:comments-page :comments])
+                         [:comments-page :related-items])
                    (fn [comments]
                      (map (fn [comment]
-                            (if (= (:id comment) comment-id)
+                            (if (= (:comment-id comment) comment-id)
                               (-> comment
                                   (assoc-in [:replies :next-page]
                                             (:next-page body))
-                                  (update-in [:replies :comments]
+                                  (update-in [:replies :items]
                                              #(into (into [] %1) %2)
-                                             (:comments
+                                             (:items
                                               (utils/apply-avatars-quality
                                                body
                                                db
-                                               :comments)))
+                                               :items)))
                                   (assoc :replies-loading false))
                               comment))
                           comments)))}))
@@ -120,9 +122,11 @@
          db
          (into
           (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
-          [:comments-page :comments])
+          [:comments-page :related-items])
          (fn [comments]
-           (map #(if (= (:id %) comment-id) (assoc % :replies-loading true) %)
+           (map #(if (= (:comment-id %) comment-id)
+                   (assoc % :replies-loading true)
+                   %)
                 comments)))
     :fx [[:dispatch
           [:comments/fetch url
@@ -136,9 +140,9 @@
     (update-in
      db
      (into (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
-           [:comments-page :comments])
+           [:comments-page :related-items])
      (fn [comments]
-       (map #(if (= (:id %) comment-id)
+       (map #(if (= (:comment-id %) comment-id)
                (assoc % :show-replies val)
                %)
             comments)))}))
@@ -150,11 +154,11 @@
      db
      (update-in
       (into (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
-            [:comments-page :comments])
+            [:comments-page :related-items])
       #(into (into [] %1) (into [] %2))
       (-> body
-          (utils/apply-avatars-quality db :comments)
-          :comments))
+          (utils/apply-avatars-quality db :items)
+          :items))
      (assoc-in
       (into (if (:main-player/show db) [:queue (:queue/position db)] [:stream])
             [:comments-page :next-page])

@@ -19,19 +19,14 @@
    {:db (assoc db
                :channel
                (-> body
-                   (utils/apply-thumbnails-quality
-                    db
-                    :related-streams)
-                   (utils/apply-avatars-quality
-                    db
-                    :related-streams)
-                   (utils/apply-image-quality db
-                                              :avatar
-                                              :avatars)
-                   (utils/apply-image-quality db
-                                              :banner
-                                              :banners)))
+                   (utils/apply-thumbnails-quality db :related-items)
+                   (utils/apply-avatars-quality db :related-items)
+                   (utils/apply-image-quality db :avatar :avatars)
+                   (utils/apply-image-quality db :banner :banners)))
     :fx [[:dispatch [:services/fetch body]]
+         [:dispatch
+          [:channel/fetch-tab (:url body)
+           (first (:content-filters (first (:tabs body))))]]
          [:document-title (:name body)]]}))
 
 (rf/reg-event-fx
@@ -46,86 +41,53 @@
 (rf/reg-event-fx
  :channel/load-tab
  (fn [{:keys [db]} [_ tab-id {:keys [body]}]]
-   (let [selected-tab (first (filter #(= tab-id
-                                         (-> %
-                                             :contentFilters
-                                             first))
-                                     (-> db
-                                         :channel
-                                         :tabs)))
-         tab-idx      (.indexOf (-> db
-                                    :channel
-                                    :tabs)
-                                selected-tab)]
+   (let [selected-tab (first (filter #(= tab-id (first (:content-filters %)))
+                                     (get-in db [:channel :tabs])))
+         tab-idx      (.indexOf (get-in db [:channel :tabs]) selected-tab)]
      {:db (-> db
-              (assoc-in [:channel :tabs tab-idx :related-streams]
+              (assoc-in [:channel :tabs tab-idx :related-items]
                         (-> body
-                            (utils/apply-thumbnails-quality db :related-streams)
-                            (utils/apply-avatars-quality db :related-streams)
-                            :related-streams))
+                            (utils/apply-thumbnails-quality db :related-items)
+                            (utils/apply-avatars-quality db :related-items)
+                            :related-items))
               (assoc-in [:channel :tabs tab-idx :next-page]
                         (:next-page body)))})))
 
 (rf/reg-event-fx
  :channel/fetch-tab
  (fn [_ [_ uri tab-id]]
-   {:fx [[:dispatch
-          [:api/get
-           (str "channels/" (js/encodeURIComponent uri) "/tabs/" tab-id)
-           [:channel/load-tab tab-id]
-           [:bad-page-response [:channel/fetch-page uri]]]]]}))
+   {:fx [(when tab-id
+           [:dispatch
+            [:api/get
+             (str "channels/" (js/encodeURIComponent uri) "/tabs/" tab-id)
+             [:channel/load-tab tab-id] [:bad-response]]])]}))
 
 (rf/reg-event-db
- :channel/load-paginated
+ :channel/load-tab-paginated
  (fn [db [_ tab-id {:keys [body]}]]
-   (let [selected-tab (first (filter #(= tab-id
-                                         (-> %
-                                             :contentFilters
-                                             first))
-                                     (-> db
-                                         :channel
-                                         :tabs)))
-         tab-idx      (.indexOf (-> db
-                                    :channel
-                                    :tabs)
-                                selected-tab)]
-     (if (empty? (:related-streams (if tab-id selected-tab body)))
+   (let [selected-tab (first (filter #(= tab-id (first (:content-filters %)))
+                                     (get-in db [:channel :tabs])))
+         tab-idx      (.indexOf (get-in db [:channel :tabs]) selected-tab)]
+     (if (seq (:related-items selected-tab))
        (-> db
-           (assoc-in (if tab-id
-                       [:channel :tabs tab-idx :next-page]
-                       [:channel :next-page])
-                     nil)
+           (update-in [:channel :tabs tab-idx :related-items]
+                      #(apply conj %1 %2)
+                      (-> body
+                          (utils/apply-thumbnails-quality db :items)
+                          (utils/apply-avatars-quality db :items)
+                          :items))
+           (assoc-in [:channel :tabs tab-idx :next-page] (:next-page body))
            (assoc :show-pagination-loading false))
        (-> db
-           (update-in
-            (if tab-id
-              [:channel :tabs tab-idx :related-streams]
-              [:channel :related-streams])
-            #(apply conj %1 %2)
-            (-> body
-                (utils/apply-thumbnails-quality db :related-streams)
-                (utils/apply-avatars-quality db :related-streams)
-                :related-streams))
-           (assoc-in (if tab-id
-                       [:channel :tabs tab-idx :next-page]
-                       [:channel :next-page])
-                     (:next-page body))
+           (assoc-in [:channel :tabs tab-idx :next-page] nil)
            (assoc :show-pagination-loading false))))))
 
 (rf/reg-event-fx
- :channel/bad-paginated-response
+ :channel/bad-tab-paginated-response
  (fn [{:keys [db]} [_ tab-id res]]
-   (let [selected-tab (first (filter #(= tab-id
-                                         (-> %
-                                             :contentFilters
-                                             first))
-                                     (-> db
-                                         :channel
-                                         :tabs)))
-         tab-idx      (.indexOf (-> db
-                                    :channel
-                                    :tabs)
-                                selected-tab)]
+   (let [selected-tab (first (filter #(= tab-id (first (:content-filters %)))
+                                     (get-in db [:channel :tabs])))
+         tab-idx      (.indexOf (get-in db [:channel :tabs]) selected-tab)]
      {:fx [[:dispatch [:bad-pagination-response res]]]
       :db (assoc-in db
            (if tab-id
@@ -134,15 +96,15 @@
            nil)})))
 
 (rf/reg-event-fx
- :channel/fetch-paginated
+ :channel/fetch-tab-paginated
  (fn [{:keys [db]} [_ uri tab-id next-page]]
    (if (seq next-page)
      {:fx [[:dispatch
             [:api/get
              (str "channels/" (js/encodeURIComponent uri)
-                  "/tabs/"    (or tab-id "default"))
-             [:channel/load-paginated tab-id]
-             [:channel/bad-paginated-response tab-id]
+                  "/tabs/"    tab-id)
+             [:channel/load-tab-paginated tab-id]
+             [:channel/bad-tab-paginated-response tab-id]
              {:nextPage (.stringify js/JSON (clj->js next-page))}]]]
       :db (assoc db :show-pagination-loading true)}
      {:db (assoc db :show-pagination-loading false)})))

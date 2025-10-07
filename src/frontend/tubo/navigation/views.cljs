@@ -157,7 +157,7 @@
                                               [:query-params :id])])]
                                       [playlist/metadata-popover
                                        (assoc bookmark
-                                              :related-streams
+                                              :related-items
                                               (:items bookmark))
                                        [bookmarks/playlist-edit-modal id]])
                                     [:<>])]))]
@@ -273,13 +273,13 @@
        ^{:key i}
        [:ul.flex.flex-col.justify-center
         [sidebar-item nil
-         (case (:id service)
+         (case (:service-id service)
            0 [:i.fa-brands.fa-youtube]
            1 [:i.fa-brands.fa-soundcloud]
            2 [media-ccc-logo]
            3 [peertube-logo service-id i]
            4 [:i.fa-brands.fa-bandcamp])
-         (get-in service [:info :name])
+         (get-in service [:service-info :name])
          :on-click #(rf/dispatch [:kiosks/change-page i])
          :always-expanded? always-expanded?
          :icon-attrs

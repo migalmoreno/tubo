@@ -44,13 +44,20 @@
         settings          @(rf/subscribe [:settings])
         service-id        @(rf/subscribe [:service-id])
         filter-eq         (first (filter #(= search-filter %)
-                                         (:content-filters service)))
+                                         (get-in service
+                                                 [:search-qh-factory
+                                                  :available-content-filter])))
         default-filter-eq (first (filter #(= (get (:default-filter settings)
                                                   service-id)
                                              %)
-                                         (:content-filters service)))
+                                         (get-in service
+                                                 [:search-qh-factory
+                                                  :available-content-filter])))
         filter-idx        (let [idx (when (or filter-eq default-filter-eq)
-                                      (.indexOf (:content-filters service)
+                                      (.indexOf (get-in
+                                                 service
+                                                 [:search-qh-factory
+                                                  :available-content-filter])
                                                 (or filter-eq
                                                     default-filter-eq)))]
                             (if (pos-int? idx) idx 0))]
@@ -94,7 +101,7 @@
                        (utils/titleize filter)]
             :value    filter
             :on-click #(rf/dispatch [:search/change-filter filter])})
-         (:content-filters service))
+         (get-in service [:search-qh-factory :available-content-filter]))
         :extra-classes ["px-2"]
         :tooltip-classes ["right-0" "top-12" "sm:right-auto" "sm:left-4"]]
        [:button.px-4.absolute
@@ -107,20 +114,20 @@
 
 (defn search
   [{{:keys [q serviceId]} :query-params}]
-  (let [{:keys [items next-page]} @(rf/subscribe [:search/results])
-        service-id                (or @(rf/subscribe [:service-id])
-                                      serviceId)
-        filter                    @(rf/subscribe [:search/filter])
-        service                   @(rf/subscribe [:services/current])
-        settings                  @(rf/subscribe [:settings])]
+  (let [{:keys [related-items next-page]} @(rf/subscribe [:search/results])
+        service-id                        (or @(rf/subscribe [:service-id])
+                                              serviceId)
+        filter                            @(rf/subscribe [:search/filter])
+        service                           @(rf/subscribe [:services/current])
+        settings                          @(rf/subscribe [:settings])]
     [layout/content-container
      [:div.flex.w-full.justify-between
       [layout/select
        (or filter (get (:default-filter settings) service-id) "")
        (map (fn [filter] {:label (utils/titleize filter) :value filter})
-            (:content-filters service))
+            (get-in service [:search-qh-factory :available-content-filter]))
        #(rf/dispatch [:search/set-filter (.. % -target -value)])]]
-     [items/related-streams items next-page
+     [items/related-items related-items next-page
       (:items-layout @(rf/subscribe [:settings]))
       #(rf/dispatch
         [:search/fetch-paginated

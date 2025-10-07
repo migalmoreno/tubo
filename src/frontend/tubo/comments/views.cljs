@@ -6,10 +6,10 @@
    [tubo.utils :as utils]))
 
 (defn comment-top-metadata
-  [{:keys [pinned? uploader-name uploader-url uploader-verified?
+  [{:keys [pinned uploader-name uploader-url uploader-verified
            stream-position]}]
   [:div.flex.items-center
-   (when pinned?
+   (when pinned
      [:i.fa-solid.fa-thumbtack.mr-2.text-xs])
    (when uploader-name
      [:div.flex.items-stretch
@@ -22,21 +22,22 @@
         [:div.text-neutral-600.dark:text-neutral-300
          [:span.mx-2.text-xs.whitespace-nowrap
           (utils/format-duration stream-position)]])])
-   (when uploader-verified?
+   (when uploader-verified
      [:i.fa-solid.fa-circle-check.ml-2])])
 
 (defn comment-bottom-metadata
-  [{:keys [upload-date like-count hearted-by-uploader? author-avatar
+  [{:keys [textual-upload-date like-count hearted-by-uploader author-avatar
            author-name]}]
   [:div.flex.items-center
    [:div.mr-4.text-sm.text-neutral-600.dark:text-neutral-300
-    [:span {:title upload-date} (utils/format-date-ago upload-date)]]
+    [:span {:title textual-upload-date}
+     (utils/format-date-ago textual-upload-date)]]
    (when (and like-count (> like-count 0))
      [:div.flex.items-center
       [:i.fa-solid.fa-thumbs-up.text-xs]
       [:span.mx-1.text-sm.text-neutral-600.dark:text-neutral-300
        {:title like-count} (utils/format-quantity like-count)]])
-   (when hearted-by-uploader?
+   (when hearted-by-uploader
      [:div.relative.w-4.h-4.mx-2
       [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500]
       [:img.rounded-full.object-covermax-w-full.min-h-full
@@ -44,7 +45,8 @@
         :title (str author-name " hearted this comment")}]])])
 
 (defn comment-item
-  [{:keys [id text replies-page replies reply-count show-replies url reply?]
+  [{:keys [comment-id comment-text replies-page replies reply-count show-replies
+           url reply?]
     :as   comment}]
   [:div.flex.gap-x-4
    [layout/uploader-avatar comment :classes
@@ -54,14 +56,15 @@
      [comment-top-metadata comment]
      [:div
       [:p.text-sm
-       {:dangerouslySetInnerHTML {:__html text}
+       {:dangerouslySetInnerHTML {:__html (:content comment-text)}
         :class                   "[overflow-wrap:anywhere]"}]]
      [comment-bottom-metadata comment]]
     (when (seq replies-page)
       [:div.flex.items-center.cursor-pointer.gap-x-2
        {:on-click #(rf/dispatch (if (seq replies)
-                                  [:comments/show-replies id (not show-replies)]
-                                  [:comments/fetch-replies id url
+                                  [:comments/show-replies comment-id
+                                   (not show-replies)]
+                                  [:comments/fetch-replies comment-id url
                                    replies-page]))}
        (if show-replies
          [:<>
@@ -75,7 +78,7 @@
 (defn comments
   []
   (let [!observer (atom nil)]
-    (fn [{:keys [comments next-page]}
+    (fn [{:keys [related-items next-page]}
          {:keys [uploader-name uploader-avatar url service-id]}]
       (let [service-color       (utils/get-service-color service-id)
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
@@ -93,18 +96,16 @@
                                                next-page])))))
                                       %)))]
         [:div.flex.flex-col
-         (if (empty? comments)
-           [:div.flex.items-center.flex-auto.flex-col.justify-center.h-44
-            [:span "No available comments"]]
+         (if (seq related-items)
            [:div.flex.flex-col.gap-y-6
             (for [[i
-                   {:keys [id replies replies-loading show-replies]
+                   {:keys [comment-id replies replies-loading show-replies]
                     :as   comment}]
-                  (map-indexed vector comments)]
+                  (map-indexed vector related-items)]
               ^{:key i}
               [:div.flex.flex-col
                {:ref (when (and (seq next-page)
-                                (= (+ i 1) (count comments)))
+                                (= (+ i 1) (count related-items)))
                        last-item-ref)}
                [:div.flex
                 [comment-item
@@ -114,7 +115,7 @@
                         :url           url)]]
                (when (and (seq replies) show-replies)
                  [:div.flex.flex-col.gap-y-8.my-4 {:class "ml-[32px]"}
-                  (for [[i reply] (map-indexed vector (:comments replies))]
+                  (for [[i reply] (map-indexed vector (:items replies))]
                     ^{:key i}
                     [comment-item
                      (assoc reply
@@ -130,10 +131,13 @@
                     replies-loading [layout/loading-icon service-color :text-md]
                     (:next-page replies)
                     [:button
-                     {:on-click #(rf/dispatch [:comments/fetch-more-replies id
+                     {:on-click #(rf/dispatch [:comments/fetch-more-replies
+                                               comment-id
                                                url
                                                (:next-page replies)])}
                      [:i.fa-solid.fa-turn-up.mx-2.text-xs.rotate-90]
                      [:span.font-bold.text-sm "Show more replies"]])])])
             (when (and pagination-loading? (seq next-page))
-              [layout/loading-icon service-color :text-md])])]))))
+              [layout/loading-icon service-color :text-md])]
+           [:div.flex.items-center.flex-auto.flex-col.justify-center.h-44
+            [:span "No available comments"]])]))))

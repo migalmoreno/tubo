@@ -16,12 +16,12 @@
  :playlist/load-paginated
  (fn [db [_ {:keys [body]}]]
    (-> db
-       (update-in [:playlist :related-streams]
+       (update-in [:playlist :related-items]
                   #(apply conj %1 %2)
                   (-> body
-                      (utils/apply-thumbnails-quality db :related-streams)
-                      (utils/apply-avatars-quality db :related-streams)
-                      :related-streams))
+                      (utils/apply-thumbnails-quality db :items)
+                      (utils/apply-avatars-quality db :items)
+                      :items))
        (assoc-in [:playlist :next-page] (:next-page body))
        (assoc :show-pagination-loading false))))
 
@@ -40,23 +40,14 @@
  :playlist/load-page
  (fn [{:keys [db]} [_ {:keys [body]}]]
    (let [updated-db
-         (assoc db
-                :playlist
-                (-> body
-                    (utils/apply-image-quality
-                     db
-                     :thumbnail
-                     :thumbnails)
-                    (utils/apply-image-quality
-                     db
-                     :uploader-avatar
-                     :uploader-avatars)
-                    (utils/apply-thumbnails-quality
-                     db
-                     :related-streams)
-                    (utils/apply-avatars-quality
-                     db
-                     :related-streams)))]
+         (assoc
+          db
+          :playlist
+          (-> body
+              (utils/apply-image-quality db :thumbnail :thumbnails)
+              (utils/apply-image-quality db :uploader-avatar :uploader-avatars)
+              (utils/apply-thumbnails-quality db :related-items)
+              (utils/apply-avatars-quality db :related-items)))]
      {:db updated-db
       :fx [[:dispatch [:services/fetch body]]
            [:document-title (:name body)]
@@ -79,11 +70,11 @@
     :db (assoc db :playlist nil)}))
 
 (rf/reg-event-fx
- :playlist/fetch-related-streams
+ :playlist/fetch-related-items
  (fn [_ [_ url]]
    {:fx [[:dispatch
           [:api/get (str "playlists/" (js/encodeURIComponent url))
-           [:bg-player/load-related-streams true] [:bad-response]]]]}))
+           [:bg-player/load-related-items true] [:bad-response]]]]}))
 
 (rf/reg-event-fx
  :playlist/play-all

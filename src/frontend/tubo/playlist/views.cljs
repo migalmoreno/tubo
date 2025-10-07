@@ -7,8 +7,8 @@
    [tubo.layout.views :as layout]))
 
 (defn metadata-popover
-  [{:keys [related-streams]} edit-modal]
-  (when related-streams
+  [{:keys [related-items]} edit-modal]
+  (when related-items
     [layout/popover
      [(when edit-modal
         {:label    "Edit playlist"
@@ -16,31 +16,31 @@
          :on-click #(rf/dispatch [:modals/open edit-modal])})
       {:label    "Add to queue"
        :icon     [:i.fa-solid.fa-headphones]
-       :on-click #(rf/dispatch [:queue/add-n related-streams true])}
+       :on-click #(rf/dispatch [:queue/add-n related-items true])}
       {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
-                                [modals/add-to-bookmark related-streams]])}]
+                                [modals/add-to-bookmark related-items]])}]
      :extra-classes ["px-5" "xs:px-3"]]))
 
 (defn playlist
-  [{:keys [name uploader-name uploader-url stream-count related-streams
+  [{:keys [name uploader-name uploader-url stream-count related-items
            next-page]
     :as   playlist} url edit-modal]
   (let [dark-theme?        @(rf/subscribe [:dark-theme])
         color              (if dark-theme? "10,10,10" "245,245,245")
         top-bg-gradient    (str "linear-gradient(to top, rgba("
                                 color
-                                ",0.7) 10%, rgba("
+                                ",0.5) 10%, rgba("
                                 color
                                 ",0.3) 65%, rgba("
                                 color
                                 ",0.2) 75%, transparent 90%)")
         bottom-bg-gradient (str "linear-gradient(to bottom, rgba("
                                 color
-                                ",0.8) 10%, rgba("
+                                ",0.7) 10%, rgba("
                                 color
-                                ",0.90) 50%, rgba("
+                                ",0.9) 50%, rgba("
                                 color
                                 ",1) 90%)")]
     [:div.w-full.flex.flex-col
@@ -59,13 +59,13 @@
         (str (when edit-modal "LOCAL ") "PLAYLIST")]
        [:div.flex.flex-col.gap-y-6
         [layout/content-header name]
-        (when (seq related-streams)
+        (when (seq related-items)
           [:div.flex.gap-x-3.items-center
            [layout/primary-button "Play All"
-            #(rf/dispatch [:playlist/play-all related-streams])
+            #(rf/dispatch [:playlist/play-all related-items])
             [:i.fa-solid.fa-play]]
            [layout/secondary-button "Shuffle"
-            #(rf/dispatch [:playlist/shuffle-all related-streams])
+            #(rf/dispatch [:playlist/shuffle-all related-items])
             [:i.fa-solid.fa-shuffle]]
            [:div.hidden.xs:block
             [metadata-popover playlist edit-modal]]])
@@ -93,7 +93,7 @@
                 "before:bg-[image:var(--bg-gradient)]"
                 "before:absolute" "before:content-['']" "before:top-0"
                 "before:right-0" "before:left-0" "before:bottom-0"]}]
-      [items/related-streams related-streams next-page
+      [items/related-items related-items next-page
        (:items-layout @(rf/subscribe [:settings]))
        #(rf/dispatch [:playlist/fetch-paginated url next-page])]]]))
 

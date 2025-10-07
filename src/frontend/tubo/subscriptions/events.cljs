@@ -53,7 +53,6 @@
             [:api/post-auth "user/subscriptions"
              (-> body
                  (utils/apply-image-quality db :avatar :avatars)
-                 (rename-keys {:verified? :verified})
                  (select-keys [:url :name :avatar :verified]))
              [:subscriptions/on-add-auth body]
              [:bad-response]]]]}

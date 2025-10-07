@@ -187,10 +187,10 @@
          :icon              [:i.fa-solid.fa-user-plus]
          :stop-propagation? true
          :on-click          #(rf/dispatch [:subscriptions/add
-                                           {:url       uploader-url
-                                            :name      uploader-name
-                                            :verified? uploader-verified?
-                                            :avatars   uploader-avatars}])})
+                                           {:url      uploader-url
+                                            :name     uploader-name
+                                            :verified uploader-verified
+                                            :avatars  uploader-avatars}])})
       {:label             "Show channel details"
        :icon              [:i.fa-solid.fa-user]
        :stop-propagation? true

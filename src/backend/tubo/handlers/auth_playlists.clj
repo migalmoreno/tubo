@@ -15,7 +15,7 @@
                              [[(:uploader-url item)
                                (:uploader-name item)
                                (utils/unproxy-image (:uploader-avatar item) req)
-                               (:uploader-verified? item)]]
+                               (:uploader-verified item)]]
                              datasource)))
         stream   (or (stream/get-stream-by-url (:url item) datasource)
                      (first (stream/add-streams

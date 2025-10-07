@@ -1,16 +1,15 @@
 (ns tubo.handlers.utils
   (:require
+   [camel-snake-kebab.core :as csk]
+   [camel-snake-kebab.extras :as cske]
    [clojure.data.json :as json]
    [clojure.java.data :as j]
+   [clojure.set :refer [rename-keys]]
    [clojure.string :as str]
    [ring.util.codec :refer [url-decode url-encode]])
   (:import
    java.net.URL
    org.schabi.newpipe.extractor.Page))
-
-(defn non-negative
-  [val]
-  (when (pos-int? val) val))
 
 (defn get-next-page
   [info]
@@ -60,58 +59,51 @@
             url-decode)
         image))))
 
-(defn get-stream-item
-  [stream req]
-  {:type               :stream
-   :service-id         (.getServiceId stream)
-   :url                (.getUrl stream)
-   :name               (.getName stream)
-   :thumbnails         (proxy-images (.getThumbnails stream) req)
-   :short?             (.isShortFormContent stream)
-   :uploader-name      (.getUploaderName stream)
-   :uploader-url       (.getUploaderUrl stream)
-   :uploader-avatars   (proxy-images (.getUploaderAvatars stream) req)
-   :upload-date        (.getTextualUploadDate stream)
-   :description        (.getShortDescription stream)
-   :duration           (non-negative (.getDuration stream))
-   :view-count         (non-negative (.getViewCount stream))
-   :stream-type        (.getStreamType stream)
-   :uploaded           (when (.getUploadDate stream)
-                         (.. stream
-                             (getUploadDate)
-                             (offsetDateTime)
-                             (toInstant)
-                             (toEpochMilli)))
-   :uploader-verified? (.isUploaderVerified stream)})
+(defn ->Info
+  [info]
+  (cske/transform-keys
+   csk/->kebab-case-keyword
+   (j/from-java-deep info {:exceptions :omit :omit #{:service :errors}})))
 
-(defn get-channel-item
-  [channel req]
-  {:type             :channel
-   :service-id       (.getServiceId channel)
-   :url              (.getUrl channel)
-   :name             (.getName channel)
-   :thumbnails       (proxy-images (.getThumbnails channel) req)
-   :description      (.getDescription channel)
-   :subscriber-count (non-negative (.getSubscriberCount channel))
-   :stream-count     (non-negative (.getStreamCount channel))
-   :verified?        (.isVerified channel)})
+(defn ->RelatedItem
+  [{:keys [info-type] :as item} req item*]
+  (cond-> item
+    (= info-type "COMMENT")  (-> (rename-keys {:replies :replies-page})
+                                 (update :stream-position
+                                         #(when (pos-int? %) %))
+                                 (update :reply-count #(when (pos-int? %) %))
+                                 (update :like-count #(when (pos-int? %) %)))
+    (= info-type "STREAM")   (-> (update :view-count #(when (pos-int? %) %))
+                                 (update :duration #(when (pos-int? %) %))
+                                 (assoc :upload-date
+                                        (when (.getUploadDate item*)
+                                          (.. item*
+                                              (getUploadDate)
+                                              (offsetDateTime)
+                                              (toInstant)
+                                              (toEpochMilli)))))
+    (= info-type "CHANNEL")  (-> (update :subscriber-count
+                                         #(when (pos-int? %) %))
+                                 (update :stream-count #(when (pos-int? %) %)))
+    (= info-type "PLAYLIST") (update :stream-count #(when (pos-int? %) %))
+    :else                    (-> (update :thumbnails #(proxy-images % req))
+                                 (update :uploader-avatars
+                                         #(proxy-images % req)))))
 
-(defn get-playlist-item
-  [playlist req]
-  {:type          :playlist
-   :service-id    (.getServiceId playlist)
-   :url           (.getUrl playlist)
-   :name          (.getName playlist)
-   :thumbnails    (proxy-images (.getThumbnails playlist) req)
-   :uploader-name (.getUploaderName playlist)
-   :uploader-url  (.getUploaderUrl playlist)
-   :playlist-type (.getPlaylistType playlist)
-   :stream-count  (non-negative (.getStreamCount playlist))})
+(defn ->RelatedItems
+  [items req items*]
+  (map-indexed (fn [idx item]
+                 (->RelatedItem item req (.get items* idx)))
+               items))
 
-(defn get-items
-  [items req]
-  (map #(case (.name (.getInfoType %))
-          "STREAM"   (get-stream-item % req)
-          "CHANNEL"  (get-channel-item % req)
-          "PLAYLIST" (get-playlist-item % req))
-       items))
+(defn ->ListInfo
+  [info req]
+  (let [info* (->Info info)]
+    (cond-> info*
+      (:next-page info*)     (assoc :next-page (get-next-page info))
+      (:related-items info*) (update
+                              :related-items
+                              #(->RelatedItems % req (.getRelatedItems info)))
+      (:items info*)         (update
+                              :items
+                              #(->RelatedItems % req (.getItems info))))))

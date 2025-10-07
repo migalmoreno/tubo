@@ -42,8 +42,8 @@
    {:db (assoc db
                :kiosk
                (-> body
-                   (utils/apply-thumbnails-quality db :related-streams)
-                   (utils/apply-avatars-quality db :related-streams)))
+                   (utils/apply-thumbnails-quality db :related-items)
+                   (utils/apply-avatars-quality db :related-items)))
     :fx [[:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
 
@@ -98,12 +98,12 @@
  (fn [db [_ {:keys [body]}]]
    (->
      db
-     (update-in [:kiosk :related-streams]
+     (update-in [:kiosk :related-items]
                 #(into %1 %2)
                 (-> body
-                    (utils/apply-thumbnails-quality db :related-streams)
-                    (utils/apply-avatars-quality db :related-streams)
-                    :related-streams))
+                    (utils/apply-thumbnails-quality db :items)
+                    (utils/apply-avatars-quality db :items)
+                    :items))
      (assoc-in [:kiosk :next-page] (:next-page body))
      (assoc :show-pagination-loading false))))
 

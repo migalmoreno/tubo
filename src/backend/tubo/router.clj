@@ -162,7 +162,7 @@
                         {:summary
                          "returns channel tab data for a given URL and a tab ID"
                          :parameters {:path {:url uri? :tab-id string?}}
-                         :handler channel/create-channel-tabs-handler}}
+                         :handler channel/create-channel-tab-handler}}
       :api/playlist {:get {:summary    "returns playlist data for a given URL"
                            :parameters {:path {:url uri?}}
                            :handler    playlist/create-playlist-handler}}

@@ -25,15 +25,15 @@
         {})
        (map
         (fn [e]
-          {:id                 (:streams/id e)
-           :name               (:streams/name e)
-           :url                (:streams/url e)
-           :duration           (:streams/duration e)
-           :thumbnail          (utils/proxy-image (:streams/thumbnail e) req)
-           :uploader-verified? (:channels/verified e)
-           :uploader-name      (:channels/name e)
-           :uploader-url       (:channels/url e)
-           :uploader-avatar    (utils/proxy-image (:channels/avatar e) req)}))))
+          {:id                (:streams/id e)
+           :name              (:streams/name e)
+           :url               (:streams/url e)
+           :duration          (:streams/duration e)
+           :thumbnail         (utils/proxy-image (:streams/thumbnail e) req)
+           :uploader-verified (:channels/verified e)
+           :uploader-name     (:channels/name e)
+           :uploader-url      (:channels/url e)
+           :uploader-avatar   (utils/proxy-image (:channels/avatar e) req)}))))
 
 (defn get-playlists-by-owner
   [{:keys [datasource identity] :as req}]
