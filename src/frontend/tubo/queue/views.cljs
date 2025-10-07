@@ -180,11 +180,6 @@
             !bg         @(rf/subscribe [:queue-bg])
             dark-theme? @(rf/subscribe [:dark-theme])
             breakpoint  @(rf/subscribe [:layout/breakpoint])
-            bg-gradient (str "rgba("
-                             (if dark-theme? "10,10,10" "245,245,245")
-                             ","
-                             "var(--opacity)"
-                             ")")]
         [:> AnimatePresence
          (when show-queue
            [:> (.-div motion)
@@ -200,14 +195,16 @@
                                                  "10,10,10"
                                                  "245,245,245")
                                                ")"))
-                      "--bg-gradient" (when (:thumbnail-color stream)
-                                        bg-gradient)
-                      "--opacity"     0.5}
+                      "--bg-gradient" (str
+                                       "rgba("
+                                       (if dark-theme? "10,10,10" "245,245,245")
+                                       ",0.5)")}
               :ref   #(reset! !bg %)
               :class ["flex" "w-full" "h-full" "relative" "overflow-hidden"
-                      "bg-[color:var(--bg-color)]" "before:absolute"
-                      "before:top-0" "before:bottom-0" "before:left-0"
-                      "before:right-0" "before:bg-[color:var(--bg-gradient)]"
+                      "bg-[color:var(--bg-color)]" "transition-colors"
+                      "duration-500" "before:absolute" "before:top-0"
+                      "before:bottom-0" "before:left-0" "before:right-0"
+                      "before:bg-[color:var(--bg-gradient)]"
                       "before:content-['']"]}
              (when (and show-queue (or (= breakpoint :lg) (not show-list?)))
                [:div.flex.flex-col.flex-1.p-4.sm:p-8.items-center.justify-center.relative

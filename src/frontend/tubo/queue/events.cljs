@@ -214,12 +214,8 @@
 
 (rf/reg-event-fx
  :queue/change-stream
- [persist (rf/inject-cofx ::inject/sub [:bg-player])
-  (rf/inject-cofx ::inject/sub [:queue-bg])
-  (rf/inject-cofx ::inject/sub [:queue-thumbnail])
-  (rf/inject-cofx ::inject/sub [:dark-theme])]
- (fn [{:keys [db bg-player queue-bg queue-thumbnail dark-theme]}
-      [_ stream idx play?]]
+ [persist]
+ (fn [{:keys [db]} [_ stream idx play?]]
    (when stream
      (let [updated-db (update-in
                        db
@@ -244,13 +240,6 @@
                       [:get-color-async
                        (get-in updated-db [:queue idx :thumbnail])
                        [:queue/load-thumbnail-color idx]]]
-                     [:dispatch
-                      [:animate @queue-bg
-                       {"--opacity" [(if dark-theme 0.8 0.3) 0.5]}
-                       {:duration 0.5 :ease "easeIn"}]]
-                     [:dispatch
-                      [:animate @queue-thumbnail {:scale [0.9 1]}
-                       {:type "spring" :ease "easeInOut"}]]
                      [:media-session-metadata
                       {:title   (:name stream)
                        :artist  (:uploader-name stream)
