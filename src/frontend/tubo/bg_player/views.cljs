@@ -9,33 +9,32 @@
    [tubo.utils :as utils]))
 
 (defonce slider-classes
-  ["h-2" "cursor-pointer" "appearance-none" "rounded-full"
-   "overflow-hidden"
-   "bg-neutral-300" "dark:bg-neutral-600" "focus:outline-none"
-   "[&::-webkit-slider-runnable-track]:h-2"
-   "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#A3A3A3_var(--buffered),#D4D4D4_var(--buffered))]"
+  ["h-[var(--height)]" "cursor-pointer" "appearance-none" "rounded-full"
+   "overflow-hidden" "bg-neutral-300" "dark:bg-neutral-600" "focus:outline-none"
+   "[&::-webkit-slider-runnable-track]:h-[var(--height)]"
+   "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#8c8c8c_var(--buffered),#D4D4D4_var(--buffered))]"
    "dark:[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
    "[&::-webkit-slider-thumb]:appearance-none"
    "[&::-webkit-slider-thumb]:border-0"
    "[&::-webkit-slider-thumb]:rounded"
-   "[&::-webkit-slider-thumb]:h-2"
+   "[&::-webkit-slider-thumb]:h-[var(--height)]"
    "[&::-webkit-slider-thumb]:w-2"
    "[&::-webkit-slider-thumb]:shadow-[-405px_0_0_400px]"
    "[&::-webkit-slider-thumb]:shadow-[var(--thumb-bg)]"
    "[&::-webkit-slider-thumb]:bg-[var(--thumb-bg)]"
-   "[&::-moz-range-track]:h-2"
-   "[&::-moz-range-track]:bg-[linear-gradient(to_right,#A3A3A3_var(--buffered),#D4D4D4_var(--buffered))]"
+   "[&::-moz-range-track]:h-[var(--height)]"
+   "[&::-moz-range-track]:bg-[linear-gradient(to_right,#8c8c8c_var(--buffered),#D4D4D4_var(--buffered))]"
    "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
    "[&::-moz-range-thumb]:border-0"
    "[&::-moz-range-thumb]:rounded"
-   "[&::-moz-range-thumb]:h-2"
+   "[&::-moz-range-thumb]:h-[var(--height)]"
    "[&::-moz-range-thumb]:w-2"
    "[&::-moz-range-thumb]:shadow-[-405px_0_0_400px]"
    "[&::-moz-range-thumb]:shadow-[var(--thumb-bg)]"
    "[&::-moz-range-thumb]:bg-[var(--thumb-bg)]"])
 
 (defn time-slider
-  [!player !elapsed-time service-color]
+  [!player !elapsed-time]
   (let [bg-player-ready? @(rf/subscribe [:bg-player/ready])
         !buffered        @(rf/subscribe [:bg-player/buffered])
         max-value        (if (and bg-player-ready?
@@ -45,7 +44,7 @@
                            100)]
     [:input.w-full
      {:style     {"--buffered" (str @!buffered "%")
-                  "--thumb-bg" service-color}
+                  "--height"   "0.5rem"}
       :class     slider-classes
       :type      "range"
       :on-click  #(.stopPropagation %)
@@ -56,26 +55,17 @@
       :value     @!elapsed-time}]))
 
 (defn volume-slider
-  []
-  (let [show-slider? (r/atom nil)]
-    (fn [player volume-level muted? service-color]
-      [:div.relative.flex.flex-col.justify-center.items-center
-       {:on-mouse-over #(reset! show-slider? true)
-        :on-mouse-out  #(reset! show-slider? false)}
-       [player/button
-        :icon
-        (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-        :on-click #(rf/dispatch [:bg-player/mute (not muted?) player])]
-       (when @show-slider?
-         [:input.absolute.w-24.ml-2.m-1.bottom-16
-          {:style    {"--thumb-bg" service-color}
-           :class    (concat ["rotate-[270deg]"] slider-classes)
-           :type     "range"
-           :on-click #(.stopPropagation %)
-           :on-input #(rf/dispatch [:player/change-volume (.. % -target -value)
-                                    player])
-           :max      100
-           :value    volume-level}])])))
+  [player]
+  (let [volume @(rf/subscribe [:player/volume])]
+    [:input.w-full
+     {:style    {"--height" "0.375rem"}
+      :class    slider-classes
+      :type     "range"
+      :on-click #(.stopPropagation %)
+      :on-input #(rf/dispatch [:player/change-volume (.. % -target -value)
+                               player])
+      :max      100
+      :value    volume}]))
 
 (defn metadata
   [{:keys [name uploader-name] :as stream}]
@@ -97,14 +87,13 @@
         queue-pos        @(rf/subscribe [:queue/position])
         loading?         @(rf/subscribe [:bg-player/loading])
         waiting?         @(rf/subscribe [:bg-player/waiting])
-        loop-playback    @(rf/subscribe [:player/loop])
-        shuffle?         @(rf/subscribe [:player/shuffled])
         paused?          @(rf/subscribe [:player/paused])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        !elapsed-time    @(rf/subscribe [:elapsed-time])]
-    [:div.flex.flex-col.items-center.ml-auto
-     [:div.flex.justify-end.gap-x-4.items-center
-      [player/loop-button loop-playback color]
+        !elapsed-time    @(rf/subscribe [:elapsed-time])
+        dark-theme       @(rf/subscribe [:dark-theme])]
+    [:div.flex.flex-col.items-center.ml-auto.gap-y-1
+     [:div.flex.justify-end.gap-x-6.items-center
+      [player/loop-button color false :extra-classes ["text-sm"]]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
        :on-click #(rf/dispatch [:queue/previous])
@@ -118,13 +107,12 @@
                 (not waiting?)
                 (or (nil? bg-player-ready?) @!player))
          (if paused?
-           [:i.fa-solid.fa-play]
-           [:i.fa-solid.fa-pause])
-         [layout/loading-icon color "text-lg lg:text-2xl"])
+           [:i.fa-solid.fa-play-circle]
+           [:i.fa-solid.fa-pause-circle])
+         [layout/loading-icon color "text-lg lg:text-4xl"])
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes
-       ["text-lg" "lg:text-2xl" "w-[2rem]"]]
+       :extra-classes ["text-3xl" "lg:text-4xl" "w-[3rem]" "lg:w-[2.5rem]"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
@@ -132,7 +120,7 @@
        :icon [:i.fa-solid.fa-forward-step]
        :on-click #(rf/dispatch [:queue/next])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
-      [player/shuffle-button shuffle? color]]
+      [player/shuffle-button color false :extra-classes ["text-sm"]]]
      [:div.hidden.lg:flex.items-center.gap-x-2
       {:class "text-[0.8rem]"}
       [:span.w-16.flex.justify-end
@@ -140,6 +128,9 @@
          (utils/format-duration @!elapsed-time)
          "--:--")]
       [:div.w-20.lg:w-64.mx-2.flex.items-center
+       {:style {"--thumb-bg" (if dark-theme
+                               "rgb(212,212,212)"
+                               "rgb(0,0,0)")}}
        [time-slider !player !elapsed-time color]]
       [:span.w-16.flex.justify-start
        (if (and bg-player-ready? @!player)
@@ -147,13 +138,12 @@
          "--:--")]]]))
 
 (defn popover
-  [{:keys [uploader-url uploader-name uploader-verified? uploader-avatars]
-    :as   stream} & {:keys [tooltip-classes]}]
-  (let [queue       @(rf/subscribe [:queue])
-        queue-pos   @(rf/subscribe [:queue/position])
-        bookmark    #(rf/dispatch [:modals/open
-                                   [modals/add-to-bookmark %]])
-        show-queue? @(rf/subscribe [:queue/show])]
+  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
+    :as   stream} & {:keys [tooltip-classes extra-classes]}]
+  (let [queue     @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue/position])
+        bookmark  #(rf/dispatch [:modals/open
+                                 [modals/add-to-bookmark %]])]
     [layout/popover
      [{:label             "Start radio"
        :icon              [:i.fa-solid.fa-tower-cell]
@@ -204,41 +194,31 @@
        :icon              [:i.fa-solid.fa-close]
        :on-click          #(rf/dispatch [:bg-player/dispose])}]
      :stop-propagation? true
-     :tooltip-classes
-     (or tooltip-classes ["right-5" (when-not show-queue? "bottom-5")])
+     :tooltip-classes (or tooltip-classes ["right-5" "bottom-5"])
      :extra-classes
-     (into (when-not show-queue? ["xs:p-3" "text-lg"])
-           ["px-5" "lg:text-base"])]))
-
-(defn menu-controls
-  [stream]
-  (let [show-list? @(rf/subscribe [:queue/show-list])
-        muted?     @(rf/subscribe [:player/muted])]
-    [:div.flex.gap-x-4.lg:hidden
-     [:div.flex.gap-x-8.pl-5
-      [player/button
-       :show-on-mobile? true
-       :icon
-       (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-       :on-click #(rf/dispatch [:bg-player/mute (not muted?)])
-       :extra-classes ["w-[1rem]"]]
-      [:button
-       {:on-click #(rf/dispatch [:queue/show-list (not show-list?)])}
-       (if show-list? [:i.fa-solid.fa-headphones] [:i.fa-solid.fa-list])]]
-     [popover stream]]))
+     (or extra-classes ["px-5"])]))
 
 (defn extra-controls
-  [!player stream color]
-  (let [muted? @(rf/subscribe [:player/muted])
-        volume @(rf/subscribe [:player/volume])]
+  [!player]
+  (let [muted?     @(rf/subscribe [:player/muted])
+        dark-theme @(rf/subscribe [:dark-theme])]
     [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
-     [volume-slider !player volume muted? color]
+     [:div.hidden.lg:flex.w-36.items-center.gap-x-4
+      {:style {"--thumb-bg"
+               (if dark-theme "rgb(212,212,212)" "rgb(0,0,0)")}}
+      [player/button
+       :icon
+       (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
+       :on-click #(rf/dispatch [:bg-player/mute (not muted?) !player])
+       :show-on-mobile? true
+       :extra-classes ["w-6"]]
+      [volume-slider !player]]
      [player/button
-      :icon [:i.fa-solid.fa-list]
+      :icon [:i.fa-solid.fa-up-right-and-down-left-from-center]
       :on-click #(rf/dispatch [:queue/show true])
       :show-on-mobile? true
-      :extra-classes ["text-lg" "lg:text-base" "!pl-6" "!pr-4"]]
-     [popover stream]]))
+      :extra-classes
+      ["text-lg" "lg:text-base" "!pl-6" "!pr-4" "hidden" "lg:block"]]]))
 
 (defn on-progress
   [!player !buffered]
@@ -307,10 +287,8 @@
           :exit       {:y 100}
           :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
                        "right-0" "bottom-0" "z-10" "p-3" "relative"
-                       "cursor-pointer" "bg-neutral-200" "dark:bg-neutral-900"
-                       "shadow-xl" "shadow-neutral-500"
-                       "dark:shadow-neutral-900"]
+                       "cursor-pointer" "bg-neutral-200" "dark:bg-neutral-900"]
           :on-click   #(rf/dispatch [:queue/show true])}
          [metadata stream]
          [main-controls !player color]
-         [extra-controls !player stream color]])]]))
+         [extra-controls !player]])]]))

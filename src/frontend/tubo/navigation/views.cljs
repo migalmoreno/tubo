@@ -50,11 +50,16 @@
   [title]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
         show-queue?       @(rf/subscribe [:queue/show])
+        show-list?        @(rf/subscribe [:queue/show-list])
         show-main-player? @(rf/subscribe [:main-player/show])
         show-sidebar?     @(rf/subscribe [:navigation/show-sidebar])
         sidebar-state     @(rf/subscribe
                             [:navigation/sidebar-match-media-state])
-        show-title?       @(rf/subscribe [:navigation/show-title])]
+        show-title?       @(rf/subscribe [:navigation/show-title])
+        show-logo?        (or show-main-player?
+                              (and (or (not show-title?)
+                                       (not (seq title)))
+                                   (not show-search-form?)))]
     [:div.flex.items-center.gap-x-4
      (when (and (not show-queue?)
                 (not show-main-player?))
@@ -79,11 +84,13 @@
      (cond (and show-main-player? (not show-search-form?))
            [:button.pl-8.w-12
             {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
-            [:i.fa-solid.fa-arrow-left]]
+            [:i.fa-solid.fa-angle-down]]
            (and show-queue? (not show-search-form?))
            [:button.pl-8.w-12
-            {:on-click #(rf/dispatch [:queue/show false])}
-            [:i.fa-solid.fa-arrow-left]])
+            {:on-click #(rf/dispatch (if show-list?
+                                       [:queue/show-list false]
+                                       [:queue/show false]))}
+            [:i.fa-solid.fa-angle-down]])
      [:div.font-bold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
       (when (and (seq title)
                  (not show-search-form?)
@@ -93,11 +100,7 @@
          {:class [(when-not show-title? "invisible")
                   (if show-title? "opacity-1" "opacity-0")]}
          title])
-      (let [show-logo? (or show-main-player?
-                           show-queue?
-                           (and (or (not show-title?)
-                                    (not (seq title)))
-                                (not show-search-form?)))]
+      (when-not (or show-search-form? show-queue?)
         [:div.absolute.md:static.left-2.transition-all.ease-in-out.duration-500.whitespace-nowrap
          {:class (if show-logo?
                    ["max-md:visible" "max-md:opacity-1"]
@@ -124,10 +127,11 @@
         show-main-player? @(rf/subscribe [:main-player/show])
         show-queue?       @(rf/subscribe [:queue/show])
         user              @(rf/subscribe [:auth/user])
+        stream            @(rf/subscribe [:queue/current])
         {:keys [theme]}   @(rf/subscribe [:settings])]
     [:div.flex.justify-end.flex-auto
      [:div.flex.items-center.justify-end
-      (when-not show-search-form?
+      (when-not (or show-search-form? show-queue?)
         [:button.px-4.md:hidden
          {:on-click #(rf/dispatch [:search/activate true])}
          [:i.fa-solid.fa-search]])
@@ -136,8 +140,9 @@
          (cond show-main-player? [:div.xs:hidden.pr-2
                                   [stream/metadata-popover
                                    @(rf/subscribe [:stream])]]
-               show-queue?       [bg-player/menu-controls
-                                  @(rf/subscribe [:queue/current])]
+               show-queue?       [:div.pr-2
+                                  [bg-player/popover stream :tooltip-classes
+                                   ["top-5" "right-0"]]]
                :else             [:div.xs:hidden.pr-2
                                   (case (get-in match [:data :name])
                                     :channel-page [channel/metadata-popover
@@ -161,76 +166,80 @@
                                               (:items bookmark))
                                        [bookmarks/playlist-edit-modal id]])
                                     [:<>])]))]
-      [:div.hidden.md:flex
-       [layout/popover
-        [(when theme
-           {:label     (str "Theme: "
-                            (str/capitalize theme))
-            :icon      (case theme
-                         "light" [:i.fa-solid.fa-sun]
-                         "dark"  [:i.fa-solid.fa-moon]
-                         "auto"  [:i.fa-solid.fa-laptop])
-            :subschema theme-tooltip-items})
-         {:label "Settings"
-          :icon  [:i.fa-solid.fa-cog]
-          :link  {:route (rfe/href :settings-page)}}]
-        :extra-classes ["p-0" "px-5" "z-30"]
-        :tooltip-classes ["right-5" "top-8" "w-44"]
-        :icon [:i.fa-solid.fa-cog]]]
-      [:div.hidden.md:flex
-       [layout/popover
-        (into (if-not user
-                [{:label "Register"
-                  :icon  [:i.fa-solid.fa-user-plus]
-                  :link  {:route (rfe/href :register-page)}}
-                 {:label "Log In"
-                  :icon  [:i.fa-solid.fa-right-to-bracket]
-                  :link  {:route (rfe/href :login-page)}}]
-                [])
-              (when user
-                [{:custom-content
-                  [:div.text-black.dark:text-white.whitespace-nowrap.text-sm
-                   "Logged in as "
-                   [:span.font-medium (:username user)]]
-                  :destroy-tooltip-on-click? false}
-                 {:label    "Log Out"
-                  :icon     [:i.fa-solid.fa-right-to-bracket
-                             {:class "rotate-180"}]
-                  :on-click #(rf/dispatch [:auth/logout])}]))
-        :extra-classes ["p-0" "px-5" "z-30"]
-        :tooltip-classes ["right-5" "top-8"]
-        :icon [:i.fa-solid.fa-circle-user]]]]]))
+      (when-not show-queue?
+        [:<>
+         [:div.hidden.md:flex
+          [layout/popover
+           [(when theme
+              {:label     (str "Theme: "
+                               (str/capitalize theme))
+               :icon      (case theme
+                            "light" [:i.fa-solid.fa-sun]
+                            "dark"  [:i.fa-solid.fa-moon]
+                            "auto"  [:i.fa-solid.fa-laptop])
+               :subschema theme-tooltip-items})
+            {:label "Settings"
+             :icon  [:i.fa-solid.fa-cog]
+             :link  {:route (rfe/href :settings-page)}}]
+           :extra-classes ["p-0" "px-5" "z-30"]
+           :tooltip-classes ["right-5" "top-8" "w-44"]
+           :icon [:i.fa-solid.fa-cog]]]
+         [:div.hidden.md:flex
+          [layout/popover
+           (into (if-not user
+                   [{:label "Register"
+                     :icon  [:i.fa-solid.fa-user-plus]
+                     :link  {:route (rfe/href :register-page)}}
+                    {:label "Log In"
+                     :icon  [:i.fa-solid.fa-right-to-bracket]
+                     :link  {:route (rfe/href :login-page)}}]
+                   [])
+                 (when user
+                   [{:custom-content
+                     [:div.text-black.dark:text-white.whitespace-nowrap.text-sm
+                      "Logged in as "
+                      [:span.font-medium (:username user)]]
+                     :destroy-tooltip-on-click? false}
+                    {:label    "Log Out"
+                     :icon     [:i.fa-solid.fa-right-to-bracket
+                                {:class "rotate-180"}]
+                     :on-click #(rf/dispatch [:auth/logout])}]))
+           :extra-classes ["p-0" "px-5" "z-30"]
+           :tooltip-classes ["right-5" "top-8"]
+           :icon [:i.fa-solid.fa-circle-user]]]])]]))
 
 (defn navbar
   [{{:keys [id]} :query-params {:keys [name]} :data :as match}]
-  [:> (.-nav motion)
-   {:animate    (if @(rf/subscribe [:queue/show])
-                  {:background "none"}
-                  {:background (if @(rf/subscribe [:dark-theme])
-                                 "rgba(10,10,10,0.9)"
-                                 "rgba(245,245,245,0.9)")})
-    :initial    false
-    :transition {:ease "easeInOut"}
-    :class      ["h-[56px]" "sticky" "flex" "items-center" "h-14" "top-0"
-                 "z-20" "backdrop-blur-md" "dark:bg-neutral-950/90"
-                 "bg-neutral-100/90"]}
-   [:div.flex.flex-auto.items-center
-    [nav-left-content
-     (case name
-       :channel-page       (:name @(rf/subscribe [:channel]))
-       :kiosk-page         (:name @(rf/subscribe [:kiosk]))
-       :homepage           (:name @(rf/subscribe [:kiosk]))
-       :stream-page        (:name @(rf/subscribe [:stream]))
-       :playlist-page      (:name @(rf/subscribe [:playlist]))
-       :bookmark-page      (:name @(rf/subscribe [:bookmarks/get-by-id id]))
-       :bookmarks-page     "Bookmarks"
-       :settings-page      "Settings"
-       :subscriptions-page "Subscriptions"
-       :feed-page          "Feed"
-       nil)]
-    [search/search-form]
-    [:div.w-24.hidden.md:block]
-    [nav-right-content match]]])
+  (let [show-queue? @(rf/subscribe [:queue/show])]
+    [:> (.-nav motion)
+     {:animate    (if show-queue?
+                    {:background "none"}
+                    {:background (if @(rf/subscribe [:dark-theme])
+                                   "rgba(10,10,10,0.9)"
+                                   "rgba(245,245,245,0.9)")})
+      :initial    false
+      :transition {:ease "easeInOut"}
+      :class      ["h-[56px]" "sticky" "flex" "items-center" "h-14" "top-0"
+                   "z-20" (when-not show-queue? "backdrop-blur-md")
+                   "dark:bg-neutral-950/90"
+                   "bg-neutral-100/90"]}
+     [:div.flex.flex-auto.items-center
+      [nav-left-content
+       (case name
+         :channel-page       (:name @(rf/subscribe [:channel]))
+         :kiosk-page         (:name @(rf/subscribe [:kiosk]))
+         :homepage           (:name @(rf/subscribe [:kiosk]))
+         :stream-page        (:name @(rf/subscribe [:stream]))
+         :playlist-page      (:name @(rf/subscribe [:playlist]))
+         :bookmark-page      (:name @(rf/subscribe [:bookmarks/get-by-id id]))
+         :bookmarks-page     "Bookmarks"
+         :settings-page      "Settings"
+         :subscriptions-page "Subscriptions"
+         :feed-page          "Feed"
+         nil)]
+      (when-not @(rf/subscribe [:queue/show]) [search/search-form])
+      [:div.w-24.hidden.md:block]
+      [nav-right-content match]]]))
 
 (defn sidebar-item
   [route icon label &

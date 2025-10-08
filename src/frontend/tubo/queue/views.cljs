@@ -77,7 +77,7 @@
 
 (defn queue-metadata
   [{:keys [name uploader-name]}]
-  [:div.flex.flex-col.py-2.justify-center.items-center.gap-y-4
+  [:div.flex.flex-col.gap-y-2
    [:h1.text-xl.line-clamp-1.w-fit.font-semibold {:title name} name]
    [:h1.text-sm.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-medium
     {:title uploader-name}
@@ -85,19 +85,21 @@
 
 (defn main-controls
   [color]
-  (let [loop-playback    @(rf/subscribe [:player/loop])
-        shuffle?         @(rf/subscribe [:player/shuffled])
-        !player          @(rf/subscribe [:bg-player])
+  (let [!player          @(rf/subscribe [:bg-player])
         loading?         @(rf/subscribe [:bg-player/loading])
         waiting?         @(rf/subscribe [:bg-player/waiting])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
         paused?          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         queue            @(rf/subscribe [:queue])
-        queue-pos        @(rf/subscribe [:queue/position])]
-    [:div.flex.flex-col.gap-y-4
+        queue-pos        @(rf/subscribe [:queue/position])
+        dark-theme?      @(rf/subscribe [:dark-theme])]
+    [:div.flex.flex-col.gap-y-2
      [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium
-      {:class "text-[0.8rem]"}
+      {:class "text-[0.8rem]"
+       :style {"--thumb-bg" (if dark-theme?
+                              "rgb(212,212,212)"
+                              "rgb(0,0,0)")}}
       [bg-player/time-slider !player !elapsed-time color]
       [:div.flex.w-full.justify-between
        [:span.whitespace-nowrap.w-16.flex.justify-start
@@ -108,11 +110,10 @@
         (if (and bg-player-ready? @!player)
           (utils/format-duration (.-duration @!player))
           "--:--")]]]
-     [:div.flex.justify-center.items-center.gap-x-6
-      [player/loop-button loop-playback color true]
+     [:div.flex.justify-between.items-center.gap-x-4
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
-       :on-click #(rf/dispatch [:queue/change-pos (dec queue-pos)])
+       :on-click #(rf/dispatch [:queue/previous])
        :disabled? (not (and queue (not= queue-pos 0)))
        :extra-classes [:text-xl]
        :show-on-mobile? true]
@@ -127,13 +128,13 @@
                 (not waiting?)
                 (or (nil? bg-player-ready?) @!player))
          (if paused?
-           [:i.fa-solid.fa-play]
-           [:i.fa-solid.fa-pause])
-         [layout/loading-icon color "text-[2.5rem]"])
+           [:i.fa-solid.fa-play-circle]
+           [:i.fa-solid.fa-pause-circle])
+         [layout/loading-icon color "text-[3.5rem]"])
        :on-click
        #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes ["text-[2.5rem]" "w-[2.5rem]" "flex" "justify-center"]]
+       :extra-classes ["text-[3.5rem]" "w-[3.5rem]" "flex" "justify-center"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
@@ -141,11 +142,10 @@
        :show-on-mobile? true]
       [player/button
        :icon [:i.fa-solid.fa-forward-step]
-       :on-click #(rf/dispatch [:queue/change-pos (inc queue-pos)])
+       :on-click #(rf/dispatch [:queue/next])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))
        :extra-classes [:text-xl]
-       :show-on-mobile? true]
-      [player/shuffle-button shuffle? color true]]]))
+       :show-on-mobile? true]]]))
 
 (defn virtualized-queue
   []
@@ -180,14 +180,16 @@
             !bg         @(rf/subscribe [:queue-bg])
             dark-theme? @(rf/subscribe [:dark-theme])
             breakpoint  @(rf/subscribe [:layout/breakpoint])
+            !player     @(rf/subscribe [:bg-player])
+            muted?      @(rf/subscribe [:player/muted])]
         [:> AnimatePresence
          (when show-queue
            [:> (.-div motion)
             {:initial {:opacity 0}
              :animate {:opacity 1}
              :exit    {:opacity 0}
-             :class   ["fixed" "flex" "flex-col" "items-center" "justify-center"
-                       "z-10" "right-0" "left-0" "top-0" "bottom-0"]}
+             :class   ["fixed" "flex" "flex-col" "items-center" "z-10"
+                       "justify-center" "right-0" "left-0" "top-0" "bottom-0"]}
             [:> (.-div motion)
              {:style {"--bg-color"    (or (:thumbnail-color stream)
                                           (str "rgba("
@@ -206,11 +208,16 @@
                       "before:bottom-0" "before:left-0" "before:right-0"
                       "before:bg-[color:var(--bg-gradient)]"
                       "before:content-['']"]}
+             [:span.lg:hidden
+              {:class ["before:flex" "before:justify-center" "before:text-xs"
+                       "before:text-neutral-800" "dark:before:text-neutral-200"
+                       "before:font-medium" "before:content-['NOW_PLAYING']"
+                       "before:absolute" "before:top-5" "before:left-0"
+                       "before:right-0"]}]
              (when (and show-queue (or (= breakpoint :lg) (not show-list?)))
-               [:div.flex.flex-col.flex-1.p-4.sm:p-8.items-center.justify-center.relative
-                [:div.flex.flex-col.gap-y-10.items-center.justify-center
-                 {:class ["w-full" "md:w-[28rem]" "lg:w-[24rem]"
-                          "xl:w-[28rem]"]}
+               [:div.flex.flex-col.flex-1.px-6.items-center.justify-center.relative
+                [:div.flex.flex-col.gap-y-2.xs:gap-y-6.items-center.justify-center
+                 {:class ["xs:w-[28rem]" "mt-[56px]" "lg:mt-0"]}
                  [:> (.-div motion)
                   {:class   ["flex" "w-full" "items-center" "justify-center"]
                    :animate {:scale 1}
@@ -218,43 +225,61 @@
                    :initial {:scale 0.9}}
                   [layout/thumbnail stream nil :hide-label? true
                    :container-classes
-                   ["h-[18rem]" "w-[18rem]" "xs:h-[24rem]" "xs:w-[24rem]"
-                    "md:h-[28rem]" "md:w-full" "lg:h-[24rem]" "xl:h-[28rem]"
-                    "shadow-xl" "shadow-neutral-500" "dark:shadow-neutral-900"
-                    "rounded-md"]
+                   ["aspect-square" "shadow-xl" "shadow-neutral-500"
+                    "dark:shadow-neutral-900" "rounded-md"]
                    :image-classes ["rounded-md"]]]
-                 [:div.flex.flex-col.py-4.shrink-0.w-full.gap-y-6
+                 [:div.flex.flex-col.py-4.shrink-0.w-full.gap-y-6.xs:gap-y-16
                   [queue-metadata stream]
-                  [main-controls color]]]])
+                  [main-controls color]
+                  [:div.flex.justify-between.min-w-full.gap-x-8
+                   [player/button
+                    :icon
+                    (if muted?
+                      [:i.fa-solid.fa-volume-xmark]
+                      [:i.fa-solid.fa-volume-low])
+                    :on-click
+                    #(rf/dispatch [:bg-player/mute (not muted?) !player])
+                    :show-on-mobile? true
+                    :extra-classes ["text-md" "w-4"]]
+                   [player/shuffle-button color true :extra-classes ["text-md"]]
+                   [player/loop-button color true :extra-classes ["text-md"]]
+                   [player/button
+                    :show-on-mobile? true
+                    :on-click #(rf/dispatch [:queue/show-list true])
+                    :icon [:i.fa-solid.fa-list]
+                    :extra-classes ["text-md" "w-4"]]]]]])
              (when (and show-queue (or (= breakpoint :lg) show-list?))
                [:> (.-div motion)
                 {:animate    {:y 0}
                  :initial    {:y 50}
                  :transition {:duration 0.3}
-                 :class      ["flex" "flex-col" "flex-1" "relative" "lg:p-8"
-                              "mt-[56px]"]}
-                [layout/tabs
-                 [{:id    :queue
-                   :label "UP NEXT"}
-                  {:id    :related
-                   :label "RELATED"}]
-                 :selected-id @!active-tab
-                 :on-change #(reset! !active-tab %)]
-                [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
-                 {:class "@container"}
-                 (case @!active-tab
-                   :queue   [virtualized-queue]
-                   :related [:div.flex.flex-col.gap-y-2.p-4
-                             (for [[i item]
-                                   (map-indexed vector (:related-items stream))]
-                               ^{:key i}
-                               [items/list-item-content item
-                                :container-classes
-                                ["flex" "flex-col" "flex-auto" "gap-y-1"]
-                                :author-classes ["line-clamp-1" "text-xs"]
-                                :title-classes
-                                ["font-semibold" "line-clamp-2" "text-xs"]
-                                :metadata-classes ["text-xs" "gap-y-2"]
-                                :thumbnail-container-classes
-                                ["h-[5.5rem]" "min-w-[150px]"
-                                 "max-w-[150px]"]])])]])]])]))))
+                 :class      ["flex" "flex-1" "relative" "items-center"
+                              "lg:px-8" "mt-[56px]" "lg:mt-0"]}
+                [:div.flex.flex-auto.flex-col.h-full
+                 {:class ["lg:max-h-[800px]"]}
+                 [layout/tabs
+                  [{:id    :queue
+                    :label "UP NEXT"}
+                   {:id    :related
+                    :label "RELATED"}]
+                  :selected-id @!active-tab
+                  :on-change #(reset! !active-tab %)]
+                 [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
+                  {:class "@container"}
+                  (case @!active-tab
+                    :queue   [virtualized-queue]
+                    :related [:div.flex.flex-col.gap-y-2.p-4
+                              (for [[i item]
+                                    (map-indexed vector
+                                                 (:related-items stream))]
+                                ^{:key i}
+                                [items/list-item-content item
+                                 :container-classes
+                                 ["flex" "flex-col" "flex-auto" "gap-y-1"]
+                                 :author-classes ["line-clamp-1" "text-xs"]
+                                 :title-classes
+                                 ["font-semibold" "line-clamp-2" "text-xs"]
+                                 :metadata-classes ["text-xs" "gap-y-2"]
+                                 :thumbnail-container-classes
+                                 ["h-[5.5rem]" "min-w-[150px]"
+                                  "max-w-[150px]"]])])]]])]])]))))

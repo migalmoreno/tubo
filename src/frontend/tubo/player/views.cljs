@@ -31,7 +31,7 @@
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
   [:> motion.button
-   {:whileTap {:scale [0.7 1]}
+   {:whileTap {:scale [0.9 1]}
     :initial  {:scale 1}
     :class    (concat
                ["outline-none" "focus:ring-transparent"]
@@ -46,29 +46,31 @@
    icon])
 
 (defn loop-button
-  [loop-playback color show-on-mobile?]
-  [button
-   :icon
-   [:div.relative.flex.items-center
-    [:i.fa-solid.fa-repeat
-     {:style {:color (when loop-playback color)}}]
-    (when (= loop-playback :stream)
-      [:div.absolute.w-full.h-full.flex.justify-center.items-center.font-bold
-       {:class "text-[6px]"
-        :style {:color (when loop-playback color)}}
-       "1"])]
-   :on-click #(rf/dispatch [:player/loop])
-   :extra-classes [:text-sm]
-   :show-on-mobile? show-on-mobile?])
+  [color show-on-mobile? & {:keys [extra-classes]}]
+  (let [loop-playback @(rf/subscribe [:player/loop])]
+    [button
+     :icon
+     [:div.relative.flex.items-center
+      [:i.fa-solid.fa-repeat
+       {:style {:color (when loop-playback color)}}]
+      (when (= loop-playback :stream)
+        [:div.absolute.w-full.h-full.flex.justify-center.items-center.font-bold
+         {:class "text-[6px]"
+          :style {:color (when loop-playback color)}}
+         "1"])]
+     :on-click #(rf/dispatch [:player/loop])
+     :extra-classes extra-classes
+     :show-on-mobile? show-on-mobile?]))
 
 (defn shuffle-button
-  [shuffle? color show-on-mobile?]
-  [button
-   :icon
-   [:i.fa-solid.fa-shuffle {:style {:color (when shuffle? color)}}]
-   :on-click #(rf/dispatch [:queue/shuffle (not shuffle?)])
-   :extra-classes [:text-sm]
-   :show-on-mobile? show-on-mobile?])
+  [color show-on-mobile? & {:keys [extra-classes]}]
+  (let [shuffle? @(rf/subscribe [:player/shuffled])]
+    [button
+     :icon
+     [:i.fa-solid.fa-shuffle {:style {:color (when shuffle? color)}}]
+     :on-click #(rf/dispatch [:queue/shuffle (not shuffle?)])
+     :extra-classes extra-classes
+     :show-on-mobile? show-on-mobile?]))
 
 (defn time-range
   [overlay-active?]
@@ -156,8 +158,10 @@
          "[--media-button-icon-color:var(--media-primary-color,#fff)]"]]
     [:<>
      [:div.flex.self-stretch.items-center.justify-center.h-full.w-full.flex-row.flex-wrap.gap-4.z-10
-      {:slot  "centered-chrome"
-       :class ["group-[&[breakpointmd]]:hidden" "bg-black/40"]}
+      {:slot "centered-chrome"
+       :class
+       ["group-[&[breakpointmd]:not([mediaisfullscreen])]:hidden"
+        "group-[&[mediaisfullscreen][breakpointxl]]:hidden" "bg-black/40"]}
       (when overlay-active?
         [:div.absolute.h-full.w-full.flex.z-10.left-0])
       [seek-mobile-button !player :type :backward]
@@ -227,13 +231,13 @@
      "[text-shadow:_0_0_2px_rgba(0,0,0,0.5)]"
      "[--media-settings-menu-min-width:220px]"
      "[--media-secondary-color:rgba(28,28,28,.9)]"
-     "group-[&[mediaisfullscreen]]:[--media-settings-menu-min-width:320px]"]}
+     "group-[&[mediaisfullscreen][breakpointxl]]:[--media-settings-menu-min-width:320px]"]}
    (let
      [classes
       ["text-[13px]" "font-medium" "pt-0" "pb-0" "h-10"
        "[&[submenusize='0']]:hidden"
-       "group-[&[mediaisfullscreen][breakpointlg]]:text-[20px]"
-       "group-[&[mediaisfullscreen][breakpointlg]]:h-[50px]"]
+       "group-[&[mediaisfullscreen][breakpointxl]]:text-[16px]"
+       "group-[&[mediaisfullscreen][breakpointxl]]:h-[50px]"]
       args {:slot "submenu" :hidden true}]
      [:<>
       [:> MediaSettingsMenuItem

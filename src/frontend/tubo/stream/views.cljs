@@ -197,9 +197,11 @@
            (str (inc pos) "/" (count queue))]]
          [:div.flex.items-center
           [:div.px-4
-           [player/loop-button loop-playback color true]]
+           [player/loop-button loop-playback color true :extra-classes
+            ["text-sm"]]]
           [:div.pl-4.pr-5
-           [player/shuffle-button shuffled color true]]
+           [player/shuffle-button shuffled color true :extra-classes
+            ["text-sm"]]]
           [bg-player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
         [:div.flex.flex-col.gap-y-1.w-full.h-64.max-h-64.overflow-y-auto.relative.scroll-smooth.scrollbar-none
          {:class "@container"}
