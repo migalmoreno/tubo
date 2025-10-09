@@ -76,6 +76,8 @@
 
 (def Loop [:enum :playlist :stream false])
 
+(def SourceType [:enum "dash" "hls" "progressive-http"])
+
 (def Settings
   [:map {:closed true}
    [:theme {:default "auto"} Theme]
@@ -83,6 +85,7 @@
    [:show-related {:default true} boolean?]
    [:show-description {:default true} boolean?]
    [:items-layout {:default "list"} ItemLayout]
+   [:video-source-type {:default "dash"} SourceType]
    [:default-resolution {:default "720p"} string?]
    [:default-video-format {:default "MPEG-4"} string?]
    [:default-audio-format {:default "m4a"} string?]

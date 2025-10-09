@@ -165,7 +165,7 @@
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution
-           seamless-playback]}]
+           seamless-playback video-source-type]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
@@ -173,7 +173,9 @@
     default-video-format #{"MPEG-4" "WebM" "3GP"}]
    [select-input "Default audio format" [:default-audio-format]
     default-audio-format #{"m4a" "WebM"}]
-   [boolean-input "Seamless playback" [:seamless-playback] seamless-playback]])
+   [boolean-input "Seamless playback" [:seamless-playback] seamless-playback]
+   [select-input "Video source type" [:video-source-type] video-source-type
+    #{"dash" "hls" "progressive-http"}]])
 
 (defn settings
   []

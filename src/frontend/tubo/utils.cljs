@@ -1,7 +1,8 @@
 (ns tubo.utils
   (:require
    ["timeago.js" :as timeago]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.data.xml :as xml]))
 
 (goog-define ^js/String version "unknown")
 
@@ -104,3 +105,77 @@
   (str/join " "
             (map #(if (not= % "and") (str/capitalize %) %)
                  (str/split str #"[\s_]+"))))
+
+(defn ->Representation
+  [format {:keys [mime-type]}]
+  {:tag     :Representation
+   :attrs   (merge {:id        (:itag format)
+                    :codecs    (:codec format)
+                    :bandwidth (:bitrate format)}
+                   (when (str/includes? mime-type "video")
+                     {:width          (:width format)
+                      :height         (:height format)
+                      :maxPlayoutRate "1"
+                      :frameRate      (:fps format)}))
+   :content (concat
+             [{:tag :SegmentBase
+               :attrs {:indexRange (str (:index-start format)
+                                        "-"
+                                        (:index-end format))}
+               :content
+               [{:tag   :Initialization
+                 :attrs {:range (str (:init-start format)
+                                     "-"
+                                     (:init-end format))}}]}
+              {:tag     :BaseURL
+               :content [(str (:content format))]}]
+             (when-not (str/includes? mime-type "video")
+               [{:tag :AudioChannelConfiguration
+                 :attrs
+                 {:schemeIdUri
+                  "urn:mpeg:dash:23003:3:audio_channel_configuration:2011"
+                  :value "2"}}]))})
+
+(defn ->AdaptationSet
+  [{:keys [audio-track-id mime-type video-formats] :as item}]
+  {:tag :AdaptationSet
+   :attrs
+   {:id                  audio-track-id
+    :lang                (some-> audio-track-id
+                                 (subs 0 2))
+    :mimeType            mime-type
+    :startsWithSAP       "1"
+    :subsegmentAlignment "true"}
+   :content (map #(->Representation % item) video-formats)})
+
+(defn ->Period
+  [{:keys [audio-streams video-streams video-only-streams]}]
+  {:tag :Period
+   :content
+   (->> (concat audio-streams video-streams video-only-streams)
+        (remove #(or (and (str/includes? (:mime-type %) "video")
+                          (not (:video-only %)))
+                     (str/includes? (:mime-type %) "application")))
+        (reduce
+         (fn [acc stream]
+           (if (some #(and (= (:audio-track-id %) (:audio-track-id stream))
+                           (= (:mime-type %) (:mime-type stream)))
+                     acc)
+             (map #(if (= (:audio-track-id %) (:audio-track-id stream))
+                     (update % :video-formats conj stream)
+                     %)
+                  acc)
+             (conj acc (assoc stream :video-formats [stream]))))
+         [])
+        (map ->AdaptationSet))})
+
+(defn ->mpd-file
+  [{:keys [duration] :as stream}]
+  (xml/emit-str
+   {:tag     (xml/qname "urn:mpeg:dash:schema:mpd:2011" "MPD")
+    :attrs   {:xmlns/xsi "http://www.w3.org/2001/XMLSchema-instance"
+              :type "static"
+              :mediaPresentationDuration (str "PT" duration "S")
+              :minBufferTime "PT1.5S"
+              :profiles "urn:mpeg:dash:profile:full:2011"}
+    :content [(->Period stream)]}))

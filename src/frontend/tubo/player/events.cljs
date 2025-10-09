@@ -1,11 +1,11 @@
 (ns tubo.player.events
   (:require
+   [clojure.string :as str]
    [goog.object :as gobj]
    [promesa.core :as p]
    [re-frame.core :as rf]
-   [tubo.player.utils :as utils]
-   [tubo.storage :refer [persist]]
-   [clojure.string :as str]))
+   [tubo.player.utils :as putils]
+   [tubo.storage :refer [persist]]))
 
 (rf/reg-fx
  :player/volume
@@ -33,20 +33,18 @@
  (fn [_ [_ opts]]
    {:player/src opts}))
 
-(rf/reg-event-fx
- :shaka/play-error
- (fn [error]
-   {:fx [[:dispatch
-          [:notifications/error
-           (or (.-detail error) "Player error")]]]}))
-
 (rf/reg-fx
  :player/configure
  (fn [player]
    (.configure (.-api @player)
-               (clj->js {"preferredVideoCodecs" ["av01" "vp9" "avc1"]
-                         "preferredAudioCodecs" ["opus" "m4a"]
-                         "manifest"             {"disableVideo" false}}))))
+               (clj->js
+                {"preferredVideoCodecs" ["av01" "vp9" "avc1"]
+                 "preferredAudioCodecs" ["opus" "mp4a"]
+                 "manifest"             {"disableVideo" false}
+                 "streaming"            {"retryParameters"
+                                         {"maxAttempts"   js/Infinity
+                                          "baseDelay"     250
+                                          "backoffFactor" 1.5}}}))))
 
 (rf/reg-fx
  :player/request-filter
@@ -58,33 +56,47 @@
         (let [original-url (some->> (.-uris request)
                                     first
                                     (new js/URL))
-              proxied-url  (when (str/ends-with? (.-host original-url)
-                                                 ".googlevideo.com")
-                             (new js/URL
-                                  (str url
-                                       "/proxy/"
-                                       (js/encodeURIComponent
-                                        (.toString original-url)))))]
+              proxied-url  (when (or (str/ends-with? (.-host original-url)
+                                                     ".googlevideo.com")
+                                     (str/ends-with? (.-host original-url)
+                                                     ".bcbits.com"))
+                             (new js/URL original-url))]
+          (set! (.-retryParameters request)
+                (clj->js {"maxAttempts"   js/Infinity
+                          "baseDelay"     250
+                          "backoffFactor" 1.5}))
           (when proxied-url
-            (aset (.-uris request) 0 (.toString proxied-url)))))))))
+            (when (seq (.-Range (.-headers request)))
+              (.. proxied-url
+                  -searchParams
+                  (set "range"
+                       (get (str/split (.-Range (.-headers request)) #"=") 1)))
+              (set! (.-headers request) #js {}))
+            (aset (.-uris request)
+                  0
+                  (str url
+                       "/proxy/"
+                       (js/encodeURIComponent
+                        (.toString proxied-url)))))))))))
 
-
-(rf/reg-event-fx
- :player/initialize
- (fn [{:keys [db]} [_ stream player pos]]
-   {:fx                    [[:dispatch [:player/set-stream stream player pos]]]
-    :player/configure      player
-    :player/request-filter [player (get-in db [:settings :instance])]}))
 
 (rf/reg-event-fx
  :player/set-stream
  (fn [{:keys [db]} [_ stream player pos]]
-   (when-let [video-stream (utils/get-video-stream stream (:settings db))]
-     {:fx [[:dispatch
-            [:player/set-src
-             {:player      player
-              :src         video-stream
-              :current-pos pos}]]]})))
+   (when stream
+     (let [video-stream (putils/get-video-stream stream (:settings db))]
+       {:fx [[:dispatch
+              [:player/set-src
+               {:player      player
+                :src         video-stream
+                :current-pos pos}]]]}))))
+
+(rf/reg-event-fx
+ :player/initialize
+ (fn [{:keys [db]} [_ stream player pos]]
+   {:fx [[:player/configure player]
+         [:player/request-filter [player (get-in db [:settings :instance])]]
+         [:dispatch [:player/set-stream stream player pos]]]}))
 
 (rf/reg-event-fx
  :player/start
@@ -94,6 +106,20 @@
            :artist  (:uploader-name stream)
            :artwork [{:src (:thumbnail stream)}]}]
          [:set-media-session-handlers player]]}))
+
+(rf/reg-fx
+ :player/load
+ (fn [[player url]]
+   (.load (.-api @player) url)))
+
+(rf/reg-event-fx
+ :shaka/play-error
+ (fn [{:keys [db]} [_ error player stream]]
+   {:fx [[:dispatch
+          [:notifications/error
+           (or (seq (.-detail error)) "Playback failed. Retrying...")]]
+         [:player/load
+          [player (putils/get-video-stream stream (:settings db))]]]}))
 
 (rf/reg-fx
  :player/loop
