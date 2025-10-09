@@ -181,12 +181,10 @@
 
 (defn stream-queue
   []
-  (let [stream        @(rf/subscribe [:queue/current])
-        pos           @(rf/subscribe [:queue/position])
-        queue         @(rf/subscribe [:queue])
-        loop-playback @(rf/subscribe [:player/loop])
-        color         (utils/get-service-color (:service-id stream))
-        shuffled      @(rf/subscribe [:player/shuffled])]
+  (let [stream @(rf/subscribe [:queue/current])
+        pos    @(rf/subscribe [:queue/position])
+        queue  @(rf/subscribe [:queue])
+        color  (utils/get-service-color (:service-id stream))]
     (when @(rf/subscribe [:main-player/show])
       [:div.flex-col.w-full.rounded-lg
        [:div.bg-neutral-200.dark:bg-neutral-900.rounded-lg.border-neutral-700
@@ -197,11 +195,9 @@
            (str (inc pos) "/" (count queue))]]
          [:div.flex.items-center
           [:div.px-4
-           [player/loop-button loop-playback color true :extra-classes
-            ["text-sm"]]]
+           [player/loop-button color true :extra-classes ["text-sm"]]]
           [:div.pl-4.pr-5
-           [player/shuffle-button shuffled color true :extra-classes
-            ["text-sm"]]]
+           [player/shuffle-button color true :extra-classes ["text-sm"]]]
           [bg-player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
         [:div.flex.flex-col.gap-y-1.w-full.h-64.max-h-64.overflow-y-auto.relative.scroll-smooth.scrollbar-none
          {:class "@container"}
