@@ -109,7 +109,7 @@
          (if paused?
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
-         [layout/loading-icon color "text-lg lg:text-4xl"])
+         [layout/loading-icon color "text-3xl lg:text-4xl"])
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes ["text-3xl" "lg:text-4xl" "w-[3rem]" "lg:w-[2.5rem]"]]
