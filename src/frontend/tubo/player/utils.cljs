@@ -46,6 +46,10 @@
                (remove #(= (:delivery-method %) "HLS"))
                (some #(when (fmt= % (:default-audio-format settings)) %))
                :content)
+      (some->> audio-streams
+               (remove #(= (:delivery-method %) "HLS"))
+               first
+               :content)
       (some->> video-streams
                (some #(when (fmt= % (:default-video-format settings)) %))
                (some #(when (= (:resolution %) (:default-resolution settings))
