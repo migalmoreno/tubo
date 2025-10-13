@@ -85,7 +85,8 @@
     (= info-type "CHANNEL")  (-> (update :subscriber-count
                                          #(when (pos-int? %) %))
                                  (update :stream-count #(when (pos-int? %) %)))
-    (= info-type "PLAYLIST") (update :stream-count #(when (pos-int? %) %))
+    (= info-type "PLAYLIST") (-> (update :stream-count #(when (pos-int? %) %))
+                                 (dissoc :description))
     :else                    (-> (update :thumbnails #(proxy-images % req))
                                  (update :uploader-avatars
                                          #(proxy-images % req)))))
