@@ -14,6 +14,6 @@
                (PlaylistInfo/getMoreItems (NewPipe/getServiceByUrl url*)
                                           url*
                                           (utils/create-page nextPage))
-               (PlaylistInfo/getInfo (url-decode url)))]
+               (PlaylistInfo/getInfo url*))]
     (when info
       (ok (utils/->ListInfo info req)))))
