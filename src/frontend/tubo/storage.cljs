@@ -16,7 +16,13 @@
   (rf/->interceptor
    :id    :persist
    :after (fn [context]
-            (update-in context [:effects :fx] #(conj (or % []) [:persist])))))
+            (update-in context
+                       [:effects :fx]
+                       #(conj (or % [])
+                              [:debounce
+                               {:id    :storage
+                                :event [:persist]
+                                :time  500}])))))
 
 (def schema-validator
   (rf/->interceptor
@@ -27,7 +33,7 @@
                        #(conj (or % []) [:validate (:coeffects context)])))))
 
 (rf/reg-fx
- :persist
+ :persist!
  (fn []
    (let [persisted-db (select-keys @db/app-db s/persisted-local-db-keys)]
      (when-let [json (try (transit/write (transit/writer :json) persisted-db)
@@ -35,6 +41,11 @@
                             #(rf/dispatch [:notifications/error e])))]
        (-> (localforage/setItem "tubo" json)
            (p/catch #(rf/dispatch [:notifications/error %])))))))
+
+(rf/reg-event-fx
+ :persist
+ (fn []
+   {:persist! nil}))
 
 (rf/reg-fx
  :validate
