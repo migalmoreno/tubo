@@ -6,14 +6,17 @@
    [tubo.config :as config]
    [tubo.middleware :refer [reloading-ring-handler]]))
 
+(defmethod ig/init-key :tubo/profile
+  [_ profile]
+  profile)
+
 (defmethod ig/init-key ::service
-  [_ {:keys [handler]}]
-  (let [prod? (System/getProperty "prod")
-        port  (config/get-in [:backend :port])]
+  [_ {:keys [handler profile]}]
+  (let [port (config/get-in [:backend :port])]
     (log/info "Starting HTTP server on port" port)
-    (run-server (if prod?
-                  (handler)
-                  (reloading-ring-handler handler))
+    (run-server (if (= profile "dev")
+                  (reloading-ring-handler handler)
+                  (handler))
                 {:port port})))
 
 (defmethod ig/halt-key! ::service

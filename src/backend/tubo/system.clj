@@ -1,5 +1,6 @@
 (ns tubo.system
   (:require
+   [aero.core :as aero]
    [integrant.core :as ig]
    [clojure.java.io :refer [resource]]
    tubo.db
@@ -7,4 +8,10 @@
    tubo.router
    tubo.http))
 
-(def config (ig/read-string (slurp (resource "system.edn"))))
+(defmethod aero/reader 'ig/ref
+  [_ _ value]
+  (ig/ref value))
+
+(defn config
+  [profile]
+  (aero/read-config (resource "system.edn") {:profile profile}))

@@ -1,4 +1,6 @@
-{:tubo.db/pg                {}
+{:tubo/profile              #profile {:dev "dev" :prod "prod"}
+ :tubo.db/pg                {}
  :tubo.downloader/extractor {}
  :tubo.router/handler       {:datasource #ig/ref :tubo.db/pg}
- :tubo.http/service         {:handler #ig/ref :tubo.router/handler}}
+ :tubo.http/service         {:handler #ig/ref :tubo.router/handler
+                             :profile #profile {:dev "dev" :prod "prod"}}}
