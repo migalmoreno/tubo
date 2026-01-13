@@ -58,7 +58,7 @@
                 fi
               '';
               cli.environment.PC_DISABLE_TUI = true;
-              cli.options.no-server = false;
+              cli.options.no-server = true;
               settings.processes = {
                 pgweb = {
                   environment.PGWEB_DATABASE_URL = config.services.postgres.tubo-db.connectionURI { inherit dbName; };
