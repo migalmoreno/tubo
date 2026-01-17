@@ -8,33 +8,67 @@
    [tubo.player.views :as player]
    [tubo.utils :as utils]))
 
-(defonce slider-classes
-  ["h-[var(--height)]" "cursor-pointer" "appearance-none" "rounded-full"
-   "overflow-hidden" "bg-neutral-300" "dark:bg-neutral-600" "focus:outline-none"
+(def slider-classes
+  ["h-[var(--height)]"
+   "bg-[linear-gradient(to_right,var(--progress-color)_var(--value),var(--light-track-color)_var(--value))]"
+   "dark:bg-[linear-gradient(to_right,var(--progress-color)_var(--value),var(--dark-track-color)_var(--value))]"
    "[&::-webkit-slider-runnable-track]:h-[var(--height)]"
-   "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#8c8c8c_var(--buffered),#D4D4D4_var(--buffered))]"
-   "dark:[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
+   "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--light-buffered-color)_var(--value),var(--light-buffered-color)_var(--buffered),var(--light-track-color)_var(--buffered))]"
+   "dark:[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--dark-track-color)_var(--value),var(--dark-track-color)_var(--buffered),var(--dark-buffered-color)_var(--buffered))]"
    "[&::-webkit-slider-thumb]:appearance-none"
    "[&::-webkit-slider-thumb]:border-0"
-   "[&::-webkit-slider-thumb]:rounded"
-   "[&::-webkit-slider-thumb]:h-[var(--height)]"
-   "[&::-webkit-slider-thumb]:w-2"
-   "[&::-webkit-slider-thumb]:shadow-[-405px_0_0_400px]"
-   "[&::-webkit-slider-thumb]:shadow-[var(--thumb-bg)]"
-   "[&::-webkit-slider-thumb]:bg-[var(--thumb-bg)]"
+   "[&::-webkit-slider-thumb]:rounded-full"
+   "[&::-webkit-slider-thumb]:h-[var(--thumb-size)]"
+   "[&::-webkit-slider-thumb]:w-[var(--thumb-size)]"
+   "[&::-webkit-slider-thumb]:bg-[var(--thumb-color)]"
    "[&::-moz-range-track]:h-[var(--height)]"
-   "[&::-moz-range-track]:bg-[linear-gradient(to_right,#8c8c8c_var(--buffered),#D4D4D4_var(--buffered))]"
-   "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,#737373_var(--buffered),#525252_var(--buffered))]"
+   "[&::-moz-range-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--light-buffered-color)_var(--value),var(--light-buffered-color)_var(--buffered),var(--light-track-color)_var(--buffered))]"
+   "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--dark-buffered-color)_var(--value),var(--dark-buffered-color)_var(--buffered),var(--dark-track-color)_var(--buffered))]"
+   "[&::-moz-range-thumb]:appearance-none"
    "[&::-moz-range-thumb]:border-0"
-   "[&::-moz-range-thumb]:rounded"
-   "[&::-moz-range-thumb]:h-[var(--height)]"
-   "[&::-moz-range-thumb]:w-2"
-   "[&::-moz-range-thumb]:shadow-[-405px_0_0_400px]"
-   "[&::-moz-range-thumb]:shadow-[var(--thumb-bg)]"
-   "[&::-moz-range-thumb]:bg-[var(--thumb-bg)]"])
+   "[&::-moz-range-thumb]:rounded-full"
+   "[&::-moz-range-thumb]:h-[--thumb-size]"
+   "[&::-moz-range-thumb]:w-[--thumb-size]"
+   "[&::-moz-range-thumb]:bg-[var(--thumb-color)]"])
+
+(defn slider
+  [&
+   {:keys [progress-color light-track-color light-buffered-color
+           dark-track-color dark-buffered-color height thumb-size thumb-color
+           extra-classes rounded? on-input on-change max extra-styles value]
+    :or   {progress-color       "white"
+           light-track-color    "#d4d4d4"
+           light-buffered-color "#a3a3a3"
+           dark-track-color     "#525252"
+           dark-buffered-color  "#737373"
+           height               "0.5rem"
+           thumb-size           "1rem"
+           thumb-color          "white"}}]
+  [:input.w-full.cursor-pointer.appearance-none.focus:outline-none
+   {:style     (merge {"--height"               height
+                       "--progress-color"       progress-color
+                       "--thumb-size"           thumb-size
+                       "--light-buffered-color" light-buffered-color
+                       "--light-track-color"    light-track-color
+                       "--dark-buffered-color"  dark-buffered-color
+                       "--dark-track-color"     dark-track-color
+                       "--thumb-color"          thumb-color
+                       "--value"                (str (* (/ value max) 100) "%")}
+                      extra-styles)
+    :class     (concat slider-classes
+                       extra-classes
+                       (when rounded?
+                         ["rounded-full" "[&::-moz-range-track]:rounded-full"
+                          "[&::-webkit-slider-runnable-track]:rounded-full"]))
+    :type      "range"
+    :on-click  #(.stopPropagation %)
+    :on-input  on-input
+    :on-change (or on-change (constantly nil))
+    :max       max
+    :value     value}])
 
 (defn time-slider
-  [!player !elapsed-time]
+  [!player !elapsed-time & extra-args]
   (let [bg-player-ready? @(rf/subscribe [:bg-player/ready])
         !buffered        @(rf/subscribe [:bg-player/buffered])
         max-value        (if (and bg-player-ready?
@@ -42,30 +76,32 @@
                                   (not (js/isNaN (.-duration @!player))))
                            (.floor js/Math (.-duration @!player))
                            100)]
-    [:input.w-full
-     {:style     {"--buffered" (str @!buffered "%")
-                  "--height"   "0.5rem"}
-      :class     slider-classes
-      :type      "range"
-      :on-click  #(.stopPropagation %)
-      :on-input  #(reset! !elapsed-time (.. % -target -value))
-      :on-change #(when (and bg-player-ready? @!player)
-                    (set! (.-currentTime @!player) @!elapsed-time))
-      :max       max-value
-      :value     @!elapsed-time}]))
+    (apply slider
+           :extra-styles
+           {"--buffered" (str @!buffered "%")}
+           :on-input
+           #(reset! !elapsed-time (.. % -target -value))
+           :on-change
+           #(when (and bg-player-ready? @!player)
+              (set! (.-currentTime @!player) @!elapsed-time))
+           :max
+           max-value
+           :value
+           @!elapsed-time
+           extra-args)))
 
 (defn volume-slider
-  [player]
+  [player & extra-args]
   (let [volume @(rf/subscribe [:player/volume])]
-    [:input.w-full
-     {:style    {"--height" "0.375rem"}
-      :class    slider-classes
-      :type     "range"
-      :on-click #(.stopPropagation %)
-      :on-input #(rf/dispatch [:player/change-volume (.. % -target -value)
-                               player])
-      :max      100
-      :value    volume}]))
+    (apply
+     slider
+     :max
+     100
+     :value
+     volume
+     :on-input
+     #(rf/dispatch [:player/change-volume (.. % -target -value) player])
+     extra-args)))
 
 (defn metadata
   [{:keys [name uploader-name] :as stream}]
@@ -131,7 +167,8 @@
        {:style {"--thumb-bg" (if dark-theme
                                "rgb(212,212,212)"
                                "rgb(0,0,0)")}}
-       [time-slider !player !elapsed-time color]]
+       [time-slider !player !elapsed-time :progress-color color :rounded? true
+        :thumb-size "0.5rem" :thumb-color color]]
       [:span.w-16.flex.justify-start
        (if (and bg-player-ready? @!player)
          (utils/format-duration (.-duration @!player))
@@ -199,7 +236,7 @@
      (or extra-classes ["px-5"])]))
 
 (defn extra-controls
-  [!player]
+  [!player color]
   (let [muted?     @(rf/subscribe [:player/muted])
         dark-theme @(rf/subscribe [:dark-theme])]
     [:div.flex.lg:justify-end.lg:flex-1.gap-x-2
@@ -210,15 +247,16 @@
        :icon
        (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
        :on-click #(rf/dispatch [:bg-player/mute (not muted?) !player])
-       :show-on-mobile? true
-       :extra-classes ["w-6"]]
-      [volume-slider !player]]
+       :show-on-mobile? true]
+      [volume-slider !player :progress-color color :height "0.375rem"
+       :thumb-size
+       "0.375rem" :thumb-color color :rounded? true]]
      [player/button
       :icon [:i.fa-solid.fa-up-right-and-down-left-from-center]
       :on-click #(rf/dispatch [:queue/show true])
       :show-on-mobile? true
       :extra-classes
-      ["text-lg" "lg:text-base" "!pl-6" "!pr-4" "hidden" "lg:block"]]]))
+      ["text-lg" "lg:text-base" "hidden" "lg:block"]]]))
 
 (defn on-progress
   [!player !buffered]

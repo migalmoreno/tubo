@@ -100,7 +100,10 @@
        :style {"--thumb-bg" (if dark-theme?
                               "rgb(212,212,212)"
                               "rgb(0,0,0)")}}
-      [bg-player/time-slider !player !elapsed-time color]
+      [bg-player/time-slider !player !elapsed-time :height "0.4rem"
+       :progress-color
+       color :rounded? true :thumb-color color :extra-classes
+       ["[&::-webkit-slider-thumb]:-mt-1"]]
       [:div.flex.w-full.justify-between
        [:span.whitespace-nowrap.w-16.flex.justify-start
         (if (and bg-player-ready? @!player @!elapsed-time)
