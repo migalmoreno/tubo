@@ -27,7 +27,7 @@
 
 (defn comment-bottom-metadata
   [{:keys [textual-upload-date like-count hearted-by-uploader author-avatar
-           author-name]}]
+           author-name author-url]}]
   [:div.flex.items-center
    [:div.mr-4.text-sm.text-neutral-600.dark:text-neutral-300
     [:span {:title textual-upload-date}
@@ -39,10 +39,13 @@
        {:title like-count} (utils/format-quantity like-count)]])
    (when hearted-by-uploader
      [:div.relative.w-4.h-4.mx-2
-      [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500]
-      [:img.rounded-full.object-covermax-w-full.min-h-full
-       {:src   author-avatar
-        :title (str author-name " hearted this comment")}]])])
+      [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500
+       {:class ["z-[5]"]}]
+      [layout/uploader-avatar
+       {:uploader-avatar author-avatar
+        :uploader-name   author-name
+        :uploader-url    author-url}
+       :classes ["w-4" "h-4"]]])])
 
 (defn comment-item
   [{:keys [comment-id comment-text replies-page replies reply-count show-replies
@@ -79,7 +82,7 @@
   []
   (let [!observer (atom nil)]
     (fn [{:keys [related-items next-page]}
-         {:keys [uploader-name uploader-avatar url service-id]}]
+         {:keys [uploader-name uploader-avatar uploader-url url service-id]}]
       (let [service-color       (utils/get-service-color service-id)
             pagination-loading? @(rf/subscribe [:show-pagination-loading])
             last-item-ref       #(when-not pagination-loading?
@@ -112,6 +115,7 @@
                  (assoc comment
                         :author-name   uploader-name
                         :author-avatar uploader-avatar
+                        :author-url    uploader-url
                         :url           url)]]
                (when (and (seq replies) show-replies)
                  [:div.flex.flex-col.gap-y-8.my-4 {:class "ml-[32px]"}
@@ -122,6 +126,7 @@
                             :reply?        true
                             :author-name   uploader-name
                             :author-avatar uploader-avatar
+                            :author-url    uploader-url
                             :url           url)])])
                (when (and show-replies
                           (or replies-loading (:next-page replies)))
