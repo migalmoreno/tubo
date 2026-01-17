@@ -248,7 +248,7 @@
                      :on-click
                      #(rf/dispatch [:bg-player/mute (not muted?) !player])
                      :show-on-mobile? true
-                     :extra-classes ["text-md" "w-4"]]
+                     :extra-classes ["text-md" "w-10"]]
                     [player/shuffle-button color true :extra-classes
                      ["text-md"]]
                     [player/loop-button color true :extra-classes ["text-md"]]
@@ -256,7 +256,7 @@
                      :show-on-mobile? true
                      :on-click #(rf/dispatch [:queue/show-list true])
                      :icon [:i.fa-solid.fa-list]
-                     :extra-classes ["text-md" "w-4"]]]]])
+                     :extra-classes ["text-md" "w-10"]]]]])
                (when (and show-queue (or (not= breakpoint :xs) show-list?))
                  [:> (.-div motion)
                   {:animate    {:y 0}
