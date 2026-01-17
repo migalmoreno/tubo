@@ -99,12 +99,9 @@
         queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])
         dark-theme?      @(rf/subscribe [:dark-theme])]
-    [:div.flex.flex-col.gap-y-2
+    [:div.flex.flex-col
      [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium
-      {:class "text-[0.8rem]"
-       :style {"--thumb-bg" (if dark-theme?
-                              "rgb(212,212,212)"
-                              "rgb(0,0,0)")}}
+      {:class "text-[0.8rem]"}
       [bg-player/time-slider !player !elapsed-time :height "0.4rem"
        :progress-color
        color :rounded? true :thumb-color color :extra-classes
@@ -212,84 +209,84 @@
                                        (if dark-theme? "10,10,10" "245,245,245")
                                        ",0.5)")}
               :ref   #(reset! !bg %)
-              :class ["flex" "w-full" "h-full" "relative" "overflow-hidden"
+              :class ["flex" "justify-center" "w-full" "h-full"
+                      "relative" "overflow-hidden"
                       "bg-[color:var(--bg-color)]" "transition-colors"
                       "duration-500" "before:absolute" "before:top-0"
                       "before:bottom-0" "before:left-0" "before:right-0"
                       "before:bg-[color:var(--bg-gradient)]"
                       "before:content-['']"]}
-             [:span.lg:hidden
-              {:class ["before:flex" "before:justify-center" "before:text-xs"
-                       "before:text-neutral-800" "dark:before:text-neutral-200"
-                       "before:font-medium" "before:content-['NOW_PLAYING']"
-                       "before:absolute" "before:top-5" "before:left-0"
-                       "before:right-0"]}]
-             (when (and show-queue (or (= breakpoint :lg) (not show-list?)))
-               [:div.flex.flex-col.flex-1.px-6.items-center.justify-center.relative
-                [:div.flex.flex-col.gap-y-2.xs:gap-y-6.items-center.justify-center
-                 {:class ["xs:w-[28rem]" "mt-[56px]" "lg:mt-0"]}
+             [:div.flex.justify-center.w-full.overflow-y-auto
+              {:class ["h-[calc(100%-56px)]" "mt-[56px]"]}
+              [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
+               {:class ["w-full" "xl:w-4/5" "xs:h-[600px]" "md:h-[800px]"]}
+               (when (and show-queue
+                          (or (not= breakpoint :xs) (not show-list?)))
+                 [:div.flex.flex-col.relative.w-full.xs:w-fit.px-4.xs:px-0
+                  [:div.flex.flex-col.gap-y-4.xs:gap-y-6.flex-auto.justify-between
+                   {:class ["w-full" "xs:w-[14rem]" "sm:w-[16rem]"
+                            "md:w-[24rem]" "@container"]}
+                   [:> (.-div motion)
+                    {:class   ["flex" "w-full" "items-center" "justify-center"]
+                     :animate {:scale 1}
+                     :ref     #(reset! !thumbnail %)
+                     :initial {:scale 0.9}}
+                    [layout/thumbnail stream nil :hide-label? true
+                     :container-classes
+                     ["aspect-square" "min-w-full" "rounded-md"]
+                     :image-classes ["rounded-md"]]]
+                   [:div.flex.flex-col.gap-y-8.md:gap-y-16.w-full
+                    [queue-metadata stream]
+                    [main-controls color]]
+                   [:div.flex.justify-between.min-w-full.py-4
+                    [player/button
+                     :icon
+                     (if muted?
+                       [:i.fa-solid.fa-volume-xmark]
+                       [:i.fa-solid.fa-volume-low])
+                     :on-click
+                     #(rf/dispatch [:bg-player/mute (not muted?) !player])
+                     :show-on-mobile? true
+                     :extra-classes ["text-md" "w-4"]]
+                    [player/shuffle-button color true :extra-classes
+                     ["text-md"]]
+                    [player/loop-button color true :extra-classes ["text-md"]]
+                    [player/button
+                     :show-on-mobile? true
+                     :on-click #(rf/dispatch [:queue/show-list true])
+                     :icon [:i.fa-solid.fa-list]
+                     :extra-classes ["text-md" "w-4"]]]]])
+               (when (and show-queue (or (not= breakpoint :xs) show-list?))
                  [:> (.-div motion)
-                  {:class   ["flex" "w-full" "items-center" "justify-center"]
-                   :animate {:scale 1}
-                   :ref     #(reset! !thumbnail %)
-                   :initial {:scale 0.9}}
-                  [layout/thumbnail stream nil :hide-label? true
-                   :container-classes
-                   ["aspect-square" "shadow-xl" "shadow-neutral-500"
-                    "dark:shadow-neutral-900" "rounded-md"]
-                   :image-classes ["rounded-md"]]]
-                 [:div.flex.flex-col.py-4.shrink-0.w-full.gap-y-6.xs:gap-y-16
-                  [queue-metadata stream]
-                  [main-controls color]
-                  [:div.flex.justify-between.min-w-full.gap-x-8
-                   [player/button
-                    :icon
-                    (if muted?
-                      [:i.fa-solid.fa-volume-xmark]
-                      [:i.fa-solid.fa-volume-low])
-                    :on-click
-                    #(rf/dispatch [:bg-player/mute (not muted?) !player])
-                    :show-on-mobile? true
-                    :extra-classes ["text-md" "w-4"]]
-                   [player/shuffle-button color true :extra-classes ["text-md"]]
-                   [player/loop-button color true :extra-classes ["text-md"]]
-                   [player/button
-                    :show-on-mobile? true
-                    :on-click #(rf/dispatch [:queue/show-list true])
-                    :icon [:i.fa-solid.fa-list]
-                    :extra-classes ["text-md" "w-4"]]]]]])
-             (when (and show-queue (or (= breakpoint :lg) show-list?))
-               [:> (.-div motion)
-                {:animate    {:y 0}
-                 :initial    {:y 50}
-                 :transition {:duration 0.3}
-                 :class      ["flex" "flex-1" "relative" "items-center"
-                              "lg:px-8" "mt-[56px]" "lg:mt-0"]}
-                [:div.flex.flex-auto.flex-col.h-full
-                 {:class ["lg:max-h-[800px]"]}
-                 [layout/tabs
-                  [{:id    :queue
-                    :label "UP NEXT"}
-                   {:id    :related
-                    :label "RELATED"}]
-                  :selected-id @!active-tab
-                  :on-change #(reset! !active-tab %)]
-                 [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
-                  {:class "@container"}
-                  (case @!active-tab
-                    :queue   [virtualized-queue]
-                    :related [:div.flex.flex-col.gap-y-2.p-4
-                              (for [[i item]
-                                    (map-indexed vector
-                                                 (:related-items stream))]
-                                ^{:key i}
-                                [items/list-item-content item
-                                 :container-classes
-                                 ["flex" "flex-col" "flex-auto" "gap-y-1"]
-                                 :author-classes ["line-clamp-1" "text-xs"]
-                                 :title-classes
-                                 ["font-semibold" "line-clamp-2" "text-xs"]
-                                 :metadata-classes ["text-xs" "gap-y-2"]
-                                 :thumbnail-container-classes
-                                 ["h-[5.5rem]" "min-w-[150px]"
-                                  "max-w-[150px]"]])])]]])]])]))))
+                  {:animate    {:y 0}
+                   :initial    {:y 50}
+                   :transition {:duration 0.3}
+                   :class      ["flex" "flex-1" "relative" "items-center"
+                                "shrink-0"]}
+                  [:div.flex.flex-auto.flex-col.h-full
+                   [layout/tabs
+                    [{:id    :queue
+                      :label "UP NEXT"}
+                     {:id    :related
+                      :label "RELATED"}]
+                    :selected-id @!active-tab
+                    :on-change #(reset! !active-tab %)]
+                   [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
+                    {:class "@container"}
+                    (case @!active-tab
+                      :queue   [virtualized-queue]
+                      :related [:div.flex.flex-col.gap-y-2.p-4
+                                (for [[i item]
+                                      (map-indexed vector
+                                                   (:related-items stream))]
+                                  ^{:key i}
+                                  [items/list-item-content item
+                                   :container-classes
+                                   ["flex" "flex-col" "flex-auto" "gap-y-1"]
+                                   :author-classes ["line-clamp-1" "text-xs"]
+                                   :title-classes
+                                   ["font-semibold" "line-clamp-2" "text-xs"]
+                                   :metadata-classes ["text-xs" "gap-y-2"]
+                                   :thumbnail-container-classes
+                                   ["h-[5.5rem]" "min-w-[150px]"
+                                    "max-w-[150px]"]])])]]])]]]])]))))

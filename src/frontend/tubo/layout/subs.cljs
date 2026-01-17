@@ -4,9 +4,10 @@
    [reagent.core :as r]))
 
 (defonce !breakpoint
-  (let [breakpoints {:lg "(min-width: 1025px)"
-                     :md "(min-width: 769px) and (max-width: 1024px)"
-                     :sm "(max-width: 768px)"}
+  (let [breakpoints {:lg "(min-width: 1024px)"
+                     :md "(min-width: 768px) and (max-width: 1023px)"
+                     :sm "(min-width: 480px) and (max-width: 767px)"
+                     :xs "(max-width: 479px)"}
         state       (r/atom
                      (when (.-matchMedia js/window)
                        (->> breakpoints
