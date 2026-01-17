@@ -152,10 +152,14 @@
                       (:class extra-button-args))}
           extra-button-args)
    (when left-icon
-     (conj left-icon {:class (or icon-classes label-classes)}))
+     (conj left-icon
+           (when (or icon-classes label-classes)
+             {:class (or icon-classes label-classes)})))
    (when (seq label) [:span.font-medium.text-sm {:class label-classes} label])
    (when right-icon
-     (conj right-icon {:class (or icon-classes label-classes)}))])
+     (conj right-icon
+           (when (or icon-classes label-classes)
+             {:class (or icon-classes label-classes)})))])
 
 (defn primary-button
   [label on-click left-icon right-icon extra-button-args]
