@@ -60,37 +60,38 @@
                               (and (or (not show-title?)
                                        (not (seq title)))
                                    (not show-search-form?)))]
-    [:div.flex.items-center.gap-x-4
+    [:div.flex.items-center.xs:gap-x-4
      (when (and (not show-queue?)
                 (not show-main-player?))
-       [:div.flex.items-center.justify-center.text-lg.pl-8.w-12
-        {:class (when show-search-form? ["hidden" "md:flex" "pl-0"])}
-        [:button
-         {:on-click #(rf/dispatch [:navigation/show-mobile-menu])
-          :class    (if (false? show-sidebar?) "lg:block" "lg:hidden")}
-         [:i.fa-solid.fa-bars]]
-        [:button.hidden.lg:flex
-         {:class    (when (false? show-sidebar?) "lg:hidden")
-          :on-click #(rf/dispatch [:navigation/show-sidebar
-                                   (cond (= show-sidebar? :minimized) :expanded
-                                         (and (= sidebar-state :minimized)
-                                              (nil? show-sidebar?))
-                                         :expanded
-                                         (and (= sidebar-state :expanded)
-                                              (nil? show-sidebar?))
-                                         :minimized
-                                         :else :minimized)])}
-         [:i.fa-solid.fa-bars]]])
-     (cond (and show-main-player? (not show-search-form?))
-           [:button.pl-8.w-12
-            {:on-click #(rf/dispatch [:bg-player/switch-from-main nil])}
-            [:i.fa-solid.fa-angle-down]]
-           (and show-queue? (not show-search-form?))
-           [:button.pl-8.w-12
-            {:on-click #(rf/dispatch (if show-list?
-                                       [:queue/show-list false]
-                                       [:queue/show false]))}
-            [:i.fa-solid.fa-angle-down]])
+       [:div.flex.items-center.justify-center.text-lg.w-10
+        {:class (when show-search-form? ["hidden" "md:flex"])}
+        [layout/button nil #(rf/dispatch [:navigation/show-mobile-menu])
+         [:i.fa-solid.fa-bars] nil :button-classes
+         (if (false? show-sidebar?) ["lg:flex"] ["lg:hidden" "flex-none"])]
+        [layout/button nil
+         #(rf/dispatch [:navigation/show-sidebar
+                        (cond (= show-sidebar? :minimized) :expanded
+                              (and (= sidebar-state :minimized)
+                                   (nil? show-sidebar?))
+                              :expanded
+                              (and (= sidebar-state :expanded)
+                                   (nil? show-sidebar?))
+                              :minimized
+                              :else :minimized)]) [:i.fa-solid.fa-bars] nil
+         :button-classes
+         ["hidden" "lg:flex" (when (false? show-sidebar?) "lg:hidden")]]])
+     (when (and (not show-search-form?) (or show-main-player? show-queue?))
+       [:div.w-10
+        (cond (and show-main-player? (not show-search-form?))
+              [layout/button nil
+               #(rf/dispatch [:bg-player/switch-from-main nil])
+               [:i.fa-solid.fa-angle-down]]
+              (and show-queue? (not show-search-form?))
+              [layout/button nil
+               #(rf/dispatch (if show-list?
+                               [:queue/show-list false]
+                               [:queue/show false]))
+               [:i.fa-solid.fa-angle-down]])])
      [:div.font-bold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
       (when (and (seq title)
                  (not show-search-form?)
@@ -136,13 +137,11 @@
          [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
-         (cond show-main-player? [:div.xs:hidden.pr-2
-                                  [stream/metadata-popover
-                                   @(rf/subscribe [:stream])]]
-               show-queue?       [:div.pr-2
-                                  [bg-player/popover stream :tooltip-classes
-                                   ["top-5" "right-0"]]]
-               :else             [:div.xs:hidden.pr-2
+         (cond show-main-player? [stream/metadata-popover
+                                  @(rf/subscribe [:stream])]
+               show-queue?       [bg-player/popover stream :tooltip-classes
+                                  ["top-5" "right-0"]]
+               :else             [:div.xs:hidden
                                   (case (get-in match [:data :name])
                                     :channel-page [channel/metadata-popover
                                                    @(rf/subscribe [:channel])]
@@ -209,7 +208,8 @@
 
 (defn navbar
   [{{:keys [id]} :query-params {:keys [name]} :data :as match}]
-  (let [show-queue? @(rf/subscribe [:queue/show])]
+  (let [show-queue?       @(rf/subscribe [:queue/show])
+        show-search-form? @(rf/subscribe [:search/show-form])]
     [:> (.-nav motion)
      {:animate    (if show-queue?
                     {:background "none"}
@@ -219,6 +219,7 @@
       :initial    false
       :transition {:ease "easeInOut"}
       :class      ["h-[56px]" "sticky" "flex" "items-center" "h-14" "top-0"
+                   (when-not show-search-form? "px-4")
                    "z-20" (when-not show-queue? "backdrop-blur-md")
                    "dark:bg-neutral-950/90"
                    "bg-neutral-100/90"]}
@@ -396,7 +397,7 @@
        :initial    {:x -320}
        :exit       {:x -640}
        :transition {:duration 0.1}}
-      [:div.flex.items-center.h-14.pl-8.gap-x-6
+      [:div.flex.items-center.h-14.px-4.gap-x-2.xs:gap-x-4
        {:class "min-h-[56px]"}
        [layout/button nil #(rf/dispatch [:navigation/hide-mobile-menu])
         [:i.fa-solid.fa-bars]]
