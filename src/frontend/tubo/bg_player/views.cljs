@@ -306,13 +306,14 @@
 
 (defn player
   []
-  (let [!player      @(rf/subscribe [:bg-player])
-        stream       @(rf/subscribe [:queue/current])
-        show-queue?  @(rf/subscribe [:queue/show])
-        show-player? @(rf/subscribe [:bg-player/show])
-        color        (-> stream
-                         :service-id
-                         utils/get-service-color)]
+  (let [!player       @(rf/subscribe [:bg-player])
+        !elapsed-time @(rf/subscribe [:elapsed-time])
+        stream        @(rf/subscribe [:queue/current])
+        show-queue?   @(rf/subscribe [:queue/show])
+        show-player?  @(rf/subscribe [:bg-player/show])
+        color         (-> stream
+                          :service-id
+                          utils/get-service-color)]
     [:<>
      (when show-player?
        [audio-player !player])
@@ -324,9 +325,14 @@
           :transition {:ease "easeOut" :duration 0.3}
           :exit       {:y 100}
           :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
-                       "right-0" "bottom-0" "z-10" "p-3" "relative"
+                       "right-0" "bottom-0" "z-10" "relative"
                        "cursor-pointer" "bg-neutral-200" "dark:bg-neutral-900"]
           :on-click   #(rf/dispatch [:queue/show true])}
-         [metadata stream]
-         [main-controls !player color]
-         [extra-controls !player]])]]))
+         [:div.flex.flex-col.w-full
+          [:div.absolute.top-0.left-0.w-full.lg:hidden.flex
+           [time-slider !player !elapsed-time :height "0.25rem" :thumb-size 0
+            :progress-color color]]
+          [:div.flex.items-center.px-3
+           [metadata stream]
+           [main-controls !player color]
+           [extra-controls !player color]]]])]]))
