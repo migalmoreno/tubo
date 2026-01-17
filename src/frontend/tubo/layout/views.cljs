@@ -32,31 +32,29 @@
        {:class
         (cond
           (= stream-type "LIVE_STREAM") "bg-red-600/80"
-          (or short-form-content duration (= playlist-type "MIX_STREAM"))
+          (or short-form-content
+              duration
+              (some #{info-type} ["PLAYLIST" "BOOKMARK"])
+              (= playlist-type "MIX_STREAM"))
           ["bg-black/70"]
-          (some #{info-type} ["PLAYLIST" "BOOKMARK"]) ["bg-black/90"
-                                                       "h-full"
-                                                       "!right-0"
-                                                       "!bottom-0"
-                                                       "!rounded-none"
-                                                       "!rounded-tr"
-                                                       "!rounded-br"]
           :else "hidden")}
        [:div.text-neutral-300.text-xs.h-full
         (cond
           (= stream-type "LIVE_STREAM") "LIVE"
           short-form-content "SHORTS"
           duration (utils/format-duration duration)
-          (= playlist-type "MIX_STREAM") [:div.flex.gap-x-1.items-center.px-1
-                                          [:i.fa-solid.fa-tower-broadcast
-                                           {:class "text-[0.6rem]"}]
-                                          [:span "Mix"]]
-          (some #{info-type} ["PLAYLIST" "BOOKMARK"])
-          [:div.flex.flex-col.gap-y-2.justify-center.items-center.px-3.h-full.w-10
-           {:class "text-[0.7rem]"}
-           [:i.fa-solid.fa-list]
-           (when stream-count
-             [:span.font-bold stream-count])])]])]])
+          (or (some #{info-type} ["PLAYLIST" "BOOKMARK"])
+              (= playlist-type "MIX_STREAM"))
+          [:div.flex.gap-x-1.items-center.px-1
+           [:i.fa-solid
+            {:class ["text-[0.6rem]"
+                     (if (= playlist-type "MIX_STREAM")
+                       "fa-tower-broadcast"
+                       "fa-list")]}]
+           (if (= playlist-type "MIX_STREAM")
+             [:span "Mix"]
+             (when stream-count
+               [:span.font-bold stream-count]))])]])]])
 
 (defn logo
   [& {:keys [height width]}]
