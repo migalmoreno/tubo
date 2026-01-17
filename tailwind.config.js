@@ -1,6 +1,9 @@
 module.exports = {
   content: ["./src/**/*.{html,js,cljs}"],
   darkMode: "class",
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       fontFamily: {

@@ -135,14 +135,21 @@
         :alt   uploader-name
         :key   uploader-name}])]))
 
+(def common-button-classes
+  ["flex" "justify-center" "items-center" "gap-x-2" "p-3" "rounded-full"
+   "outline-none" "focus:ring-transparent" "whitespace-nowrap"
+   "hover:bg-neutral-500/40" "dark:hover:bg-neutral-800"
+   "active:bg-neutral-500/40" "dark:active:bg-neutral-800" "transition-colors"])
+
 (defn button
   [label on-click left-icon right-icon &
    {:keys [button-classes label-classes icon-classes extra-button-args]}]
-  [:button.flex.justify-center.items-center.gap-x-2.p-3.rounded-full.outline-none.focus:ring-transparent.whitespace-nowrap.transition-colors.dark:hover:bg-neutral-800
+  [:button
    (merge {:on-click on-click
-           :class    (concat ["hover:bg-neutral-500/40"]
-                             button-classes
-                             (:class extra-button-args))}
+           :class    (concat
+                      common-button-classes
+                      button-classes
+                      (:class extra-button-args))}
           extra-button-args)
    (when left-icon
      (conj left-icon {:class (or icon-classes label-classes)}))
@@ -294,9 +301,7 @@
   []
   (let [tooltip-id     (nano-id)
         tooltip-data   (rf/subscribe [:layout/tooltip-by-id tooltip-id])
-        common-classes ["rounded-full" "hover:bg-neutral-500/40"
-                        "dark:hover:bg-neutral-800/70"
-                        "transition-colors" "px-4" "py-2"]]
+        common-classes ["px-4" "py-2"]]
     (fn [items &
          {:keys [extra-classes icon tooltip-classes responsive?
                  destroy-on-click-out? stop-propagation?]
@@ -308,38 +313,35 @@
        [:div.relative
         {:class (into ["w-full"]
                       (if responsive? ["hidden" "xs:block"] ["block"]))}
-        [:button.focus:outline-none.w-full
-         {:class    (concat common-classes extra-classes)
-          :type     "button"
-          :on-click (fn [e]
-                      (when stop-propagation?
-                        (.stopPropagation e))
-                      (if @tooltip-data
-                        (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
-                        (rf/dispatch [:layout/register-tooltip
-                                      {:items items
-                                       :id tooltip-id
-                                       :destroy-on-click-out?
-                                       destroy-on-click-out?}])))}
-         icon]
+        [button nil
+         (fn [e]
+           (when stop-propagation?
+             (.stopPropagation e))
+           (if @tooltip-data
+             (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+             (rf/dispatch [:layout/register-tooltip
+                           {:items items
+                            :id tooltip-id
+                            :destroy-on-click-out?
+                            destroy-on-click-out?}])))
+         icon nil :button-classes (concat common-classes extra-classes)]
         (when @tooltip-data
           [tooltip tooltip-id :extra-classes tooltip-classes])]
-       [:button.focus:outline-none.relative
-        {:on-click (fn [e]
-                     (when stop-propagation?
-                       (.stopPropagation e))
-                     (if @tooltip-data
-                       (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
-                       (rf/dispatch [:layout/show-mobile-tooltip
-                                     {:items items
-                                      :id tooltip-id
-                                      :destroy-on-click-out?
-                                      destroy-on-click-out?}])))
-         :type     "button"
-         :class    (concat common-classes
-                           extra-classes
-                           (if responsive? ["xs:hidden"] ["hidden"]))}
-        icon]])))
+       [button nil
+        (fn [e]
+          (when stop-propagation?
+            (.stopPropagation e))
+          (if @tooltip-data
+            (rf/dispatch [:layout/destroy-tooltip-by-id tooltip-id])
+            (rf/dispatch [:layout/show-mobile-tooltip
+                          {:items items
+                           :id tooltip-id
+                           :destroy-on-click-out?
+                           destroy-on-click-out?}])))
+        icon nil :button-classes
+        (concat common-classes
+                extra-classes
+                (if responsive? ["xs:hidden"] ["hidden"]))]])))
 
 (defn show-more-container
   []

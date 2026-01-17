@@ -26,7 +26,8 @@
    ["shaka-video-element/react$default" :as ShakaVideo]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.utils :as utils]))
+   [tubo.utils :as utils]
+   [tubo.layout.views :as layout]))
 
 (defn button
   [& {:keys [icon on-click disabled? show-on-mobile? extra-classes]}]
@@ -34,10 +35,7 @@
    {:whileTap {:scale [0.9 1]}
     :initial  {:scale 1}
     :class    (concat
-               ["outline-none" "focus:ring-transparent" "transition-colors"
-                "hover:bg-neutral-500/40" "dark:hover:bg-neutral-800/70" "p-3"
-                "max-w-10" "min-w-10" "w-10" "items-center" "justify-center"
-                "rounded-full"]
+               layout/common-button-classes
                (when disabled? ["opacity-50" "cursor-auto"])
                (if show-on-mobile?
                  ["flex"]
