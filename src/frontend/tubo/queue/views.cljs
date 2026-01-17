@@ -219,7 +219,8 @@
              [:div.flex.justify-center.w-full.overflow-y-auto
               {:class ["h-[calc(100%-56px)]" "mt-[56px]"]}
               [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
-               {:class ["w-full" "xl:w-4/5" "xs:h-[600px]" "md:h-[800px]"]}
+               {:class ["w-full" "xl:w-4/5" "h-full" "xs:h-[600px]"
+                        "md:h-[800px]"]}
                (when (and show-queue
                           (or (not= breakpoint :xs) (not show-list?)))
                  [:div.flex.flex-col.relative.w-full.xs:w-fit.px-4.xs:px-0
