@@ -84,7 +84,7 @@
          :on-change     #(rf/dispatch [:search/change-query
                                        (.. % -target -value)])
          :placeholder   "Search"}]
-       [:button.px-4 {:type "submit"} [:i.fa-solid.fa-search]]
+       [:button.px-2 {:type "submit"} [:i.fa-solid.fa-search]]
        [layout/popover
         (map-indexed
          (fn [i filter]
@@ -102,12 +102,12 @@
             :value    filter
             :on-click #(rf/dispatch [:search/change-filter filter])})
          (get-in service [:search-qh-factory :available-content-filter]))
-        :extra-classes ["px-2"]
+        :extra-classes ["!px-4" "!py-1"]
         :tooltip-classes ["right-0" "top-12" "sm:right-auto" "sm:left-4"]]
-       [:button.px-4.absolute
+       [:button.px-2.absolute
         {:on-click #(rf/dispatch [:search/clear-query])
          :type     "button"
-         :class    ["right-[4.5rem]"
+         :class    ["right-[5.5rem]"
                     (when-not (seq service-query) "invisible")]}
         [:i.fa-solid.fa-xmark]]]]
      [suggestions-box suggestions]]))

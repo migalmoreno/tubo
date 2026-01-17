@@ -73,7 +73,7 @@
                                 :params {}
                                 :query  {:url uploader-url}}])}]
     :tooltip-classes ["right-5" "top-0" "z-20"]
-    :extra-classes ["px-4" "@sm:px-7" :py-2]]])
+    :extra-classes ["px-4" "py-2"]]])
 
 (defn queue-metadata
   [{:keys [name uploader-name]}]
@@ -82,6 +82,11 @@
    [:h1.text-sm.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit.font-medium
     {:title uploader-name}
     uploader-name]])
+
+(defn button
+  [& {:as args}]
+  [player/button
+   (update args :extra-classes #(when % (concat % ["py-3"])))])
 
 (defn main-controls
   [color]
@@ -113,19 +118,19 @@
         (if (and bg-player-ready? @!player)
           (utils/format-duration (.-duration @!player))
           "--:--")]]]
-     [:div.flex.justify-between.items-center.gap-x-4
-      [player/button
+     [:div.flex.justify-between.items-center
+      [button
        :icon [:i.fa-solid.fa-backward-step]
        :on-click #(rf/dispatch [:queue/previous])
        :disabled? (not (and queue (not= queue-pos 0)))
-       :extra-classes [:text-xl]
+       :extra-classes ["@sm:text-xl"]
        :show-on-mobile? true]
-      [player/button
+      [button
        :icon [:i.fa-solid.fa-backward]
        :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])
-       :extra-classes [:text-xl]
+       :extra-classes ["@sm:text-xl"]
        :show-on-mobile? true]
-      [player/button
+      [button
        :icon
        (if (and (not loading?)
                 (not waiting?)
@@ -133,21 +138,23 @@
          (if paused?
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
-         [layout/loading-icon color "text-[3.5rem]"])
+         [layout/loading-icon color ["text-4xl" "@sm:text-[3.5rem]"]])
        :on-click
        #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes ["text-[3.5rem]" "w-[3.5rem]" "flex" "justify-center"]]
-      [player/button
+       :extra-classes
+       ["text-4xl" "@sm:text-[3.5rem]" "flex" "justify-center"
+        "!bg-transparent"]]
+      [button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
-       :extra-classes [:text-xl]
+       :extra-classes ["@sm:text-xl"]
        :show-on-mobile? true]
-      [player/button
+      [button
        :icon [:i.fa-solid.fa-forward-step]
        :on-click #(rf/dispatch [:queue/next])
        :disabled? (not (and queue (< (inc queue-pos) (count queue))))
-       :extra-classes [:text-xl]
+       :extra-classes ["@sm:text-xl"]
        :show-on-mobile? true]]]))
 
 (defn virtualized-queue

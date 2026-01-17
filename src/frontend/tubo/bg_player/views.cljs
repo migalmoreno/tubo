@@ -127,8 +127,8 @@
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         dark-theme       @(rf/subscribe [:dark-theme])]
-    [:div.flex.flex-col.items-center.ml-auto.gap-y-1
-     [:div.flex.justify-end.gap-x-6.items-center
+    [:div.flex.flex-col.items-center.ml-auto.gap-y-2
+     [:div.flex.justify-end.gap-x-4.items-center
       [player/loop-button color false :extra-classes ["text-sm"]]
       [player/button
        :icon [:i.fa-solid.fa-backward-step]
@@ -148,7 +148,9 @@
          [layout/loading-icon color "text-3xl lg:text-4xl"])
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
-       :extra-classes ["text-3xl" "lg:text-4xl" "w-[3rem]" "lg:w-[2.5rem]"]]
+       :extra-classes
+       ["text-3xl" "lg:text-4xl" "w-[3rem]" "lg:w-[2.5rem]" "!p-0"
+        "!bg-transparent"]]
       [player/button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
@@ -231,9 +233,7 @@
        :icon              [:i.fa-solid.fa-close]
        :on-click          #(rf/dispatch [:bg-player/dispose])}]
      :stop-propagation? true
-     :tooltip-classes (or tooltip-classes ["right-5" "bottom-5"])
-     :extra-classes
-     (or extra-classes ["px-5"])]))
+     :tooltip-classes (or tooltip-classes ["right-5" "bottom-5"])]))
 
 (defn extra-controls
   [!player color]

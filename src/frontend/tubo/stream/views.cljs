@@ -39,7 +39,7 @@
         :on-click #(rf/dispatch [:modals/open
                                  [modals/add-to-bookmark related-items]])}]))
    :tooltip-classes ["right-5" "top-5"]
-   :extra-classes ["px-5" "xs:py-2.5" "xs:px-2.5" "rounded-full"]
+   :extra-classes ["xs:py-2.5" "xs:px-2.5" "rounded-full"]
    :icon
    [:<>
     [:i.fa-solid.fa-ellipsis-vertical.xs:hidden]

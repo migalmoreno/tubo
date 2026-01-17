@@ -63,7 +63,7 @@
                                              true])})])]
     (when (not-empty (remove nil? items))
       [layout/popover items
-       :extra-classes [:pr-0 :pl-4]
+       :extra-classes ["max-xs:px-2" "max-xs:py-1"]
        :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
@@ -151,7 +151,7 @@
            thumbnail-image-classes     ["rounded-lg"]
            title-classes               ["[overflow-wrap:anywhere]" "text-sm"
                                         "w-fit"
-                                        "mt-2" "line-clamp-1" "sm:text-lg"]}}]
+                                        "mt-2" "line-clamp-2" "sm:text-lg"]}}]
   (let [route (case info-type
                 "STREAM"   (rfe/href :stream-page nil {:url url})
                 "CHANNEL"  (rfe/href :channel-page nil {:url url})

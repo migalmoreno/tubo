@@ -132,9 +132,8 @@
     [:div.flex.justify-end.flex-auto
      [:div.flex.items-center.justify-end
       (when-not (or show-search-form? show-queue?)
-        [:button.px-4.md:hidden
-         {:on-click #(rf/dispatch [:search/activate true])}
-         [:i.fa-solid.fa-search]])
+        [layout/button nil #(rf/dispatch [:search/activate true])
+         [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
          (cond show-main-player? [:div.xs:hidden.pr-2
@@ -181,7 +180,7 @@
             {:label "Settings"
              :icon  [:i.fa-solid.fa-cog]
              :link  {:route (rfe/href :settings-page)}}]
-           :extra-classes ["p-0" "px-5" "z-30"]
+           :extra-classes ["z-30"]
            :tooltip-classes ["right-5" "top-8" "w-44"]
            :icon [:i.fa-solid.fa-cog]]]
          [:div.hidden.md:flex
@@ -204,7 +203,7 @@
                      :icon     [:i.fa-solid.fa-right-to-bracket
                                 {:class "rotate-180"}]
                      :on-click #(rf/dispatch [:auth/logout])}]))
-           :extra-classes ["p-0" "px-5" "z-30"]
+           :extra-classes ["z-30"]
            :tooltip-classes ["right-5" "top-8"]
            :icon [:i.fa-solid.fa-circle-user]]]])]]))
 
@@ -343,7 +342,7 @@
      (when show-mobile-menu?
        [layout/popover
         (map #(assoc % :hide-bg-overlay-on-click? false) theme-tooltip-items)
-        :extra-classes ["p-0"]
+        :extra-classes ["!p-0"]
         :tooltip-classes ["right-5" "bottom-0"]
         :responsive? false
         :icon
@@ -399,8 +398,7 @@
        :transition {:duration 0.1}}
       [:div.flex.items-center.h-14.pl-8.gap-x-6
        {:class "min-h-[56px]"}
-       [:button.text-lg
-        {:on-click #(rf/dispatch [:navigation/hide-mobile-menu])}
+       [layout/button nil #(rf/dispatch [:navigation/hide-mobile-menu])
         [:i.fa-solid.fa-bars]]
        [logo]]
       [:div.flex.flex-col.justify-between.flex-auto.overflow-auto.scrollbar-none

@@ -34,10 +34,14 @@
    {:whileTap {:scale [0.9 1]}
     :initial  {:scale 1}
     :class    (concat
-               ["outline-none" "focus:ring-transparent"]
+               ["outline-none" "focus:ring-transparent" "transition-colors"
+                "hover:bg-neutral-500/40" "dark:hover:bg-neutral-800/70" "p-3"
+                "max-w-10" "min-w-10" "w-10" "items-center" "justify-center"
+                "rounded-full"]
                (when disabled? ["opacity-50" "cursor-auto"])
-               (when-not show-on-mobile?
-                 ["hidden" "lg:flex" "items-center" "justify-center"])
+               (if show-on-mobile?
+                 ["flex"]
+                 ["hidden" "lg:flex"])
                extra-classes)
     :disabled disabled?
     :on-click (fn [e]
