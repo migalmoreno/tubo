@@ -4,9 +4,67 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.layout.views :as layout]
-   [tubo.main-player.views :as main-player]
+   [tubo.bookmarks.modals :as modals]
    [tubo.player.views :as player]
    [tubo.utils :as utils]))
+
+(defn popover
+  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
+    :as   stream} & {:keys [tooltip-classes]}]
+  (let [queue     @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue/position])
+        bookmark  #(rf/dispatch [:modals/open
+                                 [modals/add-to-bookmark %]])]
+    [layout/popover
+     [{:label             "Start radio"
+       :icon              [:i.fa-solid.fa-tower-cell]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:bg-player/start-radio
+                                         stream])}
+      {:label             "Add current to playlist"
+       :icon              [:i.fa-solid.fa-plus]
+       :stop-propagation? true
+       :on-click          #(bookmark stream)}
+      {:label             "Add queue to playlist"
+       :icon              [:i.fa-solid.fa-list]
+       :stop-propagation? true
+       :on-click          #(bookmark queue)}
+      {:label             "Remove from queue"
+       :icon              [:i.fa-solid.fa-trash]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:queue/remove queue-pos])}
+      {:label             "Switch to main"
+       :icon              [:i.fa-solid.fa-display]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:main-player/show])}
+      (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+        {:label             "Unsubscribe from channel"
+         :icon              [:i.fa-solid.fa-user-minus]
+         :stop-propagation? true
+         :on-click          #(rf/dispatch [:subscriptions/remove uploader-url])}
+        {:label             "Subscribe to channel"
+         :icon              [:i.fa-solid.fa-user-plus]
+         :stop-propagation? true
+         :on-click          #(rf/dispatch [:subscriptions/add
+                                           {:url      uploader-url
+                                            :name     uploader-name
+                                            :verified uploader-verified
+                                            :avatars  uploader-avatars}])})
+      {:label             "Show channel details"
+       :icon              [:i.fa-solid.fa-user]
+       :stop-propagation? true
+       :on-click          #(rf/dispatch [:navigation/navigate
+                                         {:name   :channel-page
+                                          :params {}
+                                          :query  {:url
+                                                   uploader-url}}])}
+      {:label             "Close player"
+       :stop-propagation? true
+       :icon              [:i.fa-solid.fa-close]
+       :on-click          #(rf/dispatch [:bg-player/dispose])}]
+     :stop-propagation? true
+     :tooltip-classes
+     (or tooltip-classes ["bottom-0"])]))
 
 (def slider-classes
   ["h-[var(--height)]"
@@ -105,17 +163,20 @@
 
 (defn metadata
   [{:keys [name uploader-name] :as stream}]
-  [:div.flex.lg:flex-1.gap-x-4
-   [:div
-    [layout/thumbnail (dissoc stream :duration) nil :container-classes
-     ["h-12" "w-12"] :image-classes ["rounded"]]]
-   [:div.flex.flex-col.pr-4.gap-y-1
-    [:h1.text-sm.line-clamp-1.w-fit
-     {:title name}
-     name]
-    [:h1.text-xs.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit
-     {:title uploader-name}
-     uploader-name]]])
+  [:div.flex.lg:flex-1
+   [:div.flex.gap-x-4
+    [:div
+     [layout/thumbnail (dissoc stream :duration) nil :container-classes
+      ["h-12" "w-12"] :image-classes ["rounded"]]]
+    [:div.flex.flex-col.pr-4.gap-y-1
+     [:h1.text-sm.line-clamp-1.w-fit
+      {:title name}
+      name]
+     [:h1.text-xs.text-neutral-600.dark:text-neutral-300.line-clamp-1.w-fit
+      {:title uploader-name}
+      uploader-name]]]
+   (when stream
+     [popover stream])])
 
 (defn main-controls
   [!player color]
@@ -192,14 +253,6 @@
       [volume-slider !player :progress-color color :height "0.375rem"
        :thumb-size
        "0.375rem" :thumb-color color :rounded? true]]
-     [layout/panel-popover
-      [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
-       [main-player/player]]
-      :stop-propagation? true
-      :mobile-only? true
-      :extra-classes ["w-10"]
-      :icon
-      [:i.fa-solid.fa-display]]
      [player/button
       :icon [:i.fa-solid.fa-up-right-and-down-left-from-center]
       :on-click #(rf/dispatch [:queue/show true])
