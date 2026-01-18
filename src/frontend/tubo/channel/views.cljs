@@ -19,15 +19,14 @@
       {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
-                                [bm/add-to-bookmark related-items]])}]
-     :extra-classes ["px-5" "xs:p-3"]
-     :tooltip-classes ["right-7" "top-0"]]))
+                                [bm/add-to-bookmark related-items]])}]]))
 
 (defn metadata
   []
   (let [!observer          (atom nil)
         !show-description? (r/atom false)]
-    (fn [{:keys [avatar name subscriber-count description url] :as channel}]
+    (fn [{:keys [avatar name subscriber-count description url] :as channel}
+         active-tab]
       (let [sub-btn (if @(rf/subscribe [:subscriptions/subscribed url])
                       [layout/secondary-button "Unsubscribe"
                        #(rf/dispatch [:subscriptions/remove url])]
@@ -53,9 +52,7 @@
                 {:class ["text-[0.8rem]"]}
                 [:span
                  (str (utils/format-quantity subscriber-count)
-                      " subscribers")]])]
-            [:div.hidden.xs:block
-             [metadata-popover channel]]]
+                      " subscribers")]])]]
            (when-not (empty? description)
              [:div.text-neutral-600.dark:text-neutral-400.text-sm
               {:class "[overflow-wrap:anywhere]"}
@@ -70,7 +67,10 @@
                      [:span.text-sm.whitespace-pre-line
                       {:dangerouslySetInnerHTML {:__html description}}]]])])
                :classes ["line-clamp-1"]]])
-           [:div.hidden.xs:flex sub-btn]]]
+           [:div.flex.items-center.gap-x-2
+            [:div.hidden.xs:flex sub-btn]
+            [:div.hidden.xs:block
+             [metadata-popover active-tab]]]]]
          [:p.contents.xs:hidden sub-btn]]))))
 
 (defn channel
@@ -91,7 +91,7 @@
             [:img.min-w-full.min-h-full.object-cover.rounded-xl
              {:src banner}]])
          [:div.flex.flex-col.gap-y-4
-          [metadata channel]
+          [metadata channel active-tab]
           (when (seq (:tabs channel))
             [:div.flex.justify-between.items-center.border-b.border-neutral-300.dark:border-neutral-700
              [layout/tabs
