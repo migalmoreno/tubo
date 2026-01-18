@@ -79,24 +79,14 @@
                        (js/encodeURIComponent
                         (.toString proxied-url)))))))))))
 
-
-(rf/reg-event-fx
- :player/set-stream
- (fn [{:keys [db]} [_ stream player pos]]
-   (when stream
-     (let [video-stream (putils/get-video-stream stream (:settings db))]
-       {:fx [[:dispatch
-              [:player/set-src
-               {:player      player
-                :src         video-stream
-                :current-pos pos}]]]}))))
-
 (rf/reg-event-fx
  :player/initialize
  (fn [{:keys [db]} [_ stream player pos]]
    {:fx [[:player/configure player]
          [:player/request-filter [player (get-in db [:settings :instance])]]
-         [:dispatch [:player/set-stream stream player pos]]]}))
+         [:dispatch
+          [:player/load
+           player (putils/get-video-stream stream (:settings db)) pos]]]}))
 
 (rf/reg-event-fx
  :player/start
@@ -107,19 +97,54 @@
            :artwork [{:src (:thumbnail stream)}]}]
          [:set-media-session-handlers player]]}))
 
-(rf/reg-fx
- :player/load
- (fn [[player url]]
-   (.load (.-api @player) url)))
+(defn load-video
+  [player url element]
+  (when (.-api @player)
+    (-> (p/resolved nil)
+        (p/then #(.attach (.-api @player) element))
+        (p/then #(.load (.-api @player) url)))))
 
 (rf/reg-event-fx
- :shaka/play-error
- (fn [{:keys [db]} [_ error player stream]]
+ :player/reload
+ (fn [_ [_ player url]]
+   {:promise {:call       #(load-video player
+                                       url
+                                       (.querySelector (.-shadowRoot @player)
+                                                       "video"))
+              :on-failure [:notifications/error "Playback failed again"]}}))
+
+(rf/reg-event-fx
+ :player/on-load-failure
+ (fn [{:keys [db]} [_ player error]]
    {:fx [[:dispatch
           [:notifications/error
-           (or (seq (.-detail error)) "Playback failed. Retrying...")]]
-         [:player/load
-          [player (putils/get-video-stream stream (:settings db))]]]}))
+           (if (seq (.-detail error))
+             (.-detail error)
+             "Playback failed. Retrying...")]]
+         [:dispatch
+          [:player/reload player
+           (putils/get-video-stream (:stream db)
+                                    (assoc (:settings db)
+                                           :video-source-type
+                                           "progressive-http"))]]]}))
+
+(rf/reg-fx
+ :player/set-next
+ (fn [[player current-pos]]
+   (when current-pos
+     (set! (.-onended @player)
+           #(rf/dispatch [:queue/change-pos (inc current-pos)])))))
+
+(rf/reg-event-fx
+ :player/load
+ (fn [_ [_ player url pos]]
+   {:promise         {:call       #(load-video player
+                                               url
+                                               (.querySelector (.-shadowRoot
+                                                                @player)
+                                                               "video"))
+                      :on-failure [:player/on-load-failure player]}
+    :player/set-next [player pos]}))
 
 (rf/reg-fx
  :player/loop

@@ -25,28 +25,21 @@
            [:dispatch [:bg-player/pause true]])]}))
 
 (rf/reg-event-fx
- :main-player/set-src
- [(rf/inject-cofx ::inject/sub [:main-player])]
- (fn [{:keys [main-player]} [_ src pos]]
-   {:fx [[:dispatch
-          [:player/set-src {:src src :player main-player :current-pos pos}]]]}))
-
-(rf/reg-event-fx
  :main-player/set-stream
- (fn [{:keys [db]} [_ stream pos]]
+ [(rf/inject-cofx ::inject/sub [:main-player])]
+ (fn [{:keys [main-player db]} [_ stream pos]]
    (let [video-stream (utils/get-video-stream stream (:settings db))]
-     {:fx [[:dispatch [:main-player/set-src video-stream pos]]]})))
+     {:fx [[:dispatch [:player/load main-player video-stream pos]]]})))
 
 (rf/reg-event-fx
- :main-player/start
- [(rf/inject-cofx ::inject/sub [:main-player])
-  (rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db main-player elapsed-time]}]
-   {:fx (into [[:dispatch [:main-player/pause false]]]
-              (when (and (:main-player/show db) (not (:bg-player/ready db)))
-                [[:dispatch [:main-player/seek @elapsed-time]]
-                 [:dispatch
-                  [:player/change-volume (:player/volume db) main-player]]]))}))
+ :main-player/initialize
+ [(rf/inject-cofx ::inject/sub [:elapsed-time])]
+ (fn [{:keys [db elapsed-time]} [_ stream player pos]]
+   {:fx [[:dispatch [:player/initialize stream player pos]]
+         [:dispatch [:main-player/pause false]]
+         [:dispatch [:main-player/seek @elapsed-time]]
+         [:dispatch
+          [:player/change-volume (:player/volume db) player]]]}))
 
 (rf/reg-event-db
  :main-player/ready
@@ -66,4 +59,6 @@
    {:db            (apply assoc
                           (assoc db :main-player/show val)
                           (when val [:search/show-form false]))
+    :fx            [(when val
+                      [:dispatch [:queue/scroll-to-pos]])]
     :body-overflow val}))

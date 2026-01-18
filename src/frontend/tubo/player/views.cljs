@@ -298,7 +298,6 @@
               :playsInline true
               :ref         #(reset! !player %)
               :slot        "media"
-              :on-error    #(rf/dispatch [:shaka/play-error % !player stream])
               :on-play     #(rf/dispatch [:player/start !player stream])
               :preload     "metadata"}
              video-args)
