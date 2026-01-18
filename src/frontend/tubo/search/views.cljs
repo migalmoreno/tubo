@@ -102,6 +102,7 @@
             :value    filter
             :on-click #(rf/dispatch [:search/change-filter filter])})
          (get-in service [:search-qh-factory :available-content-filter]))
+        :extra-button-args {:type "button"}
         :extra-classes ["!px-4" "!py-1"]
         :tooltip-classes ["right-0" "top-12" "sm:right-auto" "sm:left-4"]]
        [:button.px-2.absolute

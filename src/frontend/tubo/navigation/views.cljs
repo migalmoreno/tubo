@@ -137,9 +137,11 @@
          [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
-         (cond show-main-player? [stream/metadata-popover
-                                  @(rf/subscribe [:stream])]
-               show-queue?       [bg-player/popover stream :tooltip-classes
+         (cond show-main-player? [:div.block.xs:hidden
+                                  [stream/metadata-popover
+                                   @(rf/subscribe [:stream])]]
+               show-queue?       [stream/bg-player-popover stream
+                                  :tooltip-classes
                                   ["top-5" "right-0"]]
                :else             [:div.xs:hidden
                                   (case (get-in match [:data :name])
@@ -343,7 +345,7 @@
      (when show-mobile-menu?
        [layout/popover
         (map #(assoc % :hide-bg-overlay-on-click? false) theme-tooltip-items)
-        :extra-classes ["!p-0"]
+        :extra-classes ["!p-0" "!bg-transparent"]
         :tooltip-classes ["right-5" "bottom-0"]
         :responsive? false
         :icon
@@ -400,7 +402,7 @@
       [:div.flex.items-center.h-14.px-4.gap-x-2.xs:gap-x-4
        {:class "min-h-[56px]"}
        [layout/button nil #(rf/dispatch [:navigation/hide-mobile-menu])
-        [:i.fa-solid.fa-bars]]
+        [:i.fa-solid.fa-bars] nil :button-classes ["text-lg"]]
        [logo]]
       [:div.flex.flex-col.justify-between.flex-auto.overflow-auto.scrollbar-none
        [services-menu match true]

@@ -63,7 +63,7 @@
                                              true])})])]
     (when (not-empty (remove nil? items))
       [layout/popover items
-       :extra-classes ["max-xs:px-2" "max-xs:py-1"]
+       :extra-classes ["max-xs:p-2.5"]
        :tooltip-classes ["right-5" "top-0"]])))
 
 (defn grid-item-content
@@ -165,7 +165,7 @@
         ["rounded-full" "!min-w-16" "m-auto"]
         thumbnail-image-classes)]
      [:div.flex.flex-col.flex-auto {:class container-classes}
-      [:div.flex.items-center.justify-between
+      [:div.flex.items-center.justify-between.gap-x-2
        (when name
          [:a {:href route :title name}
           [:div {:class title-classes}
