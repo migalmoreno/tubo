@@ -39,8 +39,8 @@
     :or   {progress-color       "white"
            light-track-color    "#d4d4d4"
            light-buffered-color "#a3a3a3"
-           dark-track-color     "#525252"
-           dark-buffered-color  "#737373"
+           dark-track-color     "#737373"
+           dark-buffered-color  "#525252"
            height               "0.5rem"
            thumb-size           "1rem"
            thumb-color          "white"}}]
@@ -165,7 +165,7 @@
        (if (and bg-player-ready? @!player @!elapsed-time)
          (utils/format-duration @!elapsed-time)
          "--:--")]
-      [:div.w-20.lg:w-64.mx-2.flex.items-center
+      [:div.w-20.lg:w-96.mx-2.flex.items-center
        {:style {"--thumb-bg" (if dark-theme
                                "rgb(212,212,212)"
                                "rgb(0,0,0)")}}
