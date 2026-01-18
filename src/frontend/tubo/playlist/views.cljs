@@ -20,8 +20,7 @@
       {:label    "Add to playlist"
        :icon     [:i.fa-solid.fa-plus]
        :on-click #(rf/dispatch [:modals/open
-                                [modals/add-to-bookmark related-items]])}]
-     :extra-classes ["px-5" "xs:px-3"]]))
+                                [modals/add-to-bookmark related-items]])}]]))
 
 (defn playlist
   [{:keys [name uploader-name uploader-url stream-count related-items

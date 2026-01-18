@@ -5,6 +5,7 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
+   [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
    [tubo.items.views :as items]
@@ -18,7 +19,7 @@
     [:div.flex.cursor-pointer.px-4.py-2
      {:class    (into
                  (when (= i queue-pos)
-                   ["bg-neutral-600/20" "dark:bg-neutral-800/50"])
+                   ["bg-neutral-600/20" "dark:bg-neutral-700/40"])
                  ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
       :on-click #(rf/dispatch [:queue/load-pos i])}
      [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
@@ -41,100 +42,6 @@
          [:<>
           [layout/bullet :extra-classes ["hidden" "@lg:inline-block"]]
           [:span (utils/get-service-name service-id)]])]]]))
-
-(defn popover
-  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
-    :as   item} i]
-  [:div.absolute.right-0.top-0.min-h-full.flex.items-center
-   [layout/popover
-    [{:label    "Start radio"
-      :icon     [:i.fa-solid.fa-tower-cell]
-      :on-click #(rf/dispatch [:bg-player/start-radio item])}
-     {:label    "Add to playlist"
-      :icon     [:i.fa-solid.fa-plus]
-      :on-click #(rf/dispatch [:modals/open
-                               [modals/add-to-bookmark item]])}
-     {:label    "Remove from queue"
-      :icon     [:i.fa-solid.fa-trash]
-      :on-click #(rf/dispatch [:queue/remove i])}
-     (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-       {:label    "Unsubscribe from channel"
-        :icon     [:i.fa-solid.fa-user-minus]
-        :on-click #(rf/dispatch [:subscriptions/remove uploader-url])}
-       {:label    "Subscribe to channel"
-        :icon     [:i.fa-solid.fa-user-plus]
-        :on-click #(rf/dispatch [:subscriptions/add
-                                 {:url      uploader-url
-                                  :name     uploader-name
-                                  :verified uploader-verified
-                                  :avatars  uploader-avatars}])})
-     {:label    "Show channel details"
-      :icon     [:i.fa-solid.fa-user]
-      :on-click #(rf/dispatch [:navigation/navigate
-                               {:name   :channel-page
-                                :params {}
-                                :query  {:url uploader-url}}])}]
-    :tooltip-classes ["right-5" "top-0" "z-40"]
-    :extra-classes ["px-4" "py-2"]]])
-
-(defn bg-player-popover
-  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
-    :as   stream} & {:keys [tooltip-classes]}]
-  (let [queue     @(rf/subscribe [:queue])
-        queue-pos @(rf/subscribe [:queue/position])
-        bookmark  #(rf/dispatch [:modals/open
-                                 [modals/add-to-bookmark %]])]
-    [layout/popover
-     [{:label             "Start radio"
-       :icon              [:i.fa-solid.fa-tower-cell]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:bg-player/start-radio
-                                         stream])}
-      {:label             "Add current to playlist"
-       :icon              [:i.fa-solid.fa-plus]
-       :stop-propagation? true
-       :on-click          #(bookmark stream)}
-      {:label             "Add queue to playlist"
-       :icon              [:i.fa-solid.fa-list]
-       :stop-propagation? true
-       :on-click          #(bookmark queue)}
-      {:label             "Remove from queue"
-       :icon              [:i.fa-solid.fa-trash]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:queue/remove
-                                         queue-pos])}
-      {:label             "Switch to main"
-       :icon              [:i.fa-solid.fa-display]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch
-                            [:bg-player/switch-to-main])}
-      (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-        {:label             "Unsubscribe from channel"
-         :icon              [:i.fa-solid.fa-user-minus]
-         :stop-propagation? true
-         :on-click          #(rf/dispatch [:subscriptions/remove uploader-url])}
-        {:label             "Subscribe to channel"
-         :icon              [:i.fa-solid.fa-user-plus]
-         :stop-propagation? true
-         :on-click          #(rf/dispatch [:subscriptions/add
-                                           {:url      uploader-url
-                                            :name     uploader-name
-                                            :verified uploader-verified
-                                            :avatars  uploader-avatars}])})
-      {:label             "Show channel details"
-       :icon              [:i.fa-solid.fa-user]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:navigation/navigate
-                                         {:name   :channel-page
-                                          :params {}
-                                          :query  {:url
-                                                   uploader-url}}])}
-      {:label             "Close player"
-       :stop-propagation? true
-       :icon              [:i.fa-solid.fa-close]
-       :on-click          #(rf/dispatch [:bg-player/dispose])}]
-     :stop-propagation? true
-     :tooltip-classes (or tooltip-classes ["right-5" "bottom-5"])]))
 
 (defn metadata-popover
   [{:keys [url related-items] :as stream}]
@@ -162,11 +69,9 @@
         :on-click #(rf/dispatch [:modals/open
                                  [modals/add-to-bookmark related-items]])}]))
    :tooltip-classes ["right-5" "top-5"]
-   :extra-classes ["xs:py-2.5" "xs:px-2.5" "rounded-full"]
-   :icon
-   [:<>
-    [:i.fa-solid.fa-ellipsis-vertical.xs:hidden]
-    [:i.fa-solid.fa-ellipsis.hidden.xs:block]]])
+   :extra-classes
+   ["bg-neutral-200" "dark:bg-neutral-900" "xs:px-2.5" "rounded-full"]
+   :icon [:i.fa-solid.fa-ellipsis]])
 
 (defn metadata-uploader
   [{:keys [uploader-url uploader-name uploader-verified subscriber-count
@@ -215,8 +120,7 @@
          [:span.text-neutral-800.dark:text-neutral-300
           (utils/format-quantity dislike-count)]])])
    (when stream
-     [:div.hidden.xs:flex.bg-neutral-200.dark:bg-neutral-900.rounded-full
-      [metadata-popover stream]])])
+     [metadata-popover stream])])
 
 (defn metadata
   [{:keys [name view-count textual-upload-date] :as stream}]
@@ -274,6 +178,60 @@
                        :show-description])]
        [more-metadata stream]])))
 
+(defn popover
+  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
+    :as   item} i]
+  [:div.absolute.right-0.top-0.min-h-full.flex.items-center
+   [layout/popover
+    [{:label    "Start radio"
+      :icon     [:i.fa-solid.fa-tower-cell]
+      :on-click #(rf/dispatch [:bg-player/start-radio item])}
+     {:label    "Add to playlist"
+      :icon     [:i.fa-solid.fa-plus]
+      :on-click #(rf/dispatch [:modals/open
+                               [modals/add-to-bookmark item]])}
+     {:label    "Remove from queue"
+      :icon     [:i.fa-solid.fa-trash]
+      :on-click #(rf/dispatch [:queue/remove i])}
+     (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
+       {:label    "Unsubscribe from channel"
+        :icon     [:i.fa-solid.fa-user-minus]
+        :on-click #(rf/dispatch [:subscriptions/remove uploader-url])}
+       {:label    "Subscribe to channel"
+        :icon     [:i.fa-solid.fa-user-plus]
+        :on-click #(rf/dispatch [:subscriptions/add
+                                 {:url      uploader-url
+                                  :name     uploader-name
+                                  :verified uploader-verified
+                                  :avatars  uploader-avatars}])})
+     {:label    "Show channel details"
+      :icon     [:i.fa-solid.fa-user]
+      :on-click #(rf/dispatch [:navigation/navigate
+                               {:name   :channel-page
+                                :params {}
+                                :query  {:url uploader-url}}])}]
+    :tooltip-classes ["right-5" "top-0" "z-40"]
+    :extra-classes ["px-4" "py-2"]]])
+
+(defn virtualized-queue
+  []
+  (let [!virtuoso @(rf/subscribe [:virtuoso])]
+    (r/create-class
+     {:component-did-mount #(rf/dispatch [:queue/scroll-to-pos])
+      :reagent-render
+      (fn []
+        (let [bookmarks @(rf/subscribe [:bookmarks])
+              queue     @(rf/subscribe [:queue])]
+          [:> Virtuoso
+           {:totalCount  (count queue)
+            :ref         #(reset! !virtuoso %)
+            :itemContent (fn [i]
+                           (let [item (get queue i)]
+                             (r/as-element
+                              [:div.relative.w-full
+                               [item-metadata item i]
+                               [popover item i bookmarks]])))}]))})))
+
 (defn comments
   [{:keys [comments-page show-comments show-comments-loading] :as stream}]
   (let [show?         (:show-comments @(rf/subscribe [:settings]))
@@ -302,25 +260,6 @@
            :thumbnail-image-classes ["rounded-lg"]
            :title-classes ["font-medium" "line-clamp-2" "text-xs"]])]])))
 
-(defn virtualized-queue
-  []
-  (let [!virtuoso @(rf/subscribe [:virtuoso])]
-    (r/create-class
-     {:component-did-mount #(rf/dispatch [:queue/scroll-to-pos])
-      :reagent-render
-      (fn []
-        (let [bookmarks @(rf/subscribe [:bookmarks])
-              queue     @(rf/subscribe [:queue])]
-          [:> Virtuoso
-           {:totalCount  (count queue)
-            :ref         #(reset! !virtuoso %)
-            :itemContent (fn [i]
-                           (let [item (get queue i)]
-                             (r/as-element
-                              [:div.relative.w-full
-                               [item-metadata item i]
-                               [popover item i bookmarks]])))}]))})))
-
 (defn stream-queue
   []
   (let [stream @(rf/subscribe [:queue/current])
@@ -340,7 +279,7 @@
            [player/loop-button color true :extra-classes ["text-sm"]]]
           [:div.pl-4.pr-5
            [player/shuffle-button color true :extra-classes ["text-sm"]]]
-          [bg-player-popover stream :tooltip-classes ["top-0" "right-0"]]]]
+          [bg-player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
         [:div.flex.flex-col.gap-y-1.w-full.h-64.max-h-64.overflow-y-auto.relative.scroll-smooth.scrollbar-none
          {:class "@container"}
          [virtualized-queue]]]])))
@@ -363,6 +302,7 @@
             breakpoint @(rf/subscribe [:layout/breakpoint])]
         [:div.flex.flex-col.flex-1
          [:div.flex.flex-col.justify-center.items-center.sticky.md:static.z-10.relative
+          {:class (if show-main-player? "top-0" "top-[56px]")}
           video]
          (when stream
            [:div.flex.flex-col.py-4.w-full.px-4.md:px-0
