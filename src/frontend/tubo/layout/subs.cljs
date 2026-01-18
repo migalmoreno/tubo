@@ -52,6 +52,11 @@
    (:layout/mobile-tooltip db)))
 
 (rf/reg-sub
+ :layout/mobile-panel
+ (fn [db]
+   (:layout/mobile-panel db)))
+
+(rf/reg-sub
  :layout/tooltips
  (fn [db]
    (:layout/tooltips db)))
@@ -60,5 +65,17 @@
  :layout/tooltip-by-id
  (fn []
    (rf/subscribe [:layout/tooltips]))
+ (fn [tooltips [_ id]]
+   (get tooltips id)))
+
+(rf/reg-sub
+ :layout/panels
+ (fn [db]
+   (:layout/panels db)))
+
+(rf/reg-sub
+ :layout/panel-by-id
+ (fn []
+   (rf/subscribe [:layout/panels]))
  (fn [tooltips [_ id]]
    (get tooltips id)))

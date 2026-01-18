@@ -3,8 +3,8 @@
    ["motion/react" :refer [AnimatePresence motion]]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.bookmarks.modals :as modals]
    [tubo.layout.views :as layout]
+   [tubo.main-player.views :as main-player]
    [tubo.player.views :as player]
    [tubo.utils :as utils]))
 
@@ -176,65 +176,6 @@
          (utils/format-duration (.-duration @!player))
          "--:--")]]]))
 
-(defn popover
-  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
-    :as   stream} & {:keys [tooltip-classes extra-classes]}]
-  (let [queue     @(rf/subscribe [:queue])
-        queue-pos @(rf/subscribe [:queue/position])
-        bookmark  #(rf/dispatch [:modals/open
-                                 [modals/add-to-bookmark %]])]
-    [layout/popover
-     [{:label             "Start radio"
-       :icon              [:i.fa-solid.fa-tower-cell]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:bg-player/start-radio
-                                         stream])}
-      {:label             "Add current to playlist"
-       :icon              [:i.fa-solid.fa-plus]
-       :stop-propagation? true
-       :on-click          #(bookmark stream)}
-      {:label             "Add queue to playlist"
-       :icon              [:i.fa-solid.fa-list]
-       :stop-propagation? true
-       :on-click          #(bookmark queue)}
-      {:label             "Remove from queue"
-       :icon              [:i.fa-solid.fa-trash]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:queue/remove
-                                         queue-pos])}
-      {:label             "Switch to main"
-       :icon              [:i.fa-solid.fa-display]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch
-                            [:bg-player/switch-to-main])}
-      (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-        {:label             "Unsubscribe from channel"
-         :icon              [:i.fa-solid.fa-user-minus]
-         :stop-propagation? true
-         :on-click          #(rf/dispatch [:subscriptions/remove uploader-url])}
-        {:label             "Subscribe to channel"
-         :icon              [:i.fa-solid.fa-user-plus]
-         :stop-propagation? true
-         :on-click          #(rf/dispatch [:subscriptions/add
-                                           {:url      uploader-url
-                                            :name     uploader-name
-                                            :verified uploader-verified
-                                            :avatars  uploader-avatars}])})
-      {:label             "Show channel details"
-       :icon              [:i.fa-solid.fa-user]
-       :stop-propagation? true
-       :on-click          #(rf/dispatch [:navigation/navigate
-                                         {:name   :channel-page
-                                          :params {}
-                                          :query  {:url
-                                                   uploader-url}}])}
-      {:label             "Close player"
-       :stop-propagation? true
-       :icon              [:i.fa-solid.fa-close]
-       :on-click          #(rf/dispatch [:bg-player/dispose])}]
-     :stop-propagation? true
-     :tooltip-classes (or tooltip-classes ["right-5" "bottom-5"])]))
-
 (defn extra-controls
   [!player color]
   (let [muted?     @(rf/subscribe [:player/muted])
@@ -251,6 +192,14 @@
       [volume-slider !player :progress-color color :height "0.375rem"
        :thumb-size
        "0.375rem" :thumb-color color :rounded? true]]
+     [layout/panel-popover
+      [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
+       [main-player/player]]
+      :stop-propagation? true
+      :mobile-only? true
+      :extra-classes ["w-10"]
+      :icon
+      [:i.fa-solid.fa-display]]
      [player/button
       :icon [:i.fa-solid.fa-up-right-and-down-left-from-center]
       :on-click #(rf/dispatch [:queue/show true])

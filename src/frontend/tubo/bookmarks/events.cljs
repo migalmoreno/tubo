@@ -374,7 +374,8 @@
 (rf/reg-event-fx
  :bookmarks/import
  (fn [_ [_ event]]
-   (let [tooltip-id (le/find-clicked-controller-id (.-target event))]
+   (let [tooltip-id (le/find-clicked-controller-id (.-target event)
+                                                   le/tooltip-class-prefix)]
      {:fx (into (map (fn [file] [:bookmarks/import! file])
                      (.. event -target -files))
                 [[:dispatch [:layout/destroy-tooltip-by-id tooltip-id]]

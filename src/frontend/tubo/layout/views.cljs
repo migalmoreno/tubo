@@ -81,8 +81,7 @@
     [:> AnimatePresence
      (when show?
        [:> (.-div motion)
-        {:class    (into ["w-full" "fixed" "min-h-screen" "right-0" "top-0"
-                          "z-20"]
+        {:class    (into ["w-full" "fixed" "min-h-screen" "right-0" "top-0"]
                          (conj (:extra-classes overlay)
                                (when-not (:transparent? overlay) "bg-black")))
          :animate  {:opacity 0.5}
@@ -277,13 +276,12 @@
 
 (defn mobile-tooltip
   []
-  (let [{:keys [id show?]}
-        @(rf/subscribe [:layout/mobile-tooltip])
-        {:keys [items] :as tooltip-data} @(rf/subscribe [:layout/tooltip-by-id
-                                                         id])]
+  (let [{:keys [id show?]} @(rf/subscribe [:layout/mobile-tooltip])
+        {:keys [items extra-classes] :as tooltip-data}
+        @(rf/subscribe [:layout/tooltip-by-id id])]
     [:> AnimatePresence
      (when tooltip-data
-       [:div.xs:hidden
+       [:div
         {:class (str "tooltip-controller-" id)}
         (when (and (seq (remove nil? items)) show?)
           [:> (.-ul motion)
@@ -293,13 +291,44 @@
             :transition {:ease     "easeInOut"
                          :bounce   0.1
                          :duration 0.3}
-            :class      ["bg-neutral-100" "dark:bg-neutral-900" "rounded-t"
-                         "rounded-b" "z-30" "flex" "flex-col" "text-neutral-800"
-                         "dark:text-white" "shadow" "shadow-neutral-400"
-                         "dark:shadow-neutral-900" "bottom-4" "left-2" "right-2"
-                         "fixed"]}
+            :class      (concat ["bg-neutral-100" "dark:bg-neutral-900" "z-40"
+                                 "rounded-t" "rounded-b" "flex" "flex-col"
+                                 "text-neutral-800" "dark:text-white"
+                                 "shadow" "shadow-neutral-400" "fixed"
+                                 "dark:shadow-neutral-900" "bottom-4" "left-2"
+                                 "right-2"]
+                                extra-classes)}
            (for [[i item] (map-indexed vector (remove nil? items))]
              ^{:key i} [tooltip-item item id])])])]))
+
+(defn mobile-panel
+  []
+  (let [{:keys [id show?]}                            @(rf/subscribe
+                                                        [:layout/mobile-panel])
+        {:keys [extra-classes view] :as tooltip-data} @(rf/subscribe
+                                                        [:layout/panel-by-id
+                                                         id])]
+    [:> AnimatePresence
+     (when tooltip-data
+       [:div
+        {:class (str "panel-controller-" id)}
+        (when (and view show?)
+          [:> (.-div motion)
+           {:animate    {:y 0}
+            :initial    {:y "100%"}
+            :exit       {:y "100%"}
+            :transition {:ease     "easeInOut"
+                         :bounce   0.1
+                         :duration 0.3}
+            :class      (concat ["bg-neutral-200" "dark:bg-neutral-900" "fixed"
+                                 "right-0" "bottom-0" "z-30" "left-0" "h-auto"
+                                 "rounded-t-3xl" "shadow" "shadow-neutral-900"
+                                 "dark:shadow-none" "dark:border-t"
+                                 "dark:border-neutral-700"]
+                                extra-classes)}
+           [:div.flex.items-center.justify-center.py-4
+            [:div.h-1.w-12.rounded-full.bg-neutral-400.dark:bg-neutral-300.text-neutral-300]]
+           view])])]))
 
 (defn popover
   []
@@ -308,15 +337,19 @@
         common-classes ["px-4" "py-2"]]
     (fn [items &
          {:keys [extra-classes icon tooltip-classes responsive?
-                 destroy-on-click-out? stop-propagation?]
+                 container-classes extra-button-args
+                 destroy-on-click-out? stop-propagation? mobile-only?]
           :or   {icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
                  destroy-on-click-out? true}}]
       [:div.flex.tooltip-controller
-       {:class (str "tooltip-controller-" tooltip-id)}
+       {:class (concat [(str "tooltip-controller-" tooltip-id)]
+                       container-classes)}
        [:div.relative
         {:class (into ["w-full"]
-                      (if responsive? ["hidden" "xs:block"] ["block"]))}
+                      (if mobile-only?
+                        ["hidden"]
+                        (if responsive? ["hidden" "xs:block"] ["block"])))}
         [button nil
          (fn [e]
            (when stop-propagation?
@@ -328,7 +361,8 @@
                             :id tooltip-id
                             :destroy-on-click-out?
                             destroy-on-click-out?}])))
-         icon nil :button-classes (concat common-classes extra-classes)]
+         icon nil :button-classes (concat common-classes extra-classes)
+         :extra-button-args extra-button-args]
         (when @tooltip-data
           [tooltip tooltip-id :extra-classes tooltip-classes])]
        [button nil
@@ -345,7 +379,40 @@
         icon nil :button-classes
         (concat common-classes
                 extra-classes
-                (if responsive? ["xs:hidden"] ["hidden"]))]])))
+                (when-not mobile-only?
+                  (if responsive? ["xs:hidden"] ["hidden"])))
+        :extra-button-args extra-button-args]])))
+
+(defn panel-popover
+  []
+  (let [panel-id       (nano-id)
+        tooltip-data   (rf/subscribe [:layout/panel-by-id panel-id])
+        common-classes ["px-4" "py-2"]]
+    (fn [view &
+         {:keys [extra-classes icon responsive? container-classes
+                 destroy-on-click-out? stop-propagation? mobile-only?]
+          :or   {icon                  [:i.fa-solid.fa-ellipsis-vertical]
+                 responsive?           true
+                 destroy-on-click-out? true}}]
+      [:div.flex.tooltip-controller
+       {:class (concat [(str "panel-controller-" panel-id)] container-classes)}
+       [:div.relative
+        [button nil
+         (fn [e]
+           (when stop-propagation?
+             (.stopPropagation e))
+           (if @tooltip-data
+             (rf/dispatch [:layout/destroy-panel-by-id panel-id])
+             (rf/dispatch [:layout/show-mobile-panel
+                           {:id panel-id
+                            :view view
+                            :destroy-on-click-out?
+                            destroy-on-click-out?}])))
+         icon nil :button-classes
+         (concat common-classes
+                 extra-classes
+                 (when-not mobile-only?
+                   (if responsive? ["xs:hidden"] ["hidden"])))]]])))
 
 (defn show-more-container
   []

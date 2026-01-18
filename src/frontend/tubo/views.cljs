@@ -5,7 +5,6 @@
    [re-frame.core :as rf]
    [tubo.bg-player.views :as bg-player]
    [tubo.layout.views :as layout]
-   [tubo.main-player.views :as main-player]
    [tubo.modals.views :as modals]
    [tubo.navigation.views :as navigation]
    [tubo.notifications.views :as notifications]
@@ -17,12 +16,17 @@
         dark-theme?      @(rf/subscribe [:dark-theme])
         !top-loading-bar @(rf/subscribe [:top-loading-bar])]
     [:div
-     {:class    (when dark-theme? :dark)
-      :on-click #(rf/dispatch [:layout/destroy-tooltips-on-click-out
-                               (.. % -target)])}
-     [:div.font-roboto.min-h-screen.h-full.relative.flex.flex-col.dark:text-white.bg-neutral-100.dark:bg-neutral-950.z-10
+     {:class (when dark-theme? :dark)}
+     [:div.min-h-screen.h-full.relative.flex.flex-col.dark:text-white.bg-neutral-100.dark:bg-neutral-950.z-10
+      {:on-click #(do (rf/dispatch
+                       [:layout/destroy-tooltips-on-click-out
+                        (.. % -target)])
+                      (rf/dispatch
+                       [:layout/destroy-panels-on-click-out
+                        (.. % -target)]))}
       [layout/background-overlay]
       [layout/mobile-tooltip]
+      [layout/mobile-panel]
       [modals/modals-container]
       [navigation/mobile-menu current-match]
       [navigation/navbar current-match]
@@ -43,6 +47,5 @@
              :transition {:duration 0.5 :ease "easeOut"}}
             [view current-match]]
            [layout/not-found-page])]
-        [queue/queue]
-        [main-player/player]]]
+        [queue/queue]]]
       [bg-player/player]]]))
