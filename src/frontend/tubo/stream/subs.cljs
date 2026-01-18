@@ -6,3 +6,10 @@
  :stream
  (fn [db]
    (:stream db)))
+
+(defonce !player (atom nil))
+
+(rf/reg-sub
+ :stream-player
+ (fn []
+   !player))

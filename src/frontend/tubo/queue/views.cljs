@@ -1,79 +1,15 @@
 (ns tubo.queue.views
   (:require
    ["motion/react" :refer [AnimatePresence motion]]
-   ["react-virtuoso" :refer [Virtuoso]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.bg-player.views :as bg-player]
-   [tubo.bookmarks.modals :as modals]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
+   [tubo.main-player.views :as main-player]
    [tubo.player.views :as player]
+   [tubo.stream.views :as stream]
    [tubo.utils :as utils]))
-
-(defn item-metadata
-  [{:keys [uploader-name name service-id] :as item} i]
-  (let [queue-pos @(rf/subscribe [:queue/position])]
-    [:div.flex.cursor-pointer.px-4.py-2
-     {:class    (into
-                 (when (= i queue-pos)
-                   ["bg-neutral-600/20" "dark:bg-neutral-800/50"])
-                 ["h-[4.5rem]" "@sm:h-fit" "@sm:pl-0"])
-      :on-click #(rf/dispatch [:queue/load-pos i])}
-     [:div.items-center.justify-center.min-w-16.w-16.xs:min-w-24.xs:w-24.hidden
-      {:class "@sm:flex"}
-      [:span.font-medium.text-neutral-600.dark:text-neutral-300.text-xs
-       (cond
-         (= i queue-pos) [:i.fa-solid.fa-play]
-         :else           (inc i))]]
-     [:div.flex.items-center.shrink-0.grow-0
-      [layout/thumbnail item nil :container-classes
-       ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
-       ["rounded"]]]
-     [:div.flex.flex-col.pl-4.pr-12.w-full.gap-y-1
-      [:h1.line-clamp-1.w-fit.text-sm
-       {:title name :class "@lg:text-md"} name]
-      [:div.text-neutral-600.dark:text-neutral-400.text-xs.flex.flex-col.gap-y-1.gap-x-2
-       {:class "@lg:flex-row"}
-       [:span.line-clamp-1 {:title uploader-name} uploader-name]
-       (when service-id
-         [:<>
-          [layout/bullet :extra-classes ["hidden" "@lg:inline-block"]]
-          [:span (utils/get-service-name service-id)]])]]]))
-
-(defn popover
-  [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
-    :as   item} i]
-  [:div.absolute.right-0.top-0.min-h-full.flex.items-center
-   [layout/popover
-    [{:label    "Start radio"
-      :icon     [:i.fa-solid.fa-tower-cell]
-      :on-click #(rf/dispatch [:bg-player/start-radio item])}
-     {:label    "Add to playlist"
-      :icon     [:i.fa-solid.fa-plus]
-      :on-click #(rf/dispatch [:modals/open [modals/add-to-bookmark item]])}
-     {:label    "Remove from queue"
-      :icon     [:i.fa-solid.fa-trash]
-      :on-click #(rf/dispatch [:queue/remove i])}
-     (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-       {:label    "Unsubscribe from channel"
-        :icon     [:i.fa-solid.fa-user-minus]
-        :on-click #(rf/dispatch [:subscriptions/remove uploader-url])}
-       {:label    "Subscribe to channel"
-        :icon     [:i.fa-solid.fa-user-plus]
-        :on-click #(rf/dispatch [:subscriptions/add
-                                 {:url      uploader-url
-                                  :name     uploader-name
-                                  :verified uploader-verified
-                                  :avatars  uploader-avatars}])})
-     {:label    "Show channel details"
-      :icon     [:i.fa-solid.fa-user]
-      :on-click #(rf/dispatch [:navigation/navigate
-                               {:name   :channel-page
-                                :params {}
-                                :query  {:url uploader-url}}])}]
-    :tooltip-classes ["right-5" "top-0" "z-20"]
-    :extra-classes ["px-4" "py-2"]]])
 
 (defn queue-metadata
   [{:keys [name uploader-name]}]
@@ -97,10 +33,9 @@
         paused?          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         queue            @(rf/subscribe [:queue])
-        queue-pos        @(rf/subscribe [:queue/position])
-        dark-theme?      @(rf/subscribe [:dark-theme])]
-    [:div.flex.flex-col
-     [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium
+        queue-pos        @(rf/subscribe [:queue/position])]
+    [:div.flex.flex-col.flex-1.justify-between
+     [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium.justify-center
       {:class "text-[0.8rem]"}
       [bg-player/time-slider !player !elapsed-time :height "0.4rem"
        :progress-color
@@ -115,7 +50,7 @@
         (if (and bg-player-ready? @!player)
           (utils/format-duration (.-duration @!player))
           "--:--")]]]
-     [:div.flex.justify-between.items-center
+     [:div.flex.justify-between.items-center.flex-auto
       [button
        :icon [:i.fa-solid.fa-backward-step]
        :on-click #(rf/dispatch [:queue/previous])
@@ -135,13 +70,12 @@
          (if paused?
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
-         [layout/loading-icon color ["text-4xl" "@sm:text-[3.5rem]"]])
+         [layout/loading-icon color ["text-[3.5rem]"]])
        :on-click
        #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes
-       ["text-4xl" "@sm:text-[3.5rem]" "flex" "justify-center"
-        "!bg-transparent"]]
+       ["text-[3.5rem]" "flex" "justify-center" "!bg-transparent"]]
       [button
        :icon [:i.fa-solid.fa-forward]
        :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
@@ -154,140 +88,129 @@
        :extra-classes ["@sm:text-xl"]
        :show-on-mobile? true]]]))
 
-(defn virtualized-queue
+(defn queue-list
   []
-  (let [!virtuoso @(rf/subscribe [:virtuoso])]
-    (r/create-class
-     {:component-did-mount #(rf/dispatch [:queue/scroll-to-pos])
-      :reagent-render
-      (fn []
-        (let [bookmarks @(rf/subscribe [:bookmarks])
-              queue     @(rf/subscribe [:queue])]
-          [:> Virtuoso
-           {:totalCount  (count queue)
-            :ref         #(reset! !virtuoso %)
-            :itemContent (fn [i]
-                           (let [item (get queue i)]
-                             (r/as-element
-                              [:div.relative.w-full
-                               [item-metadata item i]
-                               [popover item i bookmarks]])))}]))})))
+  (let [!active-tab (r/atom :queue)]
+    (fn [stream]
+      [:div
+       {:class ["flex" "flex-1" "relative" "items-center" "shrink-0"
+                "flex-auto"]}
+       [:div.flex.flex-auto.flex-col.h-full
+        [layout/tabs
+         [{:id    :queue
+           :label "UP NEXT"}
+          {:id    :related
+           :label "RELATED"}]
+         :selected-id @!active-tab
+         :on-change #(reset! !active-tab %)]
+        [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
+         {:class "@container"}
+         (case @!active-tab
+           :queue   [stream/virtualized-queue]
+           :related [:div.flex.flex-col.gap-y-2.p-4
+                     (for [[i item]
+                           (map-indexed vector
+                                        (:related-items stream))]
+                       ^{:key i}
+                       [items/list-item-content item
+                        :container-classes
+                        ["flex" "flex-col" "flex-auto" "gap-y-1"]
+                        :author-classes ["line-clamp-1" "text-xs"]
+                        :title-classes
+                        ["font-semibold" "line-clamp-2" "text-xs"]
+                        :metadata-classes ["text-xs" "gap-y-2"]
+                        :thumbnail-container-classes
+                        ["h-[5.5rem]" "min-w-[150px]"
+                         "max-w-[150px]"]])])]]])))
 
 (defn queue
   []
-  (let [!active-tab (r/atom :queue)]
-    (fn []
-      (let [show-queue  @(rf/subscribe [:queue/show])
-            show-list?  @(rf/subscribe [:queue/show-list])
-            stream      @(rf/subscribe [:queue/current])
-            color       (-> stream
-                            :service-id
-                            utils/get-service-color)
-            !thumbnail  @(rf/subscribe [:queue-thumbnail])
-            !bg         @(rf/subscribe [:queue-bg])
-            dark-theme? @(rf/subscribe [:dark-theme])
-            breakpoint  @(rf/subscribe [:layout/breakpoint])
-            !player     @(rf/subscribe [:bg-player])
-            muted?      @(rf/subscribe [:player/muted])]
-        [:> AnimatePresence
-         (when show-queue
-           [:> (.-div motion)
-            {:initial {:opacity 0}
-             :animate {:opacity 1}
-             :exit    {:opacity 0}
-             :class   ["fixed" "flex" "flex-col" "items-center" "z-10"
-                       "justify-center" "right-0" "left-0" "top-0" "bottom-0"]}
-            [:> (.-div motion)
-             {:style {"--bg-color"    (or (:thumbnail-color stream)
-                                          (str "rgba("
-                                               (if dark-theme?
-                                                 "10,10,10"
-                                                 "245,245,245")
-                                               ")"))
-                      "--bg-gradient" (str
-                                       "rgba("
-                                       (if dark-theme? "10,10,10" "245,245,245")
-                                       ",0.5)")}
-              :ref   #(reset! !bg %)
-              :class ["flex" "justify-center" "w-full" "h-full"
-                      "relative" "overflow-hidden"
-                      "bg-[color:var(--bg-color)]" "transition-colors"
-                      "duration-500" "before:absolute" "before:top-0"
-                      "before:bottom-0" "before:left-0" "before:right-0"
-                      "before:bg-[color:var(--bg-gradient)]"
-                      "before:content-['']"]}
-             [:div.flex.justify-center.w-full.overflow-y-auto
-              {:class ["h-[calc(100%-56px)]" "mt-[56px]"]}
-              [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
-               {:class ["w-full" "xl:w-4/5" "h-full" "xs:h-[600px]"
-                        "md:h-[800px]"]}
-               (when (and show-queue
-                          (or (not= breakpoint :xs) (not show-list?)))
-                 [:div.flex.flex-col.relative.w-full.xs:w-fit.px-4.xs:px-0
-                  [:div.flex.flex-col.gap-y-4.xs:gap-y-6.flex-auto.justify-between
-                   {:class ["w-full" "xs:w-[14rem]" "sm:w-[16rem]"
-                            "md:w-[24rem]" "@container"]}
-                   [:> (.-div motion)
-                    {:class   ["flex" "w-full" "items-center" "justify-center"]
-                     :animate {:scale 1}
-                     :ref     #(reset! !thumbnail %)
-                     :initial {:scale 0.9}}
-                    [layout/thumbnail stream nil :hide-label? true
-                     :container-classes
-                     ["aspect-square" "min-w-full" "rounded-md"]
-                     :image-classes ["rounded-md"]]]
-                   [:div.flex.flex-col.gap-y-8.md:gap-y-16.w-full
-                    [queue-metadata stream]
-                    [main-controls color]]
-                   [:div.flex.justify-between.min-w-full.py-4
-                    [player/button
-                     :icon
-                     (if muted?
-                       [:i.fa-solid.fa-volume-xmark]
-                       [:i.fa-solid.fa-volume-low])
-                     :on-click
-                     #(rf/dispatch [:bg-player/mute (not muted?) !player])
-                     :show-on-mobile? true
-                     :extra-classes ["text-md" "w-10"]]
-                    [player/shuffle-button color true :extra-classes
-                     ["text-md"]]
-                    [player/loop-button color true :extra-classes ["text-md"]]
-                    [player/button
-                     :show-on-mobile? true
-                     :on-click #(rf/dispatch [:queue/show-list true])
-                     :icon [:i.fa-solid.fa-list]
-                     :extra-classes ["text-md" "w-10"]]]]])
-               (when (and show-queue (or (not= breakpoint :xs) show-list?))
-                 [:> (.-div motion)
-                  {:animate    {:y 0}
-                   :initial    {:y 50}
-                   :transition {:duration 0.3}
-                   :class      ["flex" "flex-1" "relative" "items-center"
-                                "shrink-0"]}
-                  [:div.flex.flex-auto.flex-col.h-full
-                   [layout/tabs
-                    [{:id    :queue
-                      :label "UP NEXT"}
-                     {:id    :related
-                      :label "RELATED"}]
-                    :selected-id @!active-tab
-                    :on-change #(reset! !active-tab %)]
-                   [:div.flex.flex-col.h-full.w-full.gap-y-1.relative.scroll-smooth.overflow-y-auto
-                    {:class "@container"}
-                    (case @!active-tab
-                      :queue   [virtualized-queue]
-                      :related [:div.flex.flex-col.gap-y-2.p-4
-                                (for [[i item]
-                                      (map-indexed vector
-                                                   (:related-items stream))]
-                                  ^{:key i}
-                                  [items/list-item-content item
-                                   :container-classes
-                                   ["flex" "flex-col" "flex-auto" "gap-y-1"]
-                                   :author-classes ["line-clamp-1" "text-xs"]
-                                   :title-classes
-                                   ["font-semibold" "line-clamp-2" "text-xs"]
-                                   :metadata-classes ["text-xs" "gap-y-2"]
-                                   :thumbnail-container-classes
-                                   ["h-[5.5rem]" "min-w-[150px]"
-                                    "max-w-[150px]"]])])]]])]]]])]))))
+  (let [show-queue  @(rf/subscribe [:queue/show])
+        stream      @(rf/subscribe [:queue/current])
+        color       (-> stream
+                        :service-id
+                        utils/get-service-color)
+        !thumbnail  @(rf/subscribe [:queue-thumbnail])
+        !bg         @(rf/subscribe [:queue-bg])
+        dark-theme? @(rf/subscribe [:dark-theme])
+        !player     @(rf/subscribe [:bg-player])
+        muted?      @(rf/subscribe [:player/muted])]
+    [:> AnimatePresence
+     (when show-queue
+       [:> (.-div motion)
+        {:initial {:opacity 0}
+         :animate {:opacity 1}
+         :exit    {:opacity 0}
+         :class   ["fixed" "flex" "flex-col" "items-center" "z-10"
+                   "justify-center" "right-0" "left-0" "top-0" "bottom-0"]}
+        [:> (.-div motion)
+         {:style {"--bg-color"    (or (:thumbnail-color stream)
+                                      (str "rgba("
+                                           (if dark-theme?
+                                             "10,10,10"
+                                             "245,245,245")
+                                           ")"))
+                  "--bg-gradient" (str
+                                   "rgba("
+                                   (if dark-theme? "10,10,10" "245,245,245")
+                                   ",0.5)")}
+          :ref   #(reset! !bg %)
+          :class ["flex" "justify-center" "w-full" "h-full"
+                  "relative" "overflow-hidden"
+                  "bg-[color:var(--bg-color)]" "transition-colors"
+                  "duration-500" "before:absolute" "before:top-0"
+                  "before:bottom-0" "before:left-0" "before:right-0"
+                  "before:bg-[color:var(--bg-gradient)]"
+                  "before:content-['']"]}
+         [:div.flex.justify-center.w-full.overflow-y-auto
+          {:class ["h-[calc(100%-56px)]" "mt-[56px]"]}
+          [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
+           {:class ["w-full" "xl:w-4/5" "h-full" "sm:h-[600px]"
+                    "md:h-[800px]"]}
+           [:div.flex.flex-col.relative.w-full.sm:w-fit.px-4.xs:px-0.items-center
+            [:div.flex.flex-col.gap-y-4.xs:gap-y-6.flex-auto.justify-between
+             {:class ["w-full" "xs:w-11/12" "sm:w-[18rem]" "md:w-[24rem]"
+                      "@container"]}
+             [:> (.-div motion)
+              {:class   ["flex" "w-full" "items-center" "justify-center"]
+               :animate {:scale 1}
+               :ref     #(reset! !thumbnail %)
+               :initial {:scale 0.9}}
+              [layout/thumbnail stream nil :hide-label? true
+               :container-classes
+               ["aspect-square" "min-w-full" "rounded-md"]
+               :image-classes ["rounded-md"]]]
+             [:div.flex.flex-col.gap-y-8.md:gap-y-16.w-full.flex-auto
+              [queue-metadata stream]
+              [main-controls color]]
+             [:div.flex.justify-between.min-w-full.py-4
+              [player/button
+               :icon
+               (if muted?
+                 [:i.fa-solid.fa-volume-xmark]
+                 [:i.fa-solid.fa-volume-low])
+               :on-click
+               #(rf/dispatch [:bg-player/mute (not muted?) !player])
+               :show-on-mobile? true
+               :extra-classes ["text-md" "w-10"]]
+              [player/shuffle-button color true :extra-classes
+               ["text-md" "w-10"]]
+              [player/loop-button color true :extra-classes ["text-md" "w-10"]]
+              [layout/panel-popover
+               [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
+                [queue-list stream]]
+               :mobile-only? true
+               :container-classes ["sm:hidden"]
+               :extra-classes ["w-10"]
+               :icon
+               [:i.fa-solid.fa-list]]
+              [layout/panel-popover
+               [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
+                [main-player/player]]
+               :mobile-only? true
+               :extra-classes ["w-10"]
+               :icon
+               [:i.fa-solid.fa-display]]
+             ]]]
+           [:div.hidden.sm:flex.flex-auto
+            [queue-list stream]]]]]])]))
