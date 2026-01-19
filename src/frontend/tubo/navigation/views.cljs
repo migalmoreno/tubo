@@ -1,20 +1,20 @@
 (ns tubo.navigation.views
   (:require
    ["motion/react" :refer [AnimatePresence motion]]
-   [reagent.core :as r]
+   [clojure.string :as str]
    [re-frame.core :as rf]
+   [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [svgreq.core :as svg]
+   [tubo.bg-player.views :as bg-player]
+   [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosks]
    [tubo.layout.views :as layout]
+   [tubo.playlist.views :as playlist]
    [tubo.search.views :as search]
    [tubo.stream.views :as stream]
-   [tubo.playlist.views :as playlist]
-   [tubo.bg-player.views :as bg-player]
-   [tubo.utils :as utils]
-   [clojure.string :as str]
-   [tubo.bookmarks.views :as bookmarks]))
+   [tubo.utils :as utils]))
 
 (defn logo
   []
@@ -50,19 +50,15 @@
   [title]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
         show-queue?       @(rf/subscribe [:queue/show])
-        show-list?        @(rf/subscribe [:queue/show-list])
-        show-main-player? @(rf/subscribe [:main-player/show])
         show-sidebar?     @(rf/subscribe [:navigation/show-sidebar])
         sidebar-state     @(rf/subscribe
                             [:navigation/sidebar-match-media-state])
         show-title?       @(rf/subscribe [:navigation/show-title])
-        show-logo?        (or show-main-player?
-                              (and (or (not show-title?)
-                                       (not (seq title)))
-                                   (not show-search-form?)))]
+        show-logo?        (and (or (not show-title?)
+                                   (not (seq title)))
+                               (not show-search-form?))]
     [:div.flex.items-center.xs:gap-x-4
-     (when (and (not show-queue?)
-                (not show-main-player?))
+     (when (not show-queue?)
        [:div.flex.items-center.justify-center.text-lg.w-10
         {:class (when show-search-form? ["hidden" "md:flex"])}
         [layout/button nil #(rf/dispatch [:navigation/show-mobile-menu])
@@ -80,22 +76,14 @@
                               :else :minimized)]) [:i.fa-solid.fa-bars] nil
          :button-classes
          ["hidden" "lg:flex" (when (false? show-sidebar?) "lg:hidden")]]])
-     (when (and (not show-search-form?) (or show-main-player? show-queue?))
+     (when (and (not show-search-form?) show-queue?)
        [:div.w-10
-        (cond (and show-main-player? (not show-search-form?))
-              [layout/button nil
-               #(rf/dispatch [:bg-player/switch-from-main nil])
-               [:i.fa-solid.fa-angle-down]]
-              (and show-queue? (not show-search-form?))
-              [layout/button nil
-               #(rf/dispatch (if show-list?
-                               [:queue/show-list false]
-                               [:queue/show false]))
-               [:i.fa-solid.fa-angle-down]])])
+        [layout/button nil
+         #(rf/dispatch [:queue/show false])
+         [:i.fa-solid.fa-angle-down]]])
      [:div.font-bold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
       (when (and (seq title)
                  (not show-search-form?)
-                 (not show-main-player?)
                  (not show-queue?))
         [:h1.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden.px-2
          {:class [(when-not show-title? "invisible")
@@ -125,7 +113,6 @@
 (defn nav-right-content
   [{{:keys [id]} :query-params :as match}]
   (let [show-search-form? @(rf/subscribe [:search/show-form])
-        show-main-player? @(rf/subscribe [:main-player/show])
         show-queue?       @(rf/subscribe [:queue/show])
         user              @(rf/subscribe [:auth/user])
         stream            @(rf/subscribe [:queue/current])
@@ -137,35 +124,31 @@
          [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
-         (cond show-main-player? [:div.block.xs:hidden
-                                  [stream/metadata-popover
-                                   @(rf/subscribe [:stream])]]
-               show-queue?       [stream/bg-player-popover stream
-                                  :tooltip-classes
-                                  ["top-5" "right-0"]]
-               :else             [:div.xs:hidden
-                                  (case (get-in match [:data :name])
-                                    :channel-page [channel/metadata-popover
-                                                   @(rf/subscribe [:channel])]
-                                    :stream-page [stream/metadata-popover
-                                                  @(rf/subscribe [:stream])]
-                                    :playlist-page [playlist/metadata-popover
-                                                    @(rf/subscribe
-                                                      [:playlist])]
-                                    :bookmark-page
-                                    (let [bookmark
-                                          @(rf/subscribe
-                                            [:bookmarks/get-by-id
-                                             (get-in
+         (cond show-queue? [bg-player/popover stream
+                            :tooltip-classes
+                            ["top-5" "right-0"]]
+               :else       [:div.xs:hidden
+                            (case (get-in match [:data :name])
+                              :channel-page [channel/metadata-popover
+                                             (first (:tabs @(rf/subscribe
+                                                             [:channel])))]
+                              :playlist-page [playlist/metadata-popover
                                               @(rf/subscribe
-                                                [:navigation/current-match])
-                                              [:query-params :id])])]
-                                      [playlist/metadata-popover
-                                       (assoc bookmark
-                                              :related-items
-                                              (:items bookmark))
-                                       [bookmarks/playlist-edit-modal id]])
-                                    [:<>])]))]
+                                                [:playlist])]
+                              :bookmark-page
+                              (let [bookmark
+                                    @(rf/subscribe
+                                      [:bookmarks/get-by-id
+                                       (get-in
+                                        @(rf/subscribe
+                                          [:navigation/current-match])
+                                        [:query-params :id])])]
+                                [playlist/metadata-popover
+                                 (assoc bookmark
+                                        :related-items
+                                        (:items bookmark))
+                                 [bookmarks/playlist-edit-modal id]])
+                              [:<>])]))]
       (when-not show-queue?
         [:<>
          [:div.hidden.md:flex

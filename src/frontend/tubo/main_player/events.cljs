@@ -1,7 +1,10 @@
 (ns tubo.main-player.events
   (:require
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
+   [tubo.main-player.views :as main-player]
    [tubo.player.utils :as utils]
+   [tubo.storage :refer [persist]]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
@@ -9,13 +12,6 @@
  [(rf/inject-cofx ::inject/sub [:main-player])]
  (fn [{:keys [main-player]} [_ time]]
    {:player/time {:time time :player main-player}}))
-
-(rf/reg-event-fx
- :main-player/pause
- [(rf/inject-cofx ::inject/sub [:main-player])]
- (fn [{:keys [main-player]} [_ paused?]]
-   {:player/pause {:paused? (not paused?)
-                   :player  main-player}}))
 
 (rf/reg-event-fx
  :main-player/play
@@ -33,18 +29,42 @@
 
 (rf/reg-event-fx
  :main-player/initialize
- [(rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db elapsed-time]} [_ stream player pos]]
-   {:fx [[:dispatch [:player/initialize stream player pos]]
-         [:dispatch [:main-player/pause false]]
+ [(rf/inject-cofx ::inject/sub [:elapsed-time])
+  (rf/inject-cofx ::inject/sub [:queue/current])]
+ (fn [{:keys [db elapsed-time] :as cofx} [_ stream player pos]]
+   {:db (assoc db :main-player/show true)
+    :fx [[:dispatch [:player/initialize stream player pos]]
          [:dispatch [:main-player/seek @elapsed-time]]
          [:dispatch
-          [:player/change-volume (:player/volume db) player]]]}))
+          [:player/change-volume (:player/volume db) player]]
+         (when-not (seq (get-in db
+                                [:queue (:queue/position db)
+                                 :comments-page]))
+           [:dispatch
+            [:comments/fetch-page (:url (:queue/current cofx))
+             [:queue (:queue/position db)]]])
+         (when-not (seq (get-in db
+                                [:queue (:queue/position db)
+                                 :related-items]))
+           [:dispatch
+            [:bg-player/fetch-stream (:url (:queue/current cofx))
+             (:queue/position db) false]])]}))
 
 (rf/reg-event-db
  :main-player/ready
  (fn [db [_ ready]]
    (assoc db :main-player/ready ready)))
+
+(rf/reg-event-fx
+ :main-player/show
+ (fn []
+   {:fx [[:dispatch [:queue/show false]]
+         [:dispatch
+          [:layout/show-mobile-panel
+           {:id            (nano-id)
+            :view          [main-player/player-container]
+            :extra-classes ["h-[calc(100dvh-56px)]" "bg-neutral-100"
+                            "dark:bg-neutral-950"]}]]]}))
 
 (rf/reg-event-db
  :main-player/toggle-layout
@@ -54,11 +74,10 @@
     (not (get-in db [:queue (:queue/position db) layout])))))
 
 (rf/reg-event-fx
- :main-player/show
- (fn [{:keys [db]} [_ val]]
-   {:db            (apply assoc
-                          (assoc db :main-player/show val)
-                          (when val [:search/show-form false]))
-    :fx            [(when val
-                      [:dispatch [:queue/scroll-to-pos]])]
-    :body-overflow val}))
+ :main-player/unmount
+ [persist]
+ (fn [{:keys [db]}]
+   {:db (assoc db :main-player/show false)
+    :fx [(when-not (:queue/show db)
+           [:dispatch [:bg-player/show]])
+         [:dispatch [:bg-player/start]]]}))

@@ -53,12 +53,9 @@
 
 (rf/reg-event-fx
  :comments/load-replies
- (fn [{:keys [db]} [_ comment-id {:keys [body]}]]
+ (fn [{:keys [db]} [_ comment-id keys {:keys [body]}]]
    {:db (update-in db
-                   (into (if (:main-player/show db)
-                           [:queue (:queue/position db)]
-                           [:stream])
-                         [:comments-page :related-items])
+                   (into keys [:comments-page :related-items])
                    (fn [comments]
                      (map (fn [comment]
                             (if (= (:comment-id comment) comment-id)
@@ -86,7 +83,10 @@
                 comments)))
     :fx [[:dispatch
           [:comments/fetch url
-           [:comments/load-replies comment-id] [:bad-response]
+           [:comments/load-replies comment-id
+            (if (:main-player/show db)
+              [:queue (:queue/position db)]
+              [:stream])] [:bad-response]
            {:nextPage (.stringify js/JSON (clj->js replies-page))}]]
          [:dispatch [:comments/show-replies comment-id true]]]}))
 

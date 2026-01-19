@@ -48,7 +48,7 @@
  [(rf/inject-cofx ::inject/sub [:bg-player])
   (rf/inject-cofx ::inject/sub [:elapsed-time])]
  (fn [{:keys [db bg-player elapsed-time]}]
-   {:fx [[:dispatch [:bg-player/set-paused true]]
+   {:fx [[:dispatch [:bg-player/set-paused false]]
          [:dispatch [:bg-player/seek @elapsed-time]]
          [:dispatch [:bg-player/pause false]]
          [:dispatch [:player/change-volume (:player/volume db) bg-player]]]}))
@@ -139,33 +139,9 @@
               :type        :info}]]]})))
 
 (rf/reg-event-fx
- :bg-player/switch-to-main
- [(rf/inject-cofx ::inject/sub [:queue/current])]
- (fn [{:keys [db] :as cofx}]
-   {:fx [[:dispatch [:main-player/show true]]
-         [:dispatch [:search/activate false]]
-         (when-not (seq (get-in db
-                                [:queue (:queue/position db)
-                                 :comments-page]))
-           [:dispatch
-            [:comments/fetch-page (:url (:queue/current cofx))
-             [:queue (:queue/position db)]]])
-         (when-not (seq (get-in db
-                                [:queue (:queue/position db)
-                                 :related-items]))
-           [:dispatch
-            [:bg-player/fetch-stream (:url (:queue/current cofx))
-             (:queue/position db) false]])]
-    :db (assoc db
-               :bg-player/show false
-               :queue/show     false)}))
-
-(rf/reg-event-fx
- :bg-player/switch-from-main
+ :bg-player/show
  (fn [{:keys [db]}]
-   {:db (assoc db :bg-player/show true)
-    :fx [[:dispatch [:main-player/show false]]
-         [:dispatch [:main-player/pause true]]]}))
+   {:db (assoc db :bg-player/show true)}))
 
 (rf/reg-event-fx
  :bg-player/load-stream

@@ -21,13 +21,8 @@
    {:db            (assoc db :queue/show show?)
     :fx            (if show?
                      [[:dispatch [:search/activate false]]]
-                     [])
+                     [[:dispatch [:bg-player/show]]])
     :body-overflow show?}))
-
-(rf/reg-event-fx
- :queue/show-list
- (fn [{:keys [db]} [_ value]]
-   {:db (assoc db :queue/show-list value)}))
 
 (rf/reg-event-fx
  :queue/shuffle

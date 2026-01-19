@@ -59,7 +59,7 @@
                   (when (or (and (seq (:queue app-db))
                                  (not (:main-player/show app-db)))
                             (:main-player/show app-db))
-                    [:dispatch [:bg-player/switch-from-main]])
+                    [:dispatch [:main-player/unmount]])
                   (when (:auth/user app-db)
                     [:dispatch
                      [:bookmarks/fetch-authenticated-playlists

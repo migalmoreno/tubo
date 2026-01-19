@@ -104,9 +104,10 @@
 
 (defn find-tooltip-controller-class-in-node
   [node class-prefix]
-  (some->> (.-className node)
-           (re-find (re-pattern (str class-prefix "([\\w\\-]+)")))
-           (first)))
+  (when (string? (.-className node))
+    (some->> (.-className node)
+             (re-find (re-pattern (str class-prefix "([\\w\\-]+)")))
+             (first))))
 
 (defn find-tooltip-controller-class
   [node class-prefix]

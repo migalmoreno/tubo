@@ -66,10 +66,8 @@
                          (assoc :navigation/show-mobile-menu false)
                          (assoc :show-pagination-loading false))
       :body-overflow false
-      :fx            [(when (or (and (seq (:queue db))
-                                     (not (:main-player/show db)))
-                                (:main-player/show db))
-                        [:dispatch [:bg-player/switch-from-main]])
+      :fx            [(when (:main-player/show db)
+                        [:dispatch [:main-player/unmount]])
                       (when (:layout/bg-overlay db)
                         [:dispatch [:layout/hide-bg-overlay]])
                       (when (:queue/show db)
