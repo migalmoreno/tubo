@@ -320,15 +320,15 @@
             :transition {:ease     "easeInOut"
                          :bounce   0.1
                          :duration 0.3}
-            :class      (concat ["bg-neutral-200" "dark:bg-neutral-900" "fixed"
-                                 "right-0" "bottom-0" "z-30" "left-0" "h-auto"
+            :class      (concat ["fixed" "right-0" "bottom-0" "z-30" "left-0"
                                  "rounded-t-3xl" "shadow" "shadow-neutral-900"
                                  "dark:shadow-none" "dark:border-t"
-                                 "dark:border-neutral-700"]
+                                 "dark:border-neutral-700" "mt-1"]
                                 extra-classes)}
            [:div.flex.items-center.justify-center.py-4
             [:div.h-1.w-12.rounded-full.bg-neutral-400.dark:bg-neutral-300.text-neutral-300]]
-           view])])]))
+           [:div {:class ["h-[calc(100%-36px)]"]}
+            view]])])]))
 
 (defn popover
   []
@@ -346,10 +346,10 @@
        {:class (concat [(str "tooltip-controller-" tooltip-id)]
                        container-classes)}
        [:div.relative
-        {:class (into ["w-full"]
+        {:class (into ["w-full" "items-center"]
                       (if mobile-only?
                         ["hidden"]
-                        (if responsive? ["hidden" "xs:block"] ["block"])))}
+                        (if responsive? ["hidden" "xs:flex"] ["flex"])))}
         [button nil
          (fn [e]
            (when stop-propagation?
@@ -390,6 +390,7 @@
         common-classes ["px-4" "py-2"]]
     (fn [view &
          {:keys [extra-classes icon responsive? container-classes
+                 extra-panel-classes
                  destroy-on-click-out? stop-propagation? mobile-only?]
           :or   {icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
@@ -406,6 +407,7 @@
              (rf/dispatch [:layout/show-mobile-panel
                            {:id panel-id
                             :view view
+                            :extra-classes extra-panel-classes
                             :destroy-on-click-out?
                             destroy-on-click-out?}])))
          icon nil :button-classes

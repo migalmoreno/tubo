@@ -6,7 +6,6 @@
    [tubo.bg-player.views :as bg-player]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [tubo.main-player.views :as main-player]
    [tubo.player.views :as player]
    [tubo.stream.views :as stream]
    [tubo.utils :as utils]))
@@ -94,7 +93,7 @@
     (fn [stream]
       [:div
        {:class ["flex" "flex-1" "relative" "items-center" "shrink-0"
-                "flex-auto"]}
+                "flex-auto" "h-full"]}
        [:div.flex.flex-auto.flex-col.h-full
         [layout/tabs
          [{:id    :queue
@@ -183,7 +182,7 @@
              [:div.flex.flex-col.gap-y-8.md:gap-y-16.w-full.flex-auto
               [queue-metadata stream]
               [main-controls color]]
-             [:div.flex.justify-between.min-w-full.py-4
+             [:div.flex.justify-between.min-w-full.pb-4
               [player/button
                :icon
                (if muted?
@@ -197,20 +196,13 @@
                ["text-md" "w-10"]]
               [player/loop-button color true :extra-classes ["text-md" "w-10"]]
               [layout/panel-popover
-               [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
-                [queue-list stream]]
+               [queue-list stream]
                :mobile-only? true
                :container-classes ["sm:hidden"]
                :extra-classes ["w-10"]
-               :icon
-               [:i.fa-solid.fa-list]]
-              [layout/panel-popover
-               [:div.flex {:class ["h-[calc(100dvh-92px)]"]}
-                [main-player/player]]
-               :mobile-only? true
-               :extra-classes ["w-10"]
-               :icon
-               [:i.fa-solid.fa-display]]
-             ]]]
+               :extra-panel-classes
+               ["bg-neutral-300/60" "dark:bg-neutral-950/80" "backdrop-blur-xl"
+                "h-[calc(100dvh-56px)]"]
+               :icon [:i.fa-solid.fa-list]]]]]
            [:div.hidden.sm:flex.flex-auto
             [queue-list stream]]]]]])]))
