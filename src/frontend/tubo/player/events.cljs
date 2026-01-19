@@ -106,12 +106,14 @@
 
 (rf/reg-event-fx
  :player/reload
- (fn [_ [_ player url]]
-   {:promise {:call       #(load-video player
-                                       url
-                                       (.querySelector (.-shadowRoot @player)
-                                                       "video"))
-              :on-failure [:notifications/error "Playback failed again"]}}))
+ (fn [{:keys [db]} [_ player url]]
+   {:promise
+    {:call       #(load-video player
+                              url
+                              (.querySelector (.-shadowRoot @player)
+                                              "video"))
+     :on-success (when (get-in db [:settings :autoplay]) [:player/play player])
+     :on-failure [:notifications/error "Playback failed"]}}))
 
 (rf/reg-event-fx
  :player/on-load-failure
@@ -137,12 +139,14 @@
 
 (rf/reg-event-fx
  :player/load
- (fn [_ [_ player url pos]]
+ (fn [{:keys [db]} [_ player url pos]]
    {:promise         {:call       #(load-video player
                                                url
                                                (.querySelector (.-shadowRoot
                                                                 @player)
                                                                "video"))
+                      :on-success (when (get-in db [:settings :autoplay])
+                                    [:player/play player])
                       :on-failure [:player/on-load-failure player]}
     :player/set-next [player pos]}))
 
@@ -154,7 +158,8 @@
 (rf/reg-fx
  :player/time
  (fn [{:keys [time player]}]
-   (set! (.-currentTime @player) time)))
+   (when @player
+     (set! (.-currentTime @player) time))))
 
 (rf/reg-event-fx
  :player/seek
@@ -169,6 +174,11 @@
              (.play @player)
              (.pause @player))
          (p/catch #(rf/dispatch [:player/play-error % player]))))))
+
+(rf/reg-event-fx
+ :player/play
+ (fn [_ [_ player]]
+   {:player/pause {:paused? true :player player}}))
 
 (rf/reg-event-fx
  :player/play-error

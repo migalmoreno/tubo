@@ -2,7 +2,6 @@
   (:require
    [re-frame.core :as rf]
    [tubo.layout.events :refer [show-loading-status]]
-   [tubo.player.utils :as putils]
    [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
@@ -17,7 +16,7 @@
 (rf/reg-event-fx
  :stream/load-page
  [(rf/inject-cofx ::inject/sub [:stream-player])]
- (fn [{:keys [db stream-player]} [_ {:keys [body]}]]
+ (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc
          db
          :stream
@@ -29,9 +28,6 @@
     :fx [(when (get-in db [:settings :show-comments])
            [:dispatch [:comments/fetch-page (:url body) [:stream]]])
          [:dispatch [:services/fetch body]]
-         [:dispatch
-          [:player/load stream-player
-           (putils/get-video-stream body (:settings db))]]
          [:document-title (:name body)]]}))
 
 (rf/reg-event-fx

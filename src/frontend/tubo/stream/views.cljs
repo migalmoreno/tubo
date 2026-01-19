@@ -338,7 +338,7 @@
                :related-items [related-items stream]
                :description   [description stream])]])]))))
 
-(defn stream
+(defn stream-container
   [video-stream video-container]
   (let [breakpoint @(rf/subscribe [:layout/breakpoint])]
     [:div
@@ -354,7 +354,8 @@
   []
   (let [!player      @(rf/subscribe [:stream-player])
         video-stream @(rf/subscribe [:stream])]
-    [stream video-stream
-     [video-container video-stream
-      [player/video-player video-stream !player {}
-       #(rf/dispatch [:player/initialize video-stream !player])]]]))
+    (when video-stream
+      [stream-container video-stream
+       [video-container video-stream
+        [player/video-player video-stream !player {}
+         #(rf/dispatch [:player/initialize video-stream !player])]]])))

@@ -165,10 +165,11 @@
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution
-           seamless-playback video-source-type]}]
+           seamless-playback video-source-type autoplay]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
+   [boolean-input "Autoplay" [:autoplay] autoplay]
    [select-input "Default video format" [:default-video-format]
     default-video-format #{"MPEG-4" "WebM" "3GP"}]
    [select-input "Default audio format" [:default-audio-format]

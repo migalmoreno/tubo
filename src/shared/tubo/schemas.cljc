@@ -85,6 +85,7 @@
    [:show-related {:default true} boolean?]
    [:show-description {:default true} boolean?]
    [:items-layout {:default "list"} ItemLayout]
+   [:autoplay {:default true} boolean?]
    [:video-source-type {:default "dash"} SourceType]
    [:default-resolution {:default "720p"} string?]
    [:default-video-format {:default "MPEG-4"} string?]
@@ -136,7 +137,6 @@
      :persist
      true} [:vector PeerTubeInstance]]
    [:queue/show {:optional true} [:maybe boolean?]]
-   [:queue/show-list {:optional true} [:maybe boolean?]]
    [:queue/position {:default 0 :persist true} int?]
    [:queue/unshuffled {:optional true :persist true} [:maybe vector?]]
    [:queue {:default [] :persist true} vector?]
