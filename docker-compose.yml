@@ -10,7 +10,7 @@ services:
       - backend
     environment:
       - BACKEND_URL=http://localhost:3000
-    restart: always
+    restart: unless-stopped
   backend:
     container_name: tubo-backend
     build:
@@ -25,7 +25,7 @@ services:
       - DB_NAME=tubo
       - DB_USER=tubo
       - DB_PASSWORD=tubo
-    restart: always
+    restart: unless-stopped
   db:
     container_name: tubo-db
     image: postgres:16-alpine
@@ -42,4 +42,4 @@ services:
       dockerfile: ./docker/bg-helper/Dockerfile
     ports:
       - 3005:3005
-    restart: always
+    restart: unless-stopped
