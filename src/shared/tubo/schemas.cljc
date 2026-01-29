@@ -94,8 +94,9 @@
    [:instance {:default (config/get-in [:frontend :api-url])} string?]
    [:auth-instance {:default (config/get-in [:frontend :auth-url])} string?]
    [:image-quality {:default :high} ImageQuality]
-   [:default-country {:default {0 {:name "United States" :code "US"}}} map?]
-   [:default-kiosk {:default {0 "Trending"}} map?]
+   [:default-country {:default {0 {:name "United States" :country-code "US"}}}
+    map?]
+   [:default-kiosk {:default {0 "trending_music"}} map?]
    [:default-filter {:default {0 "all"}} map?]
    [:default-service {:default 0} int?]])
 

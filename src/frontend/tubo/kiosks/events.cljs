@@ -54,7 +54,7 @@
                              :settings
                              :default-country
                              (get (js/parseInt service-id))
-                             :code)]
+                             :country-code)]
      {:fx [[:dispatch
             (if kiosk-id
               [:kiosks/fetch service-id kiosk-id
