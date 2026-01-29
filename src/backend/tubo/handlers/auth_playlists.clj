@@ -30,8 +30,8 @@
                                    datasource)))
 
 (defn create-get-auth-playlists-handler
-  [req]
-  (ok (playlist/get-playlists-by-owner req)))
+  [{:keys [identity] :as req}]
+  (ok (playlist/get-playlists-by-owner req (:id identity))))
 
 (defn create-get-auth-playlist-handler
   [req]
@@ -53,8 +53,8 @@
                :items (playlist/get-playlist-streams req (str playlist-id))))))
 
 (defn create-delete-auth-playlists-handler
-  [{:keys [datasource identity]}]
-  (ok (playlist/delete-owner-playlists datasource (:id identity))))
+  [{:keys [identity] :as req}]
+  (ok (playlist/delete-owner-playlists req (:id identity))))
 
 (defn create-delete-auth-playlist-handler
   [{:keys [datasource path-params]}]

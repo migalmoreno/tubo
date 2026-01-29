@@ -49,10 +49,10 @@
       (bad-request "There was a problem updating the user password"))))
 
 (defn create-delete-user-handler
-  [{:keys [datasource body-params identity]}]
+  [{:keys [datasource body-params identity] :as req}]
   (let [user (user/get-user-by-session (:session-id identity) datasource)]
     (if (verify-password user (:password body-params))
       (do
-        (playlist/delete-owner-playlists datasource (:id user))
+        (playlist/delete-owner-playlists req (:id user))
         (ok (user/delete-user-by-id datasource (:id user))))
       (bad-request "There was a problem removing the user"))))

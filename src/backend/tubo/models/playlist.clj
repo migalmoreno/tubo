@@ -36,14 +36,14 @@
            :uploader-avatar   (utils/proxy-image (:channels/avatar e) req)}))))
 
 (defn get-playlists-by-owner
-  [{:keys [datasource identity] :as req}]
+  [{:keys [datasource] :as req} owner-id]
   (into
    []
    (map #(assoc % :items (get-playlist-streams req (str (:playlist_id %)))))
    (db/plan datasource
             {:select [:*]
              :from   [:playlists]
-             :where  [:= :owner (:id identity)]})))
+             :where  [:= :owner owner-id]})))
 
 (defn get-full-playlist-by-playlist-id
   [{:keys [datasource path-params] :as req}]
@@ -129,18 +129,18 @@
                 :where       [:= :owner id]}))
 
 (defn delete-owner-playlists
-  [ds owner-id]
-  (let [playlists-ids     (map :id (get-playlists-by-owner owner-id ds))
+  [{:keys [datasource] :as req} owner-id]
+  (let [playlists-ids     (map :id (get-playlists-by-owner req owner-id))
         unique-stream-ids (when (seq playlists-ids)
                             (->> (stream/get-all-unique-streams-for-playlists
-                                  ds
+                                  datasource
                                   playlists-ids)
                                  (map :stream-id)))]
     (when (seq playlists-ids)
-      (delete-playlist-streams-by-playlist-ids playlists-ids ds))
+      (delete-playlist-streams-by-playlist-ids playlists-ids datasource))
     (when (seq unique-stream-ids)
-      (delete-unique-streams-by-ids ds unique-stream-ids))
-    (delete-playlists-by-owner ds owner-id)))
+      (delete-unique-streams-by-ids datasource unique-stream-ids))
+    (delete-playlists-by-owner datasource owner-id)))
 
 (defn update-playlist-streams-order
   [ds playlist-id idx]
