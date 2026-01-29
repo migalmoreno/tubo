@@ -302,7 +302,7 @@
  (fn [_ [_ reload-cb res]]
    {:fx [[:dispatch
           [:change-view
-           #(layout/error (assoc res :type :error) reload-cb)]]
+           #(layout/error-container (assoc res :type :error) reload-cb)]]
          [:dispatch [:stop-loading]]]}))
 
 (rf/reg-fx

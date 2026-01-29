@@ -342,7 +342,7 @@
           :or   {icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
                  destroy-on-click-out? true}}]
-      [:div.flex.tooltip-controller
+      [:div.flex
        {:class (concat [(str "tooltip-controller-" tooltip-id)]
                        container-classes)}
        [:div.relative
@@ -395,7 +395,7 @@
           :or   {icon                  [:i.fa-solid.fa-ellipsis-vertical]
                  responsive?           true
                  destroy-on-click-out? true}}]
-      [:div.flex.tooltip-controller
+      [:div.flex
        {:class (concat [(str "panel-controller-" panel-id)] container-classes)}
        [:div.relative
         [button nil
@@ -453,7 +453,7 @@
   (when error
     [:div.bg-red-500.p-2.rounded error]))
 
-(defn error
+(defn error-container
   [{:keys [type body status status-text problem-message]} cb]
   [content-container
    [:div.flex.flex-auto.h-full.items-center.justify-center.py-4

@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [tubo.layout.events :refer [show-loading-status]]
+   [tubo.stream.views :as views]
    [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
@@ -31,12 +32,23 @@
          [:document-title (:name body)]]}))
 
 (rf/reg-event-fx
+ :stream/reload-page
+ (fn [_ [_ res]]
+   {:fx [[:dispatch [:change-view views/stream-page]]
+         [:dispatch [:stream/load-page res]]]}))
+
+(rf/reg-event-fx
+ :stream/on-reload
+ (fn [_ [_ url]]
+   {:fx [[:dispatch [:stream/fetch-page url [:stream/reload-page]]]]}))
+
+(rf/reg-event-fx
  :stream/fetch-page
- (fn [{:keys [db]} [_ url]]
+ (fn [{:keys [db]} [_ url on-success]]
    {:fx [[:dispatch
           [:stream/fetch url
-           [:stream/load-page]
-           [:bad-page-response [:stream/fetch-page url]]]]]
+           (or on-success [:stream/load-page])
+           [:bad-page-response [:stream/on-reload url]]]]]
     :db (assoc db :stream nil)}))
 
 (rf/reg-event-db
