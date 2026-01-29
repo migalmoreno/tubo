@@ -81,7 +81,7 @@
    "[&::-webkit-slider-thumb]:bg-[var(--thumb-color)]"
    "[&::-moz-range-track]:h-[var(--height)]"
    "[&::-moz-range-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--light-buffered-color)_var(--value),var(--light-buffered-color)_var(--buffered),var(--light-track-color)_var(--buffered))]"
-   "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--dark-buffered-color)_var(--value),var(--dark-buffered-color)_var(--buffered),var(--dark-track-color)_var(--buffered))]"
+   "dark:[&::-moz-range-track]:bg-[linear-gradient(to_right,transparent_var(--value),var(--dark-track-color)_var(--value),var(--dark-track-color)_var(--buffered),var(--dark-buffered-color)_var(--buffered))]"
    "[&::-moz-range-thumb]:appearance-none"
    "[&::-moz-range-thumb]:border-0"
    "[&::-moz-range-thumb]:rounded-full"
