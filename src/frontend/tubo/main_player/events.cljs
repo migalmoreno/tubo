@@ -78,6 +78,6 @@
  [persist]
  (fn [{:keys [db]}]
    {:db (assoc db :main-player/show false)
-    :fx [(when-not (:queue/show db)
+    :fx [(when (and (> (count (:queue db)) 0) (not (:queue/show db)))
            [:dispatch [:bg-player/show]])
          [:dispatch [:bg-player/start]]]}))
