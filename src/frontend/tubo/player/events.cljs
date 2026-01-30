@@ -35,16 +35,33 @@
 
 (rf/reg-fx
  :player/configure
- (fn [player]
-   (.configure (.-api @player)
-               (clj->js
-                {"preferredVideoCodecs" ["av01" "vp9" "avc1"]
-                 "preferredAudioCodecs" ["opus" "mp4a"]
-                 "manifest"             {"disableVideo" false}
-                 "streaming"            {"retryParameters"
-                                         {"maxAttempts"   js/Infinity
-                                          "baseDelay"     250
-                                          "backoffFactor" 1.5}}}))))
+ (fn [[player video-codecs]]
+   (let [codecs                 [{:name "av1"
+                                  :shaka-codec "av01"
+                                  :type
+                                  "video/mp4; codecs=\"av01.0.08M.08\""}
+                                 {:name        "vp9"
+                                  :shaka-codec "vp9"
+                                  :type        "video/webm; codecs=\"vp9\""}
+                                 {:name "avc"
+                                  :shaka-codec "avc1"
+                                  :type
+                                  "video/mp4; codecs=\"avc1.4d401f\""}]
+         preferred-video-codecs (->> (filter
+                                      #(and
+                                        (seq (.canPlayType @player (:type %)))
+                                        (str/includes? video-codecs (:name %)))
+                                      codecs)
+                                     (map :shaka-codec))]
+     (.configure (.-api @player)
+                 (clj->js
+                  {"preferredVideoCodecs" preferred-video-codecs
+                   "preferredAudioCodecs" ["opus" "mp4a"]
+                   "manifest"             {"disableVideo" false}
+                   "streaming"            {"retryParameters"
+                                           {"maxAttempts"   js/Infinity
+                                            "baseDelay"     250
+                                            "backoffFactor" 1.5}}})))))
 
 (rf/reg-fx
  :player/request-filter
@@ -82,7 +99,7 @@
 (rf/reg-event-fx
  :player/initialize
  (fn [{:keys [db]} [_ stream player pos]]
-   {:fx [[:player/configure player]
+   {:fx [[:player/configure [player (get-in db [:settings :video-codecs])]]
          [:player/request-filter [player (get-in db [:settings :instance])]]
          [:dispatch
           [:player/load

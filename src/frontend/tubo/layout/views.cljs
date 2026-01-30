@@ -203,10 +203,11 @@
     args)])
 
 (defn select
-  [value options on-change]
+  [value options on-change & {:keys [multiple?]}]
   [:select.focus:ring-transparent.border-neutral-300.dark:border-neutral-800.rounded-xl.bg-neutral-200.dark:bg-neutral-900
    {:value     value
-    :on-change on-change}
+    :on-change on-change
+    :multiple  multiple?}
    (for [[i {:keys [label value] :as option}] (map-indexed vector options)]
      ^{:key i}
      [:option

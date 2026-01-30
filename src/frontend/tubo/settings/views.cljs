@@ -1,11 +1,12 @@
 (ns tubo.settings.views
   (:require
+   [clojure.string :as str]
    [re-frame.core :as rf]
    [reagent.core :as r]
+   [tubo.auth.views :as auth]
    [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
-   [tubo.utils :as utils]
-   [tubo.auth.views :as auth]))
+   [tubo.utils :as utils]))
 
 (defn boolean-input
   [label keys value]
@@ -28,11 +29,12 @@
     :on-change #(rf/dispatch [:settings/change keys (.. % -target -value)])]])
 
 (defn select-input
-  [label keys value options on-change]
+  [label keys value options on-change & {:keys [multiple?]}]
   [layout/form-field {:label label :orientation :vertical}
    [layout/select value options
     (or on-change
-        #(rf/dispatch [:settings/change keys (.. % -target -value)]))]])
+        #(rf/dispatch [:settings/change keys (.. % -target -value)]))
+    :multiple? multiple?]])
 
 (defn generic-input
   [label children]
@@ -165,7 +167,7 @@
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution
-           seamless-playback video-source-type autoplay]}]
+           seamless-playback video-source-type autoplay video-codecs]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
@@ -174,6 +176,15 @@
     default-video-format #{"MPEG-4" "WebM" "3GP"}]
    [select-input "Default audio format" [:default-audio-format]
     default-audio-format #{"m4a" "WebM"}]
+   [select-input "Video codecs (multiple)" [:video-codecs]
+    (str/split video-codecs ",")
+    (map (fn [[value label]] {:label label :value value})
+         {"av1" "AV1" "vp9" "VP9" "avc" "AVC (h.264)"})
+    (fn [e]
+      (rf/dispatch
+       [:settings/change [:video-codecs]
+        (str/join "," (map #(.-value %) (.. e -target -selectedOptions)))]))
+    :multiple? true]
    [boolean-input "Seamless playback" [:seamless-playback] seamless-playback]
    [select-input "Video source type" [:video-source-type] video-source-type
     #{"dash" "hls" "progressive-http"}]])
