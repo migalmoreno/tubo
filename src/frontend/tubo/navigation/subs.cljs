@@ -20,30 +20,30 @@
     state))
 
 (rf/reg-sub
- :navigation/show-mobile-menu
- (fn [db]
-   (:navigation/show-mobile-menu db)))
-
-(rf/reg-sub
  :navigation/sidebar-match-media-state
  (fn [_]
    @!sidebar-match-media-state))
 
 (rf/reg-sub
+ :navigation/show-mobile-menu
+ :-> :navigation/show-mobile-menu)
+
+(rf/reg-sub
  :navigation/show-sidebar
- (fn [db]
-   (:navigation/show-sidebar db)))
+ :-> :navigation/show-sidebar)
 
 (rf/reg-sub
  :navigation/current-match
- (fn [db]
-   (:navigation/current-match db)))
+ :-> :navigation/current-match)
+
+(rf/reg-sub
+ :navigation/show-title
+ :-> :navigation/show-title)
 
 (rf/reg-sub
  :navigation/sidebar-minimized
- (fn []
-   [(rf/subscribe [:navigation/show-sidebar])
-    (rf/subscribe [:navigation/sidebar-match-media-state])])
+ :<- [:navigation/show-sidebar]
+ :<- [:navigation/sidebar-match-media-state]
  (fn [[show-sidebar? sidebar-state]]
    (cond
      (and (or (= show-sidebar? :minimized) (nil? show-sidebar?))
@@ -54,13 +54,7 @@
 
 (rf/reg-sub
  :navigation/sidebar-shown
- (fn []
-   [(rf/subscribe [:navigation/show-sidebar])
-    (rf/subscribe [:navigation/sidebar-match-media-state])])
+ :<- [:navigation/show-sidebar]
+ :<- [:navigation/sidebar-match-media-state]
  (fn [[show-sidebar? sidebar-state]]
    (and (not (false? show-sidebar?)) (not (false? sidebar-state)))))
-
-(rf/reg-sub
- :navigation/show-title
- (fn [db]
-   (:navigation/show-title db)))
