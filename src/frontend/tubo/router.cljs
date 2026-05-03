@@ -4,7 +4,6 @@
    [reitit.core :as r]
    [reitit.frontend :as ref]
    [reitit.frontend.easy :as rfe]
-   [tubo.about.views :as about]
    [tubo.auth.views :as auth]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
@@ -15,7 +14,8 @@
    [tubo.search.views :as search]
    [tubo.settings.views :as settings]
    [tubo.stream.views :as stream]
-   [tubo.subscriptions.views :as subscriptions]))
+   [tubo.subscriptions.views :as subscriptions]
+   [tubo.views :as views]))
 
 (defn expand-routes
   [data opts]
@@ -117,9 +117,9 @@
                           :controllers [{:start
                                          #(rf/dispatch
                                            [:feed/fetch-page])}]}
-      :web/about         {:view about/about
+      :web/about         {:view views/about
                           :name :about-page}
-      :web/privacy       {:view about/privacy-policy
+      :web/privacy       {:view views/privacy-policy
                           :name :privacy-page}
       nil)
     (r/expand data opts)))
