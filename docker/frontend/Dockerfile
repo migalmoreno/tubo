@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y npm
 
-COPY package* /app/
+COPY package.json /app/
 RUN npm install
 
 COPY . /app
