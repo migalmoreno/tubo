@@ -7,6 +7,7 @@
    :output-dir        "resources/public/js"
    :module-hash-names true
    :git-inject        {:version-pattern "^(.*)$"}
+   :devtools          {:preloads [portal.shadow.preload]}
    :build-hooks       [(shadow-git-inject.core/hook)
                        (shadow-env.core/hook)
                        (hooks/copy-assets
@@ -15,7 +16,8 @@
                        (shadow.html/copy-file "resources/src/index.html"
                                               "resources/public/index.html")
                        (hooks/postcss "resources/src/index.css"
-                                      "resources/public/index.css")]
+                                      "resources/public/index.css")
+                       (portal.shadow.remote/hook {:port 1234})]
    :js-options        {:entry-keys        ["module" "browser" "main"]
                        :export-conditions ["import" "module" "browser" "require"
                                            "default"]}
