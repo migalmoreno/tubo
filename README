@@ -52,20 +52,6 @@ services:
 # ...
 #+end_src
 
-*** Uberjar
-To bundle the whole project into a self-contained uber-jar you need to follow these build steps:
-
-#+begin_src sh
-npm i
-clojure -T:cljs:build uberjar
-#+end_src
-
-After the last command is completed, you'll get a path to the uber-jar, which you can run like this:
-
-#+begin_src sh
-java -jar target/tubo-<VERSION>.jar
-#+end_src
-
 ** Configuration
 The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to the configuration file for the respective service. For example, if you want to add your custom settings for the =backend= service:
 

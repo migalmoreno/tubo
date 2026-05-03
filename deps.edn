@@ -30,9 +30,7 @@
  :paths ["src/backend" "src/shared" "resources"]
  :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :aliases
- {:build {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
-          :ns-default build}
-  :cljs
+ {:cljs
   {:extra-paths ["src/frontend" "src/scripts" "env/release"]
    :extra-deps  {babashka/fs                     {:mvn/version "0.5.23"}
                  babashka/process                {:mvn/version "0.5.22"}
