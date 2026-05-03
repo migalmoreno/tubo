@@ -1,6 +1,5 @@
 (ns tubo.utils
   (:require
-   ["timeago.js" :as timeago]
    [clojure.string :as str]
    [clojure.data.xml :as xml]))
 
@@ -66,20 +65,23 @@
       3 "PeerTube"
       4 "Bandcamp")))
 
-(defn format-date-string
-  [date]
-  (-> date
-      js/Date.parse
-      js/Date.
-      .toDateString))
-
 (defn format-date-ago
-  [date]
-  (if (-> date
-          js/Date.parse
-          js/isNaN)
-    date
-    (timeago/format date)))
+  [date & {:keys [options] :or {options {:style "long"}}}]
+  (let [date* (.parse js/Date date)]
+    (if (js/isNaN date*)
+      date
+      (let [elapsed (- (.valueOf date*) (.now js/Date))
+            units   {"year"   31536000000
+                     "month"  2628000000
+                     "day"    86400000
+                     "hour"   3600000
+                     "minute" 60000
+                     "second" 1000}
+            rtf     (new js/Intl.RelativeTimeFormat "en" options)]
+        (some (fn [[unit amount]]
+                (when (or (> (.abs js/Math elapsed) amount) (= unit "second"))
+                  (.format rtf (.round js/Math (/ elapsed amount)) unit)))
+              units)))))
 
 (defn format-quantity
   [num]
