@@ -326,8 +326,12 @@
                                  "dark:shadow-none" "dark:border-t"
                                  "dark:border-neutral-700" "mt-1"]
                                 extra-classes)}
-           [:div.flex.items-center.justify-center.py-4
-            [:div.h-1.w-12.rounded-full.bg-neutral-400.dark:bg-neutral-300.text-neutral-300]]
+           [:div.relative.flex.items-center.justify-center.py-4
+            [:div.h-1.w-12.rounded-full.bg-neutral-500.dark:bg-neutral-300.text-neutral-300]
+            [:button.absolute.right-2.p-1.cursor-pointer.text-xl
+             {:class    ["top-1/2" "-translate-y-1/2"]
+              :on-click #(rf/dispatch [:layout/destroy-panels-by-ids [id]])}
+             [:i.fa-solid.fa-circle-xmark]]]
            [:div {:class ["h-[calc(100%-36px)]"]}
             view]])])]))
 
