@@ -86,12 +86,12 @@
                  (not show-queue?))
         [:h1.line-clamp-1.transition-all.ease-in-out.duration-500.md:hidden.px-2
          {:class [(when-not show-title? "invisible")
-                  (if show-title? "opacity-1" "opacity-0")]}
+                  (if show-title? "opacity-100" "opacity-0")]}
          title])
       (when-not (or show-search-form? show-queue?)
         [:div.absolute.md:static.left-2.transition-all.ease-in-out.duration-500.whitespace-nowrap
          {:class (if show-logo?
-                   ["max-md:visible" "max-md:opacity-1"]
+                   ["max-md:visible" "max-md:opacity-100"]
                    ["max-md:invisible" "max-md:opacity-0"])}
          [logo]])]]))
 
@@ -207,7 +207,7 @@
                    "z-20" (when-not show-queue? "backdrop-blur-md")
                    "dark:bg-neutral-950/90"
                    "bg-neutral-100/90"]}
-     [:div.flex.flex-auto.items-center
+     [:div.flex.flex-auto.items-center.relative
       [nav-left-content
        (case name
          :channel-page       (:name @(rf/subscribe [:channel]))
@@ -221,8 +221,11 @@
          :subscriptions-page "Subscriptions"
          :feed-page          "Feed"
          nil)]
-      (when-not @(rf/subscribe [:queue/show]) [search/search-form])
-      [:div.w-24.hidden.md:block]
+      [:div.absolute.inset-0.flex.justify-center.items-center.pointer-events-none
+       [:div
+        {:class (cond-> ["pointer-events-auto"]
+                  show-search-form? (conj "w-full"))}
+        (when-not show-queue? [search/search-form])]]
       [nav-right-content match]]]))
 
 (defn sidebar-item

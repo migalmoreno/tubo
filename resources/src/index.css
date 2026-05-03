@@ -11,6 +11,28 @@
 @import "@fortawesome/fontawesome-free/css/regular";
 @import "@fortawesome/fontawesome-free/css/solid";
 @import "@fortawesome/fontawesome-free/css/fontawesome";
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
+@source "../../src/**/*.cljs";
+@custom-variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/forms";
+@plugin "tailwind-scrollbar";
+
+@theme {
+  --font-roboto: "Roboto", "sans-serif";
+  --container-sm: 22rem;
+  --breakpoint-xs: 480px;
+}
+
+@layer base {
+  media-play-button,
+  media-mute-button,
+  media-fullscreen-button,
+  media-settings-menu-button,
+  media-time-display {
+    padding: var(--media-button-padding, var(--media-control-padding, 10px));
+  }
+  media-chrome-menu-item,
+  media-settings-menu-item {
+    padding: .4em .8em .4em 1em;
+  }
+}

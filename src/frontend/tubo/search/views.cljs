@@ -70,7 +70,7 @@
       [:div
        {:class ["flex" "items-center" "relative" "flex-auto" "sm:flex-none"
                 "bg-white" "dark:bg-neutral-900" "rounded-full" "px-4"
-                "border" "border-neutral-00" "dark:border-neutral-800" "h-10"
+                "border" "border-neutral-300" "dark:border-neutral-800" "h-10"
                 "sm:w-[22rem]" "lg:w-[28rem]"]}
        [:button.p-2.md:hidden
         {:type "button" :on-click #(rf/dispatch [:search/cancel])}
@@ -84,7 +84,7 @@
          :on-change     #(rf/dispatch [:search/change-query
                                        (.. % -target -value)])
          :placeholder   "Search"}]
-       [:button.px-2 {:type "submit"} [:i.fa-solid.fa-search]]
+       [:button.px-2.cursor-pointer {:type "submit"} [:i.fa-solid.fa-search]]
        [layout/popover
         (map-indexed
          (fn [i filter]
@@ -105,7 +105,7 @@
         :extra-button-args {:type "button"}
         :extra-classes ["!px-4" "!py-1"]
         :tooltip-classes ["right-0" "top-12" "sm:right-auto" "sm:left-4"]]
-       [:button.px-2.absolute
+       [:button.px-2.absolute.cursor-pointer
         {:on-click #(rf/dispatch [:search/clear-query])
          :type     "button"
          :class    ["right-[5.5rem]"

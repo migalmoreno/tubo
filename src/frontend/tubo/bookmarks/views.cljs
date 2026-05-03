@@ -39,10 +39,11 @@
                  :multiple  true
                  :on-change #(rf/dispatch [:bookmarks/import %])}]
                [:label.whitespace-nowrap.cursor-pointer.w-full.h-full.absolute.right-0.top-0
-                {:for "file-selector"}]
-               [:span.text-xs.w-10.min-w-4.w-4.flex.items-center
+                {:class ["hover:bg-neutral-200" "dark:hover:bg-neutral-800/50"]
+                 :for   "file-selector"}]
+               [:span.text-xs.min-w-4.w-4.flex.items-center.relative.pointer-events-none
                 [:i.fa-solid.fa-file-import]]
-               [:span "Import"]]}
+               [:span.relative.pointer-events-none "Import"]]}
              {:label    "Export"
               :icon     [:i.fa-solid.fa-file-export]
               :on-click #(rf/dispatch [:bookmarks/export])}

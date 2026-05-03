@@ -136,7 +136,7 @@
 
 (def common-button-classes
   ["flex" "justify-center" "items-center" "gap-x-2" "p-3" "rounded-full"
-   "outline-none" "focus:ring-transparent" "whitespace-nowrap"
+   "outline-none" "focus:ring-transparent" "whitespace-nowrap" "cursor-pointer"
    "hover:bg-neutral-500/40" "dark:hover:bg-neutral-800"
    "active:bg-neutral-500/40" "dark:active:bg-neutral-800" "transition-colors"])
 
@@ -565,7 +565,7 @@
                {:type        (if @!show-password? :text :password)
                 :placeholder placeholder}
                common-args)]
-       [:button.absolute.h-full.right-3.text-sm
+       [:button.absolute.h-full.right-3.text-sm.cursor-pointer
         {:on-click #(reset! !show-password? (not @!show-password?))
          :type     :button
          :class    (when-not (seq (values name)) :hidden)}

@@ -16,10 +16,10 @@
   build-state)
 
 (defn postcss
-  {:shadow.build/stage :configure}
+  {:shadow.build/stage :flush}
   [build-state src dst]
   (let [cmd ["./node_modules/.bin/postcss" src "-o" dst "--verbose"]]
     (case (:shadow.build/mode build-state)
-      :dev     (apply proc/process (conj cmd "-w"))
+      :dev     (apply proc/shell cmd)
       :release (apply proc/shell {:extra-env {"NODE_ENV" "production"}} cmd)))
   build-state)
