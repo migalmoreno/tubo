@@ -160,14 +160,16 @@
          [:div.flex.justify-center.w-full.overflow-y-auto
           {:class ["h-[calc(100%-56px)]" "mt-[56px]"]}
           [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
-           {:class ["w-full" "xl:w-4/5" "h-full" "sm:h-[600px]"
-                    "md:h-[800px]"]}
+           {:class ["w-full" "xl:w-4/5" "h-full"
+                    "sm:h-[600px]" "md:h-[800px]"
+                    "max-h-[calc(100dvh-56px-2rem)]"]}
            [:div.flex.flex-col.relative.w-full.sm:w-fit.px-4.xs:px-0.items-center
             [:div.flex.flex-col.gap-y-4.xs:gap-y-6.flex-auto.justify-between
              {:class ["w-full" "xs:w-11/12" "sm:w-[18rem]" "md:w-[24rem]"
                       "@container"]}
              [:> (.-div motion)
-              {:class   ["flex" "w-full" "items-center" "justify-center"]
+              {:class   ["flex" "items-center" "justify-center"
+                         "w-[min(100%,35dvh)]" "self-center"]
                :animate {:scale 1}
                :ref     #(reset! !thumbnail %)
                :initial {:scale 0.9}}
