@@ -9,5 +9,4 @@ data
 .shadow-cljs
 .clj-kondo
 .lsp
-.dir-locals.el
 .direnv

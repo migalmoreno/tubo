@@ -9,7 +9,7 @@ services:
     depends_on:
       - backend
     environment:
-      - BACKEND_URL=http://localhost:3000
+      - BACKEND_URL=http://backend:3000
     restart: unless-stopped
   backend:
     container_name: tubo-backend
@@ -35,6 +35,7 @@ services:
       - POSTGRES_DB=tubo
       - POSTGRES_USER=tubo
       - POSTGRES_PASSWORD=tubo
+    restart: unless-stopped
   bg-helper:
     container_name: tubo-bg-helper
     build:

@@ -133,89 +133,10 @@ clojure -M:run
 You can now check the API documentation at [[http://localhost:3000/api-docs][http://localhost:3000/api-docs]]
 
 ** REPL
-You can also work on Tubo using an interactive environment like [[https://docs.cider.mx/cider/index.html][CIDER]]. Once you have it installed, do =M-x cider-jack-in-clj&cljs= in a source file and you'll enter a live REPL.
-
-If you'd like to automate the process, you can place something along the following lines in your =.dir-locals.el= file to automatically start the REPLs with the needed configuration.
-
-#+begin_src elisp
-((nil . ((cider-preferred-build-tool . clojure-cli)
-         (cider-clojure-cli-aliases . ":dev:cljs")
-         (cider-default-cljs-repl . custom)
-         (cider-custom-cljs-repl-init-form . "(do (require '[shadow.cljs.devtools.api :as shadow])\n(require '[shadow.cljs.devtools.server :as server])\n(server/start!)\n(shadow/watch :frontend)\n(shadow/nrepl-select :frontend))")
-         (cider-merge-sessions . :project)
-         (eval . (progn
-                   (unless (boundp 'cider-jack-in-nrepl-middlewares)
-                     (require 'cider))
-                   (make-variable-buffer-local 'cider-jack-in-nrepl-middlewares)
-                   (add-to-list 'cider-jack-in-nrepl-middlewares "cider.nrepl/cider-middleware")
-                   (add-to-list 'cider-jack-in-cljs-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))))))
-#+end_src
+You can also work on Tubo using an interactive environment like [[https://docs.cider.mx/cider/index.html][CIDER]]. Go to any Clojure(Script) source file in the project, invoke =M-x cider-jack-in-clj&cljs= and you'll enter a live REPL.
 
 You can then invoke this to start the system:
 
 #+begin_src clojure
 user=> (go)
 #+end_src
-
-* Browser Extension Support
-** [[https://einaregilsson.com/redirector/][Redirector]]
-You can manually add any redirect rule based on regex patterns with this extension. Below are some sample configurations to redirect links from supported services to Tubo so you get a basic idea of how to write manual Redirector rules. Note the =serviceId= of each service is: YouTube (0), SoundCloud(1), media.ccc.de(2), PeerTube(3), and Bandcamp(4).
-
-#+begin_src conf-colon
-Description: YouTube video to Tubo stream
-Example URL: https://www.youtube.com/watch?v=YE7VzlLtp-4
-Include pattern: ^((?:https?://)(?:www.)?youtube.com/(watch\?v.*|shorts/.*))
-Redirect to: https://<TUBO_HOST>/stream?url=$1
-Example result: https://<TUBO_HOST>/stream?url=https://www.youtube.com/watch?v=YE7VzlLtp-4
-Pattern type: Regular Expression
-Apply to: Main window (address bar)
-#+end_src
-
-#+begin_src conf-colon
-Description: SoundCloud stream to Tubo stream
-Example URL: https://soundcloud.com/unfa/stop-the-panic
-Include pattern: ^((?:https?://)(?:www.)?soundcloud.com/.*/.*)
-Redirect to: https://<TUBO_HOST>/stream?url=$1
-Example result: https://<TUBO_HOST>/stream?url=https://soundcloud.com/unfa/stop-the-panic
-Pattern type: Regular Expression
-Apply to: Main window (address bar)
-#+end_src
-
-#+begin_src conf-colon
-Description: Bandcamp album to Tubo playlist
-Example URL: https://unfa.bandcamp.com/album/suppressed
-Include pattern: ^((?:https?://)(.*\.)?bandcamp.com/album/.*)
-Redirect to: https://<TUBO_HOST>/playlist?url=$1
-Example result: https://<TUBO_HOST>/playlist?url=https://unfa.bandcamp.com/album/suppressed
-Pattern type: Regular Expression
-Apply to: Main window (address bar)
-#+end_src
-
-#+begin_src conf-colon
-Description: PeerTube (Framatube) channel to Tubo channel
-Example URL: https://framatube.org/accounts/framasoft@framatube.org
-Include pattern: ^((?:https?://)(?:www.)?framatube.org/accounts/.*)
-Redirect to: https://<TUBO_HOST>/channel?url=$1
-Example result: https://<TUBO_HOST>/channel?url=https://framatube.org/accounts/framasoft@framatube.org
-Pattern type: Regular Expression
-Apply to: Main window (address bar)
-#+end_src
-
-#+begin_src conf-colon
-Description: media.ccc.de search query to Tubo search query
-Example URL: https://media.ccc.de/search/?q=37c3
-Include pattern: ^(?:https?://)media.ccc.de/search/\?q=(.*)
-Redirect to: https://<TUBO_HOST>/search?query=$1&serviceId=2
-Example result: https://<TUBO_HOST>/search?query=37c3&serviceId=2
-Pattern type: Regular Expression
-Apply to: Main window (address bar)
-#+end_src
-
-** [[https://libredirect.github.io/][LibRedirect]]
-Redirects many popular services to their alternative front-ends. Has a ton of features and an active community. Tubo is supported by default for YouTube and SoundCloud.
-
-** [[https://github.com/libreom/predirect][Predirect]]
-Serves the same purpose as LibRedirect but is Manifest V3 compatible. Tubo is supported by default for SoundCloud.
-
-** [[https://github.com/dybdeskarphet/privacy-redirector][Privacy Redirector]]
-A user-script that redirects popular social media platforms to their privacy respecting front-ends. Tubo is supported by default for YouTube and SoundCloud.
