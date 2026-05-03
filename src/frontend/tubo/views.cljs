@@ -120,4 +120,4 @@
             [view current-match]]
            [layout/not-found-page])]
         [queue/queue]]]
-      [bg-player/player]]]))
+      [player/bg-player]]]))

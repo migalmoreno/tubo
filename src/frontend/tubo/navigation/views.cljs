@@ -6,11 +6,11 @@
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [svgreq.core :as svg]
-   [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosks]
    [tubo.layout.views :as layout]
+   [tubo.player.components :as player]
    [tubo.playlist.views :as playlist]
    [tubo.search.views :as search]
    [tubo.utils :as utils]))
@@ -123,7 +123,7 @@
          [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
-         (cond show-queue? [bg-player/popover stream
+         (cond show-queue? [player/popover stream
                             :tooltip-classes
                             ["top-5" "right-0"]]
                :else       [:div.xs:hidden

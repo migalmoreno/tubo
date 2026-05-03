@@ -5,12 +5,11 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
-   [tubo.bg-player.views :as bg-player]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [tubo.player.views :as player]
+   [tubo.player.components :as player]
    [tubo.utils :as utils]))
 
 (defn item-metadata
@@ -279,7 +278,7 @@
            [player/loop-button color true :extra-classes ["text-sm"]]]
           [:div.pl-4.pr-5
            [player/shuffle-button color true :extra-classes ["text-sm"]]]
-          [bg-player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
+          [player/popover stream :tooltip-classes ["top-0" "right-0"]]]]
         [:div.flex.flex-col.gap-y-1.w-full.h-64.max-h-64.overflow-y-auto.relative.scroll-smooth.scrollbar-none
          {:class "@container"}
          [virtualized-queue]]]])))

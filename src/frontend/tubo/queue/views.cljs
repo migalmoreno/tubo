@@ -3,10 +3,9 @@
    ["motion/react" :refer [AnimatePresence motion]]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.bg-player.views :as bg-player]
    [tubo.items.views :as items]
    [tubo.layout.views :as layout]
-   [tubo.player.views :as player]
+   [tubo.player.components :as player]
    [tubo.stream.views :as stream]
    [tubo.utils :as utils]))
 
@@ -26,17 +25,16 @@
 (defn main-controls
   [color]
   (let [!player          @(rf/subscribe [:bg-player])
-        loading?         @(rf/subscribe [:bg-player/loading])
         waiting?         @(rf/subscribe [:bg-player/waiting])
         bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        paused?          @(rf/subscribe [:player/paused])
+        !paused          @(rf/subscribe [:player/paused])
         !elapsed-time    @(rf/subscribe [:elapsed-time])
         queue            @(rf/subscribe [:queue])
         queue-pos        @(rf/subscribe [:queue/position])]
     [:div.flex.flex-col.flex-1.justify-between
      [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium.justify-center
       {:class "text-[0.8rem]"}
-      [bg-player/time-slider !player !elapsed-time :height "0.4rem"
+      [player/time-slider !player !elapsed-time :height "0.4rem"
        :progress-color
        color :rounded? true :thumb-color color :extra-classes
        ["[&::-webkit-slider-thumb]:-mt-1"]]
@@ -63,10 +61,8 @@
        :show-on-mobile? true]
       [button
        :icon
-       (if (and (not loading?)
-                (not waiting?)
-                (or (nil? bg-player-ready?) @!player))
-         (if paused?
+       (if (and (not waiting?) (or (nil? bg-player-ready?) @!player))
+         (if @!paused
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
          [layout/loading-icon color ["text-[3.5rem]"]])

@@ -41,18 +41,23 @@
                 :content))))
 
 (defn get-audio-stream
-  [{:keys [audio-streams video-streams]} settings]
-  (or (some->> audio-streams
-               (remove #(= (:delivery-method %) "HLS"))
-               (some #(when (fmt= % (:default-audio-format settings)) %))
-               :content)
-      (some->> audio-streams
-               (remove #(= (:delivery-method %) "HLS"))
-               first
-               :content)
-      (some->> video-streams
-               (some #(when (fmt= % (:default-video-format settings)) %))
-               (some #(when (= (:resolution %) (:default-resolution settings))
-                        %))
-               :content)
-      (:content (first audio-streams))))
+  [{:keys [audio-streams video-streams service-id] :as stream} settings]
+  (if (and (= (:audio-source-type settings) "dash") (= service-id 0))
+    (str "data:application/dash+xml;charset=utf-8;base64,"
+         (js/btoa (utils/->mpd-file stream)))
+    (or (some->> (if (= (:audio-source-type settings) "progressive-http")
+                   (remove #(= (:delivery-method %) "HLS") audio-streams)
+                   audio-streams)
+                 (some #(when (fmt= % (:default-audio-format settings)) %))
+                 :content)
+        (some-> (if (= (:audio-source-type settings) "progressive-http")
+                  (remove #(= (:delivery-method %) "HLS") audio-streams)
+                  audio-streams)
+                first
+                :content)
+        (some->> video-streams
+                 (some #(when (fmt= % (:default-video-format settings)) %))
+                 (some #(when (= (:resolution %) (:default-resolution settings))
+                          %))
+                 :content)
+        (:content (first audio-streams)))))
