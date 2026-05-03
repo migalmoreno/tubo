@@ -7,4 +7,6 @@ COPY deps.edn /app
 RUN clojure -P
 COPY . /app
 
+ENV TUBO_ENV=prod
+
 CMD ["clojure", "-M:run"]

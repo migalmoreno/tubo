@@ -1,7 +1,6 @@
 (ns tubo.core
   (:gen-class)
   (:require
-   [clojure.tools.cli :refer [parse-opts]]
    [integrant.core :as ig]
    [tubo.system :refer [config]]))
 
@@ -9,15 +8,8 @@
   [system]
   (ig/halt! system))
 
-(def cli-options
-  [["-e" "--env ENV" "Environment name"
-    :default :dev]])
-
 (defn -main
-  [& args]
-  (let [parsed-opts (parse-opts args cli-options)
-        system      (ig/init (config (or (some-> (get-in parsed-opts
-                                                         [:options :env])
-                                                 keyword)
-                                         :dev)))]
+  [& _]
+  (let [env    (keyword (or (System/getenv "TUBO_ENV") "dev"))
+        system (ig/init (config env))]
     (.addShutdownHook (Runtime/getRuntime) (Thread. #(halt-system system)))))

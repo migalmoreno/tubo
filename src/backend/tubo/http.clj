@@ -14,7 +14,7 @@
   [_ {:keys [handler profile]}]
   (let [port (config/get-in [:backend :port])]
     (log/info "Starting HTTP server on port" port)
-    (run-server (if (= profile "dev")
+    (run-server (if (= profile :dev)
                   (reloading-ring-handler handler)
                   (handler))
                 {:port port})))
