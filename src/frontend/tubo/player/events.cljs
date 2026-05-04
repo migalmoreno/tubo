@@ -221,6 +221,17 @@
    (.setPositionState js/navigator.mediaSession)))
 
 (rf/reg-fx
+ :set-media-session-playback-state
+ (fn [state]
+   (when (gobj/containsKey js/navigator "mediaSession")
+     (set! (.-playbackState js/navigator.mediaSession) state))))
+
+(rf/reg-event-fx
+ :player/set-playback-state
+ (fn [_ [_ state]]
+   {:set-media-session-playback-state state}))
+
+(rf/reg-fx
  :set-media-session-handlers
  (fn [player]
    (when (gobj/containsKey js/navigator "mediaSession")
