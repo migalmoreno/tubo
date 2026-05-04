@@ -515,6 +515,7 @@
            {:style          {:display "none"}
             :ref            #(reset! !player %)
             :preload        "metadata"
+            :playsInline    true
             :on-play        #(do (reset! !paused false)
                                  (rf/dispatch [:player/set-playback-state "playing"]))
             :on-pause       #(reset! !paused true)
