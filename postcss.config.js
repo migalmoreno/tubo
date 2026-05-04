@@ -1,9 +1,6 @@
 module.exports = {
   plugins: [
-    require("postcss-import")({
-      filter: (id) => !id.includes("tailwindcss"),
-    }),
-    require("@tailwindcss/postcss"),
+    require("postcss-import"),
     require("postcss-url")([
       {
         filter: "**/webfonts/**",
@@ -18,6 +15,7 @@ module.exports = {
         useHash: true,
       },
     ]),
+    require("@tailwindcss/postcss"),
     process.env.NODE_ENV === "production"
       ? require("cssnano")({ preset: "default" })
       : false,
