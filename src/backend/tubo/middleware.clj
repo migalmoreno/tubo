@@ -1,13 +1,13 @@
 (ns tubo.middleware
   (:require
    [buddy.auth :refer [authenticated?]]
+   [buddy.auth.backends.token :refer [token-backend]]
    [buddy.auth.middleware :refer [wrap-authentication]]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [reitit.ring.middleware.exception :as exception]
-   [ring.middleware.reload :as reload]
    [ring.util.http-response :as res]
-   [tubo.handlers.auth :as auth]))
+   [tubo.auth.queries :as auth]))
 
 (defn auth
   [handler]
@@ -16,20 +16,16 @@
       (handler request)
       (res/unauthorized {:error "Not authorized"}))))
 
+(defn authenticate-token
+  [{:keys [datasource]} token]
+  (auth/get-user-by-session token datasource))
+
+(def auth-backend
+  (token-backend {:authfn authenticate-token}))
+
 (defn wrap-token-auth
   [handler]
-  (wrap-authentication handler auth/backend))
-
-(defn reloading-ring-handler
-  [f]
-  (let [reload! (#'reload/reloader ["src"] true)]
-    (fn
-      ([request]
-       (reload!)
-       ((f) request))
-      ([request respond raise]
-       (reload!)
-       ((f) request respond raise)))))
+  (wrap-authentication handler auth-backend))
 
 (def exception-middleware
   (exception/create-exception-middleware
@@ -43,6 +39,11 @@
                              (.getStackTrace)
                              (interpose "\n")
                              (apply str))}))})))
+
+(defn wrap-config
+  [handler config]
+  (fn [request]
+    (handler (assoc request :config config))))
 
 (defn wrap-datasource
   [handler datasource]

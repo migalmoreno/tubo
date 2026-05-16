@@ -3,8 +3,7 @@
    ["bgutils-js" :refer [BG]]
    ["http" :as http]
    ["jsdom" :refer [JSDOM]]
-   [promesa.core :as p]
-   [tubo.config :as config]))
+   [promesa.core :as p]))
 
 (defonce dom (JSDOM.))
 (set! (.-window js/globalThis) (.-window dom))
@@ -62,7 +61,7 @@
 (defn main
   [& _]
   (let [server (http/createServer #(handle-create-po-token %1 %2))
-        port   (config/get-in [:bg-helper :port])]
+        port   (or (js/parseInt js/process.env.BG_HELPER_PORT) 3005)]
     (.listen server
              port
              #(js/console.log (str "BG helper server running on port " port)))

@@ -25,6 +25,7 @@ services:
       - DB_NAME=tubo
       - DB_USER=tubo
       - DB_PASSWORD=tubo
+      - BG_HELPER_URL=http://backend:3005
     restart: unless-stopped
   db:
     container_name: tubo-db

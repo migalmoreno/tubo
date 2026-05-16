@@ -5,8 +5,7 @@
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
    [next.jdbc.result-set :as rs]
-   [migratus.core :as migratus]
-   [tubo.config :as config])
+   [migratus.core :as migratus])
   (:import
    com.zaxxer.hikari.HikariDataSource))
 
@@ -31,12 +30,12 @@
                      {:return-keys true
                       :builder-fn  rs/as-unqualified-kebab-maps}))
 
-(defmethod ig/init-key ::pg
-  [_ _]
-  (let [ds (connection/->pool HikariDataSource (config/get :db))]
+(defmethod ig/init-key ::db-conn
+  [_ opts]
+  (let [ds (connection/->pool HikariDataSource opts)]
     (migratus/migrate {:store :database :db {:datasource ds}})
     ds))
 
-(defmethod ig/halt-key! ::pg
+(defmethod ig/halt-key! ::db-conn
   [_ conn]
   (.close conn))

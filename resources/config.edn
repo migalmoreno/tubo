@@ -1,23 +1,26 @@
-{:services
- {:peertube {:default-instance {:url "https://framatube.org" :name "Framatube"}}
-  :youtube  {:consent-cookie? true}}
- :db
- {:dbtype   "postgres"
-  :dbname   #or [#env DB_NAME "tubo"]
-  :host     #or [#env DB_HOST "localhost"]
-  :user     #or [#env DB_USERNAME "tubo"]
-  :username #or [#env DB_USERNAME "tubo"]
-  :password #env DB_PASSWORD}
- :backend
- {:port #long #or [#env BACKEND_PORT 3000]
-  :registrations? #or [#env ENABLE_REGISTRATIONS true]
-  :bg-helper-url
-  #or
-   [#env BG_HELPER_URL
-    #join ["http://localhost:" #ref [:bg-helper :port]]]}
- :bg-helper {:port #or [#env BG_HELPER_PORT 3005]}
- :frontend
- {:api-url
-  #or
-   [#env BACKEND_URL #join ["http://localhost:" #ref [:backend :port]]]
-  :auth-url #ref [:frontend :api-url]}}
+{:api/port #long #or [#env API_PORT 3000]
+ :registrations? #or [#env ENABLE_REGISTRATIONS true]
+ :bg-helper/url #or [#env BG_HELPER_URL "http://localhost:3005"]
+ :frontend/api-url
+ #or
+  [#env BACKEND_URL #join ["http://localhost:" #ref [:api/port]]]
+ :frontend/auth-url #ref [:frontend/api-url]
+ :peertube/default-instance {:url "https://framatube.org" :name "Framatube"}
+ :youtube/consent-cookie? true
+ :tubo/system
+ {:tubo.config/config                 {}
+  :tubo.db/db-conn                    {:dbtype   "postgres"
+                                       :dbname   #or [#env DB_NAME "tubo"]
+                                       :host     #or [#env DB_HOST "localhost"]
+                                       :user     #or [#env DB_USERNAME "tubo"]
+                                       :username #or [#env DB_USERNAME "tubo"]
+                                       :password #env DB_PASSWORD}
+  :tubo.extractors.newpipe/downloader {:config #ig/ref :tubo.config/config}
+  :tubo.extractors.newpipe/services   {:config #ig/ref :tubo.config/config
+                                       :downloader
+                                       #ig/ref
+                                        :tubo.extractors.newpipe/downloader}
+  :tubo.router/handler                {:config     #ig/ref :tubo.config/config
+                                       :datasource #ig/ref :tubo.db/db-conn}
+  :tubo.http/api                      {:config  #ig/ref :tubo.config/config
+                                       :handler #ig/ref :tubo.router/handler}}}

@@ -1,6 +1,5 @@
 (ns tubo.schemas
   (:require
-   [tubo.config :as config]
    [malli.core :as m]
    [malli.transform :as transform]))
 
@@ -93,8 +92,8 @@
    [:default-video-format {:default "MPEG-4"} string?]
    [:default-audio-format {:default "m4a"} string?]
    [:seamless-playback {:default true} boolean?]
-   [:instance {:default (config/get-in [:frontend :api-url])} string?]
-   [:auth-instance {:default (config/get-in [:frontend :auth-url])} string?]
+   [:instance string?]
+   [:auth-instance string?]
    [:image-quality {:default :high} ImageQuality]
    [:default-country {:default {0 {:name "United States" :country-code "US"}}}
     map?]
@@ -134,10 +133,7 @@
    [:user/subscriptions {:optional true :persist true} any?]
    [:user/feed {:optional true :persist true} any?]
    [:user/feed-last-updated {:optional true :persist true} any?]
-   [:peertube/instances
-    {:default [(config/get-in [:services :peertube :default-instance])]
-     :persist
-     true} [:vector PeerTubeInstance]]
+   [:peertube/instances {:persist true} [:vector PeerTubeInstance]]
    [:queue/show {:optional true} [:maybe boolean?]]
    [:queue/position {:default 0 :persist true} int?]
    [:queue/unshuffled {:optional true :persist true} [:maybe vector?]]
