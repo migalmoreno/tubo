@@ -4,8 +4,7 @@
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]
+   [tubo.ui :as ui]
    [tubo.modals.views :as ms]
    [tubo.playlist.views :as playlist]))
 
@@ -23,10 +22,10 @@
                                                        {:id (or (:playlist-id %)
                                                                 (:id %))}))
                        bookmarks)]
-        [layout/content-container
-         [layout/content-header "Bookmarks"
+        [ui/content-container
+         [ui/content-header "Bookmarks"
           [:div.flex.flex-auto
-           [layout/popover
+           [ui/popover
             [{:label    "Add new"
               :icon     [:i.fa-solid.fa-plus]
               :on-click #(rf/dispatch [:modals/open [modals/add-bookmark]])}
@@ -50,7 +49,7 @@
              {:label    "Clear all"
               :icon     [:i.fa-solid.fa-trash]
               :on-click #(rf/dispatch [:bookmarks/clear])}]]]]
-         [items/related-items
+         [ui/related-items
           (map (fn [item] (assoc item :info-type "BOOKMARK")) items) nil
           @!layout]]))))
 
@@ -66,16 +65,16 @@
   [id]
   (let [bookmark @(rf/subscribe [:bookmarks/get-by-id id])]
     [ms/modal-content "Edit playlist"
-     [layout/form
+     [ui/form
       {:validation  edit-playlist-validation
        :on-submit   [:bookmark/edit bookmark]
        :submit-text "Update"
        :extra-opts  {:initial-values (select-keys bookmark [:thumbnail :name])}}
       [(fn [{:keys [values errors normalize-name handle-change handle-blur
                     touched set-values]}]
-         [layout/form-field {:label "Thumbnail" :key :thumbnail}
+         [ui/form-field {:label "Thumbnail" :key :thumbnail}
           [:div.flex.justify-center.items-center.w-full.py-2.gap-y-4.flex-col
-           [layout/thumbnail
+           [ui/thumbnail
             {:thumbnail
              (when (and (seq (values :thumbnail))
                         (nil? (first (:thumbnail errors))))
@@ -84,17 +83,17 @@
             ["rounded-md"]]
            (when (and (seq (values :thumbnail))
                       (nil? (first (:thumbnail errors))))
-             [layout/secondary-button "Remove thumbnail"
+             [ui/secondary-button "Remove thumbnail"
               #(set-values {:thumbnail nil}) [:i.fa-solid.fa-trash] nil
               {:type "button"}])]
-          [layout/input
+          [ui/input
            :name (normalize-name :thumbnail)
            :value (values :thumbnail)
            :on-change handle-change
            :on-blur handle-blur
            :placeholder "URL"]
           (when (touched :thumbnail)
-            [layout/error-field (first (:thumbnail errors))])])
+            [ui/error-field (first (:thumbnail errors))])])
        {:name        :name
         :label       "Name"
         :type        :text

@@ -6,9 +6,10 @@
    [fork.re-frame :as fork]
    [malli.core :as m]
    [malli.error :as me]
-   [tubo.layout.events :as le :refer [show-loading-status]]
+   [tubo.bookmarks.modals :as modals]
+   [tubo.interceptors :refer [show-loading-status persist]]
    [tubo.schemas :as s]
-   [tubo.storage :refer [persist]]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn apply-playlist-stream-transforms
@@ -28,6 +29,11 @@
   (-> (apply-playlist-stream-transforms db item)
       (select-keys [:url :name :thumbnail :duration :uploader-avatar
                     :uploader-url :uploader-verified :uploader-name])))
+
+(rf/reg-event-fx
+ :bookmark/open-add-modal
+ (fn [_ [_ item]]
+   {:fx [[:dispatch [:modals/open [modals/add-to-bookmark item]]]]}))
 
 (rf/reg-event-fx
  :bookmarks/on-add-auth
@@ -374,8 +380,8 @@
 (rf/reg-event-fx
  :bookmarks/import
  (fn [_ [_ event]]
-   (let [tooltip-id (le/find-clicked-controller-id (.-target event)
-                                                   le/tooltip-class-prefix)]
+   (let [tooltip-id (ui/find-clicked-controller-id (.-target event)
+                                                   ui/tooltip-class-prefix)]
      {:fx (into (map (fn [file] [:bookmarks/import! file])
                      (.. event -target -files))
                 [[:dispatch [:layout/destroy-tooltip-by-id tooltip-id]]

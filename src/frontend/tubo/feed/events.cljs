@@ -1,7 +1,7 @@
 (ns tubo.feed.events
   (:require
    [re-frame.core :as rf]
-   [tubo.layout.events :refer [show-loading-status]]
+   [tubo.interceptors :refer [show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-fx

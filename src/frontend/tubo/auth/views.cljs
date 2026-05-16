@@ -1,8 +1,8 @@
 (ns tubo.auth.views
   (:require
-   [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
-   [tubo.schemas :as s]))
+   [tubo.schemas :as s]
+   [tubo.ui :as ui]))
 
 (def password-reset-validation
   [:map
@@ -12,7 +12,7 @@
 (defn password-reset-modal
   []
   [modals/modal-content "Password Reset"
-   [layout/form
+   [ui/form
     {:validation  password-reset-validation
      :on-submit   [:auth/password-reset]
      :submit-text "Reset"}
@@ -28,7 +28,7 @@
 (defn user-deletion-modal
   []
   [modals/modal-content "Delete User"
-   [layout/form
+   [ui/form
     {:validation  [:map [:password s/ValidPassword]]
      :on-submit   [:auth/delete-user]
      :submit-text "Delete"}
@@ -51,9 +51,9 @@
 
 (defn register
   []
-  [layout/form-container
-   [layout/content-header "Register"]
-   [layout/form
+  [ui/form-container
+   [ui/content-header "Register"]
+   [ui/form
     {:validation  register-form-validation
      :on-submit   [:auth/register]
      :submit-text "Register"}
@@ -77,9 +77,9 @@
 
 (defn login
   []
-  [layout/form-container
-   [layout/content-header "Login"]
-   [layout/form
+  [ui/form-container
+   [ui/content-header "Login"]
+   [ui/form
     {:validation  login-form-validation
      :on-submit   [:auth/login]
      :submit-text "Login"}

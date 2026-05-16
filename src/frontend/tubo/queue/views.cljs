@@ -3,10 +3,9 @@
    ["motion/react" :refer [AnimatePresence motion]]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]
    [tubo.player.components :as player]
    [tubo.stream.views :as stream]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn queue-metadata
@@ -65,7 +64,7 @@
          (if @!paused
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
-         [layout/loading-icon color ["text-[3.5rem]"]])
+         [ui/loading-icon color ["text-[3.5rem]"]])
        :on-click
        #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
@@ -91,7 +90,7 @@
        {:class ["flex" "flex-1" "relative" "items-center" "shrink-0"
                 "flex-auto" "h-full"]}
        [:div.flex.flex-auto.flex-col.h-full
-        [layout/tabs
+        [ui/tabs
          [{:id    :queue
            :label "UP NEXT"}
           {:id    :related
@@ -107,7 +106,7 @@
                            (map-indexed vector
                                         (:related-items stream))]
                        ^{:key i}
-                       [items/list-item-content item
+                       [ui/list-item-content item
                         :container-classes
                         ["flex" "flex-col" "flex-auto" "gap-y-1"]
                         :author-classes ["line-clamp-1" "text-xs"]
@@ -162,7 +161,7 @@
           [:div.flex.gap-x-4.sm:gap-x-8.xs:px-6.my-auto
            {:class ["w-full" "xl:w-4/5" "h-full"
                     "sm:h-[600px]" "md:h-[800px]"
-                    "max-h-[calc(100dvh-56px-2rem)]"]}
+                    "max-h-[calc(100dvh-56px)]"]}
            [:div.flex.flex-col.relative.w-full.sm:w-fit.px-4.xs:px-0.items-center
             [:div.flex.flex-col.gap-y-4.xs:gap-y-6.flex-auto.justify-between
              {:class ["w-full" "xs:w-11/12" "sm:w-[18rem]" "md:w-[24rem]"
@@ -173,7 +172,7 @@
                :animate {:scale 1}
                :ref     #(reset! !thumbnail %)
                :initial {:scale 0.9}}
-              [layout/thumbnail stream nil :hide-label? true
+              [ui/thumbnail stream nil :hide-label? true
                :container-classes
                ["aspect-square" "min-w-full" "rounded-md"]
                :image-classes ["rounded-md"]]]
@@ -193,7 +192,7 @@
               [player/shuffle-button color true :extra-classes
                ["text-md" "w-10"]]
               [player/loop-button color true :extra-classes ["text-md" "w-10"]]
-              [layout/panel-popover
+              [ui/panel-popover
                [queue-list stream]
                :mobile-only? true
                :container-classes ["sm:hidden"]

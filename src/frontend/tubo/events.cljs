@@ -1,10 +1,15 @@
 (ns tubo.events
   (:require
    ["fast-average-color" :refer [FastAverageColor]]
+   ["localforage" :as localforage]
    ["motion" :refer [animate]]
+   [cognitect.transit :as transit]
    [fork.re-frame :as fork]
+   [malli.error :as me]
    [nano-id.core :refer [nano-id]]
+   [promesa.core :as p]
    [re-frame.core :as rf]
+   [re-frame.db :as db]
    [re-promise.core]
    [superstructor.re-frame.fetch-fx]
    [tubo.auth.events]
@@ -13,8 +18,6 @@
    [tubo.comments.events]
    [tubo.feed.events]
    [tubo.kiosks.events]
-   [tubo.layout.events]
-   [tubo.layout.views :as layout]
    [tubo.modals.events]
    [tubo.navigation.events]
    [tubo.notifications.events]
@@ -25,9 +28,9 @@
    [tubo.search.events]
    [tubo.services.events]
    [tubo.settings.events]
-   [tubo.storage]
    [tubo.stream.events]
    [tubo.subscriptions.events]
+   [tubo.ui :as ui]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-event-fx
@@ -300,7 +303,7 @@
  (fn [_ [_ reload-cb res]]
    {:fx [[:dispatch
           [:change-view
-           #(layout/error-container (assoc res :type :error) reload-cb)]]
+           #(ui/error-container (assoc res :type :error) reload-cb)]]
          [:dispatch [:stop-loading]]]}))
 
 (rf/reg-fx
@@ -341,3 +344,161 @@
  (fn [{:keys [db]} [_ path res]]
    {:db (fork/set-submitting db path false)
     :fx [[:dispatch [:bad-response res]]]}))
+
+(rf/reg-event-db
+ :layout/show-bg-overlay
+ (fn [db [_ {:keys [on-click] :as data} remain-open?]]
+   (assoc db
+          :layout/bg-overlay
+          (assoc data
+                 :show?    true
+                 :on-click #(do (when on-click (on-click))
+                                (when-not remain-open?
+                                  (rf/dispatch [:layout/hide-bg-overlay])))))))
+
+(rf/reg-event-db
+ :layout/hide-bg-overlay
+ (fn [db _]
+   (assoc-in db [:layout/bg-overlay :show?] false)))
+
+(rf/reg-event-fx
+ :layout/show-mobile-tooltip
+ (fn [{:keys [db]} [_ data]]
+   {:db (assoc db :layout/mobile-tooltip (assoc data :show? true))
+    :fx [[:dispatch
+          [:layout/register-tooltip data]]
+         [:dispatch [:layout/show-bg-overlay {:extra-classes ["z-40"]}]]]}))
+
+(rf/reg-event-fx
+ :layout/show-mobile-panel
+ (fn [{:keys [db]} [_ data]]
+   {:db (assoc db :layout/mobile-panel (assoc data :show? true))
+    :fx [[:dispatch [:layout/register-panel data]]]}))
+
+(defn default-popover-data
+  []
+  {:id                    (nano-id)
+   :destroy-on-click-out? true})
+
+(rf/reg-event-db
+ :layout/register-panel
+ (fn [db [_ data]]
+   (let [full-data (merge (default-popover-data) data)]
+     (assoc-in db [:layout/panels (:id data)] full-data))))
+
+(rf/reg-event-db
+ :layout/destroy-panels-by-ids
+ (fn [db [_ ids]]
+   (update db :layout/panels #(apply dissoc % ids))))
+
+(rf/reg-event-db
+ :layout/register-tooltip
+ (fn [db [_ data]]
+   (let [full-data (merge (default-popover-data) data)]
+     (assoc-in db [:layout/tooltips (:id data)] full-data))))
+
+(rf/reg-event-fx
+ :layout/destroy-tooltip-by-id
+ (fn [{:keys [db]} [_ id]]
+   {:db (update db :layout/tooltips dissoc id)}))
+
+(rf/reg-event-fx
+ :layout/change-tooltip-items
+ (fn [{:keys [db]} [_ id items]]
+   {:db (update-in db [:layout/tooltips id] #(assoc %1 :items %2) items)}))
+
+(rf/reg-event-db
+ :layout/destroy-tooltips-by-ids
+ (fn [db [_ ids]]
+   (update db :layout/tooltips #(apply dissoc % ids))))
+
+(rf/reg-event-fx
+ :layout/destroy-tooltips-on-click-out
+ (fn [{:keys [db]} [_ clicked-node]]
+   (when (seq (:layout/tooltips db))
+     (let [clicked-controller (ui/find-clicked-controller-id
+                               clicked-node
+                               ui/tooltip-class-prefix)
+           tooltips-ids       (->> (:layout/tooltips db)
+                                   (vals)
+                                   (filter :destroy-on-click-out?)
+                                   (map :id)
+                                   (set))]
+       {:fx [[:dispatch
+              [:layout/destroy-tooltips-by-ids
+               (disj tooltips-ids clicked-controller)]]]}))))
+
+(rf/reg-event-fx
+ :layout/destroy-panels-on-click-out
+ (fn [{:keys [db]} [_ clicked-node]]
+   (when (and (seq (:layout/panels db)) (not (seq (:layout/tooltips db))))
+     (let [clicked-controller (ui/find-clicked-controller-id
+                               clicked-node
+                               ui/panel-class-prefix)
+           panels-ids         (->> (:layout/panels db)
+                                   (vals)
+                                   (filter :destroy-on-click-out?)
+                                   (map :id)
+                                   (set))]
+       {:fx [[:dispatch
+              [:layout/destroy-panels-by-ids
+               (disj panels-ids clicked-controller)]]]}))))
+
+(rf/reg-fx
+ :intersection-observer
+ (fn [{:keys [observer elem cb opts]}]
+   (when @observer
+     (.disconnect @observer))
+   (when elem
+     (.observe
+      (reset! observer (js/IntersectionObserver. cb (clj->js opts)))
+      elem))))
+
+(rf/reg-event-fx
+ :layout/add-intersection-observer
+ (fn [{:keys [db]} [_ observer elem cb opts]]
+   (when-not (:show-pagination-loading db)
+     {:intersection-observer
+      {:observer observer :elem elem :cb cb :opts opts}})))
+
+(defn json->clj
+  [json]
+  (transit/read (transit/reader :json) json))
+
+(rf/reg-fx
+ :persist!
+ (fn []
+   (let [persisted-db (select-keys @db/app-db s/persisted-local-db-keys)]
+     (when-let [json (try (transit/write (transit/writer :json) persisted-db)
+                          (catch :default e
+                            #(rf/dispatch [:notifications/error e])))]
+       (-> (localforage/setItem "tubo" json)
+           (p/catch #(rf/dispatch [:notifications/error %])))))))
+
+(rf/reg-event-fx
+ :persist
+ (fn []
+   {:persist! nil}))
+
+(rf/reg-fx
+ :validate
+ (fn [{:keys [db event]}]
+   (when-not (s/local-db-valid? db)
+     (js/console.error (str "Event: " (first event)))
+     (throw (js/Error. (str "Local DB spec check failed: "
+                            (me/humanize (s/local-db-explain db))))))))
+
+(rf/reg-fx
+ :fetch-store
+ (fn [{:keys [on-success on-error on-finally]}]
+   (-> (localforage/getItem "tubo")
+       (p/then #(when on-success (rf/dispatch (conj on-success (json->clj %)))))
+       (p/catch #(when on-error (rf/dispatch (conj on-error %))))
+       (p/finally #(when on-finally (rf/dispatch on-finally))))))
+
+(rf/reg-fx
+ :clear-store
+ (fn [db]
+   (js/console.error (js/Error. (str "Local DB spec check failed: "
+                                     (me/humanize (s/local-db-explain db)))))
+   (localforage/clear)))

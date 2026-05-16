@@ -9,17 +9,17 @@
    [tubo.bookmarks.views :as bookmarks]
    [tubo.channel.views :as channel]
    [tubo.kiosks.views :as kiosks]
-   [tubo.layout.views :as layout]
    [tubo.player.components :as player]
    [tubo.playlist.views :as playlist]
    [tubo.search.views :as search]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn logo
   []
   [:a.justify-center.items-center.gap-x-2.flex
    {:href (rfe/href :homepage)}
-   [layout/logo :height 20 :width 20]
+   [ui/logo :height 20 :width 20]
    [:h3.text-xl.font-bold "Tubo"]])
 
 (defn media-ccc-logo
@@ -60,10 +60,10 @@
      (when (not show-queue?)
        [:div.flex.items-center.justify-center.text-lg.w-10
         {:class (when show-search-form? ["hidden" "md:flex"])}
-        [layout/button nil #(rf/dispatch [:navigation/show-mobile-menu])
+        [ui/button nil #(rf/dispatch [:navigation/show-mobile-menu])
          [:i.fa-solid.fa-bars] nil :button-classes
          (if (false? show-sidebar?) ["lg:flex"] ["lg:hidden" "flex-none"])]
-        [layout/button nil
+        [ui/button nil
          #(rf/dispatch [:navigation/show-sidebar
                         (cond (= show-sidebar? :minimized) :expanded
                               (and (= sidebar-state :minimized)
@@ -77,7 +77,7 @@
          ["hidden" "lg:flex" (when (false? show-sidebar?) "lg:hidden")]]])
      (when (and (not show-search-form?) show-queue?)
        [:div.w-10
-        [layout/button nil
+        [ui/button nil
          #(rf/dispatch [:queue/show false])
          [:i.fa-solid.fa-angle-down]]])
      [:div.font-bold.text-lg.sm:text-xl.flex.relative.h-7.w-fit.lg:w-32
@@ -119,7 +119,7 @@
     [:div.flex.justify-end.flex-auto
      [:div.flex.items-center.justify-end
       (when-not (or show-search-form? show-queue?)
-        [layout/button nil #(rf/dispatch [:search/activate true])
+        [ui/button nil #(rf/dispatch [:search/activate true])
          [:i.fa-solid.fa-search] nil :button-classes ["md:hidden"]])
       [:div
        (when-not show-search-form?
@@ -151,7 +151,7 @@
       (when-not show-queue?
         [:<>
          [:div.hidden.md:flex
-          [layout/popover
+          [ui/popover
            [(when theme
               {:label     (str "Theme: "
                                (str/capitalize theme))
@@ -167,7 +167,7 @@
            :tooltip-classes ["right-5" "top-8" "w-44"]
            :icon [:i.fa-solid.fa-cog]]]
          [:div.hidden.md:flex
-          [layout/popover
+          [ui/popover
            (into (if-not user
                    [{:label "Register"
                      :icon  [:i.fa-solid.fa-user-plus]
@@ -328,7 +328,7 @@
      [sidebar-item (rfe/href :settings-page) [:i.fa-solid.fa-cog] "Settings"
       :always-expanded? always-expanded?]
      (when show-mobile-menu?
-       [layout/popover
+       [ui/popover
         (map #(assoc % :hide-bg-overlay-on-click? false) theme-tooltip-items)
         :extra-classes ["!p-0" "!bg-transparent"]
         :tooltip-classes ["right-5" "bottom-0"]
@@ -386,7 +386,7 @@
        :transition {:duration 0.1}}
       [:div.flex.items-center.h-14.px-4.gap-x-2.xs:gap-x-4
        {:class "min-h-[56px]"}
-       [layout/button nil #(rf/dispatch [:navigation/hide-mobile-menu])
+       [ui/button nil #(rf/dispatch [:navigation/hide-mobile-menu])
         [:i.fa-solid.fa-bars] nil :button-classes ["text-lg"]]
        [logo]]
       [:div.flex.flex-col.justify-between.flex-auto.overflow-auto.scrollbar-none

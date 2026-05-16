@@ -7,8 +7,7 @@
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]
+   [tubo.ui :as ui]
    [tubo.player.components :as player]
    [tubo.utils :as utils]))
 
@@ -28,7 +27,7 @@
          (= i queue-pos) [:i.fa-solid.fa-play]
          :else           (inc i))]]
      [:div.flex.items-center.shrink-0.grow-0
-      [layout/thumbnail item nil :container-classes
+      [ui/thumbnail item nil :container-classes
        ["h-12" "@sm:h-16" "w-16" "@sm:w-24" "@md:w-32"] :image-classes
        ["rounded"]]]
      [:div.flex.flex-col.pl-4.pr-12.w-full.gap-y-1
@@ -39,12 +38,12 @@
        [:span.line-clamp-1 {:title uploader-name} uploader-name]
        (when service-id
          [:<>
-          [layout/bullet :extra-classes ["hidden" "@lg:inline-block"]]
+          [ui/bullet :extra-classes ["hidden" "@lg:inline-block"]]
           [:span (utils/get-service-name service-id)]])]]]))
 
 (defn metadata-popover
   [{:keys [url related-items] :as stream}]
-  [layout/popover
+  [ui/popover
    (into
     [{:label    "Add to queue"
       :icon     [:i.fa-solid.fa-headphones]
@@ -78,7 +77,7 @@
     :as   stream}]
   [:div.flex.items-center.justify-between.xs:justify-start.flex-auto.xs:flex-none.flex-wrap.xs:flex-nowrap.gap-4
    [:div.flex.items-center.gap-x-3
-    [layout/uploader-avatar stream :classes ["w-12" "h-12"]]
+    [ui/uploader-avatar stream :classes ["w-12" "h-12"]]
     [:div.gap-x-2
      (when uploader-url
        [:div.flex.gap-x-2.items-center
@@ -94,9 +93,9 @@
          (str (utils/format-quantity subscriber-count) " subscribers")]])]]
    (when uploader-url
      (if @(rf/subscribe [:subscriptions/subscribed uploader-url])
-       [layout/secondary-button "Unsubscribe"
+       [ui/secondary-button "Unsubscribe"
         #(rf/dispatch [:subscriptions/remove uploader-url])]
-       [layout/primary-button "Subscribe"
+       [ui/primary-button "Subscribe"
         #(rf/dispatch [:subscriptions/add
                        {:url      uploader-url
                         :name     uploader-name
@@ -132,7 +131,7 @@
       [:span.whitespace-nowrap {:title view-count}
        (str (utils/format-quantity view-count) " views")])
     (when (and view-count textual-upload-date)
-      [layout/bullet])
+      [ui/bullet])
     (when textual-upload-date
       [:span.whitespace-nowrap {:title textual-upload-date}
        (utils/format-date-ago textual-upload-date)])]
@@ -169,7 +168,7 @@
     (when (and show? (seq (:content description)))
       [:div.rounded-lg.break-words.flex.flex-col.gap-y-8.text-sm
        {:class "[overflow-wrap:anywhere]"}
-       [layout/show-more-container show-description
+       [ui/show-more-container show-description
         (:content description)
         #(rf/dispatch [(if @(rf/subscribe [:main-player/show])
                          :main-player/toggle-layout
@@ -181,7 +180,7 @@
   [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
     :as   item} i]
   [:div.absolute.right-0.top-0.min-h-full.flex.items-center
-   [layout/popover
+   [ui/popover
     [{:label    "Start radio"
       :icon     [:i.fa-solid.fa-tower-cell]
       :on-click #(rf/dispatch [:bg-player/start-radio item])}
@@ -238,7 +237,7 @@
     (when show?
       (if show-comments-loading
         [:div.h-44.flex.items-center
-         [layout/loading-icon service-color "text-2xl"]]
+         [ui/loading-icon service-color "text-2xl"]]
         (when (and show-comments comments-page)
           [comments/comments comments-page stream])))))
 
@@ -250,7 +249,7 @@
        [:div.flex.flex-col.gap-x-10.gap-y-2
         (for [[i item] (map-indexed vector related-items)]
           ^{:key i}
-          [items/list-item-content item
+          [ui/list-item-content item
            :author-classes ["line-clamp-1" "text-xs"]
            :container-classes ["gap-y-1"]
            :metadata-classes ["text-xs" "gap-y-2"]
@@ -312,7 +311,7 @@
              (when show-description [description stream])
              (when show-comments comments-container)]
             [:div.md:hidden.-mx-4.md:mx-0.border-b.border-neutral-300.dark:border-neutral-700
-             [layout/tabs
+             [ui/tabs
               [(when show-comments
                  {:id        :comments
                   :label     "Comments"

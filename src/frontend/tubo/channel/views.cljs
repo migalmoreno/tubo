@@ -1,18 +1,17 @@
 (ns tubo.channel.views
   (:require
+   [clojure.string :as str]
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]
    [tubo.bookmarks.modals :as bm]
    [tubo.modals.views :as modals]
-   [tubo.utils :as utils]
-   [clojure.string :as str]))
+   [tubo.ui :as ui]
+   [tubo.utils :as utils]))
 
 (defn metadata-popover
   [{:keys [related-items]}]
   (when (seq related-items)
-    [layout/popover
+    [ui/popover
      [{:label    "Add to queue"
        :icon     [:i.fa-solid.fa-headphones]
        :on-click #(rf/dispatch [:queue/add-n related-items true])}
@@ -28,13 +27,13 @@
     (fn [{:keys [avatar name subscriber-count description url] :as channel}
          active-tab]
       (let [sub-btn (if @(rf/subscribe [:subscriptions/subscribed url])
-                      [layout/secondary-button "Unsubscribe"
+                      [ui/secondary-button "Unsubscribe"
                        #(rf/dispatch [:subscriptions/remove url])]
-                      [layout/primary-button "Subscribe"
+                      [ui/primary-button "Subscribe"
                        #(rf/dispatch [:subscriptions/add channel])])]
         [:div.flex.flex-col.w-full
          [:div.flex.items-center.my-4.gap-x-4
-          [layout/uploader-avatar
+          [ui/uploader-avatar
            {:uploader-avatar avatar
             :uploader-name   name}
            :classes ["w-24" "xs:w-36" "h-24" "xs:h-36"]]
@@ -56,7 +55,7 @@
            (when-not (empty? description)
              [:div.text-neutral-600.dark:text-neutral-400.text-sm
               {:class "[overflow-wrap:anywhere]"}
-              [layout/show-more-container @!show-description? description
+              [ui/show-more-container @!show-description? description
                #(rf/dispatch
                  [:modals/open
                   (r/as-element
@@ -85,7 +84,7 @@
                                                         (:content-filters %)))
                                                    (:tabs channel)))
                                            (first (:tabs channel)))]
-        [layout/content-container
+        [ui/content-container
          (when banner
            [:div.flex.justify-center.h-24
             [:img.min-w-full.min-h-full.object-cover.rounded-xl
@@ -94,7 +93,7 @@
           [metadata channel active-tab]
           (when (seq (:tabs channel))
             [:div.flex.justify-between.items-center.border-b.border-neutral-300.dark:border-neutral-700
-             [layout/tabs
+             [ui/tabs
               (map (fn [{:keys [content-filters]}]
                      {:id    (first content-filters)
                       :label (str/capitalize (first content-filters))})
@@ -105,7 +104,7 @@
               :on-change
               #(do (reset! !active-tab-id %)
                    (rf/dispatch [:channel/fetch-tab url %]))]])]
-         [items/related-items
+         [ui/related-items
           (or (:related-items active-tab) (:related-items channel))
           (:next-page active-tab)
           (:items-layout @(rf/subscribe [:settings]))

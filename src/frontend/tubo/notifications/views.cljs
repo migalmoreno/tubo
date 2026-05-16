@@ -2,7 +2,7 @@
   (:require
    ["motion/react" :refer [AnimatePresence motion]]
    [re-frame.core :as rf]
-   [tubo.layout.views :as layout]))
+   [tubo.ui :as ui]))
 
 (defn notification-content
   [{:keys [type status status-text body problem-message] :as notification}]
@@ -31,7 +31,7 @@
     (case type
       :success [:i.fa-solid.fa-circle-check]
       :error   [:i.fa-solid.fa-circle-exclamation]
-      :loading [:div.grow-0 [layout/loading-icon]]
+      :loading [:div.grow-0 [ui/loading-icon]]
       [:i.fa-solid.fa-circle-info])
     [:div.flex.flex-col
      [:span.font-bold.break-all

@@ -1,8 +1,7 @@
 (ns tubo.kiosks.views
   (:require
    [re-frame.core :as rf]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]))
+   [tubo.ui :as ui]))
 
 (defn kiosk-active?
   [& {:keys [kiosk kiosk-id service-id default-service default-kiosk path]}]
@@ -20,8 +19,8 @@
   (let [{:keys [id name next-page] :as kiosk} @(rf/subscribe [:kiosk])
         service-id                            (or @(rf/subscribe [:service-id])
                                                   serviceId)]
-    [layout/content-container
-     [layout/content-header name]
-     [items/related-items (:related-items kiosk) next-page
+    [ui/content-container
+     [ui/content-header name]
+     [ui/related-items (:related-items kiosk) next-page
       (:items-layout @(rf/subscribe [:settings]))
       #(rf/dispatch [:kiosks/fetch-paginated service-id id next-page])]]))

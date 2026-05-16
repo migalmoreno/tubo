@@ -26,9 +26,9 @@
    ["shaka-video-element/react$default" :as ShakaVideo]
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [tubo.config :as config]
-   [tubo.layout.views :as layout]
    [tubo.bookmarks.modals :as modals]
+   [tubo.config :as config]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn popover
@@ -38,7 +38,7 @@
         queue-pos @(rf/subscribe [:queue/position])
         bookmark  #(rf/dispatch [:modals/open
                                  [modals/add-to-bookmark %]])]
-    [layout/popover
+    [ui/popover
      [{:label             "Start radio"
        :icon              [:i.fa-solid.fa-tower-cell]
        :stop-propagation? true
@@ -95,7 +95,7 @@
    {:whileTap {:scale [0.9 1]}
     :initial  {:scale 1}
     :class    (concat
-               layout/common-button-classes
+               ui/common-button-classes
                (when disabled? ["opacity-50" "cursor-auto"])
                (if show-on-mobile?
                  ["flex"]

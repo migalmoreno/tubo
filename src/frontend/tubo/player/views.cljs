@@ -2,9 +2,9 @@
   (:require
    ["motion/react" :refer [motion AnimatePresence]]
    [re-frame.core :as rf]
-   [tubo.layout.views :as layout]
    [tubo.player.components :as player]
    [tubo.stream.views :as stream]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn metadata
@@ -12,7 +12,7 @@
   [:div.flex.lg:flex-1.group
    [:div.flex.gap-x-4
     [:div
-     [layout/thumbnail (dissoc stream :duration) nil :container-classes
+     [ui/thumbnail (dissoc stream :duration) nil :container-classes
       ["h-12" "w-12"] :image-classes ["rounded"]]]
     [:div.flex.flex-col.pr-4.gap-y-1
      [:h1.text-sm.line-clamp-1.w-fit
@@ -50,7 +50,7 @@
          (if @!paused
            [:i.fa-solid.fa-play-circle]
            [:i.fa-solid.fa-pause-circle])
-         [layout/loading-icon color "text-3xl lg:text-4xl"])
+         [ui/loading-icon color "text-3xl lg:text-4xl"])
        :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
        :show-on-mobile? true
        :extra-classes

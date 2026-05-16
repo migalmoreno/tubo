@@ -2,7 +2,7 @@
   (:require
    [fork.re-frame :as fork]
    [re-frame.core :as rf]
-   [tubo.storage :refer [persist]]))
+   [tubo.interceptors :refer [persist]]))
 
 (rf/reg-event-fx
  :services/fetch

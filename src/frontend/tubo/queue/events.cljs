@@ -2,7 +2,7 @@
   (:require
    [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
-   [tubo.storage :refer [persist]]
+   [tubo.interceptors :refer [persist]]
    [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 

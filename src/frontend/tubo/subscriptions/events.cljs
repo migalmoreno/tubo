@@ -2,8 +2,7 @@
   (:require
    [clojure.set :refer [rename-keys]]
    [re-frame.core :as rf]
-   [tubo.storage :refer [persist]]
-   [tubo.layout.events :refer [show-loading-status]]
+   [tubo.interceptors :refer [persist show-loading-status]]
    [tubo.utils :as utils]))
 
 (rf/reg-event-fx

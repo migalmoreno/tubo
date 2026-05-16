@@ -5,9 +5,9 @@
    [nano-id.core :refer [nano-id]]
    [promesa.core :as p]
    [re-frame.core :as rf]
-   [tubo.player.utils :as putils]
+   [tubo.interceptors :refer [persist]]
    [tubo.player.views :as views]
-   [tubo.storage :refer [persist]]
+   [tubo.utils :as utils]
    [vimsical.re-frame.cofx.inject :as inject]))
 
 (rf/reg-fx
@@ -92,7 +92,7 @@
          [:player/request-filter [player (get-in db [:settings :instance])]]
          [:dispatch
           [:player/load
-           player (putils/get-video-stream stream (:settings db)) pos]]]}))
+           player (utils/get-video-stream stream (:settings db)) pos]]]}))
 
 (rf/reg-event-fx
  :player/start
@@ -133,10 +133,10 @@
              "Playback failed. Retrying...")]]
          [:dispatch
           [:player/reload player
-           (putils/get-video-stream (:stream db)
-                                    (assoc (:settings db)
-                                           :video-source-type
-                                           "progressive-http"))]]]}))
+           (utils/get-video-stream (:stream db)
+                                   (assoc (:settings db)
+                                          :video-source-type
+                                          "progressive-http"))]]]}))
 
 (rf/reg-fx
  :player/set-next
@@ -308,7 +308,7 @@
  :main-player/set-stream
  [(rf/inject-cofx ::inject/sub [:main-player])]
  (fn [{:keys [main-player db]} [_ stream pos]]
-   (let [video-stream (putils/get-video-stream stream (:settings db))]
+   (let [video-stream (utils/get-video-stream stream (:settings db))]
      {:fx [[:dispatch [:player/load main-player video-stream pos]]]})))
 
 (rf/reg-event-fx
@@ -394,7 +394,7 @@
  :bg-player/set-stream
  [(rf/inject-cofx ::inject/sub [:bg-player])]
  (fn [{:keys [db bg-player]} [_ stream pos]]
-   (when-let [audio-stream (putils/get-audio-stream stream (:settings db))]
+   (when-let [audio-stream (utils/get-audio-stream stream (:settings db))]
      {:fx [[:dispatch [:player/load bg-player audio-stream pos]]]
       :db (assoc db :bg-player/loading false)})))
 

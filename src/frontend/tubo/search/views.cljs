@@ -2,8 +2,7 @@
   (:require
    ["motion/react" :refer [motion AnimatePresence]]
    [re-frame.core :as rf]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn suggestions-box
@@ -85,7 +84,7 @@
                                        (.. % -target -value)])
          :placeholder   "Search"}]
        [:button.px-2.cursor-pointer {:type "submit"} [:i.fa-solid.fa-search]]
-       [layout/popover
+       [ui/popover
         (map-indexed
          (fn [i filter]
            {:label    [:span.flex.items-center.gap-x-4
@@ -121,14 +120,14 @@
         filter                            @(rf/subscribe [:search/filter])
         service                           @(rf/subscribe [:services/current])
         settings                          @(rf/subscribe [:settings])]
-    [layout/content-container
+    [ui/content-container
      [:div.flex.w-full.justify-between
-      [layout/select
+      [ui/select
        (or filter (get (:default-filter settings) service-id) "")
        (map (fn [filter] {:label (utils/titleize filter) :value filter})
             (get-in service [:search-qh-factory :available-content-filter]))
        #(rf/dispatch [:search/set-filter (.. % -target -value)])]]
-     [items/related-items related-items next-page
+     [ui/related-items related-items next-page
       (:items-layout @(rf/subscribe [:settings]))
       #(rf/dispatch
         [:search/fetch-paginated

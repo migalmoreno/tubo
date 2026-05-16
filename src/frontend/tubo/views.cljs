@@ -4,12 +4,12 @@
    ["react-top-loading-bar$default" :as LoadingBar]
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
    [tubo.navigation.views :as navigation]
    [tubo.notifications.views :as notifications]
    [tubo.player.views :as player]
    [tubo.queue.views :as queue]
+   [tubo.ui :as ui]
    [tubo.utils :refer [version]]))
 
 (defn about-entry
@@ -23,10 +23,10 @@
 
 (defn about
   []
-  [layout/content-container
+  [ui/content-container
    [:div
     [:div.my-10.flex.flex-col.items-center.gap-y-4
-     [layout/logo :height 100 :width 100]
+     [ui/logo :height 100 :width 100]
      [:div.flex.flex-col.items-center.gap-y-2
       [:h3.font-semibold.text-3xl "Tubo"]
       [:span.text-sm version]]
@@ -40,7 +40,7 @@
         {:href   "https://migalmoreno.com/projects/tubo.html"
          :target "blank"
          :rel    "noopener"}
-        [layout/secondary-button "Visit homepage"]]]]
+        [ui/secondary-button "Visit homepage"]]]]
      [about-entry "Contribute"
       "Feature requests, bug reports, and design ideas should be submitted in the upstream source repository."
       [:div.w-full.flex.justify-end
@@ -48,17 +48,17 @@
         {:href   "https://github.com/migalmoreno/tubo"
          :target "blank"
          :rel    "noopener"}
-        [layout/secondary-button "View on GitHub"]]]]
+        [ui/secondary-button "View on GitHub"]]]]
      [about-entry "Tubo's Privacy Policy"
       "Tubo takes your data very seriously. Therefore, the application does not collect any data without your consent."
       [:div.w-full.flex.justify-end
        [:a {:href (rfe/href :privacy-page)}
-        [layout/secondary-button "Read Privacy Policy"]]]]]]])
+        [ui/secondary-button "Read Privacy Policy"]]]]]]])
 
 (defn privacy-policy
   []
-  [layout/content-container
-   [layout/content-header "Tubo's Privacy Policy"]
+  [ui/content-container
+   [ui/content-header "Tubo's Privacy Policy"]
    [:div.pt-4.flex.flex-col.gap-y-6
     [:p
      "Tubo takes your privacy very seriously. This privacy policy explains the type of information that is collected and recorded and how it is used."]
@@ -82,6 +82,13 @@
     [:p
      "Tubo's privacy policy does not apply to external platforms from which it might extract data. You are advised to consult their respective privacy policies for more detailed information."]]])
 
+(defn not-found-page
+  []
+  [:div.flex.flex-auto.h-full.items-center.justify-center
+   [:div.flex.flex-col.items-center.justify-center.gap-y-4
+    [:h1.font-extrabold.text-4xl.sm:text-6xl "404"]
+    [:h1.font-semibold.text-xl.sm:text-3xl "Page not found"]]])
+
 (defn app
   []
   (let [current-match    @(rf/subscribe [:navigation/current-match])
@@ -96,9 +103,9 @@
                       (rf/dispatch
                        [:layout/destroy-panels-on-click-out
                         (.. % -target)]))}
-      [layout/background-overlay]
-      [layout/mobile-tooltip]
-      [layout/mobile-panel]
+      [ui/background-overlay]
+      [ui/mobile-tooltip]
+      [ui/mobile-panel]
       [modals/modals-container]
       [navigation/mobile-menu current-match]
       [navigation/navbar current-match]
@@ -118,6 +125,6 @@
              :exit       {:opacity 0}
              :transition {:duration 0.5 :ease "easeOut"}}
             [view current-match]]
-           [layout/not-found-page])]
+           [not-found-page])]
         [queue/queue]]]
       [player/bg-player]]]))

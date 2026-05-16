@@ -1,7 +1,7 @@
 (ns tubo.settings.events
   (:require
    [re-frame.core :as rf]
-   [tubo.storage :refer [persist]]))
+   [tubo.interceptors :refer [persist]]))
 
 (rf/reg-event-fx
  :settings/change

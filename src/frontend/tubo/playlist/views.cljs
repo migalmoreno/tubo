@@ -3,13 +3,12 @@
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
-   [tubo.items.views :as items]
-   [tubo.layout.views :as layout]))
+   [tubo.ui :as ui]))
 
 (defn metadata-popover
   [{:keys [related-items]} edit-modal]
   (when related-items
-    [layout/popover
+    [ui/popover
      [(when edit-modal
         {:label    "Edit playlist"
          :icon     [:i.fa-solid.fa-pencil]
@@ -51,19 +50,19 @@
                "before:absolute" "before:content-['']" "before:top-0"
                "before:right-0" "before:left-0" "before:bottom-0"]}
       [:div.flex.items-center.justify-center.xs:justify-start.w-full.xs:w-auto.relative
-       [layout/thumbnail playlist nil :container-classes ["h-52" "w-52"]
+       [ui/thumbnail playlist nil :container-classes ["h-52" "w-52"]
         :image-classes ["rounded-md"] :hide-label? true]]
       [:div.flex.flex-col.flex-1.gap-y-1.relative
        [:h1.text-sm.font-medium.text-neutral-800.dark:text-neutral-400
         (str (when edit-modal "LOCAL ") "PLAYLIST")]
        [:div.flex.flex-col.gap-y-6
-        [layout/content-header name]
+        [ui/content-header name]
         (when (seq related-items)
           [:div.flex.gap-x-3.items-center
-           [layout/primary-button "Play All"
+           [ui/primary-button "Play All"
             #(rf/dispatch [:playlist/play-all related-items])
             [:i.fa-solid.fa-play]]
-           [layout/secondary-button "Shuffle"
+           [ui/secondary-button "Shuffle"
             #(rf/dispatch [:playlist/shuffle-all related-items])
             [:i.fa-solid.fa-shuffle]]
            [:div.hidden.xs:block
@@ -72,19 +71,19 @@
          [:div.flex.gap-x-3.items-center
           (when (seq uploader-name)
             [:<>
-             [layout/uploader-avatar playlist :classes ["w-6" "h-6"]]
+             [ui/uploader-avatar playlist :classes ["w-6" "h-6"]]
              [:a.line-clamp-1.font-bold.text-sm
               {:href  (when (seq uploader-url)
                         (rfe/href :channel-page nil {:url uploader-url}))
                :title uploader-name}
               uploader-name]])
           (when (and (seq uploader-name) (> stream-count 0))
-            [layout/bullet])
+            [ui/bullet])
           (when (> stream-count 0)
             [:span.text-sm.font-semibold.whitespace-nowrap.text-neutral-600.dark:text-neutral-400.flex-auto
              (str stream-count
                   (if (= stream-count 1) " stream" " streams"))])]]]]]
-     [layout/content-container
+     [ui/content-container
       [:div.absolute.left-0.right-0.top-0.-z-10
        {:style {"--bg-color"    (:thumbnail-color playlist)
                 "--bg-gradient" bottom-bg-gradient}
@@ -92,7 +91,7 @@
                 "before:bg-[image:var(--bg-gradient)]"
                 "before:absolute" "before:content-['']" "before:top-0"
                 "before:right-0" "before:left-0" "before:bottom-0"]}]
-      [items/related-items related-items next-page
+      [ui/related-items related-items next-page
        (:items-layout @(rf/subscribe [:settings]))
        #(rf/dispatch [:playlist/fetch-paginated url next-page])]]]))
 

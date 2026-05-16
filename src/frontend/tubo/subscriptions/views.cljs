@@ -1,18 +1,17 @@
 (ns tubo.subscriptions.views
   (:require
-   [tubo.layout.views :as layout]
-   [tubo.items.views :as items]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [tubo.ui :as ui]))
 
 (defn subscriptions-page
   []
   (let [subscriptions @(rf/subscribe [:subscriptions])]
-    [layout/content-container
-     [layout/content-header "Subscriptions"
+    [ui/content-container
+     [ui/content-header "Subscriptions"
       [:div.flex.flex-auto
-       [layout/popover
+       [ui/popover
         [{:label    "Clear all"
           :icon     [:i.fa-solid.fa-trash]
           :on-click #(rf/dispatch [:subscriptions/clear])}]]]]
-     [items/related-items (map #(assoc % :info-type "CHANNEL") subscriptions)
+     [ui/related-items (map #(assoc % :info-type "CHANNEL") subscriptions)
       nil "grid"]]))

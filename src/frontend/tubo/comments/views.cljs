@@ -2,7 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [reitit.frontend.easy :as rfe]
-   [tubo.layout.views :as layout]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn comment-top-metadata
@@ -41,7 +41,7 @@
      [:div.relative.w-4.h-4.mx-2
       [:i.fa-solid.fa-heart.absolute.-bottom-1.-right-1.text-xs.text-red-500
        {:class ["z-[5]"]}]
-      [layout/uploader-avatar
+      [ui/uploader-avatar
        {:uploader-avatar author-avatar
         :uploader-name   author-name
         :uploader-url    author-url}
@@ -52,7 +52,7 @@
            url reply?]
     :as   comment}]
   [:div.flex.gap-x-4
-   [layout/uploader-avatar comment :classes
+   [ui/uploader-avatar comment :classes
     (if reply? ["w-8" "h-8"] ["w-12" "h-12"])]
    [:div.flex.flex-col.gap-y-4
     [:div.flex.flex-col.gap-y-2
@@ -133,7 +133,7 @@
                  [:div.h-8.flex
                   {:class "ml-[40px]"}
                   (cond
-                    replies-loading [layout/loading-icon service-color :text-md]
+                    replies-loading [ui/loading-icon service-color :text-md]
                     (:next-page replies)
                     [:button
                      {:on-click #(rf/dispatch [:comments/fetch-more-replies
@@ -143,6 +143,6 @@
                      [:i.fa-solid.fa-turn-up.mx-2.text-xs.rotate-90]
                      [:span.font-bold.text-sm "Show more replies"]])])])
             (when (and pagination-loading? (seq next-page))
-              [layout/loading-icon service-color :text-md])]
+              [ui/loading-icon service-color :text-md])]
            [:div.flex.items-center.flex-auto.flex-col.justify-center.h-44
             [:span "No available comments"]])]))))

@@ -4,15 +4,15 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.auth.views :as auth]
-   [tubo.layout.views :as layout]
    [tubo.modals.views :as modals]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn boolean-input
   [label keys value]
   (let [service-color @(rf/subscribe [:service-color])]
-    [layout/form-field {:label label :orientation :vertical}
-     [layout/input
+    [ui/form-field {:label label :orientation :vertical}
+     [ui/input
       :type :checkbox
       :class ["rounded"]
       :style {:color service-color}
@@ -23,22 +23,22 @@
 
 (defn text-input
   [label keys value]
-  [layout/form-field {:label label :orientation :vertical}
-   [layout/input
+  [ui/form-field {:label label :orientation :vertical}
+   [ui/input
     :value value
     :on-change #(rf/dispatch [:settings/change keys (.. % -target -value)])]])
 
 (defn select-input
   [label keys value options on-change & {:keys [multiple?]}]
-  [layout/form-field {:label label :orientation :vertical}
-   [layout/select value options
+  [ui/form-field {:label label :orientation :vertical}
+   [ui/select value options
     (or on-change
         #(rf/dispatch [:settings/change keys (.. % -target -value)]))
     :multiple? multiple?]])
 
 (defn generic-input
   [label children]
-  [layout/form-field {:label label :orientation :vertical} children])
+  [ui/form-field {:label label :orientation :vertical} children])
 
 (defn appearance-settings
   [{:keys [theme items-layout]}]
@@ -49,7 +49,7 @@
 (defn add-peertube-instance
   []
   [modals/modal-content "Create New PeerTube Instance?"
-   [layout/form
+   [ui/form
     {:validation  [:map
                    [:url
                     [:fn
@@ -91,9 +91,9 @@
             :on-change       #(rf/dispatch [:peertube/change-instance instance])
             :default-checked (:active? instance)
             :default-value   (:url instance)}]]])]
-     [layout/secondary-button "Cancel"
+     [ui/secondary-button "Cancel"
       #(rf/dispatch [:modals/close])]
-     [layout/primary-button "Add"
+     [ui/primary-button "Add"
       #(rf/dispatch [:modals/open [add-peertube-instance]])]]))
 
 (defn content-settings
@@ -140,7 +140,7 @@
      [text-input "API instance" [:instance] instance]
      [text-input "Authentication instance" [:auth-instance] auth-instance]
      [generic-input "PeerTube instances"
-      [layout/primary-button "Edit"
+      [ui/primary-button "Edit"
        #(rf/dispatch [:modals/open [peertube-instances-modal]])]]
      [select-input "Image quality" [:image-quality]
       image-quality
@@ -155,19 +155,20 @@
   [:<>
    [generic-input "Logout"
     [:div.flex.gap-x-4
-     [layout/primary-button "This device" #(rf/dispatch [:auth/logout])]
-     [layout/secondary-button "All devices"
+     [ui/primary-button "This device" #(rf/dispatch [:auth/logout])]
+     [ui/secondary-button "All devices"
       #(rf/dispatch [:auth/invalidate-session])]]]
    [generic-input "Password Reset"
-    [layout/primary-button "Reset"
+    [ui/primary-button "Reset"
      #(rf/dispatch [:modals/open [auth/password-reset-modal]])]]
    [generic-input "Delete User"
-    [layout/primary-button "Delete"
+    [ui/primary-button "Delete"
      #(rf/dispatch [:modals/open [auth/user-deletion-modal]])]]])
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution
-           seamless-playback video-source-type audio-source-type autoplay video-codecs]}]
+           seamless-playback video-source-type audio-source-type autoplay
+           video-codecs]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
@@ -203,10 +204,10 @@
                                   :else nil))]
     (fn []
       (let [settings @(rf/subscribe [:settings])]
-        [layout/content-container
-         [layout/content-header "Settings"]
+        [ui/content-container
+         [ui/content-header "Settings"]
          [:div.mt-4.lg:mt-8.flex.gap-y-4.gap-x-12.md:flex-nowrap.flex-wrap
-          [layout/horizontal-tabs
+          [ui/horizontal-tabs
            [(when user
               {:id        :user
                :label     "User"
