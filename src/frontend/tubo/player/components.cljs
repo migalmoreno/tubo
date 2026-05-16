@@ -26,7 +26,6 @@
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.bookmarks.modals :as modals]
-   [tubo.config :as config]
    [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
@@ -458,7 +457,7 @@
              {:label   (:display-language-name (first subtitles))
               :kind    "captions"
               :srcLang (:language-tag (first subtitles))
-              :src     (str (config/get-in [:frontend :auth-url])
+              :src     (str (:instance settings)
                             "/proxy/"
                             (js/encodeURIComponent (:content (first
                                                               subtitles))))}]]
@@ -515,7 +514,8 @@
             :preload        "metadata"
             :playsInline    true
             :on-play        #(do (reset! !paused false)
-                                 (rf/dispatch [:player/set-playback-state "playing"]))
+                                 (rf/dispatch [:player/set-playback-state
+                                               "playing"]))
             :on-pause       #(reset! !paused true)
             :on-waiting     #(rf/dispatch [:bg-player/set-waiting true])
             :loop           (= @(rf/subscribe [:player/loop]) :stream)
