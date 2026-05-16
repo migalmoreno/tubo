@@ -71,7 +71,7 @@
 
 (def ItemLayout [:enum "list" "grid"])
 
-(def ImageQuality [:enum :high :medium :low :none])
+(def ImageQuality [:enum "high" "medium" "low" "none"])
 
 (def Loop [:enum :playlist :stream false])
 
@@ -79,30 +79,30 @@
 
 (def Settings
   [:map {:closed true}
-   [:theme {:default "auto"} Theme]
-   [:show-comments {:default true} boolean?]
-   [:show-related {:default true} boolean?]
-   [:show-description {:default true} boolean?]
-   [:items-layout {:default "list"} ItemLayout]
-   [:autoplay {:default true} boolean?]
-   [:video-codecs {:default "vp9,avc"} string?]
-   [:video-source-type {:default "dash"} SourceType]
-   [:audio-source-type {:default "dash"} SourceType]
-   [:default-resolution {:default "720p"} string?]
-   [:default-video-format {:default "MPEG-4"} string?]
-   [:default-audio-format {:default "m4a"} string?]
-   [:seamless-playback {:default true} boolean?]
-   [:instance string?]
-   [:auth-instance string?]
-   [:image-quality {:default :high} ImageQuality]
-   [:default-country {:default {0 {:name "United States" :country-code "US"}}}
-    map?]
-   [:default-kiosk {:default {0 "trending_music"}} map?]
-   [:default-filter {:default {0 "all"}} map?]
-   [:default-service {:default 0} int?]])
+   [:theme {:optional true} Theme]
+   [:show-comments {:optional true} boolean?]
+   [:show-related {:optional true} boolean?]
+   [:show-description {:optional true} boolean?]
+   [:items-layout {:optional true} ItemLayout]
+   [:autoplay {:optional true} boolean?]
+   [:video-codecs {:optional true} string?]
+   [:video-source-type {:optional true} SourceType]
+   [:audio-source-type {:optional true} SourceType]
+   [:default-resolution {:optional true} string?]
+   [:default-video-format {:optional true} string?]
+   [:default-audio-format {:optional true} string?]
+   [:seamless-playback {:optional true} boolean?]
+   [:instance {:default "http://localhost:3000"} string?]
+   [:auth-instance {:default "http://localhost:3000"} string?]
+   [:image-quality {:optional true} ImageQuality]
+   [:default-country {:optional true} map?]
+   [:default-kiosk {:optional true} map?]
+   [:default-filter {:optional true} map?]
+   [:default-service {:optional true} [:maybe int?]]])
 
 (def LocalDB
   [:map {:closed true}
+   [:db-loaded? {:optional true} [:maybe boolean?]]
    [:navigation/current-match {:optional true} [:maybe map?]]
    [:navigation/show-mobile-menu {:optional true} [:maybe boolean?]]
    [:navigation/show-title {:optional true} [:maybe boolean?]]
@@ -133,7 +133,7 @@
    [:user/subscriptions {:optional true :persist true} any?]
    [:user/feed {:optional true :persist true} any?]
    [:user/feed-last-updated {:optional true :persist true} any?]
-   [:peertube/instances {:persist true} [:vector PeerTubeInstance]]
+   [:peertube/instances {:default [] :persist true} [:vector PeerTubeInstance]]
    [:queue/show {:optional true} [:maybe boolean?]]
    [:queue/position {:default 0 :persist true} int?]
    [:queue/unshuffled {:optional true :persist true} [:maybe vector?]]

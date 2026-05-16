@@ -16,4 +16,7 @@
   (router/start-router!)
   (.render root (r/as-element [(fn [] views/app)])))
 
-(defn ^:export init [] (rf/dispatch-sync [:initialize]) (mount-root))
+(defn ^:export init
+  []
+  (rf/dispatch-sync [:initialize])
+  (mount-root))

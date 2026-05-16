@@ -1,10 +1,30 @@
-{:api/port #long #or [#env API_PORT 3000]
+{:backend/port #long #or [#env BACKEND_PORT 3000]
  :registrations? #or [#env ENABLE_REGISTRATIONS true]
  :bg-helper/url #or [#env BG_HELPER_URL "http://localhost:3005"]
- :frontend/api-url
+ :backend/url
  #or
-  [#env BACKEND_URL #join ["http://localhost:" #ref [:api/port]]]
- :frontend/auth-url #ref [:frontend/api-url]
+  [#env BACKEND_URL #join ["http://localhost:" #ref [:backend/port]]]
+ :frontend/defaults
+ {:theme                "auto"
+  :show-comments        true
+  :show-related         true
+  :show-description     true
+  :items-layout         "list"
+  :autoplay             true
+  :video-codecs         "vp9,avc"
+  :video-source-type    "dash"
+  :audio-source-type    "dash"
+  :default-resolution   "720p"
+  :default-video-format "MPEG-4"
+  :default-audio-format "m4a"
+  :seamless-playback    true
+  :instance             #ref [:backend/url]
+  :auth-instance        #ref [:backend/url]
+  :image-quality        "high"
+  :default-country      {0 {:name "United States" :country-code "US"}}
+  :default-kiosk        {0 "trending_music"}
+  :default-filter       {0 "all"}
+  :default-service      0}
  :peertube/default-instance {:url "https://framatube.org" :name "Framatube"}
  :youtube/consent-cookie? true
  :tubo/system
