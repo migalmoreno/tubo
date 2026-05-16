@@ -6,7 +6,7 @@
 
 (defn start!
   [{:keys [config handler]}]
-  (let [port (:api/port config)]
+  (let [port (:backend/port config)]
     (log/info "Starting HTTP server on port" port)
     (run-server (handler) {:port port})))
 

@@ -21,6 +21,7 @@
    ["/proxy/:url" :api/proxy]
    ["/api/v1"
     ["/health" :api/health]
+    ["/config" :api/config]
     ["/register" :api/register]
     ["/login" :api/login]
     ["/logout" :api/logout]

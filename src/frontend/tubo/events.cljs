@@ -43,11 +43,12 @@
 (rf/reg-event-fx
  :load-db
  (fn [{:keys [db]} [_ store]]
-   (let [app-db (merge db store)]
+   (let [app-db (assoc (merge db store) :db-loaded? true)]
      (merge (if (s/local-db-valid? app-db)
               {:db app-db}
               {:clear-store app-db})
-            {:fx [[:dispatch
+            {:fx [[:dispatch [:settings/fetch [:navigation/navigated (:navigation/current-match app-db)]]]
+                  [:dispatch
                    [:services/fetch-all
                     [:services/load] [:bad-response]]]
                   [:dispatch
@@ -320,9 +321,7 @@
 (rf/reg-event-fx
  :fetch-homepage
  (fn [{:keys [db]}]
-   (let [service-id (-> db
-                        :settings
-                        :default-service)]
+   (let [service-id (or (get-in db [:settings :default-service]) 0)]
      {:fx [[:dispatch [:kiosks/fetch-default-page service-id]]
            [:dispatch [:services/change-id service-id]]]})))
 

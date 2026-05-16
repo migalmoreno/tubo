@@ -55,8 +55,14 @@
            :headers
            res-headers)))
 
+(defn create-config-handler
+  [{:keys [config]}]
+  (ok (:frontend/defaults config)))
+
 (def routes
-  {:api/feed {:get
+  {:api/config {:get {:summary "returns the frontend configuration"
+                      :handler create-config-handler}}
+   :api/feed {:get
               {:summary "returns latest streams for a list of channel URLs"
                :handler create-get-feed-handler}}
    :api/health {:no-doc true

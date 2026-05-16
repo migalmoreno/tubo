@@ -57,21 +57,23 @@
 (rf/reg-event-fx
  :navigation/navigated
  (fn [{:keys [db]} [_ new-match]]
-   (let [old-match   (:navigation/current-match db)
-         controllers (rfc/apply-controllers (:controllers old-match) new-match)
-         match       (assoc new-match :controllers controllers)]
-     {:db            (-> db
-                         (assoc :navigation/show-title false)
-                         (assoc :navigation/current-match match)
-                         (assoc :navigation/show-mobile-menu false)
-                         (assoc :show-pagination-loading false))
-      :body-overflow false
-      :fx            [(when (:main-player/show db)
-                        [:dispatch [:main-player/unmount]])
-                      (when (:layout/bg-overlay db)
-                        [:dispatch [:layout/hide-bg-overlay]])
-                      (when (:queue/show db)
-                        [:dispatch [:queue/show false]])]})))
+   (if (:db-loaded? db)
+     (let [old-match   (:navigation/current-match db)
+           controllers (rfc/apply-controllers (:controllers old-match) new-match)
+           match       (assoc new-match :controllers controllers)]
+       {:db            (-> db
+                           (assoc :navigation/show-title false)
+                           (assoc :navigation/current-match match)
+                           (assoc :navigation/show-mobile-menu false)
+                           (assoc :show-pagination-loading false))
+        :body-overflow false
+        :fx            [(when (:main-player/show db)
+                          [:dispatch [:main-player/unmount]])
+                        (when (:layout/bg-overlay db)
+                          [:dispatch [:layout/hide-bg-overlay]])
+                        (when (:queue/show db)
+                          [:dispatch [:queue/show false]])]})
+     {:db (assoc db :navigation/current-match new-match)})))
 
 (rf/reg-event-fx
  :navigation/show-title
