@@ -18,8 +18,15 @@
 (defn postcss
   {:shadow.build/stage :flush}
   [build-state src dst]
-  (let [cmd ["./node_modules/.bin/postcss" src "-o" dst "--verbose"]]
-    (case (:shadow.build/mode build-state)
-      :dev     (apply proc/shell cmd)
-      :release (apply proc/shell {:extra-env {"NODE_ENV" "production"}} cmd)))
+  (let [cmd ["./node_modules/.bin/postcss" src "-o" dst "--verbose"]
+        res (case (:shadow.build/mode build-state)
+              :dev     (apply proc/shell {:out :string :err :string} cmd)
+              :release (apply proc/shell
+                              {:out       :string
+                               :err       :string
+                               :extra-env {"NODE_ENV" "production"}}
+                              cmd))]
+    (print (:out res))
+    (print (:err res))
+    (flush))
   build-state)
