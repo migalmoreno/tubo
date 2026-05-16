@@ -289,9 +289,11 @@
 
 (rf/reg-event-fx
  :bad-response
- (fn [_ [_ res]]
-   {:fx [[:dispatch [:notifications/add (assoc res :type :error)]]
-         [:dispatch [:stop-loading]]]}))
+ (fn [{:keys [db]} [_ res]]
+   {:fx (cond-> [[:dispatch [:notifications/add (assoc res :type :error)]]
+                 [:dispatch [:stop-loading]]]
+          (and (= (:status res) 401) (:auth/user db))
+          (conj [:dispatch [:auth/redirect-login]]))}))
 
 (rf/reg-event-fx
  :bad-pagination-response
