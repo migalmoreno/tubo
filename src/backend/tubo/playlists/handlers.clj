@@ -1,24 +1,25 @@
-(ns tubo.handlers.auth-playlists
+(ns tubo.playlists.handlers
   (:require
    [clojure.data :as data]
    [ring.util.http-response :refer [ok]]
-   [tubo.handlers.utils :as utils]
-   [tubo.models.channel :as channel]
-   [tubo.models.playlist :as playlist]
-   [tubo.models.stream :as stream]))
+   [tubo.middleware :as middleware]
+   [tubo.queries :as queries]
+   [tubo.playlists.queries :as playlist]
+   [tubo.schemas :as s]
+   [tubo.utils :as utils]))
 
 (defn add-playlist-streams
   [{:keys [datasource] :as req} item playlist-id]
-  (let [channel  (or (channel/get-channel-by-url (:uploader-url item)
+  (let [channel  (or (queries/get-channel-by-url (:uploader-url item)
                                                  datasource)
-                     (first (channel/add-channels
+                     (first (queries/add-channels
                              [[(:uploader-url item)
                                (:uploader-name item)
                                (utils/unproxy-image (:uploader-avatar item) req)
                                (:uploader-verified item)]]
                              datasource)))
-        stream   (or (stream/get-stream-by-url (:url item) datasource)
-                     (first (stream/add-streams
+        stream   (or (queries/get-stream-by-url (:url item) datasource)
+                     (first (queries/add-streams
                              [[(:duration item)
                                (:id channel)
                                (:name item)
@@ -99,7 +100,7 @@
                             (.indexOf playlist-streams selected))
         unique-stream-ids (when selected
                             (->>
-                              (stream/get-unique-streams-for-playlist
+                              (queries/get-unique-streams-for-playlist
                                datasource
                                (:id playlist)
                                [(:id selected)])
@@ -116,3 +117,40 @@
 (defn create-update-auth-playlist-handler
   [{:keys [datasource body-params path-params]}]
   (ok (playlist/update-playlist datasource (:id path-params) body-params)))
+
+(def routes
+  {:api/user-playlists
+   {:get    {:summary    "returns all playlists for an authenticated user"
+             :handler    create-get-auth-playlists-handler
+             :middleware [middleware/auth]}
+    :post   {:summary    "creates a new playlist for an authenticated user"
+             :handler    create-post-auth-playlists-handler
+             :middleware [middleware/auth]
+             :parameters {:body s/UserPlaylist}}
+    :delete {:summary    "deletes all playlists for an authenticated user"
+             :handler    create-delete-auth-playlists-handler
+             :middleware [middleware/auth]}}
+   :api/user-playlist
+   {:get    {:summary    "returns a user playlist for an authenticated user"
+             :parameters {:path {:id string?}}
+             :handler    create-get-auth-playlist-handler
+             :middleware [middleware/auth]}
+    :put    {:summary    "updates a user playlist for an authenticated user"
+             :parameters {:path {:id string?}
+                          :body s/UserPlaylist}
+             :handler    create-update-auth-playlist-handler
+             :middleware [middleware/auth]}
+    :delete {:summary    "deletes a user playlist for an authenticated user"
+             :parameters {:path {:id string?}}
+             :handler    create-delete-auth-playlist-handler
+             :middleware [middleware/auth]}}
+   :api/add-user-playlist-streams
+   {:post {:summary    "adds new playlist streams for a given user playlist"
+           :handler    create-post-auth-playlist-add-streams-handler
+           :middleware [middleware/auth]
+           :parameters {:body [:vector s/UserPlaylistStream]}}}
+   :api/delete-user-playlist-stream
+   {:post {:summary    "deletes playlist stream for a given user playlist"
+           :handler    create-post-auth-playlist-delete-stream-handler
+           :middleware [middleware/auth]
+           :parameters {:body s/UserPlaylistStream}}}})

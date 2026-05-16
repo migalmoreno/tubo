@@ -3,8 +3,9 @@
    [aero.core :as aero]
    [integrant.core :as ig]
    [clojure.java.io :refer [resource]]
+   tubo.config
    tubo.db
-   tubo.downloader
+   tubo.extractors.newpipe
    tubo.router
    tubo.http))
 
@@ -14,4 +15,4 @@
 
 (defn config
   [profile]
-  (aero/read-config (resource "system.edn") {:profile profile}))
+  (:tubo/system (aero/read-config (resource "config.edn") {:profile profile})))

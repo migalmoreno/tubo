@@ -1,8 +1,8 @@
-(ns tubo.models.subscription
+(ns tubo.subscriptions.queries
   (:require
    [tubo.db :as db]
-   [tubo.models.channel :as channel]
-   [tubo.handlers.utils :as utils]))
+   [tubo.queries :as queries]
+   [tubo.utils :as utils]))
 
 (defn get-subscription-channel-by-id
   [ds id]
@@ -34,7 +34,7 @@
 
 (defn delete-subscription-by-url
   [ds url id]
-  (when-let [channel (channel/get-channel-by-url url ds)]
+  (when-let [channel (queries/get-channel-by-url url ds)]
     (db/execute! ds
                  {:delete-from [:subscriptions]
                   :where       [:and

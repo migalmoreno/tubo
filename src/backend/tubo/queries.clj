@@ -1,4 +1,4 @@
-(ns tubo.models.stream
+(ns tubo.queries
   (:require
    [tubo.db :as db]))
 
@@ -79,3 +79,23 @@
                          :where  [:and [:= :s.channel_id :st.channel_id]
                                   [:not-in :st.id ids]]}
                         1]}]]}))
+
+(defn add-channels
+  [values ds]
+  (db/execute! ds
+               {:insert-into [:channels]
+                :columns     [:url :name :avatar :verified]
+                :values      values}))
+
+(defn get-channel-by-url
+  [url ds]
+  (db/execute-one! ds
+                   {:select [:*]
+                    :from   [:channels]
+                    :where  [:= :url url]}))
+
+(defn delete-channels-by-ids
+  [ds ids]
+  (db/execute-one! ds
+                   {:delete-from [:channels]
+                    :where       [:in :id ids]}))

@@ -1,9 +1,8 @@
-(ns tubo.models.playlist
+(ns tubo.playlists.queries
   (:require
    [tubo.db :as db]
-   [tubo.models.channel :as channel]
-   [tubo.models.stream :as stream]
-   [tubo.handlers.utils :as utils]))
+   [tubo.queries :as queries]
+   [tubo.utils :as utils]))
 
 (defn get-playlist-streams
   [{:keys [datasource] :as req} id]
@@ -103,16 +102,16 @@
   (when (seq ids)
     (let [channel-ids (map
                        :channel-id
-                       (stream/get-unique-streams-channels-for-non-ids ds
-                                                                       ids))]
-      (stream/delete-streams-by-ids ds ids)
+                       (queries/get-unique-streams-channels-for-non-ids ds
+                                                                        ids))]
+      (queries/delete-streams-by-ids ds ids)
       (when (seq channel-ids)
-        (channel/delete-channels-by-ids ds channel-ids)))))
+        (queries/delete-channels-by-ids ds channel-ids)))))
 
 (defn delete-playlist-by-id
   [ds playlist-id]
   (let [playlist          (get-playlist-by-playlist-id playlist-id ds)
-        unique-stream-ids (->> (stream/get-all-unique-streams-for-playlists
+        unique-stream-ids (->> (queries/get-all-unique-streams-for-playlists
                                 ds
                                 [(:id playlist)])
                                (map :stream-id))]
@@ -132,7 +131,7 @@
   [{:keys [datasource] :as req} owner-id]
   (let [playlists-ids     (map :id (get-playlists-by-owner req owner-id))
         unique-stream-ids (when (seq playlists-ids)
-                            (->> (stream/get-all-unique-streams-for-playlists
+                            (->> (queries/get-all-unique-streams-for-playlists
                                   datasource
                                   playlists-ids)
                                  (map :stream-id)))]

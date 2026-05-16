@@ -1,4 +1,4 @@
-(ns tubo.models.user
+(ns tubo.auth.queries
   (:require
    [buddy.hashers :as bh]
    [nano-id.core :refer [nano-id]]

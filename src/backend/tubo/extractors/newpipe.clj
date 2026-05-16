@@ -1,17 +1,15 @@
-(ns tubo.downloader
+(ns tubo.extractors.newpipe
   (:require
+   [clojure.data.json :as json]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
-   [tubo.config :as config]
-   [tubo.potoken :as potoken])
+   [org.httpkit.client :as client]
+   [promesa.exec :as px])
   (:import
-   [okhttp3
-    ConnectionSpec
-    OkHttpClient$Builder
-    Request$Builder
-    RequestBody]
+   [okhttp3 ConnectionSpec OkHttpClient$Builder Request$Builder RequestBody]
    [org.schabi.newpipe.extractor.downloader Downloader Response]
    [org.schabi.newpipe.extractor.exceptions ReCaptchaException]
+   [org.schabi.newpipe.extractor.services.youtube PoTokenProvider PoTokenResult]
    org.schabi.newpipe.extractor.localization.Localization
    org.schabi.newpipe.extractor.NewPipe
    org.schabi.newpipe.extractor.ServiceList
@@ -69,14 +67,55 @@
            (catch ReCaptchaException e
              (log/error e))))))
 
-(defmethod ig/init-key ::extractor
+(defmethod ig/init-key ::downloader
   [_ _]
-  (NewPipe/init (create-downloader-impl) (Localization. "en" "US"))
-  (when (config/get-in [:backend :bg-helper-url])
+  (NewPipe/init (create-downloader-impl) (Localization. "en" "US")))
+
+(defn get-web-visitor-data
+  []
+  (let [{:keys [body]} @(client/get "https://www.youtube.com")]
+    (second (re-find #"visitorData\":\"([\w%-]+)\"" body))))
+
+(defn get-web-client-po-token
+  [config]
+  (let [visitor-data   (get-web-visitor-data)
+        {:keys [body]} @(client/post (str (:bg-helper/url config)
+                                          "/generate")
+                                     {:body (json/write-str
+                                             {:visitorData visitor-data})})]
+    (when body
+      (PoTokenResult. visitor-data (get (json/read-str body) "poToken") nil))))
+
+(defonce valid-po-tokens (atom []))
+
+(defn get-po-token
+  [config]
+  (try
+    (let [first-token (first @valid-po-tokens)
+          po-token    (if first-token
+                        (do
+                          (swap! valid-po-tokens #(subvec % 1))
+                          first-token)
+                        (get-web-client-po-token config))]
+      (when po-token
+        (px/schedule! 10000 #(swap! valid-po-tokens conj po-token))
+        po-token))
+    (catch Exception e
+      (log/error e))))
+
+(defn create-po-token-provider
+  [config]
+  (reify
+   PoTokenProvider
+     (getWebEmbedClientPoToken [_ _] (get-po-token config))
+     (getWebClientPoToken [_ _] (get-po-token config))
+     (getAndroidClientPoToken [_ _])))
+
+(defmethod ig/init-key ::services
+  [_ {:keys [config]}]
+  (YoutubeParsingHelper/setConsentAccepted (:youtube/consent-cookie? config))
+  (when-let [{:keys [name url]} (:peertube/default-instance config)]
+    (.setInstance ServiceList/PeerTube (PeertubeInstance. url name)))
+  (when (:bg-helper/url config)
     (YoutubeStreamExtractor/setPoTokenProvider
-     (potoken/create-po-token-provider)))
-  (YoutubeParsingHelper/setConsentAccepted
-   (config/get-in [:services :youtube :consent-cookie?]))
-  (when-let [instance (config/get-in [:services :peertube :default-instance])]
-    (.setInstance ServiceList/PeerTube
-                  (PeertubeInstance. (:url instance) (:name instance)))))
+     (create-po-token-provider config))))

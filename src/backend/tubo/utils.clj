@@ -1,4 +1,4 @@
-(ns tubo.handlers.utils
+(ns tubo.utils
   (:require
    [camel-snake-kebab.core :as csk]
    [camel-snake-kebab.extras :as cske]
@@ -63,7 +63,10 @@
   [info]
   (cske/transform-keys
    csk/->kebab-case-keyword
-   (j/from-java-deep info {:exceptions :omit :omit #{:service :errors}})))
+   (j/from-java-deep info
+                     {:exceptions :omit
+                      :omit       #{:service :errors :kioskList
+                                    :suggestionExtractor}})))
 
 (defn ->RelatedItem
   [{:keys [info-type] :as item} req item*]
