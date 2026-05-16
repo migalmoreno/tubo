@@ -14,7 +14,7 @@
        (when (and (not= (get-in db [:settings :image-quality]) "none")
                   (seq (get body old-image-key)))
          (or (some-> (filter (fn [t]
-                               (= (:estimatedResolutionLevel t)
+                               (= (:estimated-resolution-level t)
                                   (-> db
                                       (get-in [:settings
                                                :image-quality])
