@@ -18,7 +18,7 @@
             :body
             #(slurp (byte-array %)))))
 
-(defn create-page
+(defn ->Page
   [next-page]
   (let [page (json/read-str next-page)]
     (Page. (get page "url")

@@ -2,8 +2,7 @@
   (:require
    [clojure.java.data :as j]
    [clojure.string :as str]
-   [ring.util.http-response :refer [internal-server-error ok]]
-   [ring.util.codec :refer [url-decode]]
+   [ring.util.http-response :refer [internal-server-error not-found ok]]
    [tubo.schemas :as s]
    [tubo.utils :as utils])
   (:import
@@ -21,128 +20,121 @@
    org.schabi.newpipe.extractor.stream.StreamInfo))
 
 (defn create-channel-handler
-  [{{:keys [url]} :path-params :as req}]
-  (when-let [info (ChannelInfo/getInfo (url-decode url))]
-    (-> (utils/->Info info)
-        (update :banners #(utils/proxy-images % req))
-        (update :avatars #(utils/proxy-images % req))
-        (update :subscriber-count #(when (pos-int? %) %))
-        ok)))
+  [{:keys [parameters] :as req}]
+  (-> (utils/->Info (ChannelInfo/getInfo (get-in parameters [:path :url])))
+      (update :banners #(utils/proxy-images % req))
+      (update :avatars #(utils/proxy-images % req))
+      (update :subscriber-count #(when (pos-int? %) %))
+      ok))
 
 (defn get-channel-tab-info
-  [{:keys [path-params query-params]}]
-  (let [url* (url-decode (:url path-params))
-        info (ChannelInfo/getInfo url*)
-        tab  (if-let [tab-id (:tab-id path-params)]
-               (->> (.getTabs info)
-                    (filter #(some #{tab-id} (.getContentFilters %)))
-                    first)
-               (first (.getTabs info)))]
+  [{:keys [parameters]}]
+  (let [{:keys [url tab-id]} (:path parameters)
+        service              (NewPipe/getServiceByUrl url)
+        tab                  (->> (ChannelInfo/getInfo url)
+                                  (.getTabs)
+                                  (filter #(some #{tab-id}
+                                                 (.getContentFilters %)))
+                                  first)]
     (when tab
-      (if-let [next-page (:nextPage query-params)]
-        (ChannelTabInfo/getMoreItems
-         (NewPipe/getServiceByUrl url*)
-         tab
-         (utils/create-page next-page))
-        (ChannelTabInfo/getInfo (NewPipe/getServiceByUrl url*) tab)))))
+      (if-let [next-page (get-in parameters [:query :nextPage])]
+        (ChannelTabInfo/getMoreItems service tab (utils/->Page next-page))
+        (ChannelTabInfo/getInfo service tab)))))
 
 (defn create-channel-tab-handler
-  [req]
-  (when-let [info (get-channel-tab-info req)]
-    (ok (utils/->ListInfo info req))))
+  [{:keys [parameters] :as req}]
+  (if-let [info (get-channel-tab-info req)]
+    (ok (utils/->ListInfo info req))
+    (not-found (str "Tab " (get-in parameters [:path :tab-id]) " not found"))))
 
 (defn create-comments-handler
-  [{:keys [path-params query-params] :as req}]
-  (let [url* (url-decode (:url path-params))
-        info (if (:nextPage query-params)
-               (CommentsInfo/getMoreItems (NewPipe/getServiceByUrl url*)
-                                          url*
-                                          (utils/create-page (:nextPage
-                                                              query-params)))
-               (CommentsInfo/getInfo url*))]
-    (when info
-      (ok (utils/->ListInfo info req)))))
+  [{:keys [parameters] :as req}]
+  (let [url  (get-in parameters [:path :url])
+        info (if-let [next-page (get-in parameters [:query :nextPage])]
+               (CommentsInfo/getMoreItems (NewPipe/getServiceByUrl url)
+                                          url
+                                          (utils/->Page next-page))
+               (CommentsInfo/getInfo url))]
+    (ok (utils/->ListInfo info req))))
 
 (defn get-kiosk
-  [{:keys [path-params query-params]}]
-  (let [service    (NewPipe/getService (:service-id path-params))
-        kiosk-list (if-let [region (:region query-params)]
+  [{:keys [parameters]}]
+  (let [service    (NewPipe/getService (get-in parameters [:path :service-id]))
+        kiosk-list (if-let [region (get-in parameters [:query :region])]
                      (doto (.getKioskList service)
                        (.forceContentCountry (ContentCountry. region)))
                      (.getKioskList service))]
-    (-> (doto (if (and (:kiosk-id path-params) (:service-id path-params))
-                (.getExtractorById kiosk-list (:kiosk-id path-params) nil)
+    (-> (doto (if-let [kiosk-id (get-in parameters [:path :kiosk-id])]
+                (.getExtractorById kiosk-list kiosk-id nil)
                 (.getDefaultKioskExtractor kiosk-list))
               (.fetchPage))
         KioskInfo/getInfo)))
 
 (defn create-kiosks-handler
-  [{:keys [path-params]}]
-  (ok (utils/->Info (.getKioskList (NewPipe/getService (:service-id
-                                                        path-params))))))
+  [{:keys [parameters]}]
+  (ok (utils/->Info (.getKioskList (NewPipe/getService
+                                    (get-in parameters [:path :service-id]))))))
 
 (defn create-kiosk-handler
-  [{:keys [path-params query-params] :as req}]
-  (when-let [info (if-let [next-page (:nextPage query-params)]
-                    (KioskInfo/getMoreItems (NewPipe/getService (:service-id
-                                                                 path-params))
-                                            (.getUrl (get-kiosk req))
-                                            (utils/create-page next-page))
-                    (get-kiosk req))]
+  [{:keys [parameters] :as req}]
+  (let [info (if-let [next-page (get-in parameters [:query :nextPage])]
+               (KioskInfo/getMoreItems (NewPipe/getService
+                                        (get-in parameters
+                                                [:path :service-id]))
+                                       (.getUrl (get-kiosk req))
+                                       (utils/->Page next-page))
+               (get-kiosk req))]
     (ok (utils/->ListInfo info req))))
 
 (defn create-playlist-handler
-  [{:keys [path-params query-params] :as req}]
-  (let [url* (url-decode (:url path-params))
-        info (if-let [next-page (:nextPage query-params)]
-               (PlaylistInfo/getMoreItems (NewPipe/getServiceByUrl url*)
-                                          url*
-                                          (utils/create-page next-page))
-               (PlaylistInfo/getInfo url*))]
-    (when info
-      (ok (utils/->ListInfo info req)))))
+  [{:keys [parameters] :as req}]
+  (let [url  (get-in parameters [:path :url])
+        info (if-let [next-page (get-in parameters [:query :nextPage])]
+               (PlaylistInfo/getMoreItems (NewPipe/getServiceByUrl url)
+                                          url
+                                          (utils/->Page next-page))
+               (PlaylistInfo/getInfo url))]
+    (ok (utils/->ListInfo info req))))
 
-(defn get-query-handler
-  [{:keys [path-params query-params]}]
-  (.. (NewPipe/getService (:service-id path-params))
+(defn build-query-handler
+  [{:keys [parameters]}]
+  (.. (NewPipe/getService (get-in parameters [:path :service-id]))
       (getSearchQHFactory)
-      (fromQuery (:q query-params)
-                 (or (and (seq (:filter query-params)) (str/split filter #","))
-                     '())
-                 (or sort ""))))
+      (fromQuery (get-in parameters [:query :q])
+                 (if-let [filter-query (get-in parameters [:query :filter])]
+                   (str/split filter-query #",")
+                   '())
+                 (or (get-in parameters [:query :sort]) ""))))
 
 (defn create-search-handler
-  [{:keys [path-params query-params] :as req}]
-  (when-let [info (if-let [next-page (:nextPage query-params)]
-                    (SearchInfo/getMoreItems (NewPipe/getService (:service-id
-                                                                  path-params))
-                                             (get-query-handler req)
-                                             (utils/create-page next-page))
-                    (SearchInfo/getInfo (NewPipe/getService (:service-id
-                                                             path-params))
-                                        (get-query-handler req)))]
+  [{:keys [parameters] :as req}]
+  (let [service (NewPipe/getService (get-in parameters [:path :service-id]))
+        query   (build-query-handler req)
+        info    (if-let [next-page (get-in parameters [:query :nextPage])]
+                  (SearchInfo/getMoreItems service
+                                           query
+                                           (utils/->Page next-page))
+                  (SearchInfo/getInfo service query))]
     (ok (utils/->ListInfo info req))))
 
 (defn create-suggestions-handler
-  [{:keys [path-params query-params]}]
-  (when-let [extractor (.getSuggestionExtractor (NewPipe/getService
-                                                 (:service-id path-params)))]
-    (ok (j/from-java-shallow (.suggestionList extractor (:q query-params))
-                             {}))))
+  [{:keys [parameters]}]
+  (-> (NewPipe/getService (get-in parameters [:path :service-id]))
+      (.getSuggestionExtractor)
+      (.suggestionList (get-in parameters [:query :q]))
+      (j/from-java-shallow {})
+      ok))
 
 (defn ->Streams
   [items items*]
-  (map-indexed (fn [idx item]
-                 (assoc item
-                        :mime-type
-                        (.. (.get items* idx)
-                            getFormat
-                            getMimeType)))
-               items))
+  (map-indexed
+   (fn [idx item]
+     (assoc item :mime-type (.. (.get items* idx) getFormat getMimeType)))
+   items))
 
 (defn create-stream-handler
-  [{{:keys [url]} :path-params :as req}]
-  (when-let [info (StreamInfo/getInfo (url-decode url))]
+  [{:keys [parameters] :as req}]
+  (let [info (StreamInfo/getInfo (get-in parameters [:path :url]))]
     (ok
      (-> (utils/->ListInfo info req)
          (update :duration #(when (pos-int? %) %))
@@ -159,27 +151,25 @@
 
 (defn create-services-handler
   [_]
-  (when-let [services (NewPipe/getServices)]
-    (->> (utils/->Info services)
-         (map
-          (fn [service]
-            (-> service
-                (update :supported-localizations
-                        (fn [locales]
-                          (map #(assoc %
-                                       :name
-                                       (.getDisplayLanguage
-                                        (Locale. (:language-code %)
-                                                 (:country-code %))))
-                               locales)))
-                (update :supported-countries
-                        (fn [countries]
-                          (map #(assoc %
-                                       :name
-                                       (.getDisplayCountry
-                                        (Locale. "" (:country-code %))))
-                               countries))))))
-         ok)))
+  (->> (utils/->Info (NewPipe/getServices))
+       (map
+        (fn [service]
+          (-> service
+              (update :supported-localizations
+                      #(map (fn [{:keys [language-code country-code] :as loc}]
+                              (assoc loc
+                                     :name
+                                     (.getDisplayLanguage
+                                      (Locale. language-code country-code))))
+                            %))
+              (update :supported-countries
+                      #(map (fn [{:keys [country-code] :as country}]
+                              (assoc country
+                                     :name
+                                     (.getDisplayCountry
+                                      (Locale. "" country-code))))
+                            %)))))
+       ok))
 
 (defn create-instance-handler
   [_]
@@ -187,32 +177,44 @@
 
 (defn fetch-instance-metadata
   [url]
-  (j/from-java-shallow (doto (PeertubeInstance. (url-decode url))
-                         (.fetchInstanceMetaData))
+  (j/from-java-shallow (doto (PeertubeInstance. url) (.fetchInstanceMetaData))
                        {}))
 
 (defn create-instance-metadata-handler
-  [{{:keys [url]} :path-params}]
-  (ok (fetch-instance-metadata url)))
+  [{:keys [parameters]}]
+  (ok (fetch-instance-metadata (get-in parameters [:path :url]))))
 
 (defn create-change-instance-handler
-  [{{:keys [url name]} :body-params}]
+  [{:keys [parameters]}]
   (try
-    (fetch-instance-metadata url)
-    (.setInstance ServiceList/PeerTube (PeertubeInstance. url name))
-    (ok (str "PeerTube instance changed to " name))
+    (let [{:keys [url name]} (:body parameters)]
+      (fetch-instance-metadata url)
+      (.setInstance ServiceList/PeerTube (PeertubeInstance. url name))
+      (ok (str "PeerTube instance changed to " name)))
     (catch Exception _
       (internal-server-error
        "There was a problem changing PeerTube instance"))))
 
+(def paginated-query
+  [:map [:nextPage {:optional true} string?]])
+
+(def kiosk-query
+  [:map
+   [:region {:optional true} string?]
+   [:nextPage {:optional true} string?]])
+
 (def routes
   {:api/services {:get {:summary "returns all supported services"
                         :handler create-services-handler}}
-   :api/search {:get {:summary
-                      "returns search results for a given service"
-                      :parameters {:path  {:service-id int?}
-                                   :query {:q string?}}
-                      :handler create-search-handler}}
+   :api/search
+   {:get {:summary    "returns search results for a given service"
+          :parameters {:path  {:service-id int?}
+                       :query [:map
+                               [:q string?]
+                               [:sort {:optional true} string?]
+                               [:filter {:optional true} string?]
+                               [:nextPage {:optional true} string?]]}
+          :handler    create-search-handler}}
    :api/suggestions {:get {:summary
                            "returns search suggestions for a given service"
                            :parameters {:path  {:service-id int?}
@@ -223,6 +225,7 @@
                         :handler create-instance-handler}}
    :api/instance-metadata {:get {:summary
                                  "returns instance metadata for a given service"
+                                 :parameters {:path {:url string?}}
                                  :handler create-instance-metadata-handler}}
    :api/change-instance {:post {:summary
                                 "changes the instance for a given service"
@@ -231,31 +234,35 @@
    :api/default-kiosk {:get
                        {:summary
                         "returns default kiosk entries for a given service"
-                        :parameters {:path {:service-id int?}}
+                        :parameters {:path  {:service-id int?}
+                                     :query kiosk-query}
                         :handler create-kiosk-handler}}
    :api/all-kiosks {:get {:summary
                           "returns all kiosks supported by a given service"
                           :parameters {:path {:service-id int?}}
                           :handler create-kiosks-handler}}
-   :api/kiosk {:get
-               {:summary
-                "returns kiosk entries for a given service and a kiosk ID"
-                :parameters {:path {:service-id int? :kiosk-id string?}}
-                :handler create-kiosk-handler}}
+   :api/kiosk {:get {:summary
+                     "returns kiosk entries for a given service and a kiosk ID"
+                     :parameters {:path  {:service-id int? :kiosk-id string?}
+                                  :query kiosk-query}
+                     :handler create-kiosk-handler}}
    :api/stream {:get {:summary    "returns stream data for a given URL"
-                      :parameters {:path {:url uri?}}
+                      :parameters {:path {:url string?}}
                       :handler    create-stream-handler}}
    :api/channel {:get {:summary    "returns channel data for a given URL"
-                       :parameters {:path {:url uri?}}
+                       :parameters {:path {:url string?}}
                        :handler    create-channel-handler}}
-   :api/channel-tab {:get
-                     {:summary
-                      "returns channel tab data for a given URL and a tab ID"
-                      :parameters {:path {:url uri? :tab-id string?}}
-                      :handler create-channel-tab-handler}}
+   :api/channel-tab {:get {:summary
+                           "returns channel tab data for a given URL and tab ID"
+                           :parameters
+                           {:path  {:url string? :tab-id string?}
+                            :query paginated-query}
+                           :handler create-channel-tab-handler}}
    :api/playlist {:get {:summary    "returns playlist data for a given URL"
-                        :parameters {:path {:url uri?}}
+                        :parameters {:path  {:url string?}
+                                     :query paginated-query}
                         :handler    create-playlist-handler}}
    :api/comments {:get {:summary    "returns comments data for a given URL"
-                        :parameters {:path {:url uri?}}
+                        :parameters {:path  {:url string?}
+                                     :query paginated-query}
                         :handler    create-comments-handler}}})
