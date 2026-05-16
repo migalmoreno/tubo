@@ -10,7 +10,6 @@
      MediaPlayButton
      MediaMuteButton
      MediaLoadingIndicator
-     MediaPlayButton
      MediaPreviewThumbnail
      MediaPreviewChapterDisplay
      MediaPreviewTimeDisplay)]
@@ -415,30 +414,29 @@
 
 (defn video-player
   [_ _ _ on-mount on-unmount]
-  (let [!controller    (atom nil)
-        !user-inactive (r/atom nil)
-        !media-paused  (r/atom nil)]
+  (let [!user-inactive (r/atom nil)
+        !media-paused  (r/atom nil)
+        !controller    (atom nil)
+        on-inactive    #(reset! !user-inactive (.-detail %))
+        on-paused      #(reset! !media-paused (.-detail %))]
     (r/create-class
-     {:component-did-mount (fn []
-                             (on-mount)
-                             (.addEventListener
-                              @!controller
-                              "userinactivechange"
-                              #(reset! !user-inactive (.-detail %)))
-                             (.addEventListener
-                              @!controller
-                              "mediapaused"
-                              #(reset! !media-paused (.-detail %))))
+     {:component-did-mount
+      (fn [_]
+        (when-let [el @!controller]
+          (.addEventListener el "userinactivechange" on-inactive)
+          (.addEventListener el "mediapaused" on-paused))
+        (on-mount))
       :component-will-unmount on-unmount
       :reagent-render
       (fn [{:keys [thumbnail subtitles service-id] :as stream} !player
            video-args]
         (let [service-color   (utils/get-service-color service-id)
+              settings        @(rf/subscribe [:settings])
               overlay-active? (and (or (nil? @!user-inactive) @!user-inactive)
                                    (not @!media-paused))]
           [:> MediaController
-           {:style {"--service-color" service-color}
-            :ref   #(reset! !controller %)
+           {:ref   #(reset! !controller %)
+            :style {"--service-color" service-color}
             :class ["group" "font-roboto" "text-[13px]" "min-h-full" "h-full"
                     "md:rounded-[0.9rem]" "overflow-hidden"
                     "w-full" "aspect-video"
