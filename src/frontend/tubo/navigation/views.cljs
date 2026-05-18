@@ -327,7 +327,7 @@
       "Bookmarks" :always-expanded? always-expanded?]
      [sidebar-item (rfe/href :settings-page) [:i.fa-solid.fa-cog] "Settings"
       :always-expanded? always-expanded?]
-     (when show-mobile-menu?
+     (when-let [theme (and show-mobile-menu? (:theme @(rf/subscribe [:settings])))]
        [ui/popover
         (map #(assoc % :hide-bg-overlay-on-click? false) theme-tooltip-items)
         :extra-classes ["!p-0" "!bg-transparent"]
@@ -335,12 +335,11 @@
         :responsive? false
         :icon
         [sidebar-item nil
-         (case (:theme @(rf/subscribe [:settings]))
+         (case theme
            "light" [:i.fa-solid.fa-sun]
            "dark"  [:i.fa-solid.fa-moon]
            "auto"  [:i.fa-solid.fa-laptop])
-         (str "Theme: "
-              (str/capitalize (:theme @(rf/subscribe [:settings]))))
+         (str "Theme: " (str/capitalize theme))
          :always-expanded? always-expanded?]])
      (when (or show-mobile-menu? (not sidebar-minimized?))
        (if user
