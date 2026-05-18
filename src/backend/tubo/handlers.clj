@@ -14,7 +14,7 @@
 (defn get-channels-latest-streams
   [channels req]
   (->> channels
-       (map #(-> (assoc-in req [:path-params :url] (:url %))
+       (map #(-> (assoc-in req [:parameters :path :url] (:url %))
                  extractor/get-channel-tab-info
                  (utils/->ListInfo req)
                  :related-items))
@@ -30,8 +30,8 @@
            :channels (map :url channels)}))))
 
 (defn create-get-feed-handler
-  [{:keys [query-params] :as req}]
-  (let [urls (json/read-str (get query-params "channels"))]
+  [{:keys [parameters] :as req}]
+  (let [urls (json/read-str (get-in parameters [:query :channels]))]
     (when (seq urls)
       (ok {:items    (get-channels-latest-streams (map (fn [url] {:url url})
                                                        urls)
@@ -39,10 +39,9 @@
            :channels urls}))))
 
 (defn create-proxy-handler
-  [{:keys [request-method headers body path-params]}]
-  (let [url         (url-decode (:url path-params))
-        request     {:method  request-method
-                     :url     url
+  [{:keys [request-method headers body parameters]}]
+  (let [request     {:method  request-method
+                     :url     (get-in parameters [:path :url])
                      :headers (dissoc headers "host")
                      :body    body}
         response    @(client/request request)
@@ -63,11 +62,13 @@
   {:api/config {:get {:summary "returns the frontend configuration"
                       :handler create-config-handler}}
    :api/feed {:get
-              {:summary "returns latest streams for a list of channel URLs"
-               :handler create-get-feed-handler}}
+              {:summary    "returns latest streams for a list of channel URLs"
+               :handler    create-get-feed-handler
+               :parameters {:query {:channels string?}}}}
    :api/health {:no-doc true
                 :get    (constantly (ok))}
-   :api/proxy {:handler create-proxy-handler}
+   :api/proxy {:handler    create-proxy-handler
+               :parameters {:path {:url string?}}}
    :api/swagger-spec {:no-doc true
                       :get    {:swagger {:info     {:title "Tubo API"}
                                          :basePath "/"}

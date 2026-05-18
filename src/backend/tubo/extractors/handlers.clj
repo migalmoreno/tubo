@@ -31,11 +31,13 @@
   [{:keys [parameters]}]
   (let [{:keys [url tab-id]} (:path parameters)
         service              (NewPipe/getServiceByUrl url)
-        tab                  (->> (ChannelInfo/getInfo url)
-                                  (.getTabs)
-                                  (filter #(some #{tab-id}
-                                                 (.getContentFilters %)))
-                                  first)]
+        info                 (ChannelInfo/getInfo url)
+        tab                  (if tab-id
+                               (->> (.getTabs info)
+                                    (filter #(some #{tab-id}
+                                                   (.getContentFilters %)))
+                                    first)
+                               (first (.getTabs info)))]
     (when tab
       (if-let [next-page (get-in parameters [:query :nextPage])]
         (ChannelTabInfo/getMoreItems service tab (utils/->Page next-page))
