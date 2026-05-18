@@ -132,6 +132,72 @@
      :extra-classes extra-classes
      :show-on-mobile? show-on-mobile?]))
 
+(defn play-button
+  [!player color & {:keys [loading-extra-classes button-extra-classes]}]
+  (let [!waiting? @(rf/subscribe [:player/waiting])
+        !paused?  @(rf/subscribe [:player/paused])]
+    [button
+     :icon
+     (if (and !player @!player (not @!waiting?))
+       (if @!paused?
+         [:i.fa-solid.fa-play-circle]
+         [:i.fa-solid.fa-pause-circle])
+       [ui/loading-icon color loading-extra-classes])
+     :on-click
+     #(rf/dispatch [:player/pause !player (not (.-paused @!player))])
+     :show-on-mobile? true
+     :extra-classes button-extra-classes]))
+
+(defn seek-backward-button
+  [!player !elapsed & {:keys [extra-classes show-on-mobile?]}]
+  [button
+   :icon [:i.fa-solid.fa-backward]
+   :on-click #(rf/dispatch [:player/seek !player (- (or @!elapsed 0) 5)])
+   :extra-classes extra-classes
+   :show-on-mobile? show-on-mobile?])
+
+(defn seek-forward-button
+  [!player !elapsed & {:keys [extra-classes show-on-mobile?]}]
+  [button
+   :icon [:i.fa-solid.fa-forward]
+   :on-click #(rf/dispatch [:player/seek !player (+ (or @!elapsed 0) 5)])
+   :extra-classes extra-classes
+   :show-on-mobile? show-on-mobile?])
+
+(defn prev-track-button
+  [& {:keys [extra-classes show-on-mobile?]}]
+  (let [queue     @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue/position])]
+    [button
+     :icon [:i.fa-solid.fa-backward-step]
+     :on-click #(rf/dispatch [:queue/previous])
+     :disabled? (not (and queue (not= queue-pos 0)))
+     :extra-classes extra-classes
+     :show-on-mobile? show-on-mobile?]))
+
+(defn next-track-button
+  [& {:keys [extra-classes show-on-mobile?]}]
+  (let [queue     @(rf/subscribe [:queue])
+        queue-pos @(rf/subscribe [:queue/position])]
+    [button
+     :icon [:i.fa-solid.fa-forward-step]
+     :on-click #(rf/dispatch [:queue/next])
+     :disabled? (not (and queue (< (inc queue-pos) (count queue))))
+     :extra-classes extra-classes
+     :show-on-mobile? show-on-mobile?]))
+
+(defn elapsed-time
+  [!player !elapsed & {:keys [extra-classes]}]
+  [:span.w-16.flex {:class extra-classes}
+   (if (and !player @!player @!elapsed)
+     (utils/format-duration @!elapsed)
+     "--:--")])
+
+(defn duration-time
+  [duration & {:keys [extra-classes]}]
+  [:span.w-16.flex {:class extra-classes}
+   (utils/format-duration duration)])
+
 (defn time-range
   [overlay-active?]
   [:> MediaTimeRange

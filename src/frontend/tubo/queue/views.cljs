@@ -16,71 +16,34 @@
     {:title uploader-name}
     uploader-name]])
 
-(defn button
-  [& {:as args}]
-  [player/button
-   (update args :extra-classes #(when % (concat % ["py-3"])))])
-
 (defn main-controls
-  [color]
-  (let [!player          @(rf/subscribe [:bg-player])
-        waiting?         @(rf/subscribe [:bg-player/waiting])
-        bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        !paused          @(rf/subscribe [:player/paused])
-        !elapsed-time    @(rf/subscribe [:elapsed-time])
-        queue            @(rf/subscribe [:queue])
-        queue-pos        @(rf/subscribe [:queue/position])]
+  [color !player]
+  (let [!buffered @(rf/subscribe [:player/buffered])
+        !elapsed  @(rf/subscribe [:elapsed-time])
+        !duration @(rf/subscribe [:player/duration])]
     [:div.flex.flex-col.flex-1.justify-between
      [:div.flex.flex-col.flex-auto.w-full.items-center.gap-y-4.text-neutral-600.dark:text-neutral-300.font-medium.justify-center
       {:class "text-[0.8rem]"}
-      [player/time-slider !player !elapsed-time :height "0.4rem"
-       :progress-color
-       color :rounded? true :thumb-color color :extra-classes
-       ["[&::-webkit-slider-thumb]:-mt-1"]]
+      [player/time-slider !player !elapsed !buffered
+       :height "0.4rem" :progress-color color :rounded? true
+       :thumb-color color
+       :extra-classes ["[&::-webkit-slider-thumb]:-mt-1"]]
       [:div.flex.w-full.justify-between
-       [:span.whitespace-nowrap.w-16.flex.justify-start
-        (if (and bg-player-ready? @!player @!elapsed-time)
-          (utils/format-duration @!elapsed-time)
-          "--:--")]
-       [:span.whitespace-nowrap.w-16.flex.justify-end
-        (if (and bg-player-ready? @!player)
-          (utils/format-duration (.-duration @!player))
-          "--:--")]]]
+       [player/elapsed-time !player !elapsed :extra-classes ["justify-start"]]
+       [player/duration-time @!duration :extra-classes ["justify-end"]]]]
      [:div.flex.justify-between.items-center.flex-auto
-      [button
-       :icon [:i.fa-solid.fa-backward-step]
-       :on-click #(rf/dispatch [:queue/previous])
-       :disabled? (not (and queue (not= queue-pos 0)))
-       :extra-classes ["@sm:text-xl"]
-       :show-on-mobile? true]
-      [button
-       :icon [:i.fa-solid.fa-backward]
-       :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])
-       :extra-classes ["@sm:text-xl"]
-       :show-on-mobile? true]
-      [button
-       :icon
-       (if (and (not waiting?) (or (nil? bg-player-ready?) @!player))
-         (if @!paused
-           [:i.fa-solid.fa-play-circle]
-           [:i.fa-solid.fa-pause-circle])
-         [ui/loading-icon color ["text-[3.5rem]"]])
-       :on-click
-       #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
-       :show-on-mobile? true
-       :extra-classes
+      [player/prev-track-button :extra-classes ["@sm:text-xl"] :show-on-mobile?
+       true]
+      [player/seek-backward-button !player !elapsed :extra-classes
+       ["@sm:text-xl"] :show-on-mobile? true]
+      [player/play-button !player color
+       :loading-extra-classes ["text-[3.5rem]"]
+       :button-extra-classes
        ["text-[3.5rem]" "flex" "justify-center" "!bg-transparent"]]
-      [button
-       :icon [:i.fa-solid.fa-forward]
-       :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])
-       :extra-classes ["@sm:text-xl"]
-       :show-on-mobile? true]
-      [button
-       :icon [:i.fa-solid.fa-forward-step]
-       :on-click #(rf/dispatch [:queue/next])
-       :disabled? (not (and queue (< (inc queue-pos) (count queue))))
-       :extra-classes ["@sm:text-xl"]
-       :show-on-mobile? true]]]))
+      [player/seek-forward-button !player !elapsed :extra-classes
+       ["@sm:text-xl"] :show-on-mobile? true]
+      [player/next-track-button :extra-classes ["@sm:text-xl"] :show-on-mobile?
+       true]]]))
 
 (defn queue-list
   []
@@ -121,9 +84,7 @@
   []
   (let [show-queue  @(rf/subscribe [:queue/show])
         stream      @(rf/subscribe [:queue/current])
-        color       (-> stream
-                        :service-id
-                        utils/get-service-color)
+        color       (utils/get-service-color (:service-id stream))
         !thumbnail  @(rf/subscribe [:queue-thumbnail])
         !bg         @(rf/subscribe [:queue-bg])
         dark-theme? @(rf/subscribe [:dark-theme])
@@ -178,7 +139,7 @@
                :image-classes ["rounded-md"]]]
              [:div.flex.flex-col.gap-y-8.md:gap-y-16.w-full.flex-auto
               [queue-metadata stream]
-              [main-controls color]]
+              [main-controls color !player]]
              [:div.flex.justify-between.min-w-full.pb-4
               [player/button
                :icon

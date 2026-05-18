@@ -27,65 +27,40 @@
       [player/popover stream :tooltip-classes ["bottom-7" "left-0"]]])])
 
 (defn main-controls
-  [!player color]
-  (let [queue            @(rf/subscribe [:queue])
-        queue-pos        @(rf/subscribe [:queue/position])
-        waiting?         @(rf/subscribe [:bg-player/waiting])
-        !paused          @(rf/subscribe [:player/paused])
-        bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        !elapsed-time    @(rf/subscribe [:elapsed-time])
-        dark-theme       @(rf/subscribe [:dark-theme])]
+  [color !player]
+  (let [!elapsed   @(rf/subscribe [:elapsed-time])
+        !buffered  @(rf/subscribe [:player/buffered])
+        !duration  @(rf/subscribe [:player/duration])
+        dark-theme @(rf/subscribe [:dark-theme])]
     [:div.flex.flex-col.items-center.ml-auto.gap-y-2
      [:div.flex.justify-end.gap-x-4.items-center
       [player/loop-button color false :extra-classes ["text-sm"]]
-      [player/button
-       :icon [:i.fa-solid.fa-backward-step]
-       :on-click #(rf/dispatch [:queue/previous])
-       :disabled? (not (and queue (not= queue-pos 0)))]
-      [player/button
-       :icon [:i.fa-solid.fa-backward]
-       :on-click #(rf/dispatch [:bg-player/seek (- @!elapsed-time 5)])]
-      [player/button
-       :icon
-       (if (and (not waiting?) (or (nil? bg-player-ready?) @!player))
-         (if @!paused
-           [:i.fa-solid.fa-play-circle]
-           [:i.fa-solid.fa-pause-circle])
-         [ui/loading-icon color "text-3xl lg:text-4xl"])
-       :on-click #(rf/dispatch [:bg-player/pause (not (.-paused @!player))])
-       :show-on-mobile? true
-       :extra-classes
+      [player/prev-track-button]
+      [player/seek-backward-button !player !elapsed]
+      [player/play-button !player color
+       :loading-extra-classes ["text-3xl" "lg:text-4xl"]
+       :button-extra-classes
        ["text-3xl" "lg:text-4xl" "w-[3rem]" "lg:w-[2.5rem]" "!p-0"
         "!bg-transparent"]]
-      [player/button
-       :icon [:i.fa-solid.fa-forward]
-       :on-click #(rf/dispatch [:bg-player/seek (+ @!elapsed-time 5)])]
-      [player/button
-       :icon [:i.fa-solid.fa-forward-step]
-       :on-click #(rf/dispatch [:queue/next])
-       :disabled? (not (and queue (< (inc queue-pos) (count queue))))]
+      [player/seek-forward-button !player !elapsed]
+      [player/next-track-button]
       [player/shuffle-button color false :extra-classes ["text-sm"]]]
      [:div.hidden.lg:flex.items-center.gap-x-2
       {:class "text-[0.8rem]"}
-      [:span.w-16.flex.justify-end
-       (if (and bg-player-ready? @!player @!elapsed-time)
-         (utils/format-duration @!elapsed-time)
-         "--:--")]
+      [player/elapsed-time !player !elapsed :extra-classes ["justify-end"]]
       [:div.w-20.lg:w-96.mx-2.flex.items-center
        {:style {"--thumb-bg" (if dark-theme
                                "rgb(212,212,212)"
                                "rgb(0,0,0)")}}
-       [player/time-slider !player !elapsed-time :progress-color color :rounded?
-        true
+       [player/time-slider !player !elapsed !buffered
+        :progress-color color :rounded? true
         :thumb-size "0.5rem" :thumb-color color]]
-      [:span.w-16.flex.justify-start
-       (if (and bg-player-ready? @!player)
-         (utils/format-duration (.-duration @!player))
-         "--:--")]]]))
+      [player/duration-time @!duration :extra-classes ["justify-start"]]]]))
 
 (defn extra-controls
-  [!player color]
-  (let [muted?     @(rf/subscribe [:player/muted])
+  [color]
+  (let [!player    @(rf/subscribe [:bg-player])
+        muted?     @(rf/subscribe [:player/muted])
         dark-theme @(rf/subscribe [:dark-theme])]
     [:div.flex.lg:justify-end.lg:flex-1.gap-x-4
      [:div.hidden.lg:flex.w-36.items-center.gap-x-4
@@ -117,9 +92,7 @@
             stream       @(rf/subscribe [:queue/current])
             show-queue?  @(rf/subscribe [:queue/show])
             show-player? @(rf/subscribe [:bg-player/show])
-            color        (-> stream
-                             :service-id
-                             utils/get-service-color)]
+            color        (utils/get-service-color (:service-id stream))]
         [:<>
          (when stream
            [player/audio-player id])
