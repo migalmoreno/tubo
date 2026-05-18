@@ -116,13 +116,13 @@
 (rf/reg-event-fx
  :player/start
  [(rf/inject-cofx ::inject/sub [:page-visible])]
- (fn [{:keys [page-visible]} [_ player stream]]
+ (fn [{:keys [page-visible]} [_ !player stream queue?]]
    (when page-visible
      {:fx [[:set-media-session-metadata
             {:title   (:name stream)
              :artist  (:uploader-name stream)
              :artwork [{:src (:thumbnail stream)}]}]
-           [:set-media-session-handlers player]]})))
+           [:set-media-session-handlers [!player queue?]]]})))
 
 (defn load-video
   [player url element]
@@ -130,32 +130,6 @@
     (-> (p/resolved nil)
         (p/then #(.attach (.-api @player) element))
         (p/then #(.load (.-api @player) url)))))
-
-(rf/reg-event-fx
- :player/reload
- (fn [{:keys [db]} [_ player url]]
-   {:promise
-    {:call       #(load-video player
-                              url
-                              (.querySelector (.-shadowRoot @player)
-                                              "video"))
-     :on-success (when (get-in db [:settings :autoplay]) [:player/play player])
-     :on-failure [:notifications/error "Playback failed"]}}))
-
-(rf/reg-event-fx
- :player/on-load-failure
- (fn [{:keys [db]} [_ player error]]
-   {:fx [[:dispatch
-          [:notifications/error
-           (if (seq (.-detail error))
-             (.-detail error)
-             "Playback failed. Retrying...")]]
-         [:dispatch
-          [:player/reload player
-           (utils/get-video-stream (:stream db)
-                                   (assoc (:settings db)
-                                          :video-source-type
-                                          "progressive-http"))]]]}))
 
 (rf/reg-fx
  :player/set-next
@@ -165,17 +139,40 @@
            #(rf/dispatch [:queue/change-pos (inc current-pos)])))))
 
 (rf/reg-event-fx
+ :player/on-load-failure
+ (fn [{:keys [db]} [_ player stream pos error]]
+   {:fx [[:dispatch
+          [:notifications/error
+           (if (seq (.-detail error))
+             (.-detail error)
+             "Playback failed. Retrying...")]]
+         [:dispatch
+          [:player/load player
+           stream
+           pos
+           (utils/get-stream-url stream
+                                 (assoc (:settings db)
+                                        :stream-protocol
+                                        "progressive-http"))
+           [:notifications/error "Playback failed"]]]]}))
+
+(rf/reg-event-fx
  :player/load
- (fn [{:keys [db]} [_ player url pos]]
-   {:promise         {:call       #(load-video player
-                                               url
-                                               (.querySelector (.-shadowRoot
-                                                                @player)
-                                                               "video"))
-                      :on-success (when (get-in db [:settings :autoplay])
-                                    [:player/play player])
-                      :on-failure [:player/on-load-failure player]}
-    :player/set-next [player pos]}))
+ (fn [{:keys [db]} [_ player stream pos fallback-url on-failure]]
+   (when-let [url (or fallback-url
+                      (utils/get-stream-url stream (:settings db)))]
+     {:promise         {:call       #(load-video
+                                      player
+                                      url
+                                      (.querySelector (.-shadowRoot
+                                                       @player)
+                                                      "video"))
+                        :on-success (when (get-in db [:settings :autoplay])
+                                      [:player/pause player false])
+                        :on-failure (or on-failure
+                                        [:player/on-load-failure player stream
+                                         pos])}
+      :player/set-next [player pos]})))
 
 (rf/reg-fx
  :player/loop
@@ -297,7 +294,7 @@
 
 (rf/reg-fx
  :set-media-session-handlers
- (fn [player]
+ (fn [[player queue?]]
    (when (gobj/containsKey js/navigator "mediaSession")
      (let [current-time (and player @player (.-currentTime @player))
            update-position
@@ -311,25 +308,28 @@
                     (and (= js/navigator.platform "MacIntel")
                          (> js/navigator.maxTouchPoints 1)))
            events
-           (cond-> {"play"          #(do (.play @player)
-                                         (update-playback "playing"))
-                    "pause"         #(do (.pause @player)
-                                         (update-playback "paused"))
-                    "previoustrack" #(rf/dispatch [:queue/previous])
-                    "nexttrack"     #(rf/dispatch [:queue/next])
-                    "seekto"        (fn [^js/navigator.MediaSessionActionDetails
-                                         details]
-                                      (seek (.-seekTime details)))
-                    "stop"          #(seek 0)}
-             (not ios?)
-             (assoc "seekbackward"
-                    (fn [^js/navigator.MediaSessionActionDetails details]
-                      (seek (- (.-currentTime @player)
-                               (or (.-seekOffset details) 10))))
-                    "seekforward"
-                    (fn [^js/navigator.MediaSessionActionDetails details]
-                      (seek (+ (.-currentTime @player)
-                               (or (.-seekOffset details) 10))))))]
+           (cond->
+             {"play" #(do (.play @player)
+                          (update-playback "playing"))
+              "pause" #(do (.pause @player)
+                           (update-playback "paused"))
+              "seekto" (fn [^js/navigator.MediaSessionActionDetails
+                            details]
+                         (seek (.-seekTime details)))
+              "stop" #(seek 0)
+              "previoustrack" (when queue?
+                                #(rf/dispatch [:queue/previous]))
+              "nexttrack" (when queue? #(rf/dispatch [:queue/next]))
+              "seekbackward"
+              (when (or (not queue?) (not ios?))
+                (fn [^js/navigator.MediaSessionActionDetails details]
+                  (seek (- (.-currentTime @player)
+                           (or (.-seekOffset details) 10)))))
+              "seekforward"
+              (when (or (not queue?) (not ios?))
+                (fn [^js/navigator.MediaSessionActionDetails details]
+                  (seek (+ (.-currentTime @player)
+                           (or (.-seekOffset details) 10)))))})]
        (doseq [[action cb] events]
          (try
            (.setActionHandler js/navigator.mediaSession action cb)
