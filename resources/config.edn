@@ -12,8 +12,7 @@
   :items-layout         "list"
   :autoplay             true
   :video-codecs         "vp9,avc"
-  :video-source-type    "dash"
-  :audio-source-type    "dash"
+  :stream-protocol      "dash"
   :default-resolution   "720p"
   :default-video-format "MPEG-4"
   :default-audio-format "m4a"

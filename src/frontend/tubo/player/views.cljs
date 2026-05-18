@@ -1,6 +1,7 @@
 (ns tubo.player.views
   (:require
    ["motion/react" :refer [motion AnimatePresence]]
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [tubo.player.components :as player]
    [tubo.stream.views :as stream]
@@ -93,7 +94,7 @@
       [player/button
        :icon
        (if muted? [:i.fa-solid.fa-volume-xmark] [:i.fa-solid.fa-volume-low])
-       :on-click #(rf/dispatch [:bg-player/mute (not muted?) !player])
+       :on-click #(rf/dispatch [:player/mute !player (not muted?)])
        :show-on-mobile? true
        :extra-classes ["w-14"]]
       [player/volume-slider !player :progress-color color :height "0.375rem"
@@ -108,55 +109,49 @@
 
 (defn bg-player
   []
-  (let [!player       @(rf/subscribe [:bg-player])
-        !elapsed-time @(rf/subscribe [:elapsed-time])
-        stream        @(rf/subscribe [:queue/current])
-        show-queue?   @(rf/subscribe [:queue/show])
-        show-player?  @(rf/subscribe [:bg-player/show])
-        color         (-> stream
-                          :service-id
-                          utils/get-service-color)]
-    [:<>
-     (when show-player?
-       [player/audio-player !player])
-     [:> AnimatePresence
-      (when (and show-player? (not show-queue?))
-        [:> (.-div motion)
-         {:animate    {:y 0}
-          :initial    {:y 100}
-          :transition {:ease "easeOut" :duration 0.3}
-          :exit       {:y 100}
-          :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
-                       "right-0" "bottom-0" "z-10" "relative" "cursor-pointer"
-                       "bg-neutral-200" "dark:bg-neutral-900"]
-          :on-click   #(rf/dispatch [:queue/show true])}
-         [:div.flex.flex-col.w-full
-          [:div.absolute.top-0.left-0.w-full.lg:hidden.flex
-           [player/time-slider !player !elapsed-time :height "0.25rem"
-            :thumb-size 0
-            :progress-color color]]
-          [:div.flex.items-center.px-3
-           [metadata stream]
-           [main-controls !player color]
-           [extra-controls !player color]]]])]]))
+  (let [id (nano-id)]
+    (fn []
+      (let [!player      @(rf/subscribe [:player-by-id id])
+            !elapsed     @(rf/subscribe [:elapsed-time])
+            !buffered    @(rf/subscribe [:player/buffered])
+            stream       @(rf/subscribe [:queue/current])
+            show-queue?  @(rf/subscribe [:queue/show])
+            show-player? @(rf/subscribe [:bg-player/show])
+            color        (-> stream
+                             :service-id
+                             utils/get-service-color)]
+        [:<>
+         (when stream
+           [player/audio-player id])
+         [:> AnimatePresence
+          (when (and show-player? (not show-queue?))
+            [:> (.-div motion)
+             {:animate    {:y 0}
+              :initial    {:y 100}
+              :transition {:ease "easeOut" :duration 0.3}
+              :exit       {:y 100}
+              :class      ["h-[80px]" "sticky" "flex" "items-center" "left-0"
+                           "right-0" "bottom-0" "z-10" "relative"
+                           "cursor-pointer"
+                           "bg-neutral-200" "dark:bg-neutral-900"]
+              :on-click   #(rf/dispatch [:queue/show true])}
+             [:div.flex.flex-col.w-full
+              [:div.absolute.top-0.left-0.w-full.lg:hidden.flex
+               [player/time-slider !player !elapsed !buffered
+                :height "0.25rem" :thumb-size 0 :progress-color color]]
+              [:div.flex.items-center.px-3
+               [metadata stream]
+               [main-controls color !player]
+               [extra-controls color]]]])]]))))
 
 (defn main-player
-  []
-  (let [pos      @(rf/subscribe [:queue/position])
-        !player  @(rf/subscribe [:main-player])
-        stream   @(rf/subscribe [:queue/current])
-        !elapsed @(rf/subscribe [:elapsed-time])]
+  [bg-player-id]
+  (let [stream       @(rf/subscribe [:queue/current])
+        embed-player @(rf/subscribe [:player-by-id bg-player-id])]
     [:div.relative.overflow-auto.w-full.h-full
      [stream/stream-container stream
       [stream/video-container stream
-       [player/video-player stream !player
-        {:muted          @(rf/subscribe [:player/muted])
-         :on-can-play    #(rf/dispatch [:main-player/ready true])
-         :on-play        #(rf/dispatch [:main-player/play])
-         :on-time-update #(when @!player
-                            (reset! !elapsed (.-currentTime @!player)))
-         :on-seeked      #(when @!player
-                            (reset! !elapsed (.-currentTime @!player)))
-         :loop           (= @(rf/subscribe [:player/loop]) :stream)}
-        #(rf/dispatch [:main-player/mount stream !player pos])
-        #(rf/dispatch [:main-player/unmount])]]]]))
+       [player/video-player stream nil
+        #(rf/dispatch [:main-player/mount])
+        #(rf/dispatch [:main-player/unmount])
+        embed-player]]]]))

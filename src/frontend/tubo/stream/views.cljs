@@ -2,13 +2,14 @@
   (:require
    ["react-virtuoso" :refer [Virtuoso]]
    [clojure.string :as str]
+   [nano-id.core :refer [nano-id]]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [reitit.frontend.easy :as rfe]
    [tubo.bookmarks.modals :as modals]
    [tubo.comments.views :as comments]
-   [tubo.ui :as ui]
    [tubo.player.components :as player]
+   [tubo.ui :as ui]
    [tubo.utils :as utils]))
 
 (defn item-metadata
@@ -350,10 +351,12 @@
 
 (defn stream-page
   []
-  (let [!player      @(rf/subscribe [:stream-player])
-        video-stream @(rf/subscribe [:stream])]
-    (when video-stream
-      [stream-container video-stream
-       [video-container video-stream
-        [player/video-player video-stream !player {}
-         #(rf/dispatch [:player/initialize video-stream !player])]]])))
+  (let [id (nano-id)]
+    (fn []
+      (let [video-stream @(rf/subscribe [:stream])]
+        (when video-stream
+          [stream-container video-stream
+           [video-container video-stream
+            [player/video-player video-stream id
+             #(rf/dispatch [:stream-player/mount video-stream id % 0])
+             #(rf/dispatch [:stream-player/unmount id])]]])))))

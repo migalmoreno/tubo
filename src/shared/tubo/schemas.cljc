@@ -75,7 +75,7 @@
 
 (def Loop [:enum :playlist :stream false])
 
-(def SourceType [:enum "dash" "hls" "progressive-http"])
+(def StreamProtocol [:enum "dash" "hls" "progressive-http"])
 
 (def Settings
   [:map {:closed true}
@@ -86,8 +86,7 @@
    [:items-layout {:optional true} ItemLayout]
    [:autoplay {:optional true} boolean?]
    [:video-codecs {:optional true} string?]
-   [:video-source-type {:optional true} SourceType]
-   [:audio-source-type {:optional true} SourceType]
+   [:stream-protocol {:optional true} StreamProtocol]
    [:default-resolution {:optional true} string?]
    [:default-video-format {:optional true} string?]
    [:default-audio-format {:optional true} string?]
@@ -111,12 +110,10 @@
    [:player/shuffled {:optional true :persist true} [:maybe boolean?]]
    [:player/loop {:default :playlist :persist true} Loop]
    [:player/volume {:default 100 :persist true} any?]
+   [:bg-player/id {:optional true} [:maybe string?]]
    [:bg-player/show {:optional true :persist true} [:maybe boolean?]]
-   [:bg-player/waiting {:optional true} [:maybe boolean?]]
-   [:bg-player/loading {:optional true} [:maybe boolean?]]
-   [:bg-player/ready {:optional true} [:maybe boolean?]]
+   [:stream-player/id {:optional true} [:maybe string?]]
    [:main-player/show {:optional true} [:maybe boolean?]]
-   [:main-player/ready {:optional true} [:maybe boolean?]]
    [:search/results {:optional true} [:maybe vector?]]
    [:search/query {:optional true} [:maybe string?]]
    [:search/show-form {:optional true} [:maybe boolean?]]

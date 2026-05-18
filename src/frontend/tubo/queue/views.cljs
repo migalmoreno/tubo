@@ -185,8 +185,7 @@
                (if muted?
                  [:i.fa-solid.fa-volume-xmark]
                  [:i.fa-solid.fa-volume-low])
-               :on-click
-               #(rf/dispatch [:bg-player/mute (not muted?) !player])
+               :on-click #(rf/dispatch [:player/mute !player (not muted?)])
                :show-on-mobile? true
                :extra-classes ["text-md" "w-10"]]
               [player/shuffle-button color true :extra-classes

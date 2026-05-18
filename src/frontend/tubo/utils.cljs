@@ -187,9 +187,9 @@
   (str/includes? (str/replace (:format format) #"[-_]" "")
                  (str/replace (str/upper-case str) #"[-_]" "")))
 
-(defn get-video-stream
+(defn get-stream-url
   [{:keys [audio-streams video-streams service-id] :as stream} settings]
-  (if (and (= (:video-source-type settings) "dash") (= service-id 0))
+  (if (and (= (:stream-protocol settings) "dash") (= service-id 0))
     (str "data:application/dash+xml;charset=utf-8;base64,"
          (js/btoa (->mpd-file stream)))
     (or (some->> video-streams
@@ -197,44 +197,22 @@
                  (some #(when (= (:resolution %) (:default-resolution settings))
                           %))
                  :content)
-        (some-> (if (= (:video-source-type settings)
+        (some-> (if (= (:stream-protocol settings)
                        "progressive-http")
                   (remove #(= (:delivery-method %) "HLS") video-streams)
                   video-streams)
                 first
                 :content)
-        (some->> (if (= (:video-source-type settings) "progressive-http")
+        (some->> (if (= (:stream-protocol settings) "progressive-http")
                    (remove #(= (:delivery-method %) "HLS")
                            audio-streams)
                    audio-streams)
                  (some #(when (fmt= % (:default-audio-format settings))
                           %))
                  :content)
-        (some-> (if (= (:video-source-type settings)
+        (some-> (if (= (:stream-protocol settings)
                        "progressive-http")
                   (remove #(= (:delivery-method %) "HLS") audio-streams)
                   audio-streams)
                 first
                 :content))))
-
-(defn get-audio-stream
-  [{:keys [audio-streams video-streams service-id] :as stream} settings]
-  (if (and (= (:audio-source-type settings) "dash") (= service-id 0))
-    (str "data:application/dash+xml;charset=utf-8;base64,"
-         (js/btoa (->mpd-file stream)))
-    (or (some->> (if (= (:audio-source-type settings) "progressive-http")
-                   (remove #(= (:delivery-method %) "HLS") audio-streams)
-                   audio-streams)
-                 (some #(when (fmt= % (:default-audio-format settings)) %))
-                 :content)
-        (some-> (if (= (:audio-source-type settings) "progressive-http")
-                  (remove #(= (:delivery-method %) "HLS") audio-streams)
-                  audio-streams)
-                first
-                :content)
-        (some->> video-streams
-                 (some #(when (fmt= % (:default-video-format settings)) %))
-                 (some #(when (= (:resolution %) (:default-resolution settings))
-                          %))
-                 :content)
-        (:content (first audio-streams)))))

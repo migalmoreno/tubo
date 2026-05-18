@@ -212,26 +212,22 @@
     :value     value}])
 
 (defn time-slider
-  [!player !elapsed-time & extra-args]
-  (let [bg-player-ready? @(rf/subscribe [:bg-player/ready])
-        !buffered        @(rf/subscribe [:bg-player/buffered])
-        max-value        (if (and bg-player-ready?
-                                  @!player
-                                  (not (js/isNaN (.-duration @!player))))
-                           (.floor js/Math (.-duration @!player))
-                           100)]
+  [!player !elapsed !buffered & extra-args]
+  (let [el      (when !player @!player)
+        max-val (if (and el (not (js/isNaN (.-duration el))))
+                  (.floor js/Math (.-duration el))
+                  100)]
     (apply slider
            :extra-styles
-           {"--buffered" (str @!buffered "%")}
+           {"--buffered" (str (or @!buffered 0) "%")}
            :on-input
-           #(reset! !elapsed-time (.. % -target -value))
+           #(reset! !elapsed (js/parseFloat (.. % -target -value)))
            :on-change
-           #(when (and bg-player-ready? @!player)
-              (set! (.-currentTime @!player) @!elapsed-time))
+           #(when el (set! (.-currentTime el) @!elapsed))
            :max
-           max-value
+           max-val
            :value
-           @!elapsed-time
+           (or @!elapsed 0)
            extra-args)))
 
 (defn volume-slider
@@ -244,7 +240,7 @@
      :value
      volume
      :on-input
-     #(rf/dispatch [:player/change-volume (.. % -target -value) player])
+     #(rf/dispatch [:player/volume player (.. % -target -value)])
      extra-args)))
 
 (defn track-button
@@ -289,10 +285,10 @@
                       (reset! !show? true)
                       (js/setTimeout #(reset! !show? false) 500)
                       (rf/dispatch [:player/seek
+                                    !player
                                     ((if (= type :backward) - +)
                                      (.-currentTime @!player)
-                                     10)
-                                    !player])))}
+                                     10)])))}
        (when @!show?
          [:> motion.button
           {:class      ["flex" "flex-col" "gap-y-4" "text-white"]
@@ -411,11 +407,35 @@
         [:div {:slot "title"} "Subtitles/CC"]]]])])
 
 
+(defn ->ShakaVideo
+  [stream !player & {:as extra-props}]
+  [:> ShakaVideo
+   (cond-> (merge {:ref            #(when !player (reset! !player %))
+                   :preload        "metadata"
+                   :playsInline    true
+                   :slot           "media"
+                   :poster         (:thumbnail stream)
+                   :on-loaded-data #(rf/dispatch [:player/start !player stream])
+                   :on-error       #(rf/dispatch [:player/media-error !player])
+                   :on-play        #(rf/dispatch [:player/play !player stream])}
+                  extra-props))
+   [:track
+    {:label   (:display-language-name (first (:subtitles stream)))
+     :kind    "captions"
+     :srcLang (:language-tag (first (:subtitles stream)))
+     :src     (str (:instance @(rf/subscribe [:settings]))
+                   "/proxy/"
+                   (js/encodeURIComponent
+                    (:content (first (:subtitles stream)))))}]])
+
+
 (defn video-player
-  [_ _ _ on-mount on-unmount]
+  [_ id on-mount on-unmount embed-player]
   (let [!user-inactive (r/atom nil)
         !media-paused  (r/atom nil)
         !controller    (atom nil)
+        !media-parent  (atom nil)
+        !el            (when (and id (not embed-player)) (atom nil))
         on-inactive    #(reset! !user-inactive (.-detail %))
         on-paused      #(reset! !media-paused (.-detail %))]
     (r/create-class
@@ -424,13 +444,27 @@
         (when-let [el @!controller]
           (.addEventListener el "userinactivechange" on-inactive)
           (.addEventListener el "mediapaused" on-paused))
-        (on-mount))
-      :component-will-unmount on-unmount
+        (when (and embed-player @embed-player @!controller)
+          (reset! !media-parent (.-parentNode @embed-player))
+          (.setAttribute @embed-player "slot" "media")
+          (set! (.. @embed-player -style -display) "block")
+          (.appendChild @!controller @embed-player))
+        (on-mount !el))
+      :component-will-unmount
+      (fn [_]
+        (when-let [el @!controller]
+          (.removeEventListener el "userinactivechange" on-inactive)
+          (.removeEventListener el "mediapaused" on-paused))
+        (when (and embed-player @embed-player @!media-parent)
+          (.removeAttribute @embed-player "slot")
+          (set! (.. @embed-player -style -display) "none")
+          (.appendChild @!media-parent @embed-player))
+        (on-unmount))
       :reagent-render
-      (fn [{:keys [thumbnail subtitles service-id] :as stream} !player
-           video-args]
-        (let [service-color   (utils/get-service-color service-id)
-              settings        @(rf/subscribe [:settings])
+      (fn [stream id _ _ embed-player]
+        (let [!player         (or embed-player
+                                  @(rf/subscribe [:player-by-id id]))
+              service-color   (utils/get-service-color (:service-id stream))
               overlay-active? (and (or (nil? @!user-inactive) @!user-inactive)
                                    (not @!media-paused))]
           [:> MediaController
@@ -444,23 +478,8 @@
                     "[--media-primary-color:white]"
                     "[--media-secondary-color:transparent]"
                     "[--media-font-family:Roboto,sans-serif]"]}
-           [:> ShakaVideo
-            (into
-             {:poster         thumbnail
-              :playsInline    true
-              :ref            #(reset! !player %)
-              :slot           "media"
-              :on-loaded-data #(rf/dispatch [:player/start !player stream])
-              :preload        "metadata"}
-             video-args)
-            [:track
-             {:label   (:display-language-name (first subtitles))
-              :kind    "captions"
-              :srcLang (:language-tag (first subtitles))
-              :src     (str (:instance settings)
-                            "/proxy/"
-                            (js/encodeURIComponent (:content (first
-                                                              subtitles))))}]]
+           (when-not embed-player
+             (->ShakaVideo stream !el))
            [:div.absolute.w-full.bottom-0.pointer-events-none.bg-bottom.bg-repeat-x
             {:class ["md:rounded-b-xl" "pt-[37px]" "h-[170px]"]
              :style
@@ -476,53 +495,40 @@
            [control-bar overlay-active?]
            [settings-menu]]))})))
 
-(defn on-progress
-  [!player !buffered]
-  (let [len (.. @!player -buffered -length)]
-    (when (and (.-duration @!player) (> len 0))
-      (if (= (.end (.-buffered @!player) (- len 1)) (.-duration @!player))
-        (reset! !buffered 100)
-        (when (< (.start (.-buffered @!player) (- len 1))
-                 (.-currentTime @!player))
-          (reset! !buffered (* (/ (.end (.-buffered @!player) (- len 1))
-                                  (.-duration @!player))
-                               100)))))))
-
-(defn on-update
-  [!player !buffered !elapsed]
-  (when @(rf/subscribe [:bg-player/waiting])
-    (rf/dispatch [:bg-player/set-waiting false]))
-  (on-progress !player !buffered)
-  (reset! !elapsed (.-currentTime @!player)))
-
 (defn audio-player
-  [!player]
-  (let [!elapsed  @(rf/subscribe [:elapsed-time])
-        !paused   @(rf/subscribe [:player/paused])
-        pos       @(rf/subscribe [:queue/position])
-        stream    @(rf/subscribe [:queue/current])
-        !buffered @(rf/subscribe [:bg-player/buffered])]
+  [id]
+  (let [!player (atom nil)]
     (r/create-class
-     {:component-will-unmount #(rf/dispatch [:bg-player/unmount])
-      :component-did-mount #(rf/dispatch [:bg-player/mount stream !player pos])
+     {:component-did-mount
+      (fn [_]
+        (let [stream @(rf/subscribe [:queue/current])
+              pos    @(rf/subscribe [:queue/position])]
+          (rf/dispatch [:bg-player/mount id !player stream pos])))
+      :component-will-unmount #(rf/dispatch [:bg-player/unmount id])
       :reagent-render
-      (fn [!player]
-        (let [stream @(rf/subscribe [:queue/current])]
-          [:> ShakaVideo
-           {:style          {:display "none"}
-            :ref            #(reset! !player %)
-            :preload        "metadata"
-            :playsInline    true
-            :on-play        #(do (reset! !paused false)
-                                 (rf/dispatch [:player/set-playback-state
-                                               "playing"]))
-            :on-pause       #(reset! !paused true)
-            :on-waiting     #(rf/dispatch [:bg-player/set-waiting true])
-            :loop           (= @(rf/subscribe [:player/loop]) :stream)
+      (fn [_]
+        (let [stream    @(rf/subscribe [:queue/current])
+              loop      @(rf/subscribe [:player/loop])
+              !elapsed  @(rf/subscribe [:elapsed-time])
+              !duration @(rf/subscribe [:player/duration])
+              !waiting  @(rf/subscribe [:player/waiting])
+              !paused   @(rf/subscribe [:player/paused])]
+          [:div
+           (->ShakaVideo
+            stream
+            !player
+            :loop           (= loop :stream)
             :muted          @(rf/subscribe [:player/muted])
-            :on-can-play    #(rf/dispatch [:bg-player/set-ready true])
-            :on-seeked      #(reset! !elapsed (.-currentTime @!player))
-            :on-progress    #(on-progress !player !buffered)
-            :on-time-update #(on-update !player !buffered !elapsed)
-            :on-loaded-data #(rf/dispatch [:player/start !player stream])
-            :on-error       #(rf/dispatch [:player/on-error !player])}]))})))
+            :style          {:display "none"}
+            :on-waiting     #(reset! !waiting true)
+            :on-pause       #(reset! !paused true)
+            :on-play        #(do (reset! !paused false)
+                                 (rf/dispatch [:player/play !player stream
+                                               true]))
+            :on-loaded-data #(do (reset! !waiting false)
+                                 (reset! !duration (.-duration (.-target %)))
+                                 (rf/dispatch
+                                  [:player/start !player stream true]))
+            :on-seeked      #(reset! !elapsed (.-currentTime (.-target %)))
+            :on-progress    #(rf/dispatch [:player/progress !player])
+            :on-time-update #(rf/dispatch [:player/update !player]))]))})))

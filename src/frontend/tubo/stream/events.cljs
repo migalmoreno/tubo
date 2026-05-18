@@ -3,8 +3,7 @@
    [re-frame.core :as rf]
    [tubo.interceptors :refer [show-loading-status]]
    [tubo.stream.views :as views]
-   [tubo.utils :as utils]
-   [vimsical.re-frame.cofx.inject :as inject]))
+   [tubo.utils :as utils]))
 
 (rf/reg-event-fx
  :stream/fetch
@@ -16,7 +15,6 @@
 
 (rf/reg-event-fx
  :stream/load-page
- [(rf/inject-cofx ::inject/sub [:stream-player])]
  (fn [{:keys [db]} [_ {:keys [body]}]]
    {:db (assoc
          db
@@ -26,7 +24,8 @@
              (utils/apply-avatars-quality db :related-items)
              (utils/apply-image-quality db :uploader-avatar :uploader-avatars)
              (utils/apply-image-quality db :thumbnail :thumbnails)))
-    :fx [(when (get-in db [:settings :show-comments])
+    :fx [[:dispatch [:stream-player/load body]]
+         (when (get-in db [:settings :show-comments])
            [:dispatch [:comments/fetch-page (:url body) [:stream]]])
          [:dispatch [:services/fetch body]]
          [:document-title (:name body)]]}))
@@ -44,18 +43,18 @@
 
 (rf/reg-event-fx
  :stream/fetch-page
- (fn [{:keys [db]} [_ url on-success]]
+ (fn [_ [_ url on-success]]
    {:fx [[:dispatch
           [:stream/fetch url
            (or on-success [:stream/load-page])
-           [:bad-page-response [:stream/on-reload url]]]]]
-    :db (assoc db :stream nil)}))
+           [:bad-page-response [:stream/on-reload url]]]]]}))
+
+(rf/reg-event-fx
+ :search/leave-page
+ (fn [{:keys [db]}]
+   {:db (assoc db :stream nil)}))
 
 (rf/reg-event-db
  :stream/toggle-layout
  (fn [db [_ layout]]
-   (assoc-in db
-    [:stream layout]
-    (not (-> db
-             :stream
-             layout)))))
+   (assoc-in db [:stream layout] (not (get-in db [:stream layout])))))

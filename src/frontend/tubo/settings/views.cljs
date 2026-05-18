@@ -167,8 +167,7 @@
 
 (defn video-audio-settings
   [{:keys [default-audio-format default-video-format default-resolution
-           seamless-playback video-source-type audio-source-type autoplay
-           video-codecs]}]
+           seamless-playback stream-protocol autoplay video-codecs]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
     default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
@@ -187,9 +186,7 @@
         (str/join "," (map #(.-value %) (.. e -target -selectedOptions)))]))
     :multiple? true]
    [boolean-input "Seamless playback" [:seamless-playback] seamless-playback]
-   [select-input "Video source type" [:video-source-type] video-source-type
-    #{"dash" "hls" "progressive-http"}]
-   [select-input "Audio source type" [:audio-source-type] audio-source-type
+   [select-input "Stream protocol" [:stream-protocol] stream-protocol
     #{"dash" "hls" "progressive-http"}]])
 
 (defn settings

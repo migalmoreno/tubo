@@ -100,9 +100,7 @@
 (rf/reg-event-fx
  :search/leave-page
  (fn [{:keys [db]}]
-   {:fx [(when-not (= (-> (:navigation/current-match db)
-                          :data
-                          :name)
+   {:fx [(when-not (= (get-in (:navigation/current-match db) [:data :name])
                       :search-page)
            [:dispatch [:search/activate false]])]}))
 
