@@ -1,33 +1,9 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil num:nil
 #+TITLE: tubo
-Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from your favorite streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
-
-* Screenshots
-[[file:assets/stream.png]]
-[[file:assets/playlist.png]]
-[[file:assets/queue.png]]
-[[file:assets/channel.png]]
-[[file:assets/feed.png]]
-[[file:assets/subscriptions.png]]
-[[file:assets/main_player.png]]
-[[file:assets/search.png]]
-[[file:assets/stream_light.png]]
-[[file:assets/stream_mobile.png]]
-[[file:assets/queue_mobile.png]]
-
-* Features
-- No ads
-- Background player
-- Playback queue
-- Playlists
-- Subscriptions
-- Feed
-- System/Light/Dark themes
+Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from various streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
 
 * Installation
-** Packaging
-*** Docker
 There's a Docker Compose file available which you can run locally like this:
 
 #+begin_src sh
@@ -52,8 +28,8 @@ services:
 # ...
 #+end_src
 
-** Configuration
-The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to the configuration file for the respective service. For example, if you want to add your custom settings for the =backend= service:
+* Configuration
+The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to the configuration file for the respective service. For example, if you want to add your custom settings add a mount volume to the =backend= service:
 
 #+begin_src yaml
 services:
@@ -61,36 +37,6 @@ services:
     # ...rest of backend service settings
     volumes:
       - /path/to/your/config.edn:/app/resources/config.edn
-#+end_src
-
-** Reverse Proxy
-If you want to self-host Tubo and make it publicly accessible you'll need to set up a web server with a reverse proxy. You can find example configurations below:
-
-*** Nginx
-
-#+begin_src nginx
-server {
-    listen 443 ssl http2;
-    server_name <TUBO_HOST>;
-    ssl_certificate /etc/letsencrypt/live/<TUBO_HOST>/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/<TUBO_HOST>/privkey.pem;
-
-    location / {
-        proxy_pass http://localhost:8080;
-    }
-}
-
-# optional: you can set a reverse proxy for the API to connect via other front-ends
-server {
-    listen 443 ssl http2;
-    server_name api.<TUBO_HOST>;
-    ssl_certificate /etc/letsencrypt/live/<TUBO_HOST>/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/<TUBO_HOST>/privkey.pem;
-
-    location / {
-        proxy_pass http://localhost:3000;
-    }
-}
 #+end_src
 
 * Development Setup
@@ -119,7 +65,7 @@ Or by accessing a local =pgweb= instance in your browser at [[http://localhost:8
 To start the front-end development server with hot-reload support, run:
 
 #+begin_src sh
-clojure -M:cljs watch frontend
+clojure -M:dev:cljs watch frontend
 #+end_src
 
 You can now access it in your browser at [[http://localhost:8020]]
