@@ -358,5 +358,5 @@
           [stream-container video-stream
            [video-container video-stream
             [player/video-player video-stream id
-             #(rf/dispatch [:stream-player/mount video-stream id % 0])
+             #(rf/dispatch [:stream-player/mount video-stream id %])
              #(rf/dispatch [:stream-player/unmount id])]]])))))
