@@ -61,7 +61,7 @@
 (defn main
   [& _]
   (let [server (http/createServer #(handle-create-po-token %1 %2))
-        port   (or (js/parseInt js/process.env.BG_HELPER_PORT) 3005)]
+        port   (or (some-> js/process.env.BG_HELPER_PORT js/parseInt) 3005)]
     (.listen server
              port
              #(js/console.log (str "BG helper server running on port " port)))
