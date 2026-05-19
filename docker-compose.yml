@@ -9,7 +9,7 @@ services:
     depends_on:
       - backend
     environment:
-      - BACKEND_URL=http://backend:3000
+      - BACKEND_URL=http://localhost:3000
     restart: unless-stopped
   backend:
     container_name: tubo-backend
