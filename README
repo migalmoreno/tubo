@@ -29,12 +29,12 @@ services:
 #+end_src
 
 * Configuration
-The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the host or port where each service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to the configuration file for the respective service. For example, if you want to add your custom settings add a mount volume to the =backend= service:
+The main configuration file for all services lies in =resources/config.edn=. You can override this file with your preferred settings. If you use Docker you can use environment variables to configure certain deployment settings like the port where a service is running, or for settings which don't have a corresponding environment variable you can create a bind mount to a custom configuration file in the =backend= service:
 
 #+begin_src yaml
 services:
   backend:
-    # ...rest of backend service settings
+    # ...
     volumes:
       - /path/to/your/config.edn:/app/resources/config.edn
 #+end_src
