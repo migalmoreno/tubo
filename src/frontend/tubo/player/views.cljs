@@ -35,7 +35,7 @@
     [:div.flex.flex-col.items-center.ml-auto.gap-y-2
      [:div.flex.justify-end.gap-x-4.items-center
       [player/loop-button color false :extra-classes ["text-sm"]]
-      [player/prev-track-button]
+      [player/prev-track-button !player]
       [player/seek-backward-button !player !elapsed]
       [player/play-button !player color
        :loading-extra-classes ["text-3xl" "lg:text-4xl"]
@@ -58,9 +58,8 @@
       [player/duration-time @!duration :extra-classes ["justify-start"]]]]))
 
 (defn extra-controls
-  [color]
-  (let [!player    @(rf/subscribe [:bg-player])
-        muted?     @(rf/subscribe [:player/muted])
+  [color !player]
+  (let [muted?     @(rf/subscribe [:player/muted])
         dark-theme @(rf/subscribe [:dark-theme])]
     [:div.flex.lg:justify-end.lg:flex-1.gap-x-4
      [:div.hidden.lg:flex.w-36.items-center.gap-x-4
@@ -90,12 +89,15 @@
             !elapsed     @(rf/subscribe [:elapsed-time])
             !buffered    @(rf/subscribe [:player/buffered])
             stream       @(rf/subscribe [:queue/current])
+            pos          @(rf/subscribe [:queue/position])
             show-queue?  @(rf/subscribe [:queue/show])
             show-player? @(rf/subscribe [:bg-player/show])
             color        (utils/get-service-color (:service-id stream))]
         [:<>
          (when stream
-           [player/audio-player id])
+           [player/audio-player
+            #(rf/dispatch [:bg-player/mount id % stream pos])
+            #(rf/dispatch [:bg-player/unmount id])])
          [:> AnimatePresence
           (when (and show-player? (not show-queue?))
             [:> (.-div motion)
@@ -115,7 +117,7 @@
               [:div.flex.items-center.px-3
                [metadata stream]
                [main-controls color !player]
-               [extra-controls color]]]])]]))))
+               [extra-controls color !player]]]])]]))))
 
 (defn main-player
   [bg-player-id]
@@ -124,7 +126,7 @@
     [:div.relative.overflow-auto.w-full.h-full
      [stream/stream-container stream
       [stream/video-container stream
-       [player/video-player stream nil
-        #(rf/dispatch [:main-player/mount])
+       [player/video-player stream
+        #(rf/dispatch [:main-player/mount stream])
         #(rf/dispatch [:main-player/unmount])
         embed-player]]]]))

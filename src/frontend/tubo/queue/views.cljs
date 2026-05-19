@@ -32,8 +32,8 @@
        [player/elapsed-time !player !elapsed :extra-classes ["justify-start"]]
        [player/duration-time @!duration :extra-classes ["justify-end"]]]]
      [:div.flex.justify-between.items-center.flex-auto
-      [player/prev-track-button :extra-classes ["@sm:text-xl"] :show-on-mobile?
-       true]
+      [player/prev-track-button !player :extra-classes ["@sm:text-xl"]
+       :show-on-mobile? true]
       [player/seek-backward-button !player !elapsed :extra-classes
        ["@sm:text-xl"] :show-on-mobile? true]
       [player/play-button !player color
@@ -108,7 +108,9 @@
                   "--bg-gradient" (str
                                    "rgba("
                                    (if dark-theme? "10,10,10" "245,245,245")
-                                   ",0.5)")}
+                                   ","
+                                   (if dark-theme? "0.6" "0.4")
+                                   ")")}
           :ref   #(reset! !bg %)
           :class ["flex" "justify-center" "w-full" "h-full"
                   "relative" "overflow-hidden"

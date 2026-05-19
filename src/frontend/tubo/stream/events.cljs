@@ -50,9 +50,11 @@
            [:bad-page-response [:stream/on-reload url]]]]]}))
 
 (rf/reg-event-fx
- :search/leave-page
+ :stream/leave-page
  (fn [{:keys [db]}]
-   {:db (assoc db :stream nil)}))
+   (when-not (= (get-in (:navigation/current-match db) [:data :name])
+                :stream-page)
+     {:db (assoc db :stream nil)})))
 
 (rf/reg-event-db
  :stream/toggle-layout

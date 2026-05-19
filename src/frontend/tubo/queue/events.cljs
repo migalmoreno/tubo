@@ -161,11 +161,10 @@
 
 (rf/reg-event-fx
  :queue/previous
- [(rf/inject-cofx ::inject/sub [:bg-player])
-  (rf/inject-cofx ::inject/sub [:elapsed-time])]
- (fn [{:keys [db bg-player elapsed-time]}]
+ [(rf/inject-cofx ::inject/sub [:elapsed-time])]
+ (fn [{:keys [db elapsed-time]} [_ !player]]
    {:fx (if (> @elapsed-time 5)
-          [[:dispatch [:player/seek bg-player 0]]]
+          [[:dispatch [:player/seek !player 0]]]
           [[:dispatch [:queue/change-pos (dec (:queue/position db))]]])}))
 
 (rf/reg-event-fx
@@ -249,7 +248,7 @@
                       {:title   (:name stream)
                        :artist  (:uploader-name stream)
                        :artwork [{:src thumbnail}]}]
-                     [:dispatch [:bg-player/set-stream stream idx]]
+                     [:dispatch [:bg-player/load stream idx]]
                      [:dispatch [:scroll-to-index idx]]]
                     [])
                   (when (and (:main-player/show db)

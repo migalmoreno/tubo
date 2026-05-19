@@ -357,6 +357,6 @@
         (when video-stream
           [stream-container video-stream
            [video-container video-stream
-            [player/video-player video-stream id
+            [player/video-player video-stream
              #(rf/dispatch [:stream-player/mount video-stream id %])
              #(rf/dispatch [:stream-player/unmount id])]]])))))

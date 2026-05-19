@@ -161,7 +161,7 @@
  (fn [{:keys [db]} [_ player stream pos fallback-url on-failure]]
    (when-let [url (or fallback-url
                       (utils/get-stream-url stream (:settings db)))]
-     {:promise         {:call       #(load-video
+     (cond-> {:promise {:call       #(load-video
                                       player
                                       url
                                       (.querySelector (.-shadowRoot
@@ -171,8 +171,8 @@
                                       [:player/pause player false])
                         :on-failure (or on-failure
                                         [:player/on-load-failure player stream
-                                         pos])}
-      :player/set-next [player pos]})))
+                                         pos])}}
+       pos (assoc :player/set-next [player pos])))))
 
 (rf/reg-fx
  :player/loop
@@ -197,7 +197,7 @@
      (-> (if value
              (.pause @player)
              (.play @player))
-         (p/catch #(rf/dispatch [:player/play-error % player]))))))
+         (p/catch #(rf/dispatch [:player/playback-error player %]))))))
 
 (rf/reg-event-fx
  :player/pause
@@ -307,29 +307,27 @@
            ios? (or (re-find #"iPad|iPhone|iPod" js/navigator.userAgent)
                     (and (= js/navigator.platform "MacIntel")
                          (> js/navigator.maxTouchPoints 1)))
-           events
-           (cond->
-             {"play" #(do (.play @player)
-                          (update-playback "playing"))
-              "pause" #(do (.pause @player)
-                           (update-playback "paused"))
-              "seekto" (fn [^js/navigator.MediaSessionActionDetails
-                            details]
-                         (seek (.-seekTime details)))
-              "stop" #(seek 0)
-              "previoustrack" (when queue?
-                                #(rf/dispatch [:queue/previous]))
-              "nexttrack" (when queue? #(rf/dispatch [:queue/next]))
-              "seekbackward"
-              (when (or (not queue?) (not ios?))
-                (fn [^js/navigator.MediaSessionActionDetails details]
-                  (seek (- (.-currentTime @player)
-                           (or (.-seekOffset details) 10)))))
-              "seekforward"
-              (when (or (not queue?) (not ios?))
-                (fn [^js/navigator.MediaSessionActionDetails details]
-                  (seek (+ (.-currentTime @player)
-                           (or (.-seekOffset details) 10)))))})]
+           events {"play" #(do (.play @player)
+                               (update-playback "playing"))
+                   "pause" #(do (.pause @player)
+                                (update-playback "paused"))
+                   "seekto" (fn [^js/navigator.MediaSessionActionDetails
+                                 details]
+                              (seek (.-seekTime details)))
+                   "stop" #(seek 0)
+                   "previoustrack" (when queue?
+                                     #(rf/dispatch [:queue/previous player]))
+                   "nexttrack" (when queue? #(rf/dispatch [:queue/next]))
+                   "seekbackward"
+                   (when (or (not queue?) (not ios?))
+                     (fn [^js/navigator.MediaSessionActionDetails details]
+                       (seek (- (.-currentTime @player)
+                                (or (.-seekOffset details) 10)))))
+                   "seekforward"
+                   (when (or (not queue?) (not ios?))
+                     (fn [^js/navigator.MediaSessionActionDetails details]
+                       (seek (+ (.-currentTime @player)
+                                (or (.-seekOffset details) 10)))))}]
        (doseq [[action cb] events]
          (try
            (.setActionHandler js/navigator.mediaSession action cb)
@@ -357,27 +355,25 @@
 
 (rf/reg-event-fx
  :main-player/mount
- [(rf/inject-cofx ::inject/sub [:queue/current])]
- (fn [{:keys [db] :as cofx} [_]]
+ (fn [{:keys [db]} [_ stream]]
    {:db (assoc db :main-player/show true)
     :fx [(when-not (seq (get-in db
                                 [:queue (:queue/position db)
                                  :comments-page]))
            [:dispatch
-            [:comments/fetch-page (:url (:queue/current cofx))
+            [:comments/fetch-page (:url stream)
              [:queue (:queue/position db)]]])
          (when-not (seq (get-in db
                                 [:queue (:queue/position db)
                                  :related-items]))
            [:dispatch
-            [:bg-player/fetch-stream (:url (:queue/current cofx))
-             (:queue/position db) false]])]}))
+            [:bg-player/fetch-stream (:url stream) (:queue/position db)
+             false]])]}))
 
 (rf/reg-event-fx
  :main-player/show
  (fn [{:keys [db]}]
-   {:fx [[:dispatch [:queue/show false]]
-         [:dispatch
+   {:fx [[:dispatch
           [:layout/show-mobile-panel
            {:id            (nano-id)
             :view          [views/main-player (:bg-player/id db)]
@@ -400,10 +396,11 @@
            [:dispatch [:bg-player/show]])]}))
 
 (rf/reg-event-fx
- :bg-player/set-stream
- [(rf/inject-cofx ::inject/sub [:bg-player])]
- (fn [{:keys [bg-player]} [_ stream pos]]
-   {:fx [[:dispatch [:player/load bg-player stream pos]]]}))
+ :bg-player/load
+ [(rf/inject-cofx :players)]
+ (fn [{:keys [db players]} [_ stream pos]]
+   (when-let [!player (get @players (:bg-player/id db))]
+     {:fx [[:dispatch [:player/load !player stream pos]]]})))
 
 (rf/reg-event-fx
  :bg-player/mount
@@ -412,7 +409,7 @@
     :fx [[:dispatch [:player/register id !player]]
          [:player/configure [!player (get-in db [:settings :video-codecs])]]
          [:player/request-filter [!player (get-in db [:settings :instance])]]
-         [:dispatch [:player/load !player stream pos]]
+         [:dispatch [:bg-player/load stream pos]]
          [:dispatch [:player/volume !player (:player/volume db)]]]}))
 
 (rf/reg-event-fx
@@ -514,18 +511,18 @@
  [(rf/inject-cofx :players)]
  (fn [{:keys [db players]} [_ stream]]
    (when-let [!player (get @players (:stream-player/id db))]
-     {:fx [[:dispatch [:player/load !player stream 0]]]})))
+     {:fx [[:dispatch [:player/load !player stream]]]})))
 
 (rf/reg-event-fx
  :stream-player/mount
- (fn [{:keys [db]} [_ stream id !player pos]]
+ (fn [{:keys [db]} [_ stream id !player]]
    {:db (assoc db :stream-player/id id)
     :fx (cond-> [[:dispatch [:player/register id !player]]
                  [:player/configure
                   [!player (get-in db [:settings :video-codecs])]]
                  [:player/request-filter
                   [!player (get-in db [:settings :instance])]]]
-          stream (conj [:dispatch [:player/load !player stream pos]]))}))
+          stream (conj [:dispatch [:stream-player/load stream]]))}))
 
 (rf/reg-event-fx
  :stream-player/unmount
