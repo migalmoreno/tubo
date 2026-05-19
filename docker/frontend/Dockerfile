@@ -11,7 +11,9 @@ COPY package*.json /app/
 RUN npm install
 
 COPY . /app
-RUN clojure -M:cljs release frontend
+RUN --mount=type=cache,id=maven,target=/root/.m2 \
+    --mount=type=cache,id=gitlibs,target=/root/.gitlibs \
+    clojure -M:cljs release frontend
 
 FROM nginx:stable-alpine
 

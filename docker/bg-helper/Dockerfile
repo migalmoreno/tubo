@@ -11,6 +11,8 @@ COPY package* /app/
 RUN npm install
 
 COPY . /app
-RUN clojure -M:cljs release bg-helper
+RUN --mount=type=cache,id=maven,target=/root/.m2 \
+    --mount=type=cache,id=gitlibs,target=/root/.gitlibs \
+    clojure -M:cljs release bg-helper
 
 CMD ["node", "resources/public/js/bg-helper.js"]
