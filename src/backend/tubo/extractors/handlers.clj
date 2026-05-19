@@ -96,7 +96,9 @@
                                           url
                                           (utils/->Page next-page))
                (PlaylistInfo/getInfo url))]
-    (ok (utils/->ListInfo info req))))
+    (ok (-> (utils/->ListInfo info req)
+            (update :thumbnails #(utils/proxy-images % req))
+            (update :uploader-avatars #(utils/proxy-images % req))))))
 
 (defn build-query-handler
   [{:keys [parameters]}]
