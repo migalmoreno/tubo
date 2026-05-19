@@ -17,7 +17,7 @@
                                               "resources/public/index.html")
                        (hooks/postcss "resources/src/index.css"
                                       "resources/public/index.css")
-                       (portal.shadow.remote/hook {:port 1234})]
+                       (portal.shadow.remote/hook)]
    :js-options        {:entry-keys        ["module" "browser" "main"]
                        :export-conditions ["import" "module" "browser" "require"
                                            "default"]}
