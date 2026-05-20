@@ -9,7 +9,6 @@
    :git-inject        {:version-pattern "^(.*)$"}
    :devtools          {:preloads [portal.shadow.preload]}
    :build-hooks       [(shadow-git-inject.core/hook)
-                       (shadow-env.core/hook)
                        (hooks/copy-assets
                         {:public-dir "resources/public"
                          :assets     {"resources/src/icons" "icons"}})

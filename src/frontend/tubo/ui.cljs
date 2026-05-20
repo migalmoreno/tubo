@@ -632,7 +632,7 @@
             :on-click #(rf/dispatch [:bg-player/start-radio item])}
            {:label    "Add to playlist"
             :icon     [:i.fa-solid.fa-plus]
-            :on-click #(rf/dispatch [:bookmarks/open-add-modal item])}
+            :on-click #(rf/dispatch [:bookmark/open-add-modal item])}
            (when @(rf/subscribe [:bookmarks/playlisted url playlist-id])
              {:label    "Remove from playlist"
               :icon     [:i.fa-solid.fa-trash]

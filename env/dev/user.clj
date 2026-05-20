@@ -2,8 +2,8 @@
   (:require
    [integrant.core :as ig]
    [integrant.repl :refer [clear go halt prep init reset reset-all] :as repl]
-   [ring.middleware.reload :as reload]
    [portal.api :as p]
+   [ring.middleware.reload :as reload]
    [tubo.http :as http]
    [tubo.system :refer [config]]))
 

@@ -472,19 +472,18 @@
        [:> MediaCaptionsMenu args
         [:div {:slot "title"} "Subtitles/CC"]]]])])
 
-
 (defn shaka-video
   [stream !player & {:as extra-props}]
   [:> ShakaVideo
-   (cond-> (merge {:ref            #(when !player (reset! !player %))
-                   :preload        "metadata"
-                   :playsInline    true
-                   :slot           "media"
-                   :poster         (:thumbnail stream)
-                   :on-loaded-data #(rf/dispatch [:player/start !player stream])
-                   :on-error       #(rf/dispatch [:player/media-error !player])
-                   :on-play        #(rf/dispatch [:player/play !player stream])}
-                  extra-props))
+   (merge {:ref            #(when !player (reset! !player %))
+           :preload        "metadata"
+           :playsInline    true
+           :slot           "media"
+           :poster         (:thumbnail stream)
+           :on-loaded-data #(rf/dispatch [:player/start !player stream])
+           :on-error       #(rf/dispatch [:player/media-error !player])
+           :on-play        #(rf/dispatch [:player/play !player stream])}
+          extra-props)
    [:track
     {:label   (:display-language-name (first (:subtitles stream)))
      :kind    "captions"
@@ -493,7 +492,6 @@
                    "/proxy/"
                    (js/encodeURIComponent
                     (:content (first (:subtitles stream)))))}]])
-
 
 (defn video-player
   [_ on-mount on-unmount embed-player]

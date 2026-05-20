@@ -1,12 +1,9 @@
-name: Publish Docker image
-
 on:
   push:
     branches:
       - master
     paths-ignore:
-      - "**/README"
-      - "assets/**"
+      - README
 
 jobs:
   docker-publish:
