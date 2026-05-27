@@ -1,7 +1,7 @@
 # -*- mode: org; org-html-head-include-default-style: nil; org-html-postamble: nil; -*-
 #+OPTIONS: toc:nil num:nil
 #+TITLE: tubo
-Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from various streaming platforms. It currently supports the same services as NewPipe, including YouTube, SoundCloud, Bandcamp, and more.
+Tubo is a streaming front-end focused on bringing the [[https://newpipe.net/][NewPipe]] experience to the web. It aims at providing a clean and simple user interface to consume media from various streaming platforms.
 
 * Installation
 There's a Docker Compose file available which you can run locally like this:
@@ -9,23 +9,6 @@ There's a Docker Compose file available which you can run locally like this:
 #+begin_src sh
 cd /path/to/tubo
 docker compose up -d
-#+end_src
-
-If you'd rather use the image(s) pushed to DockerHub, you can simply remove the =build= section and add an =image= property for the corresponding service in the =docker-compose.yml= file.
-
-#+begin_src yaml
-services:
-  frontend:
-    image: migalmoreno/tubo-frontend
-    # ...
-  backend:
-    image: migalmoreno/tubo-backend
-    # ...
-  bg-helper:
-    image: migalmoreno/tubo-bg-helper
-    # ...
-
-# ...
 #+end_src
 
 * Configuration
