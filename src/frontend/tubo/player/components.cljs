@@ -505,8 +505,9 @@
     (r/create-class
      {:component-did-mount
       (fn [_]
-        (.addEventListener @!controller "userinactivechange" on-inactive)
-        (.addEventListener @!controller "mediapaused" on-paused)
+        (when @!controller
+          (.addEventListener @!controller "userinactivechange" on-inactive)
+          (.addEventListener @!controller "mediapaused" on-paused))
         (when (and embed-player @embed-player @!controller)
           (reset! !media-parent (.-parentNode @embed-player))
           (.setAttribute @embed-player "slot" "media")
@@ -515,8 +516,9 @@
         (on-mount !player))
       :component-will-unmount
       (fn [_]
-        (.removeEventListener @!controller "userinactivechange" on-inactive)
-        (.removeEventListener @!controller "mediapaused" on-paused)
+        (when @!controller
+          (.removeEventListener @!controller "userinactivechange" on-inactive)
+          (.removeEventListener @!controller "mediapaused" on-paused))
         (when (and embed-player @embed-player @!media-parent)
           (.removeAttribute @embed-player "slot")
           (set! (.. @embed-player -style -display) "none")
