@@ -40,6 +40,8 @@ jobs:
             frontend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-frontend:latest
             backend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-backend:latest
             bg-helper.tags=${{ env.REGISTRY }}/migalmoreno/tubo-bg-helper:latest
-            *.platform+=linux/arm64
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+
+      - name: Deploy
+        run: sudo systemctl restart podman-tubo-frontend podman-tubo-backend podman-tubo-bg-helper
