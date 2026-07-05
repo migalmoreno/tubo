@@ -41,5 +41,5 @@ jobs:
             backend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-backend:latest
             bg-helper.tags=${{ env.REGISTRY }}/migalmoreno/tubo-bg-helper:latest
             *.platform+=linux/arm64
-            *.cache-from=type=registry,ref=${{ env.REGISTRY }}/migalmoreno/tubo-cache
-            *.cache-to=type=registry,ref=${{ env.REGISTRY }}/migalmoreno/tubo-cache,mode=max
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
