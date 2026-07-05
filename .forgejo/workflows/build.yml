@@ -15,9 +15,6 @@ jobs:
       - name: Set registry
         run: echo "REGISTRY=${FORGEJO_SERVER_URL#http://}" >> $GITHUB_ENV
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         driver-opts: network=host
@@ -38,7 +35,6 @@ jobs:
             frontend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-frontend:latest
             backend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-backend:latest
             bg-helper.tags=${{ env.REGISTRY }}/migalmoreno/tubo-bg-helper:latest
-            *.platform+=linux/amd64
             *.platform+=linux/arm64
             *.cache-from=type=registry,ref=${{ env.REGISTRY }}/migalmoreno/tubo-cache
             *.cache-to=type=registry,ref=${{ env.REGISTRY }}/migalmoreno/tubo-cache,mode=max
