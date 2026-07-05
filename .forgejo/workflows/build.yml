@@ -44,4 +44,4 @@ jobs:
             *.cache-to=type=gha,mode=max
 
       - name: Deploy
-        run: sudo systemctl restart podman-tubo-frontend podman-tubo-backend podman-tubo-bg-helper
+        run: curl ${{ vars.WEBHOOK_URL }}/hooks/tubo-deploy
