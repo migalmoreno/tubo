@@ -8,8 +8,6 @@ on:
 jobs:
   docker-publish:
     runs-on: auriga
-    permissions:
-      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +29,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.FORGEJO_TOKEN }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Build and push
         uses: docker/bake-action@v6
