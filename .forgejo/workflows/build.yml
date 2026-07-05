@@ -20,6 +20,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        driver-opts: network=host
 
       - name: Login to Forgejo Container Registry
         uses: docker/login-action@v3
@@ -31,6 +32,7 @@ jobs:
       - name: Build and push
         uses: docker/bake-action@v6
         with:
+          source: "."
           push: true
           set: |
             frontend.tags=${{ env.REGISTRY }}/migalmoreno/tubo-frontend:latest
