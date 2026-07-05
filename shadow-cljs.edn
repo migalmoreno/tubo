@@ -29,4 +29,5 @@
    :output-to        "resources/public/js/bg-helper.js"
    :devtools         {:before-load-async tubo.bg-helper/stop
                       :after-load        tubo.bg-helper/start}
-   :compiler-options {:reader-features #{:node}}}}}
+   :compiler-options {:reader-features #{:node}
+                      :parallel-build  false}}}}
