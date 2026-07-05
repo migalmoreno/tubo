@@ -8,6 +8,8 @@ on:
 jobs:
   docker-publish:
     runs-on: auriga
+    permissions:
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
