@@ -7,7 +7,7 @@ on:
 
 jobs:
   docker-publish:
-    runs-on: auriga
+    runs-on: cygnus
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,3 +45,12 @@ jobs:
 
       - name: Deploy
         run: curl ${{ vars.WEBHOOK_URL }}/hooks/tubo-deploy
+
+      - name: Trigger blog rebuild
+        if: success()
+        run: |
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.REGISTRY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"master"}' \
+            ${{ github.server_url }}/api/v1/repos/migalmoreno/blog/actions/workflows/build-and-deploy.yml/dispatches
