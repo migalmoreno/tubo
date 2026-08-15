@@ -142,14 +142,16 @@
   (when @player
     (js/Promise.
      (fn [resolve reject]
-       (letfn [(on-error [err]
-                 (.removeEventListener @player "loadeddata" on-loaded)
-                 (reject err))
-               (on-loaded [evt]
-                 (.removeEventListener @player "error" on-error)
+       (letfn [(on-shaka-error [event]
+                 (when (= (.. event -detail -severity) 2)
+                   (.removeEventListener (.-api @player) "error" on-shaka-error)
+                   (.removeEventListener @player "loadeddata" on-loaded)
+                   (reject (.-detail event))))
+               (on-loaded [_]
+                 (.removeEventListener (.-api @player) "error" on-shaka-error)
                  (set-quality! player default-resolution)
-                 (resolve evt))]
-         (.addEventListener @player "error" on-error #js {:once true})
+                 (resolve nil))]
+         (.addEventListener (.-api @player) "error" on-shaka-error)
          (.addEventListener @player "loadeddata" on-loaded #js {:once true})
          (set! (.-src @player) url))))))
 
