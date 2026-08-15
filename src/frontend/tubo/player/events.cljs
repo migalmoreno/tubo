@@ -124,12 +124,34 @@
              :artwork [{:src (:thumbnail stream)}]}]
            [:set-media-session-handlers [!player queue?]]]})))
 
+(defn- set-quality!
+  [player default-resolution]
+  (when (and @player (not= default-resolution "Best"))
+    (let [target-height (js/parseInt default-resolution)
+          renditions    (.-videoRenditions @player)
+          cnt           (.-length renditions)]
+      (when-let [best-idx (->> (range cnt)
+                               (map #(vector % (.-height (aget renditions %))))
+                               (filter #(<= (second %) target-height))
+                               (sort-by second >)
+                               ffirst)]
+        (set! (.-selectedIndex renditions) best-idx)))))
+
 (defn load-video
-  [player url element]
-  (when (.-api @player)
-    (-> (p/resolved nil)
-        (p/then #(.attach (.-api @player) element))
-        (p/then #(.load (.-api @player) url)))))
+  [player url default-resolution]
+  (when @player
+    (js/Promise.
+     (fn [resolve reject]
+       (letfn [(on-error [err]
+                 (.removeEventListener @player "loadeddata" on-loaded)
+                 (reject err))
+               (on-loaded [evt]
+                 (.removeEventListener @player "error" on-error)
+                 (set-quality! player default-resolution)
+                 (resolve evt))]
+         (.addEventListener @player "error" on-error #js {:once true})
+         (.addEventListener @player "loadeddata" on-loaded #js {:once true})
+         (set! (.-src @player) url))))))
 
 (rf/reg-fx
  :player/set-next
@@ -164,9 +186,8 @@
      (cond-> {:promise {:call       #(load-video
                                       player
                                       url
-                                      (.querySelector (.-shadowRoot
-                                                       @player)
-                                                      "video"))
+                                      (get-in db
+                                              [:settings :default-resolution]))
                         :on-success (when (get-in db [:settings :autoplay])
                                       [:player/pause player false])
                         :on-failure (or on-failure
