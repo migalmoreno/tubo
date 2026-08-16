@@ -21,7 +21,8 @@
                        :export-conditions ["import" "module" "browser" "require"
                                            "default"]}
    :compiler-options  {:closure-defines {tubo.utils/version
-                                         :shadow-git-inject/version}}
+                                         :shadow-git-inject/version}
+                       :externs ["node_modules/shaka-player/dist/shaka-player.compiled.externs.js"]}
    :modules           {:main {:init-fn tubo.core/init}}}
   :bg-helper
   {:target           :node-script
