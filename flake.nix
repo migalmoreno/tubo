@@ -34,6 +34,7 @@
               export PGHOST=/tmp
               export PGDATABASE=${dbName}
               export PGUSER=${dbUser}
+              npm install
             '';
           };
           process-compose."default" =

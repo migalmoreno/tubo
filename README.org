@@ -23,10 +23,10 @@ services:
 #+end_src
 
 * Development Setup
-To get a development environment set up, first install the front-end dependencies.
+To get a development environment set up, enter the Nix dev shell, which will install front-end dependencies automatically:
 
 #+begin_src sh
-npm i
+nix develop
 #+end_src
 
 To start necessary processes alongside the application (database, scripts, etc.), you'll need to invoke the following in the project root:
