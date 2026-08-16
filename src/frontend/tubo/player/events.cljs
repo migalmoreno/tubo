@@ -357,7 +357,9 @@
                 [:notifications/error "Playback failed. Retrying..."]]
                [:dispatch [:queue/reload-current-stream player]]]
             [[:dispatch
-              [:notifications/error (.. @player -error -message)]]])})))
+              [:notifications/error
+               (or (not-empty (.. @player -error -message))
+                   "Playback failed")]]])})))
 
 (rf/reg-fx
  :set-media-session-metadata
