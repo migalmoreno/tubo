@@ -48,7 +48,7 @@
                                         (str/includes? video-codecs (:name %)))
                                       codecs)
                                      (map :shaka-codec))]
-     (.configure (.-api @player)
+     (.configure (.-api ^js @player)
                  (clj->js
                   {"preferredVideoCodecs" preferred-video-codecs
                    "preferredAudioCodecs" ["opus" "mp4a"]
@@ -61,7 +61,7 @@
 (rf/reg-fx
  :player/request-filter
  (fn [[player url]]
-   (when-let [networking-engine (.getNetworkingEngine (.-api @player))]
+   (when-let [networking-engine (.getNetworkingEngine (.-api ^js @player))]
      (.registerRequestFilter
       networking-engine
       (fn [_ request]

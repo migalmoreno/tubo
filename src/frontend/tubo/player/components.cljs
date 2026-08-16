@@ -1,5 +1,7 @@
 (ns tubo.player.components
   (:require
+   ["ce-la-react" :refer [createComponent]]
+   ["custom-media-element" :refer [CustomVideoElement]]
    ["media-chrome/dist/react" :refer
     (MediaController
      MediaControlBar
@@ -21,13 +23,45 @@
      MediaSettingsMenuButton
      MediaSettingsMenuItem
      MediaRenditionMenu)]
+   ["media-tracks" :refer [MediaTracksMixin]]
    ["motion/react" :refer [motion]]
-   ["shaka-video-element/react$default" :as ShakaVideo]
+   ["react" :as react]
+   ["shaka-player" :as shaka]
    [re-frame.core :as rf]
    [reagent.core :as r]
    [tubo.bookmarks.modals :as modals]
    [tubo.ui :as ui]
    [tubo.utils :as utils]))
+
+(def ^:private ShakaVideoElement
+  (js*
+   "(class ShakaVideoElement extends ~{}(~{}) {
+    constructor() {
+      super();
+      if (~{}.Player.isBrowserSupported()) {
+        this.api = new ~{}.Player();
+      }
+    }
+   })"
+   MediaTracksMixin
+   CustomVideoElement
+   shaka
+   shaka))
+
+(when-not (.get js/customElements "shaka-video")
+  (.define js/customElements "shaka-video" ShakaVideoElement))
+
+(def ^:private ShakaVideo
+  (createComponent
+   #js {:react           react
+        :tagName         "shaka-video"
+        :elementClass    ShakaVideoElement
+        :toAttributeName (fn [prop-name]
+                           (cond
+                             (= prop-name "muted")        ""
+                             (= prop-name "defaultMuted") "muted"
+                             :else                        (.toLowerCase
+                                                           prop-name)))}))
 
 (defn popover
   [{:keys [uploader-url uploader-name uploader-verified uploader-avatars]
