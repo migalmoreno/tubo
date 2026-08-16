@@ -126,7 +126,7 @@
 
 (defn- set-quality!
   [player default-resolution]
-  (when (and @player (not= default-resolution "Best"))
+  (when (and @player (not= default-resolution "Auto"))
     (let [target-height (js/parseInt default-resolution)
           renditions    (.-videoRenditions @player)
           cnt           (.-length renditions)]
@@ -137,30 +137,92 @@
                                ffirst)]
         (set! (.-selectedIndex renditions) best-idx)))))
 
-(defn load-video
-  [player url default-resolution]
-  (when @player
-    (js/Promise.
-     (fn [resolve reject]
-       (letfn [(on-shaka-error [event]
-                 (when (= (.. event -detail -severity) 2)
-                   (.removeEventListener (.-api @player) "error" on-shaka-error)
-                   (.removeEventListener @player "loadeddata" on-loaded)
-                   (reject (.-detail event))))
-               (on-loaded [_]
-                 (.removeEventListener (.-api @player) "error" on-shaka-error)
-                 (set-quality! player default-resolution)
-                 (resolve nil))]
-         (.addEventListener (.-api @player) "error" on-shaka-error)
-         (.addEventListener @player "loadeddata" on-loaded #js {:once true})
-         (set! (.-src @player) url))))))
+(defn- add-media-tracks!
+  [player]
+  (doseq [track (js/Array.from (.-videoTracks @player))]
+    (.removeVideoTrack @player track))
+  (let [seen  (js/Set.)
+        track (doto (.addVideoTrack @player "main")
+                (aset "id" "main")
+                (aset "selected" true))]
+    (doseq [variant (array-seq (.getVariantTracks (.-api ^js @player)))]
+      (let [w  (.-width variant)
+            h  (.-height variant)
+            bw (or (.-videoBandwidth variant) (.-bandwidth variant))
+            k  (str w "x" h "@" bw)]
+        (when-not (.has seen k)
+          (.add seen k)
+          (let [rid (or (.-originalVideoId variant) (str (.-id variant)))]
+            (doto (.addRendition ^js track rid w h nil bw nil)
+              (aset "id" rid)))))))
+  (set! (.-onchange (.-videoRenditions @player))
+        (fn []
+          (let [renditions   (.-videoRenditions @player)
+                selected-idx (.-selectedIndex renditions)
+                api          (.-api ^js @player)]
+            (if (>= selected-idx 0)
+              (let [rendition-id (.-id (aget renditions selected-idx))
+                    variant      (some #(when (= (or (.-originalVideoId %)
+                                                     (str (.-id %)))
+                                                 rendition-id)
+                                          %)
+                                       (array-seq (.getVariantTracks api)))]
+                (when variant
+                  (.configure api (clj->js {"abr" {"enabled" false}}))
+                  (.selectVariantTrack api variant true)))
+              (.configure api (clj->js {"abr" {"enabled" true}})))))))
 
 (rf/reg-fx
- :player/set-next
- (fn [[player current-pos]]
-   (when current-pos
-     (set! (.-onended @player)
-           #(rf/dispatch [:queue/change-pos (inc current-pos)])))))
+ :player/add-tracks
+ (fn [[player default-resolution]]
+   (add-media-tracks! player)
+   (set-quality! player default-resolution)))
+
+(def ^:private subtitle-mime-types
+  {"TTML" "application/ttml+xml"
+   "VTT"  "text/vtt"
+   "SRT"  "application/x-subrip"})
+
+(rf/reg-fx
+ :player/load-subtitles
+ (fn [[player subtitles]]
+   (let [api      (.-api ^js @player)
+         promises (keep
+                   (fn [sub]
+                     (when-let [mime (get subtitle-mime-types (:format sub))]
+                       (-> (.addTextTrackAsync api
+                                               (:content sub)
+                                               (:language-tag sub)
+                                               "captions"
+                                               mime
+                                               nil
+                                               (:display-language-name sub))
+                           (.catch #(js/console.warn "subtitle load failed:"
+                                                     %)))))
+                   subtitles)]
+     (when (seq promises)
+       (-> (js/Promise.allSettled (clj->js promises))
+           (.then
+            (fn [_]
+              (when (= (.getLoadMode api) 2)
+                (.dispatchEvent api (js/Event. "textchanged"))))))))))
+
+(defn load-video
+  [player url]
+  (when-let [api (.-api ^js @player)]
+    (let [native-el (.querySelector (.-shadowRoot ^js @player) "video")]
+      (-> (p/resolved nil)
+          (p/then #(.attach api native-el))
+          (p/then #(.removeAttribute native-el "crossorigin"))
+          (p/then #(.load api url))))))
+
+(rf/reg-event-fx
+ :player/on-load-success
+ (fn [{:keys [db]} [_ player default-resolution subtitles]]
+   (cond-> {:player/add-tracks     [player default-resolution]
+            :player/load-subtitles [player subtitles]}
+     (get-in db [:settings :autoplay])
+     (assoc :fx [[:dispatch [:player/pause player false]]]))))
 
 (rf/reg-event-fx
  :player/on-load-failure
@@ -180,18 +242,23 @@
                                         "progressive-http"))
            [:notifications/error "Playback failed"]]]]}))
 
+(rf/reg-fx
+ :player/set-next
+ (fn [[player current-pos]]
+   (when current-pos
+     (set! (.-onended @player)
+           #(rf/dispatch [:queue/change-pos (inc current-pos)])))))
+
 (rf/reg-event-fx
  :player/load
  (fn [{:keys [db]} [_ player stream pos fallback-url on-failure]]
    (when-let [url (or fallback-url
                       (utils/get-stream-url stream (:settings db)))]
-     (cond-> {:promise {:call       #(load-video
-                                      player
-                                      url
-                                      (get-in db
-                                              [:settings :default-resolution]))
-                        :on-success (when (get-in db [:settings :autoplay])
-                                      [:player/pause player false])
+     (cond-> {:promise {:call       #(load-video player url)
+                        :on-success [:player/on-load-success
+                                     player
+                                     (get-in db [:settings :default-resolution])
+                                     (:subtitles stream)]
                         :on-failure (or on-failure
                                         [:player/on-load-failure player stream
                                          pos])}}

@@ -170,7 +170,7 @@
            seamless-playback stream-protocol autoplay video-codecs]}]
   [:<>
    [select-input "Default resolution" [:default-resolution]
-    default-resolution ["Best" "1080p" "720p" "480p" "360p" "240p" "144p"]]
+    default-resolution ["Auto" "1080p" "720p" "480p" "360p" "240p" "144p"]]
    [boolean-input "Autoplay" [:autoplay] autoplay]
    [select-input "Default video format" [:default-video-format]
     default-video-format #{"MPEG-4" "WebM" "3GP"}]

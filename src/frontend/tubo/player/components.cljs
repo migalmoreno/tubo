@@ -517,15 +517,7 @@
            :on-loaded-data #(rf/dispatch [:player/start !player stream])
            :on-error       #(rf/dispatch [:player/media-error !player])
            :on-play        #(rf/dispatch [:player/play !player stream])}
-          extra-props)
-   [:track
-    {:label   (:display-language-name (first (:subtitles stream)))
-     :kind    "captions"
-     :srcLang (:language-tag (first (:subtitles stream)))
-     :src     (str (:instance @(rf/subscribe [:settings]))
-                   "/proxy/"
-                   (js/encodeURIComponent
-                    (:content (first (:subtitles stream)))))}]])
+          extra-props)])
 
 (defn video-player
   [_ on-mount on-unmount embed-player]

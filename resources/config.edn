@@ -13,7 +13,7 @@
   :autoplay             true
   :video-codecs         "vp9,avc"
   :stream-protocol      "dash"
-  :default-resolution   "720p"
+  :default-resolution   "Auto"
   :default-video-format "MPEG-4"
   :default-audio-format "m4a"
   :seamless-playback    true
